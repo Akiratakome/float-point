@@ -1,0 +1,27 @@
+# Build
+build/
+cmake-build-*/
+
+# Output data
+output/
+*.o
+*.bin
+*.dat
+*.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+.cache/
+compile_commands.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
