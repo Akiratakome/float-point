@@ -49,6 +49,7 @@ struct Grid2D {
           data(static_cast<size_t>((nx_ + 2 * ng) * (ny_ + 2 * ng) * NVars), Real(0)),
           dx(Real(0)), dy(Real(0)) {}
 
+    // Set dx/dy before calling view() — the view captures them by value.
     GridView<Real, NVars> view() {
         return {data.data(), nx, ny, dx, dy};
     }

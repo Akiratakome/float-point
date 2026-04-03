@@ -115,8 +115,9 @@ TEST_CASE("Outflow BC corner ghost cells are filled", "[boundary]") {
 
     apply_outflow_bc(v);
 
-    REQUIRE(v(-1, -1, 0) != Approx(0.0));
-    REQUIRE(v(4, -1, 0) != Approx(0.0));
-    REQUIRE(v(-1, 3, 0) != Approx(0.0));
-    REQUIRE(v(4, 3, 0) != Approx(0.0));
+    // Corner ghosts: y-pass runs last, copies from y-edge which x-pass already filled
+    REQUIRE(v(-1, -1, 0) == Approx(1.0));  // from v(0,0,0)
+    REQUIRE(v(4, -1, 0) == Approx(2.0));   // from v(3,0,0)
+    REQUIRE(v(-1, 3, 0) == Approx(3.0));   // from v(0,2,0)
+    REQUIRE(v(4, 3, 0) == Approx(4.0));    // from v(3,2,0)
 }
