@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "euler/euler_flux.hpp"
 #include "euler/muscl.hpp"
+#include "euler/hancock.hpp"
 #include "core/grid.hpp"
 
 using namespace hrsc;
@@ -131,4 +132,62 @@ TEST_CASE("muscl_reconstruct_x: discontinuity triggers limiter", "[muscl]") {
     muscl_reconstruct_x(grid.view(), 5, 0, qL5, qR5);
     REQUIRE(qL5[RHO] == Approx(2.0).epsilon(1e-12));
     REQUIRE(qR5[RHO] == Approx(2.0).epsilon(1e-12));
+}
+
+// --- muscl_hancock_x tests ---
+
+TEST_CASE("muscl_hancock_x: uniform field unchanged after half-step", "[hancock]") {
+    Grid2D<double, 4> grid(10, 1);
+    grid.dx = 0.1;
+    grid.dy = 0.1;
+    auto gv = grid.view();
+
+    // Uniform state: rho=1, u=0, v=0, p=1 → cons={1, 0, 0, 2.5}
+    for (int i = -2; i < 12; ++i) {
+        gv(i, 0, RHO)  = 1.0;
+        gv(i, 0, RHOU) = 0.0;
+        gv(i, 0, RHOV) = 0.0;
+        gv(i, 0, EN)   = 2.5;
+    }
+
+    Vec<double, 4> qL{}, qR{};
+    muscl_hancock_x(grid.view(), 5, 0, 0.001, 1.4, qL, qR);
+
+    // Uniform → slope=0 → q_left=q_right=cell value → F(qL)=F(qR) → no evolution
+    REQUIRE(qL[RHO]  == Approx(1.0).epsilon(1e-12));
+    REQUIRE(qL[RHOU] == Approx(0.0).margin(1e-15));
+    REQUIRE(qL[RHOV] == Approx(0.0).margin(1e-15));
+    REQUIRE(qL[EN]   == Approx(2.5).epsilon(1e-12));
+
+    REQUIRE(qR[RHO]  == Approx(1.0).epsilon(1e-12));
+    REQUIRE(qR[RHOU] == Approx(0.0).margin(1e-15));
+    REQUIRE(qR[RHOV] == Approx(0.0).margin(1e-15));
+    REQUIRE(qR[EN]   == Approx(2.5).epsilon(1e-12));
+}
+
+TEST_CASE("muscl_hancock_x: linear density field evolves symmetrically", "[hancock]") {
+    Grid2D<double, 4> grid(10, 1);
+    grid.dx = 0.1;
+    grid.dy = 0.1;
+    auto gv = grid.view();
+
+    for (int i = -2; i < 12; ++i) {
+        double rho = 1.0 + 0.1 * i;
+        double p   = 1.0;
+        double E   = p / 0.4;  // gamma-1 = 0.4, u=v=0
+        gv(i, 0, RHO)  = rho;
+        gv(i, 0, RHOU) = 0.0;
+        gv(i, 0, RHOV) = 0.0;
+        gv(i, 0, EN)   = E;
+    }
+
+    Vec<double, 4> qL{}, qR{};
+    muscl_hancock_x(grid.view(), 5, 0, 0.001, 1.4, qL, qR);
+
+    // With u=0, E is constant (p/(gamma-1)), pressure is constant.
+    // F(qL) = {0, p, 0, 0} = F(qR) → no Hancock correction.
+    // So the result is just the MUSCL reconstruction.
+    // Cell 5: rho=1.5, slope=0.1
+    REQUIRE(qL[RHO] == Approx(1.45).epsilon(1e-10));
+    REQUIRE(qR[RHO] == Approx(1.55).epsilon(1e-10));
 }
