@@ -54,7 +54,7 @@ TEST_CASE("GridView ghost cell access", "[grid]") {
 TEST_CASE("GridView index matches raw memory layout", "[grid]") {
     Grid2D<double, NVARS> grid(4, 3);
     auto v = grid.view();
-    int ng = 2;
+    int ng = GridView<double, NVARS>::ng;
 
     int nx_total = 4 + 2 * ng; // 8
     int expected_idx = ((2 + ng) * nx_total + (1 + ng)) * NVARS + 3;
@@ -67,7 +67,7 @@ TEST_CASE("GridView index matches raw memory layout", "[grid]") {
 TEST_CASE("GridView 1D mode indexing", "[grid]") {
     Grid2D<double, NVARS> grid(200, 1);
     auto v = grid.view();
-    int ng = 2;
+    int ng = GridView<double, NVARS>::ng;
 
     int nx_total = 200 + 2 * ng; // 204
     int expected_idx = ((0 + ng) * nx_total + (100 + ng)) * NVARS + 0;

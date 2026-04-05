@@ -12,7 +12,7 @@ struct GridViewBase {
     Ptr data;
     int nx, ny;
     Real dx, dy;
-    static constexpr int ng = 2;
+    static constexpr int ng = NgHost;
 
     HD_FUNC int nx_total() const { return nx + 2 * ng; }
     HD_FUNC int ny_total() const { return ny + 2 * ng; }
@@ -40,7 +40,7 @@ using ConstGridView = GridViewBase<Real, NVars, const Real*>;
 template <typename Real, int NVars>
 struct Grid2D {
     int nx, ny;
-    static constexpr int ng = 2;
+    static constexpr int ng = NgHost;
     std::vector<Real> data;
     Real dx, dy;
 

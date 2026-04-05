@@ -25,3 +25,13 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude Code
+.claude/
+
+# Test output
+test_out.txt
+test_err.txt
+
+# PDFs
+*.pdf

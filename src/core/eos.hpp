@@ -47,12 +47,13 @@ HD_FUNC Vec<Real, 4> cons_to_prim(const Vec<Real, 4>& cons, Real gamma) {
 }
 
 // Primitive -> Conserved: {rho, rho*u, rho*v, E}
+// Primitive ordering matches conserved: {rho, u, v, p}
 template <typename Real>
 HD_FUNC Vec<Real, 4> prim_to_cons(const Vec<Real, 4>& prim, Real gamma) {
-    Real rho = prim[0];
-    Real u   = prim[1];
-    Real v   = prim[2];
-    Real p   = prim[3];
+    Real rho = prim[RHO];
+    Real u   = prim[RHOU];
+    Real v   = prim[RHOV];
+    Real p   = prim[EN];
 
     Real E = p / (gamma - Real(1)) + Real(0.5) * rho * (u * u + v * v);
 

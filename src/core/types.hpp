@@ -9,11 +9,14 @@
 
 namespace hrsc {
 
+// Number of ghost cells on each boundary
+static constexpr int NgHost = 2;
+
 // Physical constants templated on precision type
 template <typename Real>
 struct Constants {
-    static constexpr Real gamma   = static_cast<Real>(1.4);
-    static constexpr Real gamma_m1 = static_cast<Real>(0.4);
+    static constexpr Real Gamma   = static_cast<Real>(1.4);
+    static constexpr Real GammaM1 = static_cast<Real>(0.4);
 };
 
 } // namespace hrsc

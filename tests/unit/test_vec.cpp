@@ -139,6 +139,6 @@ TEMPLATE_TEST_CASE("Vec arithmetic is precision-aware", "[vec][template]", float
 
 TEMPLATE_TEST_CASE("Constants are precision-correct", "[types][template]", float, double) {
     using Real = TestType;
-    REQUIRE(Constants<Real>::gamma == Approx(Real(1.4)).epsilon(eps<Real>()));
-    REQUIRE(Constants<Real>::gamma_m1 == Approx(Real(0.4)).epsilon(eps<Real>()));
+    REQUIRE(Constants<Real>::Gamma == Approx(Real(1.4)).epsilon(eps<Real>()));
+    REQUIRE(Constants<Real>::GammaM1 == Approx(Real(0.4)).epsilon(eps<Real>()));
 }

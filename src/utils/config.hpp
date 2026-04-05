@@ -9,7 +9,7 @@
 namespace hrsc {
 
 class Config {
-    std::unordered_map<std::string, std::string> entries_;
+    std::unordered_map<std::string, std::string> m_entries;
 
     static std::string trim(const std::string& s) {
         auto start = s.find_first_not_of(" \t\r\n");
@@ -30,7 +30,7 @@ class Config {
             std::string key = trim(trimmed.substr(0, eq_pos));
             std::string val = trim(trimmed.substr(eq_pos + 1));
             if (!key.empty()) {
-                entries_[key] = val;
+                m_entries[key] = val;
             }
         }
     }
@@ -48,13 +48,13 @@ public:
 
     std::string get_string(const std::string& key,
                            const std::string& def = "") const {
-        auto it = entries_.find(key);
-        return (it != entries_.end()) ? it->second : def;
+        auto it = m_entries.find(key);
+        return (it != m_entries.end()) ? it->second : def;
     }
 
     int get_int(const std::string& key, int def = 0) const {
-        auto it = entries_.find(key);
-        if (it == entries_.end()) return def;
+        auto it = m_entries.find(key);
+        if (it == m_entries.end()) return def;
         try {
             return std::stoi(it->second);
         } catch (const std::invalid_argument&) {
@@ -67,8 +67,8 @@ public:
     }
 
     double get_double(const std::string& key, double def = 0.0) const {
-        auto it = entries_.find(key);
-        if (it == entries_.end()) return def;
+        auto it = m_entries.find(key);
+        if (it == m_entries.end()) return def;
         try {
             return std::stod(it->second);
         } catch (const std::invalid_argument&) {
@@ -81,8 +81,8 @@ public:
     }
 
     bool get_bool(const std::string& key, bool def = false) const {
-        auto it = entries_.find(key);
-        if (it == entries_.end()) return def;
+        auto it = m_entries.find(key);
+        if (it == m_entries.end()) return def;
         const std::string& val = it->second;
         if (val == "true" || val == "1") return true;
         if (val == "false" || val == "0") return false;
