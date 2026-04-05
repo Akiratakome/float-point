@@ -89,3 +89,14 @@ TEMPLATE_TEST_CASE("EOS round-trip is precision-aware", "[eos][template]", float
     REQUIRE(recovered[2] == Approx(prim[2]).epsilon(eps<Real>()));
     REQUIRE(recovered[3] == Approx(prim[3]).epsilon(eps<Real>()));
 }
+
+TEST_CASE("PrimVar enum accesses cons_to_prim output correctly", "[eos]") {
+    // Sod left state: rho=1, u=0, v=0, p=1 → cons = {1, 0, 0, 2.5}
+    Vec<double, 4> cons = {1.0, 0.0, 0.0, 2.5};
+    Vec<double, 4> prim = cons_to_prim(cons, 1.4);
+
+    REQUIRE(prim[PrimVar::PRHO] == Approx(1.0));
+    REQUIRE(prim[PrimVar::VX]   == Approx(0.0));
+    REQUIRE(prim[PrimVar::VY]   == Approx(0.0));
+    REQUIRE(prim[PrimVar::PRES] == Approx(1.0));
+}

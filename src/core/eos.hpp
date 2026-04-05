@@ -12,6 +12,9 @@ namespace hrsc {
 // Conserved variable indexing for Euler: {rho, rho*u, rho*v, E}
 enum EulerVar : int { RHO = 0, RHOU = 1, RHOV = 2, EN = 3 };
 
+// Primitive variable indexing: {rho, u, v, p}
+enum PrimVar : int { PRHO = 0, VX = 1, VY = 2, PRES = 3 };
+
 // Pressure from conserved variables
 template <typename Real>
 HD_FUNC Real pressure(const Vec<Real, 4>& cons, Real gamma) {
