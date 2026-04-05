@@ -3,7 +3,9 @@
 #include "euler/muscl.hpp"
 #include "euler/hancock.hpp"
 #include "euler/hllc.hpp"
+#include "euler/euler_solver.hpp"
 #include "core/grid.hpp"
+#include "core/boundary.hpp"
 #include "toro_tests.hpp"
 
 using namespace hrsc;
@@ -272,4 +274,79 @@ TEST_CASE("setup_sod: left and right states set correctly", "[sod]") {
     REQUIRE(gv(150, 0, RHOV) == Approx(0.0));
     // E = p/(gamma-1) = 0.1/0.4 = 0.25
     REQUIRE(gv(150, 0, EN)   == Approx(0.25));
+}
+
+// --- EulerSolver integration tests ---
+
+TEST_CASE("EulerSolver: Sod density stays in physical range", "[solver]") {
+    int nx = 200;
+    double dx = 1.0 / nx;
+    EulerSolver<double> solver(nx, dx, 1.4, 0.8, 0.25);
+
+    setup_sod(solver.grid_view(), 1.4);
+    solver.run();
+
+    auto gv = solver.grid_view();
+    for (int i = 0; i < nx; ++i) {
+        double rho = gv(i, 0, RHO);
+        REQUIRE(rho >= 0.1);
+        REQUIRE(rho <= 1.1);
+    }
+}
+
+TEST_CASE("EulerSolver: Sod mass is conserved", "[solver]") {
+    int nx = 200;
+    double dx = 1.0 / nx;
+    EulerSolver<double> solver(nx, dx, 1.4, 0.8, 0.25);
+
+    setup_sod(solver.grid_view(), 1.4);
+
+    // Compute initial total mass
+    double mass_init = 0.0;
+    {
+        auto gv = solver.grid_view();
+        for (int i = 0; i < nx; ++i) {
+            mass_init += gv(i, 0, RHO) * dx;
+        }
+    }
+
+    solver.run();
+
+    // Compute final total mass
+    double mass_final = 0.0;
+    {
+        auto gv = solver.grid_view();
+        for (int i = 0; i < nx; ++i) {
+            mass_final += gv(i, 0, RHO) * dx;
+        }
+    }
+
+    // Mass should be conserved to ~machine epsilon * nsteps
+    // Outflow BCs can leak mass, so allow ~1% tolerance
+    REQUIRE(mass_final == Approx(mass_init).epsilon(0.01));
+}
+
+TEST_CASE("EulerSolver: Sod shock position is approximately correct", "[solver]") {
+    int nx = 200;
+    double dx = 1.0 / nx;
+    EulerSolver<double> solver(nx, dx, 1.4, 0.8, 0.25);
+
+    setup_sod(solver.grid_view(), 1.4);
+    solver.run();
+
+    // Find the rightmost cell where density drops below 0.2
+    // (the shock front). The right-going shock at t=0.25 is ~x=0.93.
+    // Density behind shock ~0.265, ahead ~0.125; threshold 0.2 straddles the jump.
+    auto gv = solver.grid_view();
+    int shock_cell = -1;
+    for (int i = nx - 1; i >= 0; --i) {
+        if (gv(i, 0, RHO) > 0.2) {
+            shock_cell = i;
+            break;
+        }
+    }
+
+    double shock_x = (shock_cell + 0.5) * dx;
+    REQUIRE(shock_x > 0.75);
+    REQUIRE(shock_x < 0.95);
 }
