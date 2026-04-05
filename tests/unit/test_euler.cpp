@@ -2,6 +2,7 @@
 #include "euler/euler_flux.hpp"
 #include "euler/muscl.hpp"
 #include "euler/hancock.hpp"
+#include "euler/hllc.hpp"
 #include "core/grid.hpp"
 
 using namespace hrsc;
@@ -190,4 +191,59 @@ TEST_CASE("muscl_hancock_x: linear density field evolves symmetrically", "[hanco
     // Cell 5: rho=1.5, slope=0.1
     REQUIRE(qL[RHO] == Approx(1.45).epsilon(1e-10));
     REQUIRE(qR[RHO] == Approx(1.55).epsilon(1e-10));
+}
+
+// --- hllc_flux tests ---
+
+TEST_CASE("hllc_flux: identical states returns physical flux", "[hllc]") {
+    // If qL == qR, any Riemann solver must return F(q)
+    Vec<double, 4> cons = {1.0, 0.0, 0.0, 2.5}; // rho=1, u=0, v=0, p=1
+    Vec<double, 4> f_hllc = hllc_flux(cons, cons, 1.4);
+    Vec<double, 4> f_phys = euler_flux_x(cons, 1.4);
+
+    for (int v = 0; v < 4; ++v) {
+        REQUIRE(f_hllc[v] == Approx(f_phys[v]).margin(1e-14));
+    }
+}
+
+TEST_CASE("hllc_flux: identical states with nonzero velocity", "[hllc]") {
+    // rho=2, u=3, v=1, p=4 → cons = {2, 6, 2, 20}
+    Vec<double, 4> cons = {2.0, 6.0, 2.0, 20.0};
+    Vec<double, 4> f_hllc = hllc_flux(cons, cons, 1.4);
+    Vec<double, 4> f_phys = euler_flux_x(cons, 1.4);
+
+    for (int v = 0; v < 4; ++v) {
+        REQUIRE(f_hllc[v] == Approx(f_phys[v]).margin(1e-12));
+    }
+}
+
+TEST_CASE("hllc_flux: Sod interface gives reasonable flux", "[hllc]") {
+    // Left: rho=1, u=0, v=0, p=1 → cons={1, 0, 0, 2.5}
+    // Right: rho=0.125, u=0, v=0, p=0.1 → cons={0.125, 0, 0, 0.25}
+    Vec<double, 4> qL = {1.0, 0.0, 0.0, 2.5};
+    Vec<double, 4> qR = {0.125, 0.0, 0.0, 0.25};
+    Vec<double, 4> f = hllc_flux(qL, qR, 1.4);
+
+    // The Sod shock tube has a right-going shock and contact.
+    // At the interface, there should be a positive mass flux (flow goes right).
+    REQUIRE(f[RHO] > 0.0);
+    // Momentum flux should be positive (pressure pushes right)
+    REQUIRE(f[RHOU] > 0.0);
+}
+
+TEST_CASE("hllc_flux: symmetry test", "[hllc]") {
+    // Symmetric states: qL = (rho=2, u=1, v=0.5, p=3), qR = (rho=2, u=-1, v=0.5, p=3)
+    // By symmetry: mass flux should be zero, momentum flux = 2*p_star region
+    double gamma = 1.4;
+    Vec<double, 4> primL = {2.0, 1.0, 0.5, 3.0};
+    Vec<double, 4> primR = {2.0, -1.0, 0.5, 3.0};
+    Vec<double, 4> qL = prim_to_cons(primL, gamma);
+    Vec<double, 4> qR = prim_to_cons(primR, gamma);
+
+    Vec<double, 4> f = hllc_flux(qL, qR, gamma);
+
+    // Mass flux = 0 by symmetry (u=-u)
+    REQUIRE(f[RHO] == Approx(0.0).margin(1e-12));
+    // Energy flux = 0 by symmetry
+    REQUIRE(f[EN] == Approx(0.0).margin(1e-12));
 }

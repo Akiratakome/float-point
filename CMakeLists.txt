@@ -15,6 +15,12 @@ set(FLOAT_PRECISION "double" CACHE STRING "Floating-point precision (float/doubl
 add_library(hrsc_core INTERFACE)
 target_include_directories(hrsc_core INTERFACE ${CMAKE_SOURCE_DIR}/src)
 
+# Riemann solver inequality variant: <= (default) vs < (strict)
+option(RIEMANN_STRICT_INEQUALITY "Use strict < instead of <= in HLLC/HLLD" OFF)
+if(RIEMANN_STRICT_INEQUALITY)
+    target_compile_definitions(hrsc_core INTERFACE RIEMANN_STRICT_INEQUALITY)
+endif()
+
 # --- Main executable ---
 add_executable(hrsc src/main.cpp)
 target_link_libraries(hrsc PRIVATE hrsc_core)
