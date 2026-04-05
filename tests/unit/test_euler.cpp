@@ -4,6 +4,7 @@
 #include "euler/hancock.hpp"
 #include "euler/hllc.hpp"
 #include "core/grid.hpp"
+#include "toro_tests.hpp"
 
 using namespace hrsc;
 
@@ -246,4 +247,29 @@ TEST_CASE("hllc_flux: symmetry test", "[hllc]") {
     REQUIRE(f[RHO] == Approx(0.0).margin(1e-12));
     // Energy flux = 0 by symmetry
     REQUIRE(f[EN] == Approx(0.0).margin(1e-12));
+}
+
+// --- Sod IC test ---
+
+TEST_CASE("setup_sod: left and right states set correctly", "[sod]") {
+    Grid2D<double, 4> grid(200, 1);
+    grid.dx = 1.0 / 200;
+    grid.dy = 1.0;
+    auto gv = grid.view();
+
+    setup_sod(gv, 1.4);
+
+    // Cell 10 is at x = (10+0.5)*0.005 = 0.0525 → left state
+    REQUIRE(gv(10, 0, RHO)  == Approx(1.0));
+    REQUIRE(gv(10, 0, RHOU) == Approx(0.0));
+    REQUIRE(gv(10, 0, RHOV) == Approx(0.0));
+    // E = p/(gamma-1) = 1.0/0.4 = 2.5
+    REQUIRE(gv(10, 0, EN)   == Approx(2.5));
+
+    // Cell 150 is at x = (150+0.5)*0.005 = 0.7525 → right state
+    REQUIRE(gv(150, 0, RHO)  == Approx(0.125));
+    REQUIRE(gv(150, 0, RHOU) == Approx(0.0));
+    REQUIRE(gv(150, 0, RHOV) == Approx(0.0));
+    // E = p/(gamma-1) = 0.1/0.4 = 0.25
+    REQUIRE(gv(150, 0, EN)   == Approx(0.25));
 }
