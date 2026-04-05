@@ -24,6 +24,7 @@ endif()
 # --- Main executable ---
 add_executable(hrsc src/main.cpp)
 target_link_libraries(hrsc PRIVATE hrsc_core)
+target_include_directories(hrsc PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/toro_1d)
 
 # --- Unit tests ---
 file(GLOB TEST_SOURCES tests/unit/test_*.cpp)
