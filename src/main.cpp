@@ -33,6 +33,14 @@ int main(int argc, char* argv[]) {
     // Set initial conditions
     if (test == "sod") {
         setup_sod(solver.grid_view(), gamma);
+    } else if (test == "toro2") {
+        setup_toro2(solver.grid_view(), gamma);
+    } else if (test == "toro3") {
+        setup_toro3(solver.grid_view(), gamma);
+    } else if (test == "toro4") {
+        setup_toro4(solver.grid_view(), gamma);
+    } else if (test == "toro5") {
+        setup_toro5(solver.grid_view(), gamma);
     } else {
         throw std::runtime_error("Unknown test: " + test);
     }
