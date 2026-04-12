@@ -65,12 +65,13 @@ struct VanAlbadaLimiter {
 
 // MUSCL piecewise-linear reconstruction for cell i in x-direction.
 // Returns boundary-extrapolated values at left face (i-1/2) and right face (i+1/2).
-// Uses minbee limiter, component-wise on conserved variables.
+// Uses Limiter (default: MinbeeLimiter), component-wise on conserved variables.
 // Stencil: cells i-1, i, i+1 (within NgHost=2 ghost layers).
-template <typename Real, typename Ptr>
+template <typename Real, typename Ptr, typename Limiter = MinbeeLimiter>
 HD_FUNC void muscl_reconstruct_x(
     GridViewBase<Real, 4, Ptr> grid, int i, int j,
-    Vec<Real, 4>& q_left, Vec<Real, 4>& q_right)
+    Vec<Real, 4>& q_left, Vec<Real, 4>& q_right,
+    Limiter lim = {})
 {
     for (int v = 0; v < 4; ++v) {
         Real u_im1 = grid(i - 1, j, v);
@@ -79,7 +80,7 @@ HD_FUNC void muscl_reconstruct_x(
 
         Real backward = u_i - u_im1;
         Real forward  = u_ip1 - u_i;
-        Real slope    = minbee(backward, forward);
+        Real slope    = lim(backward, forward);
 
         q_left[v]  = u_i - Real(0.5) * slope;
         q_right[v] = u_i + Real(0.5) * slope;

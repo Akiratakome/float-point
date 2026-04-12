@@ -15,14 +15,15 @@ namespace hrsc {
 //
 // q_left  = value at left face  (i - 1/2)
 // q_right = value at right face (i + 1/2)
-template <typename Real, typename Ptr>
+template <typename Real, typename Ptr, typename Limiter = MinbeeLimiter>
 HD_FUNC void muscl_hancock_x(
     GridViewBase<Real, 4, Ptr> grid, int i, int j,
     Real dt, Real gamma,
-    Vec<Real, 4>& q_left, Vec<Real, 4>& q_right)
+    Vec<Real, 4>& q_left, Vec<Real, 4>& q_right,
+    Limiter lim = {})
 {
     // Step 1: MUSCL reconstruction
-    muscl_reconstruct_x(grid, i, j, q_left, q_right);
+    muscl_reconstruct_x(grid, i, j, q_left, q_right, lim);
 
     // Step 2: Compute fluxes at left and right faces
     Vec<Real, 4> fL = euler_flux_x(q_left,  gamma);

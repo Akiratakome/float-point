@@ -187,6 +187,28 @@ TEST_CASE("muscl_reconstruct_x: discontinuity triggers limiter", "[muscl]") {
     REQUIRE(qR5[RHO] == Approx(2.0).epsilon(1e-12));
 }
 
+TEST_CASE("muscl_reconstruct_x: van Leer on linear field", "[muscl]") {
+    Grid2D<double, 4> grid(10, 1);
+    grid.dx = 0.1;
+    grid.dy = 0.1;
+    auto gv = grid.view();
+
+    for (int i = -2; i < 12; ++i) {
+        gv(i, 0, RHO)  = 1.0 + 0.1 * i;
+        gv(i, 0, RHOU) = 0.0;
+        gv(i, 0, RHOV) = 0.0;
+        gv(i, 0, EN)   = 2.5;
+    }
+
+    Vec<double, 4> qL{}, qR{};
+    muscl_reconstruct_x(grid.view(), 5, 0, qL, qR, VanLeerLimiter{});
+
+    // Cell 5: rho=1.5, backward=forward=0.1
+    // vanleer(0.1, 0.1) = 0.1 (exact gradient recovery)
+    REQUIRE(qL[RHO] == Approx(1.45).epsilon(1e-12));
+    REQUIRE(qR[RHO] == Approx(1.55).epsilon(1e-12));
+}
+
 // --- muscl_hancock_x tests ---
 
 TEST_CASE("muscl_hancock_x: uniform field unchanged after half-step", "[hancock]") {
