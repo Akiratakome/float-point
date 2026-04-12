@@ -4,6 +4,7 @@
 #include "euler/hancock.hpp"
 #include "euler/hllc.hpp"
 #include "euler/euler_solver.hpp"
+#include "euler/exact_riemann.hpp"
 #include "core/grid.hpp"
 #include "core/boundary.hpp"
 #include "toro_tests.hpp"
@@ -424,4 +425,65 @@ TEST_CASE("EulerSolver: Sod shock position is approximately correct", "[solver]"
     double shock_x = (shock_cell + 0.5) * dx;
     REQUIRE(shock_x > 0.75);
     REQUIRE(shock_x < 0.95);
+}
+
+// --- exact_riemann_solve tests ---
+
+TEST_CASE("exact_riemann_solve: Sod p_star and u_star", "[exact]") {
+    double gamma = 1.4;
+    double p_star = 0.0, u_star = 0.0;
+
+    exact_riemann_solve(gamma,
+        1.0, 0.0, 1.0,      // rhoL, uL, pL
+        0.125, 0.0, 0.1,    // rhoR, uR, pR
+        p_star, u_star);
+
+    REQUIRE(p_star == Approx(0.30313).epsilon(1e-4));
+    REQUIRE(u_star == Approx(0.92745).epsilon(1e-4));
+}
+
+TEST_CASE("exact_riemann_solve: Toro Test 2 (123 problem)", "[exact]") {
+    double gamma = 1.4;
+    double p_star = 0.0, u_star = 0.0;
+    exact_riemann_solve(gamma,
+        1.0, -2.0, 0.4,
+        1.0,  2.0, 0.4,
+        p_star, u_star);
+    REQUIRE(p_star == Approx(0.00189).epsilon(1e-2));
+    REQUIRE(u_star == Approx(0.0).margin(1e-6));
+}
+
+TEST_CASE("exact_riemann_solve: Toro Test 3 (blast wave)", "[exact]") {
+    double gamma = 1.4;
+    double p_star = 0.0, u_star = 0.0;
+    exact_riemann_solve(gamma,
+        1.0, 0.0, 1000.0,
+        1.0, 0.0, 0.01,
+        p_star, u_star);
+    REQUIRE(p_star == Approx(460.894).epsilon(1e-3));
+    REQUIRE(u_star == Approx(19.5975).epsilon(1e-3));
+}
+
+TEST_CASE("exact_riemann_solve: Toro Test 4 (Lax)", "[exact]") {
+    double gamma = 1.4;
+    double p_star = 0.0, u_star = 0.0;
+    exact_riemann_solve(gamma,
+        0.445, 0.698, 3.528,
+        0.5,   0.0,   0.571,
+        p_star, u_star);
+    // Converged exact values for Lax IC (Toro Table 4.1)
+    REQUIRE(p_star == Approx(2.46610).epsilon(1e-4));
+    REQUIRE(u_star == Approx(1.52872).epsilon(1e-4));
+}
+
+TEST_CASE("exact_riemann_solve: vacuum check", "[exact]") {
+    double gamma = 1.4;
+    double p_star = -1.0, u_star = -1.0;
+    // Two flows diverging fast enough to generate vacuum
+    exact_riemann_solve(gamma,
+        1.0, -100.0, 0.4,
+        1.0,  100.0, 0.4,
+        p_star, u_star);
+    REQUIRE(p_star == Approx(0.0).margin(1e-12));
+    REQUIRE(u_star == Approx(0.0).margin(1e-6));
 }
