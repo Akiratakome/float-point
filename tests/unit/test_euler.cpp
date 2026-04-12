@@ -487,3 +487,34 @@ TEST_CASE("exact_riemann_solve: vacuum check", "[exact]") {
     REQUIRE(p_star == Approx(0.0).margin(1e-12));
     REQUIRE(u_star == Approx(0.0).margin(1e-6));
 }
+
+TEST_CASE("exact_riemann_sample: Sod at multiple points", "[exact]") {
+    double gamma = 1.4;
+    double rho, u, p;
+
+    // Left of all waves: x/t = -1.5 → undisturbed left state
+    // (left rarefaction head is at SHL = uL - aL = -sqrt(1.4) ≈ -1.183, so -1.5 is left of it)
+    exact_riemann_sample(gamma, -1.5,
+        1.0, 0.0, 1.0,  0.125, 0.0, 0.1,
+        rho, u, p);
+    REQUIRE(rho == Approx(1.0).epsilon(1e-6));
+    REQUIRE(u   == Approx(0.0).margin(1e-10));
+    REQUIRE(p   == Approx(1.0).epsilon(1e-6));
+
+    // Right of all waves: x/t = 2.0 → undisturbed right state
+    exact_riemann_sample(gamma, 2.0,
+        1.0, 0.0, 1.0,  0.125, 0.0, 0.1,
+        rho, u, p);
+    REQUIRE(rho == Approx(0.125).epsilon(1e-6));
+    REQUIRE(u   == Approx(0.0).margin(1e-10));
+    REQUIRE(p   == Approx(0.1).epsilon(1e-6));
+
+    // At the contact: x/t ≈ u_star = 0.92745, rho should be left-star or right-star
+    exact_riemann_sample(gamma, 0.5,
+        1.0, 0.0, 1.0,  0.125, 0.0, 0.1,
+        rho, u, p);
+    REQUIRE(rho > 0.1);
+    REQUIRE(rho < 1.0);
+    REQUIRE(p == Approx(0.30313).epsilon(1e-3));
+    REQUIRE(u == Approx(0.92745).epsilon(1e-3));
+}

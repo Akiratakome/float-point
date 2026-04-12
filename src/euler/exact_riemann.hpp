@@ -96,4 +96,102 @@ HD_FUNC void exact_riemann_solve(
     u_star = Real(0.5) * (uL + uR) + Real(0.5) * (fR - fL);
 }
 
+// Sample the exact Riemann solution at a given x/t value
+template <typename Real>
+HD_FUNC void exact_riemann_sample(
+    Real gamma, Real x_over_t,
+    Real rhoL, Real uL, Real pL,
+    Real rhoR, Real uR, Real pR,
+    Real& rho, Real& u, Real& p)
+{
+    Real aL = sound_speed(rhoL, pL, gamma);
+    Real aR = sound_speed(rhoR, pR, gamma);
+    Real gm1 = gamma - Real(1);
+    Real gp1 = gamma + Real(1);
+
+    // Get star-state pressure and velocity
+    Real p_star, u_star;
+    exact_riemann_solve(gamma, rhoL, uL, pL, rhoR, uR, pR, p_star, u_star);
+
+    // Vacuum state
+    if (p_star < Real(1e-14)) {
+        rho = Real(0);
+        u   = Real(0.5) * (uL + uR);
+        p   = Real(0);
+        return;
+    }
+
+    if (x_over_t <= u_star) {
+        // Left of contact — left wave
+        if (p_star > pL) {
+            // Left shock
+            Real SL = uL - aL * std::sqrt((gp1 * p_star / pL + gm1) / (Real(2) * gamma));
+            if (x_over_t <= SL) {
+                // Undisturbed left
+                rho = rhoL; u = uL; p = pL;
+            } else {
+                // Left star state
+                Real rho_starL = rhoL * ((p_star / pL + gm1 / gp1) /
+                                         (gm1 / gp1 * p_star / pL + Real(1)));
+                rho = rho_starL; u = u_star; p = p_star;
+            }
+        } else {
+            // Left rarefaction
+            Real aL_star = aL * std::pow(p_star / pL, gm1 / (Real(2) * gamma));
+            Real SHL = uL - aL;          // head speed
+            Real STL = u_star - aL_star;  // tail speed
+
+            if (x_over_t <= SHL) {
+                // Undisturbed left
+                rho = rhoL; u = uL; p = pL;
+            } else if (x_over_t <= STL) {
+                // Inside left rarefaction fan
+                Real ratio = (Real(2) / gp1) + (gm1 / (gp1 * aL)) * (uL - x_over_t);
+                rho = rhoL * std::pow(ratio, Real(2) / gm1);
+                u   = (Real(2) / gp1) * (aL + gm1 * Real(0.5) * uL + x_over_t);
+                p   = pL * std::pow(ratio, Real(2) * gamma / gm1);
+            } else {
+                // Left star state (behind rarefaction tail)
+                Real rho_starL = rhoL * std::pow(p_star / pL, Real(1) / gamma);
+                rho = rho_starL; u = u_star; p = p_star;
+            }
+        }
+    } else {
+        // Right of contact — right wave
+        if (p_star > pR) {
+            // Right shock
+            Real SR = uR + aR * std::sqrt((gp1 * p_star / pR + gm1) / (Real(2) * gamma));
+            if (x_over_t >= SR) {
+                // Undisturbed right
+                rho = rhoR; u = uR; p = pR;
+            } else {
+                // Right star state
+                Real rho_starR = rhoR * ((p_star / pR + gm1 / gp1) /
+                                         (gm1 / gp1 * p_star / pR + Real(1)));
+                rho = rho_starR; u = u_star; p = p_star;
+            }
+        } else {
+            // Right rarefaction
+            Real aR_star = aR * std::pow(p_star / pR, gm1 / (Real(2) * gamma));
+            Real SHR = uR + aR;          // head speed
+            Real STR = u_star + aR_star;  // tail speed
+
+            if (x_over_t >= SHR) {
+                // Undisturbed right
+                rho = rhoR; u = uR; p = pR;
+            } else if (x_over_t >= STR) {
+                // Inside right rarefaction fan
+                Real ratio = (Real(2) / gp1) - (gm1 / (gp1 * aR)) * (uR - x_over_t);
+                rho = rhoR * std::pow(ratio, Real(2) / gm1);
+                u   = (Real(2) / gp1) * (-aR + gm1 * Real(0.5) * uR + x_over_t);
+                p   = pR * std::pow(ratio, Real(2) * gamma / gm1);
+            } else {
+                // Right star state
+                Real rho_starR = rhoR * std::pow(p_star / pR, Real(1) / gamma);
+                rho = rho_starR; u = u_star; p = p_star;
+            }
+        }
+    }
+}
+
 } // namespace hrsc
