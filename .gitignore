@@ -1,9 +1,14 @@
 # Build
 build/
+build_vfc/
+build_vfc_hrsc
 cmake-build-*/
 
 # Output data
 output/
+
+# Experiments (Verificarlo MCA samples, plots, CSVs — transient analysis data)
+experiments/
 *.o
 *.bin
 *.dat

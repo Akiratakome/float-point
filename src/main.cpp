@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     // Output: x  rho  u  v  p  (one cell per line)
     auto gv = solver.grid_view();
-    std::cout << std::setprecision(12);
+    std::cout << std::setprecision(17);
     for (int i = 0; i < nx; ++i) {
         double x = xmin + (i + 0.5) * dx;
         Vec<double, 4> cons;
