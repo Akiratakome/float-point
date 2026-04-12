@@ -38,22 +38,71 @@ TEST_CASE("euler_flux_x: uniform rightward flow", "[flux]") {
     REQUIRE(f[3] == Approx(72.0).epsilon(1e-12));
 }
 
-// --- minmod tests ---
+// --- minbee tests ---
 
-TEST_CASE("minmod: same sign values", "[muscl]") {
-    REQUIRE(minmod(2.0, 3.0) == Approx(2.0));
-    REQUIRE(minmod(3.0, 2.0) == Approx(2.0));
-    REQUIRE(minmod(-2.0, -3.0) == Approx(-2.0));
+TEST_CASE("minbee: same sign values", "[limiter]") {
+    REQUIRE(minbee(2.0, 3.0) == Approx(2.0));
+    REQUIRE(minbee(3.0, 2.0) == Approx(2.0));
+    REQUIRE(minbee(-2.0, -3.0) == Approx(-2.0));
 }
 
-TEST_CASE("minmod: opposite signs returns zero", "[muscl]") {
-    REQUIRE(minmod(2.0, -1.0) == Approx(0.0));
-    REQUIRE(minmod(-2.0, 1.0) == Approx(0.0));
+TEST_CASE("minbee: opposite signs returns zero", "[limiter]") {
+    REQUIRE(minbee(2.0, -1.0) == Approx(0.0));
+    REQUIRE(minbee(-2.0, 1.0) == Approx(0.0));
 }
 
-TEST_CASE("minmod: one zero returns zero", "[muscl]") {
-    REQUIRE(minmod(0.0, 3.0) == Approx(0.0));
-    REQUIRE(minmod(3.0, 0.0) == Approx(0.0));
+TEST_CASE("minbee: one zero returns zero", "[limiter]") {
+    REQUIRE(minbee(0.0, 3.0) == Approx(0.0));
+    REQUIRE(minbee(3.0, 0.0) == Approx(0.0));
+}
+
+// --- vanleer tests ---
+
+TEST_CASE("vanleer: same sign values", "[limiter]") {
+    REQUIRE(vanleer(2.0, 3.0) == Approx(2.4));       // 2*2*3/(2+3) = 2.4
+    REQUIRE(vanleer(-2.0, -3.0) == Approx(-2.4));
+}
+
+TEST_CASE("vanleer: opposite signs returns zero", "[limiter]") {
+    REQUIRE(vanleer(2.0, -1.0) == Approx(0.0));
+}
+
+TEST_CASE("vanleer: equal values recover gradient", "[limiter]") {
+    REQUIRE(vanleer(1.5, 1.5) == Approx(1.5));       // 2*1.5*1.5/(1.5+1.5) = 1.5
+    REQUIRE(vanleer(-0.7, -0.7) == Approx(-0.7));
+}
+
+// --- superbee tests ---
+
+TEST_CASE("superbee: same sign values", "[limiter]") {
+    // superbee(2,3) = max(min(2, 6), min(4, 3)) = max(2, 3) = 3
+    REQUIRE(superbee(2.0, 3.0) == Approx(3.0));
+    REQUIRE(superbee(-2.0, -3.0) == Approx(-3.0));
+}
+
+TEST_CASE("superbee: opposite signs returns zero", "[limiter]") {
+    REQUIRE(superbee(2.0, -1.0) == Approx(0.0));
+}
+
+TEST_CASE("superbee: returns larger slope than minbee", "[limiter]") {
+    double a = 1.0, b = 2.0;
+    REQUIRE(std::abs(superbee(a, b)) >= std::abs(minbee(a, b)));
+}
+
+// --- vanalbada tests ---
+
+TEST_CASE("vanalbada: same sign values", "[limiter]") {
+    // vanalbada(2,3) = 2*3*(2+3)/(4+9) = 30/13 ≈ 2.3077
+    REQUIRE(vanalbada(2.0, 3.0) == Approx(30.0 / 13.0).epsilon(1e-12));
+}
+
+TEST_CASE("vanalbada: opposite signs returns zero", "[limiter]") {
+    REQUIRE(vanalbada(2.0, -1.0) == Approx(0.0));
+}
+
+TEST_CASE("vanalbada: equal values recover gradient", "[limiter]") {
+    // vanalbada(a,a) = a*a*(2a)/(2a^2) = a
+    REQUIRE(vanalbada(1.5, 1.5) == Approx(1.5));
 }
 
 // --- muscl_reconstruct_x tests ---
@@ -103,7 +152,7 @@ TEST_CASE("muscl_reconstruct_x: linear field recovers exact gradient", "[muscl]"
 
     // Cell 5 center value: rho = 1.5
     // backward diff: rho_5 - rho_4 = 0.1, forward diff: rho_6 - rho_5 = 0.1
-    // minmod(0.1, 0.1) = 0.1
+    // minbee(0.1, 0.1) = 0.1
     // qL (left face) = 1.5 - 0.5 * 0.1 = 1.45
     // qR (right face) = 1.5 + 0.5 * 0.1 = 1.55
     REQUIRE(qL[RHO] == Approx(1.45).epsilon(1e-12));
@@ -125,13 +174,13 @@ TEST_CASE("muscl_reconstruct_x: discontinuity triggers limiter", "[muscl]") {
         gv(i, 0, EN)   = 2.5;
     }
 
-    // Cell 4: backward = 1-1=0, forward = 2-1=1 → minmod(0,1)=0
+    // Cell 4: backward = 1-1=0, forward = 2-1=1 → minbee(0,1)=0
     Vec<double, 4> qL4{}, qR4{};
     muscl_reconstruct_x(grid.view(), 4, 0, qL4, qR4);
     REQUIRE(qL4[RHO] == Approx(1.0).epsilon(1e-12));
     REQUIRE(qR4[RHO] == Approx(1.0).epsilon(1e-12));
 
-    // Cell 5: backward = 2-1=1, forward = 2-2=0 → minmod(1,0)=0
+    // Cell 5: backward = 2-1=1, forward = 2-2=0 → minbee(1,0)=0
     Vec<double, 4> qL5{}, qR5{};
     muscl_reconstruct_x(grid.view(), 5, 0, qL5, qR5);
     REQUIRE(qL5[RHO] == Approx(2.0).epsilon(1e-12));
