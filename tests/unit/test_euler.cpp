@@ -8,6 +8,7 @@
 #include "core/grid.hpp"
 #include "core/boundary.hpp"
 #include "toro_tests.hpp"
+#include "utils/error_norms.hpp"
 
 using namespace hrsc;
 
@@ -517,4 +518,36 @@ TEST_CASE("exact_riemann_sample: Sod at multiple points", "[exact]") {
     REQUIRE(rho < 1.0);
     REQUIRE(p == Approx(0.30313).epsilon(1e-3));
     REQUIRE(u == Approx(0.92745).epsilon(1e-3));
+}
+
+// --- error_norms tests ---
+
+TEST_CASE("compute_error: zero error for identical arrays", "[norms]") {
+    double a[] = {1.0, 2.0, 3.0};
+    double b[] = {1.0, 2.0, 3.0};
+    auto err = hrsc::compute_error(a, b, 3, 1.0);
+    REQUIRE(err.L1   == Approx(0.0).margin(1e-15));
+    REQUIRE(err.L2   == Approx(0.0).margin(1e-15));
+    REQUIRE(err.Linf == Approx(0.0).margin(1e-15));
+}
+
+TEST_CASE("compute_error: known error values", "[norms]") {
+    double num[]   = {1.0, 2.0, 3.0};
+    double exact[] = {1.1, 2.2, 3.3};
+    // |diff| = {0.1, 0.2, 0.3}, dV = 0.5
+    auto err = hrsc::compute_error(num, exact, 3, 0.5);
+    // L1 = (0.1 + 0.2 + 0.3) * 0.5 = 0.3
+    REQUIRE(err.L1 == Approx(0.3).epsilon(1e-12));
+    // L2 = sqrt((0.01 + 0.04 + 0.09) * 0.5) = sqrt(0.07)
+    REQUIRE(err.L2 == Approx(std::sqrt(0.07)).epsilon(1e-12));
+    // Linf = 0.3
+    REQUIRE(err.Linf == Approx(0.3).epsilon(1e-12));
+}
+
+TEST_CASE("compute_error: norm inequality L1 <= sqrt(n*dV)*L2", "[norms]") {
+    double num[]   = {1.0, 3.0, 5.0, 7.0};
+    double exact[] = {1.1, 2.5, 5.3, 6.8};
+    double dV = 0.25;
+    auto err = hrsc::compute_error(num, exact, 4, dV);
+    REQUIRE(err.L1 <= std::sqrt(4.0 * dV) * err.L2 + 1e-12);
 }
