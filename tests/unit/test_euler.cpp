@@ -360,7 +360,7 @@ TEST_CASE("setup_sod: left and right states set correctly", "[sod]") {
 TEST_CASE("EulerSolver: Sod density stays in physical range", "[solver]") {
     int nx = 200;
     double dx = 1.0 / nx;
-    EulerSolver<double> solver(nx, dx, 1.4, 0.8, 0.25);
+    EulerSolver<double> solver(nx, dx, 0.0, 1.4, 0.8, 0.25);
 
     setup_sod(solver.grid_view(), 1.4);
     solver.run();
@@ -376,7 +376,7 @@ TEST_CASE("EulerSolver: Sod density stays in physical range", "[solver]") {
 TEST_CASE("EulerSolver: Sod mass is conserved", "[solver]") {
     int nx = 200;
     double dx = 1.0 / nx;
-    EulerSolver<double> solver(nx, dx, 1.4, 0.8, 0.25);
+    EulerSolver<double> solver(nx, dx, 0.0, 1.4, 0.8, 0.25);
 
     setup_sod(solver.grid_view(), 1.4);
 
@@ -408,7 +408,7 @@ TEST_CASE("EulerSolver: Sod mass is conserved", "[solver]") {
 TEST_CASE("EulerSolver: Sod shock position is approximately correct", "[solver]") {
     int nx = 200;
     double dx = 1.0 / nx;
-    EulerSolver<double> solver(nx, dx, 1.4, 0.8, 0.25);
+    EulerSolver<double> solver(nx, dx, 0.0, 1.4, 0.8, 0.25);
 
     setup_sod(solver.grid_view(), 1.4);
     solver.run();

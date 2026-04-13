@@ -18,6 +18,8 @@ namespace hrsc {
 template <typename Real>
 class EulerSolver {
     Grid2D<Real, 4> m_grid;
+    Real m_xmin;
+    Real m_ymin;
     Real m_gamma;
     Real m_cfl;
     Real m_t_end;
@@ -25,8 +27,10 @@ class EulerSolver {
     int  m_step;
 
 public:
-    EulerSolver(int nx, Real dx, Real gamma, Real cfl, Real t_end)
+    EulerSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, Real t_end)
         : m_grid(nx, 1),
+          m_xmin(xmin),
+          m_ymin(Real(0)),
           m_gamma(gamma),
           m_cfl(cfl),
           m_t_end(t_end),
@@ -43,6 +47,8 @@ public:
 
     Real time() const { return m_time; }
     int  step_count() const { return m_step; }
+    Real xmin() const { return m_xmin; }
+    Real ymin() const { return m_ymin; }
 
     // Compute stable time step from CFL condition.
     // dt = CFL * dx / max_all(|u| + a)
