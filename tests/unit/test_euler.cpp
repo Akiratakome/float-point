@@ -42,6 +42,41 @@ TEST_CASE("euler_flux_x: uniform rightward flow", "[flux]") {
     REQUIRE(f[3] == Approx(72.0).epsilon(1e-12));
 }
 
+// --- euler_flux_y tests ---
+
+TEST_CASE("euler_flux_y: stationary gas returns {0, 0, p, 0}", "[flux]") {
+    Vec<double, 4> cons = {1.0, 0.0, 0.0, 2.5};
+    Vec<double, 4> g = euler_flux_y(cons, 1.4);
+
+    REQUIRE(g[0] == Approx(0.0).margin(1e-15));
+    REQUIRE(g[1] == Approx(0.0).margin(1e-15));
+    REQUIRE(g[2] == Approx(1.0).epsilon(1e-12));  // p = 1
+    REQUIRE(g[3] == Approx(0.0).margin(1e-15));
+}
+
+TEST_CASE("euler_flux_y: uniform upward flow", "[flux]") {
+    // rho=2, u=1, v=3, p=4, gamma=1.4
+    // cons: rho=2, rho*u=2, rho*v=6, E = 4/0.4 + 0.5*2*(1+9) = 10+10=20
+    Vec<double, 4> cons = {2.0, 2.0, 6.0, 20.0};
+    Vec<double, 4> g = euler_flux_y(cons, 1.4);
+
+    // G = {rho*v, rho*u*v, rho*v^2+p, v*(E+p)}
+    //   = {6, 2*1*3, 2*9+4, 3*(20+4)} = {6, 6, 22, 72}
+    REQUIRE(g[0] == Approx(6.0).epsilon(1e-12));
+    REQUIRE(g[1] == Approx(6.0).epsilon(1e-12));
+    REQUIRE(g[2] == Approx(22.0).epsilon(1e-12));
+    REQUIRE(g[3] == Approx(72.0).epsilon(1e-12));
+}
+
+TEST_CASE("swap_momentum: swaps RHOU and RHOV", "[flux]") {
+    Vec<double, 4> q = {1.0, 2.0, 3.0, 4.0};
+    Vec<double, 4> s = swap_momentum(q);
+    REQUIRE(s[RHO]  == Approx(1.0));
+    REQUIRE(s[RHOU] == Approx(3.0));  // was RHOV
+    REQUIRE(s[RHOV] == Approx(2.0));  // was RHOU
+    REQUIRE(s[EN]   == Approx(4.0));
+}
+
 // --- minbee tests ---
 
 TEST_CASE("minbee: same sign values", "[limiter]") {
