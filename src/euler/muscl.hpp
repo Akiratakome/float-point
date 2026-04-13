@@ -87,4 +87,27 @@ HD_FUNC void muscl_reconstruct_x(
     }
 }
 
+// MUSCL piecewise-linear reconstruction for cell (i,j) in y-direction.
+// Returns boundary-extrapolated values at bottom face (j-1/2) and top face (j+1/2).
+// Stencil: cells j-1, j, j+1 (within NgHost=2 ghost layers).
+template <typename Real, typename Ptr, typename Limiter = MinbeeLimiter>
+HD_FUNC void muscl_reconstruct_y(
+    GridViewBase<Real, 4, Ptr> grid, int i, int j,
+    Vec<Real, 4>& q_bottom, Vec<Real, 4>& q_top,
+    Limiter lim = {})
+{
+    for (int v = 0; v < 4; ++v) {
+        Real u_jm1 = grid(i, j - 1, v);
+        Real u_j   = grid(i, j,     v);
+        Real u_jp1 = grid(i, j + 1, v);
+
+        Real backward = u_j - u_jm1;
+        Real forward  = u_jp1 - u_j;
+        Real slope    = lim(backward, forward);
+
+        q_bottom[v] = u_j - Real(0.5) * slope;
+        q_top[v]    = u_j + Real(0.5) * slope;
+    }
+}
+
 } // namespace hrsc

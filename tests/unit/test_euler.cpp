@@ -306,6 +306,82 @@ TEST_CASE("muscl_hancock_x: linear density field evolves symmetrically", "[hanco
     REQUIRE(qR[RHO] == Approx(1.55).epsilon(1e-10));
 }
 
+// --- muscl_reconstruct_y tests ---
+
+TEST_CASE("muscl_reconstruct_y: uniform field gives no reconstruction", "[muscl]") {
+    Grid2D<double, 4> grid(5, 10);
+    grid.dx = 0.1;
+    grid.dy = 0.1;
+    auto gv = grid.view();
+
+    for (int j = -2; j < 12; ++j)
+        for (int i = -2; i < 7; ++i) {
+            gv(i, j, RHO)  = 1.0;
+            gv(i, j, RHOU) = 0.0;
+            gv(i, j, RHOV) = 0.0;
+            gv(i, j, EN)   = 2.5;
+        }
+
+    Vec<double, 4> qB{}, qT{};
+    muscl_reconstruct_y(grid.view(), 2, 5, qB, qT);
+
+    REQUIRE(qB[RHO] == Approx(1.0).epsilon(1e-12));
+    REQUIRE(qT[RHO] == Approx(1.0).epsilon(1e-12));
+}
+
+TEST_CASE("muscl_reconstruct_y: linear field in j-direction", "[muscl]") {
+    Grid2D<double, 4> grid(5, 10);
+    grid.dx = 0.1;
+    grid.dy = 0.1;
+    auto gv = grid.view();
+
+    for (int j = -2; j < 12; ++j)
+        for (int i = -2; i < 7; ++i) {
+            gv(i, j, RHO)  = 1.0 + 0.1 * j;
+            gv(i, j, RHOU) = 0.0;
+            gv(i, j, RHOV) = 0.0;
+            gv(i, j, EN)   = 2.5;
+        }
+
+    Vec<double, 4> qB{}, qT{};
+    muscl_reconstruct_y(grid.view(), 2, 5, qB, qT);
+
+    // Cell (2,5): rho=1.5, backward=forward=0.1
+    // minbee(0.1, 0.1) = 0.1
+    REQUIRE(qB[RHO] == Approx(1.45).epsilon(1e-12));
+    REQUIRE(qT[RHO] == Approx(1.55).epsilon(1e-12));
+}
+
+// --- muscl_hancock_y tests ---
+
+TEST_CASE("muscl_hancock_y: uniform field unchanged after half-step", "[hancock]") {
+    Grid2D<double, 4> grid(5, 10);
+    grid.dx = 0.1;
+    grid.dy = 0.1;
+    auto gv = grid.view();
+
+    for (int j = -2; j < 12; ++j)
+        for (int i = -2; i < 7; ++i) {
+            gv(i, j, RHO)  = 1.0;
+            gv(i, j, RHOU) = 0.0;
+            gv(i, j, RHOV) = 0.0;
+            gv(i, j, EN)   = 2.5;
+        }
+
+    Vec<double, 4> qB{}, qT{};
+    muscl_hancock_y(grid.view(), 2, 5, 0.001, 1.4, qB, qT);
+
+    REQUIRE(qB[RHO]  == Approx(1.0).epsilon(1e-12));
+    REQUIRE(qB[RHOU] == Approx(0.0).margin(1e-15));
+    REQUIRE(qB[RHOV] == Approx(0.0).margin(1e-15));
+    REQUIRE(qB[EN]   == Approx(2.5).epsilon(1e-12));
+
+    REQUIRE(qT[RHO]  == Approx(1.0).epsilon(1e-12));
+    REQUIRE(qT[RHOU] == Approx(0.0).margin(1e-15));
+    REQUIRE(qT[RHOV] == Approx(0.0).margin(1e-15));
+    REQUIRE(qT[EN]   == Approx(2.5).epsilon(1e-12));
+}
+
 // --- hllc_flux tests ---
 
 TEST_CASE("hllc_flux: identical states returns physical flux", "[hllc]") {

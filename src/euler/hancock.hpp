@@ -38,4 +38,29 @@ HD_FUNC void muscl_hancock_x(
     q_right += df * half_dtdx;
 }
 
+// MUSCL-Hancock predictor for cell (i,j) in y-direction.
+// q_bottom = value at bottom face (j - 1/2)
+// q_top    = value at top face    (j + 1/2)
+template <typename Real, typename Ptr, typename Limiter = MinbeeLimiter>
+HD_FUNC void muscl_hancock_y(
+    GridViewBase<Real, 4, Ptr> grid, int i, int j,
+    Real dt, Real gamma,
+    Vec<Real, 4>& q_bottom, Vec<Real, 4>& q_top,
+    Limiter lim = {})
+{
+    // Step 1: MUSCL reconstruction in y
+    muscl_reconstruct_y(grid, i, j, q_bottom, q_top, lim);
+
+    // Step 2: Compute y-fluxes at bottom and top faces
+    Vec<Real, 4> gB = euler_flux_y(q_bottom, gamma);
+    Vec<Real, 4> gT = euler_flux_y(q_top,    gamma);
+
+    // Step 3: Half-step evolution using dy (NOT dx)
+    Real half_dtdy = Real(0.5) * dt / grid.dy;
+    Vec<Real, 4> dg = gB - gT;
+
+    q_bottom += dg * half_dtdy;
+    q_top    += dg * half_dtdy;
+}
+
 } // namespace hrsc
