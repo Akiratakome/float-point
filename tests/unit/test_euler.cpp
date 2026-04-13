@@ -642,3 +642,52 @@ TEST_CASE("Config::get_int_list handles spaces", "[config]") {
     REQUIRE(list[1] == 20);
     REQUIRE(list[2] == 30);
 }
+
+// --- Stationary contact discontinuity tests ---
+
+TEST_CASE("Stationary contact IC", "[stationary_contact]") {
+    using Real = double;
+    Real gamma = 1.4;
+    Grid2D<Real, 4> grid(200, 1);
+    grid.dx = 1.0 / 200;
+    grid.dy = grid.dx;
+    auto gv = grid.view();
+
+    setup_stationary_contact(gv, gamma);
+
+    // Cell at i=50 (left side): rho=1, p=1
+    Vec<Real, 4> cons_L;
+    for (int v = 0; v < 4; ++v) cons_L[v] = gv(50, 0, v);
+    auto prim_L = cons_to_prim(cons_L, gamma);
+    REQUIRE(prim_L[PRHO] == Approx(1.0));
+    REQUIRE(prim_L[PRES] == Approx(1.0));
+    REQUIRE(prim_L[VX]   == Approx(0.0).margin(1e-15));
+
+    // Cell at i=150 (right side): rho=0.5, p=1
+    Vec<Real, 4> cons_R;
+    for (int v = 0; v < 4; ++v) cons_R[v] = gv(150, 0, v);
+    auto prim_R = cons_to_prim(cons_R, gamma);
+    REQUIRE(prim_R[PRHO] == Approx(0.5));
+    REQUIRE(prim_R[PRES] == Approx(1.0));
+    REQUIRE(prim_R[VX]   == Approx(0.0).margin(1e-15));
+}
+
+TEST_CASE("Stationary contact: pressure stays uniform", "[stationary_contact]") {
+    using Real = double;
+    Real gamma = 1.4;
+    int nx = 200;
+    Real dx = 1.0 / nx;
+    EulerSolver<Real> solver(nx, dx, 0.0, gamma, 0.8, 0.5);
+    setup_stationary_contact(solver.grid_view(), gamma);
+
+    solver.run();
+
+    auto gv = solver.grid_view();
+    for (int i = 0; i < nx; ++i) {
+        Vec<Real, 4> cons;
+        for (int v = 0; v < 4; ++v) cons[v] = gv(i, 0, v);
+        Real p = pressure(cons, gamma);
+        // Pressure should stay ~1.0 everywhere (no spurious waves)
+        REQUIRE(p == Approx(1.0).epsilon(0.05));
+    }
+}

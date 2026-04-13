@@ -25,6 +25,8 @@ static void setup_ic(GridView<double, 4> gv, const std::string& test, double gam
         setup_toro4(gv, gamma);
     } else if (test == "toro5") {
         setup_toro5(gv, gamma);
+    } else if (test == "stationary_contact") {
+        setup_stationary_contact(gv, gamma);
     } else {
         throw std::runtime_error("Unknown test: " + test);
     }
@@ -51,6 +53,9 @@ static void get_riemann_ic(const std::string& test,
     } else if (test == "toro5") {
         rhoL = 5.99924; uL = 19.5975;  pL = 460.894;
         rhoR = 5.99242; uR = -6.19633; pR = 46.0950;
+    } else if (test == "stationary_contact") {
+        rhoL = 1.0; uL = 0.0; pL = 1.0;
+        rhoR = 0.5; uR = 0.0; pR = 1.0;
     } else {
         throw std::runtime_error("Unknown test for convergence: " + test);
     }

@@ -73,4 +73,13 @@ void setup_toro5(GridView<Real, 4> grid, Real gamma) {
                   Real(5.99242), Real(-6.19633), Real(46.0950));
 }
 
+// Stationary contact discontinuity: S_M = 0 exactly
+// Domain [0,1], x0=0.5, t_end=0.5
+template <typename Real>
+void setup_stationary_contact(GridView<Real, 4> grid, Real gamma) {
+    setup_riemann(grid, gamma, Real(0.5),
+                  Real(1.0), Real(0), Real(1.0),    // left: rho=1, u=0, p=1
+                  Real(0.5), Real(0), Real(1.0));   // right: rho=0.5, u=0, p=1
+}
+
 } // namespace hrsc
