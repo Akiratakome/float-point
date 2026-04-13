@@ -9,6 +9,7 @@
 #include "core/boundary.hpp"
 #include "toro_tests.hpp"
 #include "utils/error_norms.hpp"
+#include "utils/io.hpp"
 
 using namespace hrsc;
 
@@ -550,4 +551,69 @@ TEST_CASE("compute_error: norm inequality L1 <= sqrt(n*dV)*L2", "[norms]") {
     double dV = 0.25;
     auto err = hrsc::compute_error(num, exact, 4, dV);
     REQUIRE(err.L1 <= std::sqrt(4.0 * dV) * err.L2 + 1e-12);
+}
+
+TEST_CASE("binary IO: write and read back match", "[io]") {
+    // Create a small 4x3 grid with known values
+    Grid2D<double, 4> grid(4, 3);
+    grid.dx = 0.25;
+    grid.dy = 0.5;
+    auto gv = grid.view();
+
+    for (int j = 0; j < 3; ++j)
+        for (int i = 0; i < 4; ++i)
+            for (int v = 0; v < 4; ++v)
+                gv(i, j, v) = 100.0 * j + 10.0 * i + v + 0.1;
+
+    std::string fname = "test_io_roundtrip.hrsc";
+    write_binary<double, 4>(fname, grid.view(), 4, 3, 0.25, 0.5, 1.234);
+
+    // Read header
+    int nx2, ny2, nvars2, prec2;
+    double time2, dx2, dy2;
+    read_binary_header(fname, nx2, ny2, nvars2, prec2, time2, dx2, dy2);
+    REQUIRE(nx2 == 4);
+    REQUIRE(ny2 == 3);
+    REQUIRE(nvars2 == 4);
+    REQUIRE(prec2 == 8);  // sizeof(double)
+    REQUIRE(time2 == Approx(1.234));
+    REQUIRE(dx2 == Approx(0.25));
+    REQUIRE(dy2 == Approx(0.5));
+
+    // Read data
+    Grid2D<double, 4> grid2(4, 3);
+    grid2.dx = dx2;
+    grid2.dy = dy2;
+    read_binary_data<double, 4>(fname, grid2.view(), 4, 3);
+
+    auto gv2 = grid2.view();
+    for (int j = 0; j < 3; ++j)
+        for (int i = 0; i < 4; ++i)
+            for (int v = 0; v < 4; ++v)
+                REQUIRE(gv2(i, j, v) == Approx(gv(i, j, v)).margin(1e-15));
+
+    std::remove(fname.c_str());
+}
+
+TEST_CASE("binary IO: file size is correct", "[io]") {
+    Grid2D<double, 4> grid(10, 5);
+    grid.dx = 0.1;
+    grid.dy = 0.2;
+    auto gv = grid.view();
+    for (int j = 0; j < 5; ++j)
+        for (int i = 0; i < 10; ++i)
+            for (int v = 0; v < 4; ++v)
+                gv(i, j, v) = 1.0;
+
+    std::string fname = "test_io_size.hrsc";
+    write_binary<double, 4>(fname, grid.view(), 10, 5, 0.1, 0.2, 0.0);
+
+    FILE* fp = std::fopen(fname.c_str(), "rb");
+    std::fseek(fp, 0, SEEK_END);
+    long size = std::ftell(fp);
+    std::fclose(fp);
+
+    // 64 header + 10 * 5 * 4 * 8 bytes = 64 + 1600 = 1664
+    REQUIRE(size == 1664);
+    std::remove(fname.c_str());
 }
