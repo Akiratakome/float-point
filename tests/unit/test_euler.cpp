@@ -859,7 +859,9 @@ TEST_CASE("EulerSolver 2D: Sod along x matches 1D", "[solver]") {
         }
     solver2d.run();
 
-    // Compare row 0 of 2D with 1D solution
+    // Compare row 0 of 2D with 1D solution.
+    // With v=0 throughout, max_Sy = a <= |u|+a = max_Sx, so the 2D CFL
+    // constraint is dominated by x and the dt sequences match the 1D run.
     auto gv1d = solver1d.grid_view();
     auto gv2d_final = solver2d.grid_view();
     for (int i = 0; i < nx; ++i) {

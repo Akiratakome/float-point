@@ -60,6 +60,8 @@ class EulerSolver {
     }
 
     // Y-direction sweep: compute y-interface fluxes and update conserved variables.
+    // muscl_hancock_y uses euler_flux_y internally for the predictor half-step.
+    // The HLLC corrector reuses the x-direction solver via momentum rotation.
     void y_sweep(Real dt) {
         auto gv = m_grid.view();
         int nx = gv.nx;
@@ -130,8 +132,8 @@ public:
         auto gv = m_grid.view();
         int nx = gv.nx;
         int ny = gv.ny;
-        Real max_Sx = std::numeric_limits<Real>::min();
-        Real max_Sy = std::numeric_limits<Real>::min();
+        Real max_Sx = std::numeric_limits<Real>::lowest();
+        Real max_Sy = std::numeric_limits<Real>::lowest();
 
         for (int j = 0; j < ny; ++j) {
             for (int i = 0; i < nx; ++i) {
@@ -159,9 +161,7 @@ public:
     }
 
     void step() {
-        auto gv = m_grid.view();
-
-        apply_outflow_bc(gv);
+        apply_outflow_bc(m_grid.view());
 
         Real dt = compute_dt();
         if (dt <= Real(0)) return;
@@ -173,11 +173,11 @@ public:
             // 2D path: alternating Godunov splitting
             if (m_step % 2 == 0) {
                 x_sweep(dt);
-                apply_outflow_bc(gv);
+                apply_outflow_bc(m_grid.view());
                 y_sweep(dt);
             } else {
                 y_sweep(dt);
-                apply_outflow_bc(gv);
+                apply_outflow_bc(m_grid.view());
                 x_sweep(dt);
             }
         }
