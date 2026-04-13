@@ -802,3 +802,68 @@ TEST_CASE("Stationary contact: pressure stays uniform", "[stationary_contact]") 
         REQUIRE(p == Approx(1.0).epsilon(0.05));
     }
 }
+
+TEST_CASE("EulerSolver 2D: uniform field no evolution", "[solver]") {
+    int nx = 20, ny = 20;
+    double dx = 0.05, dy = 0.05;
+    EulerSolver<double> solver(nx, ny, dx, dy, 0.0, 0.0, 1.4, 0.8, 0.01);
+
+    auto gv = solver.grid_view();
+    // Uniform state: rho=1, u=0, v=0, p=1 → cons={1, 0, 0, 2.5}
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            gv(i, j, RHO)  = 1.0;
+            gv(i, j, RHOU) = 0.0;
+            gv(i, j, RHOV) = 0.0;
+            gv(i, j, EN)   = 2.5;
+        }
+
+    solver.run();
+
+    auto gv2 = solver.grid_view();
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            REQUIRE(gv2(i, j, RHO)  == Approx(1.0).epsilon(1e-12));
+            REQUIRE(gv2(i, j, RHOU) == Approx(0.0).margin(1e-12));
+            REQUIRE(gv2(i, j, RHOV) == Approx(0.0).margin(1e-12));
+            REQUIRE(gv2(i, j, EN)   == Approx(2.5).epsilon(1e-12));
+        }
+}
+
+TEST_CASE("EulerSolver 2D: Sod along x matches 1D", "[solver]") {
+    double gamma = 1.4;
+    int nx = 100;
+    double dx = 1.0 / nx;
+
+    // 1D reference
+    EulerSolver<double> solver1d(nx, dx, 0.0, gamma, 0.8, 0.25);
+    setup_sod(solver1d.grid_view(), gamma);
+    solver1d.run();
+
+    // 2D: 4 rows, same Sod IC replicated in each row
+    int ny = 4;
+    EulerSolver<double> solver2d(nx, ny, dx, dx, 0.0, 0.0, gamma, 0.8, 0.25);
+    auto gv2d = solver2d.grid_view();
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            double x = (i + 0.5) * dx;
+            Vec<double, 4> prim;
+            if (x < 0.5) {
+                prim = {1.0, 0.0, 0.0, 1.0};
+            } else {
+                prim = {0.125, 0.0, 0.0, 0.1};
+            }
+            Vec<double, 4> cons = prim_to_cons(prim, gamma);
+            for (int v = 0; v < 4; ++v)
+                gv2d(i, j, v) = cons[v];
+        }
+    solver2d.run();
+
+    // Compare row 0 of 2D with 1D solution
+    auto gv1d = solver1d.grid_view();
+    auto gv2d_final = solver2d.grid_view();
+    for (int i = 0; i < nx; ++i) {
+        REQUIRE(gv2d_final(i, 0, RHO) == Approx(gv1d(i, 0, RHO)).epsilon(0.01));
+        REQUIRE(gv2d_final(i, 0, EN)  == Approx(gv1d(i, 0, EN)).epsilon(0.01));
+    }
+}
