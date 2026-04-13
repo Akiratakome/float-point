@@ -10,6 +10,7 @@
 #include "toro_tests.hpp"
 #include "utils/error_norms.hpp"
 #include "utils/io.hpp"
+#include "utils/config.hpp"
 
 using namespace hrsc;
 
@@ -616,4 +617,28 @@ TEST_CASE("binary IO: file size is correct", "[io]") {
     // 64 header + 10 * 5 * 4 * 8 bytes = 64 + 1600 = 1664
     REQUIRE(size == 1664);
     std::remove(fname.c_str());
+}
+
+// --- Config::get_int_list tests ---
+
+TEST_CASE("Config::get_int_list parses comma-separated values", "[config]") {
+    std::istringstream ss("resolutions = 50,100,200,400,800\n");
+    Config cfg(ss);
+    auto list = cfg.get_int_list("resolutions");
+    REQUIRE(list.size() == 5);
+    REQUIRE(list[0] == 50);
+    REQUIRE(list[1] == 100);
+    REQUIRE(list[2] == 200);
+    REQUIRE(list[3] == 400);
+    REQUIRE(list[4] == 800);
+}
+
+TEST_CASE("Config::get_int_list handles spaces", "[config]") {
+    std::istringstream ss("vals = 10 , 20 , 30\n");
+    Config cfg(ss);
+    auto list = cfg.get_int_list("vals");
+    REQUIRE(list.size() == 3);
+    REQUIRE(list[0] == 10);
+    REQUIRE(list[1] == 20);
+    REQUIRE(list[2] == 30);
 }

@@ -5,6 +5,7 @@
 #include <string>
 #include <stdexcept>
 #include <unordered_map>
+#include <vector>
 
 namespace hrsc {
 
@@ -88,6 +89,21 @@ public:
         if (val == "false" || val == "0") return false;
         throw std::runtime_error(
             "Failed to parse key '" + key + "' as bool: " + val);
+    }
+
+    std::vector<int> get_int_list(const std::string& key) const {
+        auto it = m_entries.find(key);
+        if (it == m_entries.end()) return {};
+        std::vector<int> result;
+        std::istringstream iss(it->second);
+        std::string token;
+        while (std::getline(iss, token, ',')) {
+            std::string t = trim(token);
+            if (!t.empty()) {
+                result.push_back(std::stoi(t));
+            }
+        }
+        return result;
     }
 };
 
