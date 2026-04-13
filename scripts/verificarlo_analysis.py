@@ -475,5 +475,57 @@ def main():
     print(f"\nVerificarlo analysis complete.")
 
 
+def analyze_branch_flips(branch_dir="output/branch_detection", n_cells=200):
+    """Compare MCA samples to detect branch flips across FP perturbations."""
+    import glob
+
+    sample_files = sorted(glob.glob(f"{branch_dir}/sample_*.txt"))
+    if not sample_files:
+        print(f"No samples found in {branch_dir}/")
+        return
+
+    print(f"\n=== Unstable Branch Detection ({len(sample_files)} samples) ===")
+
+    # Parse each sample: columns are x, rho, u, v, p
+    all_data = []
+    for sf in sample_files:
+        data = np.loadtxt(sf)
+        all_data.append(data)
+
+    all_data = np.array(all_data)  # shape: (n_samples, n_cells, 5)
+    n_samples = all_data.shape[0]
+
+    # For each cell, compute std deviation across samples
+    rho_std = np.std(all_data[:, :, 1], axis=0)  # rho is column 1
+    u_std   = np.std(all_data[:, :, 2], axis=0)  # u is column 2
+    p_std   = np.std(all_data[:, :, 4], axis=0)  # p is column 4
+
+    # Flag cells where variability is high (potential branch flips)
+    rho_mean = np.mean(np.abs(all_data[:, :, 1]), axis=0)
+    relative_var = np.where(rho_mean > 1e-10, rho_std / rho_mean, 0.0)
+
+    # Top 10 most variable cells
+    top_cells = np.argsort(relative_var)[-10:][::-1]
+
+    print("\nTop 10 cells with highest relative density variation (40-bit VPREC):")
+    print(f"{'Cell':>6}  {'x':>10}  {'rel_std_rho':>12}  {'std_u':>12}  {'std_p':>12}")
+    x_coords = all_data[0, :, 0]
+    for c in top_cells:
+        print(f"{c:6d}  {x_coords[c]:10.5f}  {relative_var[c]:12.4e}"
+              f"  {u_std[c]:12.4e}  {p_std[c]:12.4e}")
+
+    # Save summary
+    summary_file = f"{branch_dir}/branch_flip_summary.txt"
+    with open(summary_file, 'w') as f:
+        f.write("# Unstable branch detection summary (VPREC 40-bit)\n")
+        f.write(f"# {n_samples} MCA samples, {n_cells} cells\n")
+        f.write(f"# cell  x  rel_std_rho  std_u  std_p\n")
+        for c in range(len(x_coords)):
+            f.write(f"{c}  {x_coords[c]:.6f}  {relative_var[c]:.6e}"
+                    f"  {u_std[c]:.6e}  {p_std[c]:.6e}\n")
+
+    print(f"\nFull summary saved to {summary_file}")
+
+
 if __name__ == "__main__":
     main()

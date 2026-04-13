@@ -130,3 +130,30 @@ echo "============================================================"
 echo "  All samples saved to: ${OUT_DIR}/"
 echo "  Analyse: python scripts/verificarlo_analysis.py --vfc-dir ${OUT_DIR}"
 echo "============================================================"
+
+# ============================================================
+# Unstable Branch Detection (Week 3)
+# Runs VPREC at 40-bit precision for 30 MCA samples to identify
+# floating-point sensitive branch conditions in HLLC and MUSCL.
+# ============================================================
+
+BRANCH_DIR="output/branch_detection"
+mkdir -p "$BRANCH_DIR"
+
+echo "=== Unstable Branch Detection: VPREC 40-bit, 30 samples ==="
+
+# Compile with verificarlo wrapper + FMA instrumentation
+verificarlo-c++ --inst-fma -O2 -std=c++17 \
+    -I src -I tests/cases/toro_1d \
+    src/main.cpp -o hrsc_vfc_branch -lm
+
+export VFC_BACKENDS="libinterflop_vprec.so --precision-binary64=40"
+
+N_SAMPLES=30
+for i in $(seq 1 $N_SAMPLES); do
+    echo "  Sample $i/$N_SAMPLES"
+    ./hrsc_vfc_branch tests/cases/toro_1d/sod.cfg \
+        > "$BRANCH_DIR/sample_${i}.txt" 2>&1
+done
+
+echo "Branch detection samples saved to $BRANCH_DIR/"
