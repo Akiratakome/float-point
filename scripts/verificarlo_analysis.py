@@ -425,7 +425,13 @@ def main():
                         help="Annotate precision in output (53=double, 24=float)")
     parser.add_argument("--vfc-dir", type=str, default=None,
                         help="Override Verificarlo output directory")
+    parser.add_argument("--branch-analysis", type=str, default=None, metavar="DIR",
+                        help="Run branch flip analysis on samples in DIR (e.g., output/branch_detection)")
     args = parser.parse_args()
+
+    if args.branch_analysis:
+        analyze_branch_flips(args.branch_analysis)
+        return
 
     root = Path(__file__).resolve().parent.parent
     vfc_dir = Path(args.vfc_dir) if args.vfc_dir else root / "experiments" / "verificarlo" / "runs_p53_mca"

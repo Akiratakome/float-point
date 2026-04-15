@@ -2,10 +2,17 @@
 """Grid convergence study: reads error norm table from stdin, produces log-log plot."""
 
 import sys
+import os
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
 def main():
+    parser = argparse.ArgumentParser(description="Grid convergence log-log plot")
+    parser.add_argument("-o", "--output", type=str, default="output/convergence_sod.png",
+                        help="Output PNG path (default: output/convergence_sod.png)")
+    args = parser.parse_args()
+
     lines = []
     for line in sys.stdin:
         line = line.strip()
@@ -50,8 +57,9 @@ def main():
     ax.grid(True, which='both', alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig('output/convergence_sod.png', dpi=150)
-    print(f"\nPlot saved to output/convergence_sod.png")
+    os.makedirs(os.path.dirname(args.output) or '.', exist_ok=True)
+    plt.savefig(args.output, dpi=150)
+    print(f"\nPlot saved to {args.output}")
     plt.show()
 
 if __name__ == '__main__':
