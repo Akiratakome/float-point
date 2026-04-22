@@ -144,10 +144,19 @@ static void run_normal(const Config& cfg) {
     double xmax  = cfg.get_double("xmax", 1.0);
     double ymin  = cfg.get_double("ymin", 0.0);
     double ymax  = cfg.get_double("ymax", 0.0);
+    if (ny > 1 && ymax <= ymin) {
+        throw std::runtime_error(
+            "ymax must be > ymin when ny > 1 (got ymin=" + std::to_string(ymin) +
+            ", ymax=" + std::to_string(ymax) + ")");
+    }
     double gamma = cfg.get_double("gamma", 1.4);
     double cfl   = cfg.get_double("cfl", 0.8);
     double t_end = cfg.get_double("t_end", 0.25);
     int    out_prec = cfg.get_int("output_precision", 17);
+    if (out_prec < 1 || out_prec > 17) {
+        throw std::runtime_error(
+            "output_precision must be in [1, 17] (got " + std::to_string(out_prec) + ")");
+    }
     FluxScheme flux = parse_flux(cfg);
 
     double dx = (xmax - xmin) / nx;
