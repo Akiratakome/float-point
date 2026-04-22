@@ -4,6 +4,7 @@
 #include "euler/exact_riemann.hpp"
 #include "utils/error_norms.hpp"
 #include "toro_tests.hpp"
+#include "lw_tests.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -27,6 +28,10 @@ static void setup_ic(GridView<double, EulerNVars> gv, const std::string& test, d
         setup_toro5(gv, gamma);
     } else if (test == "stationary_contact") {
         setup_stationary_contact(gv, gamma);
+    } else if (test == "lw_config3") {
+        setup_liska_wendroff_config3(gv, gamma);
+    } else if (test == "lw_config6") {
+        setup_liska_wendroff_config6(gv, gamma);  // stub throws (Week 5)
     } else {
         throw std::runtime_error("Unknown test: " + test);
     }
@@ -134,15 +139,54 @@ static void run_convergence(const Config& cfg) {
 static void run_normal(const Config& cfg) {
     std::string test = cfg.get_string("test");
     int    nx    = cfg.get_int("nx", 200);
+    int    ny    = cfg.get_int("ny", 1);
     double xmin  = cfg.get_double("xmin", 0.0);
     double xmax  = cfg.get_double("xmax", 1.0);
+    double ymin  = cfg.get_double("ymin", 0.0);
+    double ymax  = cfg.get_double("ymax", 0.0);
     double gamma = cfg.get_double("gamma", 1.4);
     double cfl   = cfg.get_double("cfl", 0.8);
     double t_end = cfg.get_double("t_end", 0.25);
+    int    out_prec = cfg.get_int("output_precision", 17);
     FluxScheme flux = parse_flux(cfg);
 
     double dx = (xmax - xmin) / nx;
 
+    if (ny > 1) {
+        // ── 2D path ───────────────────────────────────────────────────────────
+        double dy = (ymax - ymin) / ny;
+        EulerSolver<double> solver(nx, ny, dx, dy, xmin, ymin,
+                                   gamma, cfl, t_end, flux);
+        setup_ic(solver.grid_view(), test, gamma);
+        solver.run();
+
+        std::cerr << "Finished: " << solver.step_count() << " steps, t = "
+                  << solver.time() << "\n";
+
+        auto gv = solver.grid_view();
+        std::cout << std::setprecision(out_prec);
+        // Gnuplot-friendly: one line per (i, j), blank line between j-blocks.
+        for (int j = 0; j < ny; ++j) {
+            double y = ymin + (j + 0.5) * dy;
+            for (int i = 0; i < nx; ++i) {
+                double x = xmin + (i + 0.5) * dx;
+                Vec<double, EulerNVars> cons;
+                for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, j, v);
+                Vec<double, EulerNVars> prim = cons_to_prim(cons, gamma);
+
+                std::cout << x          << "\t"
+                          << y          << "\t"
+                          << prim[PRHO] << "\t"
+                          << prim[VX]   << "\t"
+                          << prim[VY]   << "\t"
+                          << prim[PRES] << "\n";
+            }
+            std::cout << "\n";
+        }
+        return;
+    }
+
+    // ── 1D path (preserve bit-identical legacy output format) ─────────────────
     EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end, flux);
     setup_ic(solver.grid_view(), test, gamma);
     solver.run();
@@ -151,7 +195,7 @@ static void run_normal(const Config& cfg) {
               << solver.time() << "\n";
 
     auto gv = solver.grid_view();
-    std::cout << std::setprecision(17);
+    std::cout << std::setprecision(out_prec);
     for (int i = 0; i < nx; ++i) {
         double x = xmin + (i + 0.5) * dx;
         Vec<double, EulerNVars> cons;
