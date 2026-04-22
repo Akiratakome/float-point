@@ -14,7 +14,11 @@ import pytest
 _SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "scripts")
 sys.path.insert(0, os.path.abspath(_SCRIPTS_DIR))
 
-from plot_divergence_marker import first_divergence_index  # noqa: E402
+from plot_divergence_marker import (  # noqa: E402
+    all_divergence_indices,
+    divergence_segment_onsets,
+    first_divergence_index,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -57,3 +61,33 @@ def test_noise_floor_mode_not_implemented_in_stage1():
     assert "Stage 2" in msg or "A2-S2" in msg, (
         f"NotImplementedError message should mention 'Stage 2' or 'A2-S2', got: {msg!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# Test 4: all_divergence_indices returns every divergent cell
+# ---------------------------------------------------------------------------
+
+def test_all_divergence_indices_returns_every_cell():
+    """Two isolated spikes and a 3-cell run must all appear in the output."""
+    a = np.zeros(100)
+    b = np.zeros(100)
+    b[10] = 1.0
+    b[50:53] = 1.0
+    b[80] = 1.0
+    idx = all_divergence_indices(a, b, mode="visible")
+    assert idx.tolist() == [10, 50, 51, 52, 80]
+
+
+# ---------------------------------------------------------------------------
+# Test 5: divergence_segment_onsets collapses contiguous runs to their starts
+# ---------------------------------------------------------------------------
+
+def test_divergence_segment_onsets_collapses_contiguous_runs():
+    """Onsets: isolated spike at 10, contiguous run starting 50, isolated at 80 -> [10,50,80]."""
+    a = np.zeros(100)
+    b = np.zeros(100)
+    b[10] = 1.0
+    b[50:53] = 1.0
+    b[80] = 1.0
+    onsets = divergence_segment_onsets(a, b, mode="visible")
+    assert onsets == [10, 50, 80]

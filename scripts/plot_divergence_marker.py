@@ -82,6 +82,46 @@ def first_divergence_index(
         raise ValueError(f"Unknown mode: {mode!r}. Choose from 'visible', 'noise_floor', 'strict_fp'.")
 
 
+def all_divergence_indices(
+    a: np.ndarray,
+    b: np.ndarray,
+    mode: Mode = "visible",
+    visible_rel_tol: float = DEFAULT_VISIBLE_REL_TOL,
+) -> np.ndarray:
+    """Return every index i where |a - b| exceeds the per-mode tolerance envelope.
+
+    Visible mode only (Stage 1). Returns an int64 ndarray (empty if no divergence).
+    """
+    if mode != "visible":
+        raise NotImplementedError(
+            "Stage 2 (A2-S2): all_divergence_indices currently supports only visible mode"
+        )
+    tol = visible_rel_tol * np.maximum(np.abs(a), np.abs(b))
+    diff = np.abs(a - b)
+    return np.where(diff > tol)[0]
+
+
+def divergence_segment_onsets(
+    a: np.ndarray,
+    b: np.ndarray,
+    mode: Mode = "visible",
+    visible_rel_tol: float = DEFAULT_VISIBLE_REL_TOL,
+) -> list[int]:
+    """Return the onset index of each contiguous divergent segment.
+
+    A "segment" is a maximal run of consecutive indices where |a - b| > tol.
+    Onset = first index of each run. Adjacent cells do not count as new segments;
+    this keeps per-shock / per-contact entry points visible without cluttering
+    the plot with one label per cell.
+    """
+    idx = all_divergence_indices(a, b, mode=mode, visible_rel_tol=visible_rel_tol)
+    if len(idx) == 0:
+        return []
+    gaps = np.diff(idx) > 1
+    onset_mask = np.concatenate(([True], gaps))
+    return [int(i) for i in idx[onset_mask]]
+
+
 # ---------------------------------------------------------------------------
 # Single-panel plot helper
 # ---------------------------------------------------------------------------
@@ -106,21 +146,36 @@ def plot_single_panel(
     ax.plot(x_a, a, color="tab:blue", linewidth=1.5, label=label_a)
     ax.plot(x_b, b, color="tab:red", linewidth=1.5, linestyle="--", label=label_b)
 
-    div_idx = first_divergence_index(a, b, mode=mode, visible_rel_tol=visible_rel_tol)
+    # Per supervisor request (2026-04-16/17): mark every cell where HLLC and
+    # Rusanov visibly diverge, and label the onset of each contiguous segment
+    # (segment = shock / contact / rarefaction crossing) separately.
+    all_idx = all_divergence_indices(a, b, mode=mode, visible_rel_tol=visible_rel_tol)
+    seg_onsets = divergence_segment_onsets(a, b, mode=mode, visible_rel_tol=visible_rel_tol)
+    div_idx = int(all_idx[0]) if len(all_idx) else None
 
     if div_idx is not None:
-        xd = x_a[div_idx]
-        yd = a[div_idx]
-        ax.plot(xd, yd, "rx", markersize=10, markeredgewidth=2.5,
-                label=f"First divergence i={div_idx}")
-        ax.annotate(
-            f"i={div_idx}\nx={xd:.3f}",
-            xy=(xd, yd),
-            xytext=(xd + 0.03 * (x_a[-1] - x_a[0]), yd),
-            fontsize=7,
-            color="darkred",
-            arrowprops=dict(arrowstyle="->", color="darkred", lw=0.8),
-        )
+        # Small x at every divergent cell (dense but readable because shock regions
+        # are typically <5 cells wide at visible tol).
+        ax.plot(x_a[all_idx], a[all_idx], "x",
+                color="tab:red", markersize=6, markeredgewidth=1.2,
+                label=f"Divergent cells (n={len(all_idx)})")
+
+        # Larger x + text annotation at each segment onset, so the reader sees
+        # distinct shock/contact/rarefaction entries rather than one blob.
+        for k, onset in enumerate(seg_onsets):
+            xo = x_a[onset]
+            yo = a[onset]
+            ax.plot(xo, yo, "x",
+                    color="darkred", markersize=11, markeredgewidth=2.2,
+                    label="Segment onset" if k == 0 else None)
+            ax.annotate(
+                f"i={onset}\nx={xo:.3f}",
+                xy=(xo, yo),
+                xytext=(xo + 0.03 * (x_a[-1] - x_a[0]), yo),
+                fontsize=7,
+                color="darkred",
+                arrowprops=dict(arrowstyle="->", color="darkred", lw=0.8),
+            )
     else:
         ax.text(
             0.98, 0.98,
