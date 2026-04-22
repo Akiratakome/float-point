@@ -61,8 +61,10 @@ static void get_riemann_ic(const std::string& test,
     }
 }
 
+// Default chosen to match supervisor recommendation (email 2026-04-17):
+// Rusanov is the designated baseline vs HLLC for FP-sensitivity comparison.
 static FluxScheme parse_flux(const Config& cfg) {
-    std::string s = cfg.get_string("solver", "hllc");
+    std::string s = cfg.get_string("solver", "rusanov");
     return (s == "rusanov") ? FluxScheme::Rusanov : FluxScheme::HLLC;
 }
 
