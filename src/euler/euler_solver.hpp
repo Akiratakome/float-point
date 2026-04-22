@@ -8,6 +8,7 @@
 #include "euler/euler_flux.hpp"
 #include "euler/hancock.hpp"
 #include "euler/hllc.hpp"
+#include "euler/rusanov.hpp"
 
 #include <vector>
 #include <cmath>
@@ -16,9 +17,11 @@
 
 namespace hrsc {
 
+enum class FluxScheme { HLLC, Rusanov };
+
 template <typename Real>
 class EulerSolver {
-    Grid2D<Real, 4> m_grid;
+    Grid2D<Real, EulerNVars> m_grid;
     Real m_xmin;
     Real m_ymin;
     Real m_gamma;
@@ -26,6 +29,7 @@ class EulerSolver {
     Real m_t_end;
     Real m_time;
     int  m_step;
+    FluxScheme m_flux;
 
     // X-direction sweep: compute x-interface fluxes and update conserved variables.
     void x_sweep(Real dt) {
@@ -35,24 +39,26 @@ class EulerSolver {
         int n_interfaces = nx + 1;
 
         for (int j = 0; j < ny; ++j) {
-            std::vector<Vec<Real, 4>> flux(n_interfaces);
+            std::vector<Vec<Real, EulerNVars>> flux(n_interfaces);
 
             for (int k = 0; k < n_interfaces; ++k) {
                 int iL = k - 1;
                 int iR = k;
 
-                Vec<Real, 4> qL_left{}, qL_right{};
-                Vec<Real, 4> qR_left{}, qR_right{};
+                Vec<Real, EulerNVars> qL_left{}, qL_right{};
+                Vec<Real, EulerNVars> qR_left{}, qR_right{};
 
                 muscl_hancock_x(gv, iL, j, dt, m_gamma, qL_left, qL_right);
                 muscl_hancock_x(gv, iR, j, dt, m_gamma, qR_left, qR_right);
 
-                flux[k] = hllc_flux(qL_right, qR_left, m_gamma);
+                flux[k] = (m_flux == FluxScheme::Rusanov)
+                    ? rusanov_flux(qL_right, qR_left, m_gamma)
+                    : hllc_flux(qL_right, qR_left, m_gamma);
             }
 
             Real dtdx = dt / gv.dx;
             for (int i = 0; i < nx; ++i) {
-                for (int v = 0; v < 4; ++v) {
+                for (int v = 0; v < EulerNVars; ++v) {
                     gv(i, j, v) -= dtdx * (flux[i + 1][v] - flux[i][v]);
                 }
             }
@@ -69,26 +75,30 @@ class EulerSolver {
         int n_interfaces = ny + 1;
 
         for (int i = 0; i < nx; ++i) {
-            std::vector<Vec<Real, 4>> flux(n_interfaces);
+            std::vector<Vec<Real, EulerNVars>> flux(n_interfaces);
 
             for (int k = 0; k < n_interfaces; ++k) {
                 int jB = k - 1;  // cell below interface
                 int jT = k;      // cell above interface
 
-                Vec<Real, 4> qB_bot{}, qB_top{};
-                Vec<Real, 4> qT_bot{}, qT_top{};
+                Vec<Real, EulerNVars> qB_bot{}, qB_top{};
+                Vec<Real, EulerNVars> qT_bot{}, qT_top{};
 
                 muscl_hancock_y(gv, i, jB, dt, m_gamma, qB_bot, qB_top);
                 muscl_hancock_y(gv, i, jT, dt, m_gamma, qT_bot, qT_top);
 
-                // Rotate → HLLC → rotate back
-                flux[k] = swap_momentum(
-                    hllc_flux(swap_momentum(qB_top), swap_momentum(qT_bot), m_gamma));
+                // Rotate → flux → rotate back
+                auto rotL = swap_momentum(qB_top);
+                auto rotR = swap_momentum(qT_bot);
+                auto f_iface = (m_flux == FluxScheme::Rusanov)
+                    ? rusanov_flux(rotL, rotR, m_gamma)
+                    : hllc_flux(rotL, rotR, m_gamma);
+                flux[k] = swap_momentum(f_iface);
             }
 
             Real dtdy = dt / gv.dy;
             for (int j = 0; j < ny; ++j) {
-                for (int v = 0; v < 4; ++v) {
+                for (int v = 0; v < EulerNVars; ++v) {
                     gv(i, j, v) -= dtdy * (flux[j + 1][v] - flux[j][v]);
                 }
             }
@@ -99,7 +109,8 @@ public:
     // 2D constructor
     EulerSolver(int nx, int ny, Real dx, Real dy,
                 Real xmin, Real ymin,
-                Real gamma, Real cfl, Real t_end)
+                Real gamma, Real cfl, Real t_end,
+                FluxScheme flux = FluxScheme::HLLC)
         : m_grid(nx, ny),
           m_xmin(xmin),
           m_ymin(ymin),
@@ -107,18 +118,20 @@ public:
           m_cfl(cfl),
           m_t_end(t_end),
           m_time(Real(0)),
-          m_step(0)
+          m_step(0),
+          m_flux(flux)
     {
         m_grid.dx = dx;
         m_grid.dy = dy;
     }
 
     // 1D convenience constructor
-    EulerSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, Real t_end)
-        : EulerSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end)
+    EulerSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, Real t_end,
+                FluxScheme flux = FluxScheme::HLLC)
+        : EulerSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end, flux)
     {}
 
-    GridView<Real, 4> grid_view() {
+    GridView<Real, EulerNVars> grid_view() {
         return m_grid.view();
     }
 
@@ -137,8 +150,8 @@ public:
 
         for (int j = 0; j < ny; ++j) {
             for (int i = 0; i < nx; ++i) {
-                Vec<Real, 4> cons;
-                for (int v = 0; v < 4; ++v) cons[v] = gv(i, j, v);
+                Vec<Real, EulerNVars> cons;
+                for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, j, v);
 
                 Real rho = cons[RHO];
                 Real u   = cons[RHOU] / rho;

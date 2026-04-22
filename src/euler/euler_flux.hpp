@@ -10,7 +10,7 @@ namespace hrsc {
 // cons = {rho, rho*u, rho*v, E}
 // F    = {rho*u, rho*u^2 + p, rho*u*v, u*(E + p)}
 template <typename Real>
-HD_FUNC Vec<Real, 4> euler_flux_x(const Vec<Real, 4>& cons, Real gamma) {
+HD_FUNC Vec<Real, EulerNVars> euler_flux_x(const Vec<Real, EulerNVars>& cons, Real gamma) {
     Real rho   = cons[RHO];
     Real rho_u = cons[RHOU];
     Real rho_v = cons[RHOV];
@@ -28,7 +28,7 @@ HD_FUNC Vec<Real, 4> euler_flux_x(const Vec<Real, 4>& cons, Real gamma) {
 // cons = {rho, rho*u, rho*v, E}
 // G    = {rho*v, rho*u*v, rho*v^2 + p, v*(E + p)}
 template <typename Real>
-HD_FUNC Vec<Real, 4> euler_flux_y(const Vec<Real, 4>& cons, Real gamma) {
+HD_FUNC Vec<Real, EulerNVars> euler_flux_y(const Vec<Real, EulerNVars>& cons, Real gamma) {
     Real rho   = cons[RHO];
     Real rho_u = cons[RHOU];
     Real rho_v = cons[RHOV];
@@ -46,7 +46,7 @@ HD_FUNC Vec<Real, 4> euler_flux_y(const Vec<Real, 4>& cons, Real gamma) {
 // HLLC treats index 1 as normal velocity. For y-interfaces,
 // swap RHOU <-> RHOV so v becomes the normal velocity.
 template <typename Real>
-HD_FUNC Vec<Real, 4> swap_momentum(const Vec<Real, 4>& q) {
+HD_FUNC Vec<Real, EulerNVars> swap_momentum(const Vec<Real, EulerNVars>& q) {
     return {q[RHO], q[RHOV], q[RHOU], q[EN]};
 }
 

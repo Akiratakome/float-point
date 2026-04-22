@@ -4,6 +4,9 @@ build_vfc/
 build_vfc_hrsc
 cmake-build-*/
 
+# Verificarlo-instrumented binary (built out-of-tree, ends up at repo root)
+/hrsc_vfc
+
 # Output data
 output/
 

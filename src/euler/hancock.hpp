@@ -17,22 +17,22 @@ namespace hrsc {
 // q_right = value at right face (i + 1/2)
 template <typename Real, typename Ptr, typename Limiter = MinbeeLimiter>
 HD_FUNC void muscl_hancock_x(
-    GridViewBase<Real, 4, Ptr> grid, int i, int j,
+    GridViewBase<Real, EulerNVars, Ptr> grid, int i, int j,
     Real dt, Real gamma,
-    Vec<Real, 4>& q_left, Vec<Real, 4>& q_right,
+    Vec<Real, EulerNVars>& q_left, Vec<Real, EulerNVars>& q_right,
     Limiter lim = {})
 {
     // Step 1: MUSCL reconstruction
     muscl_reconstruct_x(grid, i, j, q_left, q_right, lim);
 
     // Step 2: Compute fluxes at left and right faces
-    Vec<Real, 4> fL = euler_flux_x(q_left,  gamma);
-    Vec<Real, 4> fR = euler_flux_x(q_right, gamma);
+    Vec<Real, EulerNVars> fL = euler_flux_x(q_left,  gamma);
+    Vec<Real, EulerNVars> fR = euler_flux_x(q_right, gamma);
 
     // Step 3: Half-step evolution
     // q += 0.5 * (dt/dx) * (F(q_left) - F(q_right))
     Real half_dtdx = Real(0.5) * dt / grid.dx;
-    Vec<Real, 4> df = fL - fR;
+    Vec<Real, EulerNVars> df = fL - fR;
 
     q_left  += df * half_dtdx;
     q_right += df * half_dtdx;
@@ -43,21 +43,21 @@ HD_FUNC void muscl_hancock_x(
 // q_top    = value at top face    (j + 1/2)
 template <typename Real, typename Ptr, typename Limiter = MinbeeLimiter>
 HD_FUNC void muscl_hancock_y(
-    GridViewBase<Real, 4, Ptr> grid, int i, int j,
+    GridViewBase<Real, EulerNVars, Ptr> grid, int i, int j,
     Real dt, Real gamma,
-    Vec<Real, 4>& q_bottom, Vec<Real, 4>& q_top,
+    Vec<Real, EulerNVars>& q_bottom, Vec<Real, EulerNVars>& q_top,
     Limiter lim = {})
 {
     // Step 1: MUSCL reconstruction in y
     muscl_reconstruct_y(grid, i, j, q_bottom, q_top, lim);
 
     // Step 2: Compute y-fluxes at bottom and top faces
-    Vec<Real, 4> gB = euler_flux_y(q_bottom, gamma);
-    Vec<Real, 4> gT = euler_flux_y(q_top,    gamma);
+    Vec<Real, EulerNVars> gB = euler_flux_y(q_bottom, gamma);
+    Vec<Real, EulerNVars> gT = euler_flux_y(q_top,    gamma);
 
     // Step 3: Half-step evolution using dy (NOT dx)
     Real half_dtdy = Real(0.5) * dt / grid.dy;
-    Vec<Real, 4> dg = gB - gT;
+    Vec<Real, EulerNVars> dg = gB - gT;
 
     q_bottom += dg * half_dtdy;
     q_top    += dg * half_dtdy;

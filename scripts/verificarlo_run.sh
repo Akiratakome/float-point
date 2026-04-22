@@ -19,6 +19,7 @@ N_SAMPLES=30
 PRECISION=53          # binary64 mantissa bits (53 = full double, 24 = float32)
 MCA_MODE="mca"        # mca | ieee | mca-rr (relative rounding)
 TESTS="sod toro2 toro3 toro4 toro5"
+SOLVER=""             # "" = hllc (default), "rusanov" = use *_rusanov.cfg files
 INST_FMA=""           # set to "--inst-fma" to instrument FMA operations
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -32,22 +33,29 @@ while [[ $# -gt 0 ]]; do
         -p|--precision) PRECISION="$2";  shift 2 ;;
         -m|--mode)      MCA_MODE="$2";   shift 2 ;;
         -t|--test)      TESTS="$2";      shift 2 ;;
+        -s|--solver)    SOLVER="$2";     shift 2 ;;
         --inst-fma)     INST_FMA="--inst-fma"; shift ;;
         -h|--help)
-            echo "Usage: $0 [-n samples] [-p precision] [-m mode] [-t test] [--inst-fma]"
+            echo "Usage: $0 [-n samples] [-p precision] [-m mode] [-t test] [-s solver] [--inst-fma]"
             echo "  -n  Number of MCA samples (default: 30)"
             echo "  -p  Mantissa precision bits (default: 53=double, 24=float)"
             echo "  -m  MCA mode: mca | ieee | mca-rr (default: mca)"
             echo "  -t  Test name(s): sod toro2 toro3 toro4 toro5 (default: all)"
+            echo "  -s  Solver: hllc (default) or rusanov (uses *_rusanov.cfg files)"
             echo "  --inst-fma  Instrument FMA operations"
             exit 0 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
 
+# Config suffix: "" for hllc, "_rusanov" for rusanov
+CFG_SUFFIX=""
+[[ -n "$SOLVER" && "$SOLVER" == "rusanov" ]] && CFG_SUFFIX="_rusanov"
+
 # Tag for output directory (allows multiple runs with different settings)
 TAG="p${PRECISION}_${MCA_MODE}"
 [[ -n "$INST_FMA" ]] && TAG="${TAG}_fma"
+[[ -n "$CFG_SUFFIX" ]] && TAG="${TAG}_rusanov"
 OUT_DIR="${EXP_DIR}/runs_${TAG}"
 
 # ── Check Verificarlo is available ────────────────────────────────────────────
@@ -63,6 +71,7 @@ echo "  Verificarlo MCA Sampling"
 echo "  Samples:   ${N_SAMPLES}"
 echo "  Precision: ${PRECISION} bits (mantissa)"
 echo "  Mode:      ${MCA_MODE}"
+echo "  Solver:    ${SOLVER:-hllc}"
 echo "  FMA:       ${INST_FMA:-off}"
 echo "  Tests:     ${TESTS}"
 echo "  Output:    ${OUT_DIR}"
@@ -93,7 +102,7 @@ echo ""
 echo "[3/3] Running MCA samples..."
 
 for test in ${TESTS}; do
-    cfg="${CFG_DIR}/${test}.cfg"
+    cfg="${CFG_DIR}/${test}${CFG_SUFFIX}.cfg"
     if [[ ! -f "$cfg" ]]; then
         echo "  [SKIP] ${test}: config not found at ${cfg}"
         continue
@@ -119,7 +128,7 @@ echo ""
 echo "  --- IEEE reference run (no perturbation) ---"
 export VFC_BACKENDS="libinterflop_ieee.so"
 for test in ${TESTS}; do
-    cfg="${CFG_DIR}/${test}.cfg"
+    cfg="${CFG_DIR}/${test}${CFG_SUFFIX}.cfg"
     [[ ! -f "$cfg" ]] && continue
     ref_file="${OUT_DIR}/${test}/reference_ieee.txt"
     "${HRSC}" "${cfg}" > "${ref_file}" 2>/dev/null

@@ -69,11 +69,11 @@ struct VanAlbadaLimiter {
 // Stencil: cells i-1, i, i+1 (within NgHost=2 ghost layers).
 template <typename Real, typename Ptr, typename Limiter = MinbeeLimiter>
 HD_FUNC void muscl_reconstruct_x(
-    GridViewBase<Real, 4, Ptr> grid, int i, int j,
-    Vec<Real, 4>& q_left, Vec<Real, 4>& q_right,
+    GridViewBase<Real, EulerNVars, Ptr> grid, int i, int j,
+    Vec<Real, EulerNVars>& q_left, Vec<Real, EulerNVars>& q_right,
     Limiter lim = {})
 {
-    for (int v = 0; v < 4; ++v) {
+    for (int v = 0; v < EulerNVars; ++v) {
         Real u_im1 = grid(i - 1, j, v);
         Real u_i   = grid(i,     j, v);
         Real u_ip1 = grid(i + 1, j, v);
@@ -92,11 +92,11 @@ HD_FUNC void muscl_reconstruct_x(
 // Stencil: cells j-1, j, j+1 (within NgHost=2 ghost layers).
 template <typename Real, typename Ptr, typename Limiter = MinbeeLimiter>
 HD_FUNC void muscl_reconstruct_y(
-    GridViewBase<Real, 4, Ptr> grid, int i, int j,
-    Vec<Real, 4>& q_bottom, Vec<Real, 4>& q_top,
+    GridViewBase<Real, EulerNVars, Ptr> grid, int i, int j,
+    Vec<Real, EulerNVars>& q_bottom, Vec<Real, EulerNVars>& q_top,
     Limiter lim = {})
 {
-    for (int v = 0; v < 4; ++v) {
+    for (int v = 0; v < EulerNVars; ++v) {
         Real u_jm1 = grid(i, j - 1, v);
         Real u_j   = grid(i, j,     v);
         Real u_jp1 = grid(i, j + 1, v);

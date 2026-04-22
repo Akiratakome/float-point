@@ -14,7 +14,7 @@
 
 using namespace hrsc;
 
-static void setup_ic(GridView<double, 4> gv, const std::string& test, double gamma) {
+static void setup_ic(GridView<double, EulerNVars> gv, const std::string& test, double gamma) {
     if (test == "sod") {
         setup_sod(gv, gamma);
     } else if (test == "toro2") {
@@ -61,6 +61,11 @@ static void get_riemann_ic(const std::string& test,
     }
 }
 
+static FluxScheme parse_flux(const Config& cfg) {
+    std::string s = cfg.get_string("solver", "hllc");
+    return (s == "rusanov") ? FluxScheme::Rusanov : FluxScheme::HLLC;
+}
+
 static void run_convergence(const Config& cfg) {
     std::string test = cfg.get_string("test");
     double gamma = cfg.get_double("gamma", 1.4);
@@ -69,6 +74,7 @@ static void run_convergence(const Config& cfg) {
     double xmin  = cfg.get_double("xmin", 0.0);
     double xmax  = cfg.get_double("xmax", 1.0);
     auto resolutions = cfg.get_int_list("resolutions");
+    FluxScheme flux = parse_flux(cfg);
 
     double rhoL, uL, pL, rhoR, uR, pR, x0;
     get_riemann_ic(test, rhoL, uL, pL, rhoR, uR, pR, x0);
@@ -82,7 +88,7 @@ static void run_convergence(const Config& cfg) {
 
     for (int nx : resolutions) {
         double dx = (xmax - xmin) / nx;
-        EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end);
+        EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end, flux);
         setup_ic(solver.grid_view(), test, gamma);
         solver.run();
 
@@ -92,9 +98,9 @@ static void run_convergence(const Config& cfg) {
 
         auto gv = solver.grid_view();
         for (int i = 0; i < nx; ++i) {
-            Vec<double, 4> cons;
-            for (int v = 0; v < 4; ++v) cons[v] = gv(i, 0, v);
-            Vec<double, 4> prim = cons_to_prim(cons, gamma);
+            Vec<double, EulerNVars> cons;
+            for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, 0, v);
+            Vec<double, EulerNVars> prim = cons_to_prim(cons, gamma);
             num_rho[i] = prim[PRHO];
             num_u[i]   = prim[VX];
             num_p[i]   = prim[PRES];
@@ -131,10 +137,11 @@ static void run_normal(const Config& cfg) {
     double gamma = cfg.get_double("gamma", 1.4);
     double cfl   = cfg.get_double("cfl", 0.8);
     double t_end = cfg.get_double("t_end", 0.25);
+    FluxScheme flux = parse_flux(cfg);
 
     double dx = (xmax - xmin) / nx;
 
-    EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end);
+    EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end, flux);
     setup_ic(solver.grid_view(), test, gamma);
     solver.run();
 
@@ -145,9 +152,9 @@ static void run_normal(const Config& cfg) {
     std::cout << std::setprecision(17);
     for (int i = 0; i < nx; ++i) {
         double x = xmin + (i + 0.5) * dx;
-        Vec<double, 4> cons;
-        for (int v = 0; v < 4; ++v) cons[v] = gv(i, 0, v);
-        Vec<double, 4> prim = cons_to_prim(cons, gamma);
+        Vec<double, EulerNVars> cons;
+        for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, 0, v);
+        Vec<double, EulerNVars> prim = cons_to_prim(cons, gamma);
 
         std::cout << x          << "\t"
                   << prim[PRHO] << "\t"
