@@ -200,13 +200,18 @@ def divergence_segment_onsets(
     Onset = first index of each run. Keeps per-shock / per-contact entry
     points visible without cluttering the plot with one label per cell.
     """
-    idx = all_divergence_indices(
-        a, b, mode=mode,
+    # Call _tolerance directly (peer to all_divergence_indices) so that the
+    # strict_fp stacklevel=3 warning points to the user's call site rather
+    # than to this function's internal hop through all_divergence_indices.
+    tol = _tolerance(
+        mode, a, b,
         noise_floor_a=noise_floor_a, noise_floor_b=noise_floor_b,
         safety=safety, k_grad=k_grad, abs_floor_frac=abs_floor_frac,
         source_precision=source_precision, k_eps=k_eps,
         visible_rel_tol=visible_rel_tol,
     )
+    diff = np.abs(a - b)
+    idx = np.where(diff > tol)[0]
     if len(idx) == 0:
         return []
     gaps = np.diff(idx) > 1
@@ -345,6 +350,15 @@ def plot_single_panel(
 def _load_column(path: str, variable: str) -> tuple[np.ndarray, np.ndarray]:
     """Load (x, var) arrays from a data file."""
     data = np.loadtxt(path)
+    # Defensive shape check: mirrors the pattern in compute_noise_floor.py so
+    # a truncated or malformed data file fails with a clear message instead of
+    # an IndexError deep inside the column indexing below.
+    expected_cols = max(COLUMN_MAP.values()) + 1
+    if data.ndim != 2 or data.shape[1] < expected_cols:
+        raise ValueError(
+            f"{path}: expected 2-D array with >= {expected_cols} columns "
+            f"(x, rho, u, v, p), got shape {data.shape}"
+        )
     x = data[:, 0]
     col = COLUMN_MAP[variable]
     var = data[:, col]

@@ -218,3 +218,30 @@ def test_divergence_segment_onsets_collapses_contiguous_runs():
     b[80] = 1.0
     onsets = divergence_segment_onsets(a, b, mode="visible")
     assert onsets == [10, 50, 80]
+
+
+# ---------------------------------------------------------------------------
+# Regression: strict_fp stacklevel=3 must point to the user's call site from
+# ALL three public entry points. Before the fix, divergence_segment_onsets
+# chained through all_divergence_indices and the warning pointed one frame
+# too deep. We use warnings.catch_warnings(record=True) and assert the
+# recorded frame is this test file.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "entry_point",
+    [first_divergence_index, all_divergence_indices, divergence_segment_onsets],
+)
+def test_strict_fp_warning_stacklevel_points_to_caller(entry_point):
+    """The strict_fp degraded-fallback warning must blame the user's line."""
+    a = np.ones(20)
+    b = np.ones(20)
+    with warnings.catch_warnings(record=True) as captured:
+        warnings.simplefilter("always")
+        entry_point(a, b, mode="strict_fp")  # <- this is the user call site
+    assert len(captured) >= 1, "expected a strict_fp fallback warning"
+    # stacklevel=3 in _tolerance should attribute the warning to THIS test file.
+    assert captured[0].filename.endswith("test_plot_divergence_marker.py"), (
+        f"[{entry_point.__name__}] warning attributed to {captured[0].filename}, "
+        "expected this test file"
+    )
