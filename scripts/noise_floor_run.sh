@@ -87,7 +87,7 @@ done
 # ── Analysis: per-cell std → noise_floor.npz ─────────────────────────────────
 NPZ_OUT="${OUT_DIR}/noise_floor.npz"
 echo "[analysis] computing per-cell std → ${NPZ_OUT}"
-python scripts/compute_noise_floor.py \
+python3 scripts/compute_noise_floor.py \
     --samples "${OUT_DIR}"/sample_??.txt \
     --seeds   "$SEEDS_CSV" \
     --out     "$NPZ_OUT" \

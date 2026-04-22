@@ -42,6 +42,12 @@ COL_P = 4
 N_FIELD_COLS = 4           # rho, u, v, p — x is the grid, handled separately
 EXPECTED_N_COLS = 5        # x, rho, u, v, p
 
+# Grid-equality tolerance across MCA samples. xmin + (i+0.5)*dx runs through the
+# MCA backend, so cell centres drift by ~1 ulp (~1e-16 relative at double).
+# 1e-10 gives 4 orders of headroom above ulp while still catching gross bugs
+# like "ran with different nx / xmax between samples".
+GRID_RTOL = 1e-10
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -82,10 +88,15 @@ def _load_samples(sample_paths: Sequence[Path]) -> tuple[np.ndarray, np.ndarray]
             )
         if x_ref is None:
             x_ref = data[:, COL_X]
-        elif not np.array_equal(x_ref, data[:, COL_X]):
+        elif not np.allclose(x_ref, data[:, COL_X], rtol=GRID_RTOL, atol=0.0):
+            # Grid itself is computed through the MCA backend (xmin + (i+0.5)*dx),
+            # so cell centres carry 1-ulp MCA noise across samples. That's fine —
+            # we only need them to agree to within a tight relative tolerance.
+            max_rel = np.max(np.abs(x_ref - data[:, COL_X]) / np.maximum(np.abs(x_ref), 1e-30))
             raise ValueError(
-                f"{p}: grid disagrees with first sample {sample_paths[0]}; "
-                "all MCA samples must share the same x-grid."
+                f"{p}: grid disagrees with first sample {sample_paths[0]} by "
+                f"max_rel={max_rel:.2e} > GRID_RTOL={GRID_RTOL:.0e}; "
+                "something beyond 1-ulp MCA drift is wrong."
             )
         arrays.append(data[:, [COL_RHO, COL_U, COL_V, COL_P]])
     fields = np.stack(arrays, axis=0)
