@@ -106,19 +106,25 @@ if [[ ! -x "$HRSC" ]]; then
     exit 1
 fi
 
-# ── MCA backend: round-to-random at full binary64 mantissa (p=53) ─────────────
-export VFC_BACKENDS="libinterflop_mca.so --mode=rr --precision-binary64=53"
-echo "[mca] VFC_BACKENDS=${VFC_BACKENDS}"
+# ── MCA backend base (seed appended per-sample via --seed=<N>) ────────────────
+# See scripts/noise_floor_run.sh comment for seed-mechanism rationale:
+# VFC_BACKENDS_SEED env var is silently ignored by interflop_mca; the seed
+# must be inlined in VFC_BACKENDS as --seed=<decimal uint64>.
+VFC_BASE="libinterflop_mca.so --mode=rr --precision-binary64=53"
+echo "[mca] VFC_BASE=${VFC_BASE}"
 echo "[cfg] CONFIG=${CONFIG}  SOLVER=${SOLVER}  SAMPLES=${N_SAMPLES}  OUT=${OUT_DIR}"
 
 # ── Seeds CSV (header) ────────────────────────────────────────────────────────
 SEEDS_CSV="${OUT_DIR}/seeds.csv"
-echo "sample_id,seed_hex,timestamp_utc" > "$SEEDS_CSV"
+echo "sample_id,seed_dec,seed_hex,timestamp_utc" > "$SEEDS_CSV"
 
 # ── Run N samples with independent /dev/urandom seeds ─────────────────────────
 for k in $(seq 1 "$N_SAMPLES"); do
-    SEED_HEX="$(od -An -N8 -tx8 /dev/urandom | tr -d ' \n')"
-    export VFC_BACKENDS_SEED="0x${SEED_HEX}"
+    # 63-bit seed (mask top bit): interflop_mca --seed uses signed int64.
+    SEED_RAW="$(od -An -N8 -tu8 /dev/urandom | tr -d ' \n')"
+    SEED_DEC=$(( SEED_RAW & 0x7FFFFFFFFFFFFFFF ))
+    SEED_HEX="$(printf '%016x' "$SEED_DEC")"
+    export VFC_BACKENDS="${VFC_BASE} --seed=${SEED_DEC}"
 
     SAMPLE_ID="$(printf '%02d' "$k")"
     SAMPLE_FILE="${OUT_DIR}/sample_${SAMPLE_ID}.txt"
@@ -126,8 +132,8 @@ for k in $(seq 1 "$N_SAMPLES"); do
 
     "$HRSC" "$CONFIG" > "$SAMPLE_FILE"
 
-    echo "${SAMPLE_ID},0x${SEED_HEX},${TIMESTAMP}" >> "$SEEDS_CSV"
-    echo "  ${k}/${N_SAMPLES} done (seed=0x${SEED_HEX})"
+    echo "${SAMPLE_ID},${SEED_DEC},0x${SEED_HEX},${TIMESTAMP}" >> "$SEEDS_CSV"
+    echo "  ${k}/${N_SAMPLES} done (seed=${SEED_DEC})"
 done
 
 echo "[done] raw 2D samples + seeds.csv in ${OUT_DIR}"

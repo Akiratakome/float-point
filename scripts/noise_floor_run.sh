@@ -56,20 +56,35 @@ if [[ ! -x "$HRSC" ]]; then
     exit 1
 fi
 
-# ── MCA backend: round-to-random at full binary64 mantissa (p=53) ─────────────
-export VFC_BACKENDS="libinterflop_mca.so --mode=rr --precision-binary64=53"
-echo "[mca] VFC_BACKENDS=${VFC_BACKENDS}"
+# ── MCA backend base string (seed appended per-sample via --seed=<N>) ─────────
+# Verificarlo's interflop_mca reads seed from the backend CLI flag --seed=<N>,
+# NOT from the VFC_BACKENDS_SEED env var (empirically verified 2026-04-22:
+# two runs with identical VFC_BACKENDS_SEED produced non-identical outputs;
+# two runs with identical --seed=<N> inline in VFC_BACKENDS produced
+# bit-identical outputs with the banner reporting `seed = <N> (fixed)`).
+# If seed is omitted, the backend auto-seeds from system entropy per process —
+# that gives independent samples but loses reproducibility.
+VFC_BASE="libinterflop_mca.so --mode=rr --precision-binary64=53"
+echo "[mca] VFC_BASE=${VFC_BASE}"
 
 # ── Seeds CSV (header) ────────────────────────────────────────────────────────
+# seed_dec is the decimal uint64 actually passed to --seed=; seed_hex preserved
+# for human debug. Both reference the same 64-bit draw from /dev/urandom.
 SEEDS_CSV="${OUT_DIR}/seeds.csv"
-echo "sample_id,seed_hex,timestamp_utc" > "$SEEDS_CSV"
+echo "sample_id,seed_dec,seed_hex,timestamp_utc" > "$SEEDS_CSV"
 
 # ── Run N samples with independent /dev/urandom seeds ────────────────────────
 echo "[run] N_SAMPLES=${N_SAMPLES}  TEST_CFG=${TEST_CFG}  SOLVER=${SOLVER}"
 for k in $(seq 1 "$N_SAMPLES"); do
-    # 64-bit hex seed from the kernel's CSPRNG; one draw per sample.
-    SEED_HEX="$(od -An -N8 -tx8 /dev/urandom | tr -d ' \n')"
-    export VFC_BACKENDS_SEED="0x${SEED_HEX}"
+    # 63-bit seed from the kernel's CSPRNG; one draw per sample.
+    # -tu8 emits unsigned decimal; interflop_mca's --seed parser is signed
+    # int64, so values > 2^63-1 get rejected as "invalid value". Mask the top
+    # bit down to 63 bits — still > 2^62 ≈ 4.6e18 entropy, far above any
+    # birthday-collision concern at N=30.
+    SEED_RAW="$(od -An -N8 -tu8 /dev/urandom | tr -d ' \n')"
+    SEED_DEC=$(( SEED_RAW & 0x7FFFFFFFFFFFFFFF ))
+    SEED_HEX="$(printf '%016x' "$SEED_DEC")"
+    export VFC_BACKENDS="${VFC_BASE} --seed=${SEED_DEC}"
 
     SAMPLE_ID="$(printf '%02d' "$k")"
     SAMPLE_FILE="${OUT_DIR}/sample_${SAMPLE_ID}.txt"
@@ -77,7 +92,7 @@ for k in $(seq 1 "$N_SAMPLES"); do
 
     "$HRSC" "$TEST_CFG" > "$SAMPLE_FILE"
 
-    echo "${SAMPLE_ID},0x${SEED_HEX},${TIMESTAMP}" >> "$SEEDS_CSV"
+    echo "${SAMPLE_ID},${SEED_DEC},0x${SEED_HEX},${TIMESTAMP}" >> "$SEEDS_CSV"
 
     if (( k % 10 == 0 )) || (( k == N_SAMPLES )); then
         echo "  ${k}/${N_SAMPLES} samples complete"
