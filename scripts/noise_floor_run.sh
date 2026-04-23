@@ -38,6 +38,20 @@ fi
 
 mkdir -p "$OUT_DIR"
 
+# ── cmake bootstrap ──────────────────────────────────────────────────────────
+# verificarlo/verificarlo:latest is built on Ubuntu 20.04 whose apt cmake is
+# 3.16; this repo's CMakeLists.txt requires >= 3.18. pip3's manylinux wheel
+# ships a prebuilt cmake into /usr/local/bin (no compile, ~5s first time,
+# instant afterwards). Idempotent — skips if cmake >= 3.18 already on PATH.
+NEED_CMAKE_MIN="3.18"
+have_new_cmake() { command -v cmake >/dev/null 2>&1 && \
+    [[ "$(printf '%s\n' "$NEED_CMAKE_MIN" "$(cmake --version|head -1|awk '{print $3}')" | sort -V | head -1)" == "$NEED_CMAKE_MIN" ]]; }
+if ! have_new_cmake; then
+    echo "[bootstrap] cmake >= ${NEED_CMAKE_MIN} missing; pip3 install cmake ..."
+    pip3 install --quiet --upgrade cmake
+    export PATH="/usr/local/bin:${PATH}"
+fi
+
 # ── Build (idempotent) ────────────────────────────────────────────────────────
 BUILD_DIR="build-vfc-p53"
 if [[ ! -d "$BUILD_DIR" ]]; then
