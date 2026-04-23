@@ -20,7 +20,7 @@ import matplotlib.colors as mcolors
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
-from io_helper import stack_samples, cons_to_prim
+from io_helper import stack_samples, load_seeds, cons_to_prim
 
 # Primitive variable names and order — mirrors IDX_* in io_helper.py.
 VAR_ORDER = ("rho", "u", "v", "p")
@@ -180,7 +180,13 @@ def _plot_snr_heatmap(
     snr_rusanov: list[np.ndarray],
     out_path: Path,
 ) -> None:
-    """Save 2x4 SNR_local heatmap (rows: HLLC, Rusanov; cols: rho, u, v, p)."""
+    """Save 2x4 SNR_local heatmap (rows: HLLC, Rusanov; cols: rho, u, v, p).
+
+    Iso-contour lines at SNR=1 (white) and SNR=10 (yellow) are overlaid on
+    each panel so readers can directly locate those thresholds in the image.
+    If a panel's SNR range does not span a contour level, contour() silently
+    draws nothing — no special-casing required.
+    """
     fig, axes = plt.subplots(2, 4, figsize=(16, 7))
     extent = [0, 1, 0, 1]
     rows = [("HLLC", snr_hllc), ("Rusanov", snr_rusanov)]
@@ -198,13 +204,18 @@ def _plot_snr_heatmap(
             ax.set_xlabel("x", fontsize=7)
             ax.set_ylabel("y", fontsize=7)
             ax.tick_params(labelsize=6)
-            # Reference lines: SNR=1 and SNR=10 annotated in title
-            ax.set_title(
-                f"{solver_label} SNR({var_label})\n[SNR=1 white, SNR=10 light]",
-                fontsize=7,
+            # Iso-contour lines marking SNR=1 and SNR=10 directly on the image
+            ax.contour(
+                snr, levels=[1.0, 10.0],
+                colors=["white", "yellow"], linewidths=[1.2, 0.9],
+                extent=extent, origin="lower",
             )
 
-    fig.suptitle("Local SNR = |$\\mu_{trunc}$| / $\\sigma_{FP}$ (MCA p=53)", fontsize=11)
+    fig.suptitle(
+        "Local SNR = |$\\mu_{trunc}$| / $\\sigma_{FP}$ (MCA p=53)\n"
+        "white contour: SNR=1    yellow contour: SNR=10",
+        fontsize=10, fontweight="bold",
+    )
     fig.tight_layout()
     fig.savefig(out_path, dpi=120)
     plt.close(fig)
@@ -243,13 +254,23 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     print(f"[snr] output directory: {out_dir}", file=sys.stderr)
 
+    # Seed-independence check (fail fast before any expensive I/O)
+    hllc_root = args.root / args.hllc_subdir
+    rusanov_root = args.root / args.rusanov_subdir
+    print(f"[snr] checking seed independence for HLLC ({hllc_root / 'seeds'})",
+          file=sys.stderr)
+    load_seeds(hllc_root / "seeds", args.expected_n)
+    print(f"[snr] checking seed independence for Rusanov ({rusanov_root / 'seeds'})",
+          file=sys.stderr)
+    load_seeds(rusanov_root / "seeds", args.expected_n)
+
     # Load MCA ensembles
-    print(f"[snr] loading HLLC samples from {args.root / args.hllc_subdir}",
+    print(f"[snr] loading HLLC samples from {hllc_root}",
           file=sys.stderr)
     n_hllc, prim_hllc = _load_prim(
         args.root, args.hllc_subdir, args.gamma, args.expected_n
     )
-    print(f"[snr] loading Rusanov samples from {args.root / args.rusanov_subdir}",
+    print(f"[snr] loading Rusanov samples from {rusanov_root}",
           file=sys.stderr)
     n_rusanov, prim_rusanov = _load_prim(
         args.root, args.rusanov_subdir, args.gamma, args.expected_n
