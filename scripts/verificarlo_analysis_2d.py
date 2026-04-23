@@ -158,7 +158,7 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--rusanov-subdir", default="rusanov", metavar="STR")
     p.add_argument("--gamma", type=float, default=1.4)
     p.add_argument("--expected-n", type=int, default=30, metavar="N")
-    p.add_argument("--out-dir", default="docs/week4/figures/a3", metavar="DIR")
+    p.add_argument("--out-dir", default="experiments/week4/figures/a3", metavar="DIR")
     p.add_argument("--slice-y", type=float, default=0.5, metavar="FLOAT")
     return p.parse_args()
 
