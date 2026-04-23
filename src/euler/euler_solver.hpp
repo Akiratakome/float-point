@@ -18,6 +18,7 @@
 namespace hrsc {
 
 enum class FluxScheme { HLLC, Rusanov };
+enum class BoundaryType { Outflow, Periodic, Reflective };
 
 template <typename Real>
 class EulerSolver {
@@ -30,6 +31,22 @@ class EulerSolver {
     Real m_time;
     int  m_step;
     FluxScheme m_flux;
+    BoundaryType m_boundary;
+
+    void apply_boundary_conditions() {
+        auto gv = m_grid.view();
+        switch (m_boundary) {
+            case BoundaryType::Outflow:
+                apply_outflow_bc(gv);
+                break;
+            case BoundaryType::Periodic:
+                apply_periodic_bc(gv);
+                break;
+            case BoundaryType::Reflective:
+                apply_reflective_bc(gv);
+                break;
+        }
+    }
 
     // X-direction sweep: compute x-interface fluxes and update conserved variables.
     void x_sweep(Real dt) {
@@ -110,7 +127,8 @@ public:
     EulerSolver(int nx, int ny, Real dx, Real dy,
                 Real xmin, Real ymin,
                 Real gamma, Real cfl, Real t_end,
-                FluxScheme flux = FluxScheme::HLLC)
+                FluxScheme flux = FluxScheme::HLLC,
+                BoundaryType boundary = BoundaryType::Outflow)
         : m_grid(nx, ny),
           m_xmin(xmin),
           m_ymin(ymin),
@@ -119,7 +137,8 @@ public:
           m_t_end(t_end),
           m_time(Real(0)),
           m_step(0),
-          m_flux(flux)
+          m_flux(flux),
+          m_boundary(boundary)
     {
         m_grid.dx = dx;
         m_grid.dy = dy;
@@ -127,8 +146,9 @@ public:
 
     // 1D convenience constructor
     EulerSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, Real t_end,
-                FluxScheme flux = FluxScheme::HLLC)
-        : EulerSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end, flux)
+                FluxScheme flux = FluxScheme::HLLC,
+                BoundaryType boundary = BoundaryType::Outflow)
+        : EulerSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end, flux, boundary)
     {}
 
     GridView<Real, EulerNVars> grid_view() {
@@ -174,7 +194,7 @@ public:
     }
 
     void step() {
-        apply_outflow_bc(m_grid.view());
+        apply_boundary_conditions();
 
         Real dt = compute_dt();
         if (dt <= Real(0)) return;
@@ -186,11 +206,11 @@ public:
             // 2D path: alternating Godunov splitting
             if (m_step % 2 == 0) {
                 x_sweep(dt);
-                apply_outflow_bc(m_grid.view());
+                apply_boundary_conditions();
                 y_sweep(dt);
             } else {
                 y_sweep(dt);
-                apply_outflow_bc(m_grid.view());
+                apply_boundary_conditions();
                 x_sweep(dt);
             }
         }
