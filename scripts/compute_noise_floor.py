@@ -18,6 +18,7 @@ import argparse
 import datetime as _dt
 import hashlib
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -139,6 +140,31 @@ def _check_seed_independence(seeds_csv: Path, n_expected: int) -> str:
     return hashlib.sha256(joined).hexdigest()
 
 
+def _precision_bits_from_runtime_env() -> int:
+    """Read MCA precision from VFC_BACKENDS and enforce Stage-2 p=53 contract."""
+    vfc_backends = os.environ.get("VFC_BACKENDS")
+    if not vfc_backends:
+        raise RuntimeError(
+            "VFC_BACKENDS is unset; cannot derive MCA precision_bits metadata. "
+            "Run via scripts/noise_floor_run.sh (or set VFC_BACKENDS explicitly)."
+        )
+
+    match = re.search(r"(?:^|\s)--precision-binary64=(\d+)(?:\s|$)", vfc_backends)
+    if match is None:
+        raise RuntimeError(
+            "VFC_BACKENDS is set but missing '--precision-binary64=<bits>'; "
+            f"got: {vfc_backends!r}"
+        )
+
+    precision_bits = int(match.group(1))
+    if precision_bits != PRECISION_BITS_P53:
+        raise ValueError(
+            f"Stage-2 noise_floor requires MCA p={PRECISION_BITS_P53}, but "
+            f"VFC_BACKENDS configured precision-binary64={precision_bits}."
+        )
+    return precision_bits
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -188,6 +214,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     x, fields = _load_samples(sample_paths)        # fields: (N, nx, 4)
     seeds_sha256 = _check_seed_independence(seeds_csv, n_samples)
+    precision_bits = _precision_bits_from_runtime_env()
 
     # ddof=1 = sample std (Bessel-corrected). We are estimating a population
     # noise floor from a finite MCA draw, so the unbiased estimator is right.
@@ -203,7 +230,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     metadata = {
         "solver": args.solver,
         "cfg": args.cfg,
-        "precision_bits": PRECISION_BITS_P53,
+        "precision_bits": precision_bits,
         "n_samples": n_samples,
         "vfc_version": vfc_version,
         "git_sha": git_sha,

@@ -25,9 +25,12 @@ DEFAULT_K_GRAD = 1.0             # gradient-proportional tolerance component
 DEFAULT_K_EPS_FALLBACK = 10.0   # ulp multiplier for strict_fp fallback
 DEFAULT_VISIBLE_REL_TOL = 1e-3  # human-eye threshold, explicitly non-statistical
 REQUIRED_PRECISION_BITS = 53    # .npz metadata contract for noise_floor mode
+DEFAULT_LABEL_MIN_DISTANCE = 10  # min index spacing between text labels
+DEFAULT_MAX_ONSET_LABELS = 4     # cap onset text labels per panel
+DEFAULT_MAX_REJOIN_LABELS = 3    # cap rejoin text labels per panel
 
 # Column mapping in 1D data files: x  rho  u  v  p
-COLUMN_MAP = {"rho": 1, "u": 2, "p": 4}
+COLUMN_MAP = {"rho": 1, "u": 2, "v": 3, "p": 4}
 
 # Map "variable" CLI string → key in noise-floor .npz
 NOISE_FLOOR_KEY_MAP = {
@@ -219,6 +222,171 @@ def divergence_segment_onsets(
     return [int(i) for i in idx[onset_mask]]
 
 
+def _filtered_divergence_segments(
+    a: np.ndarray,
+    b: np.ndarray,
+    mode: Mode = "visible",
+    noise_floor_a: Optional[np.ndarray] = None,
+    noise_floor_b: Optional[np.ndarray] = None,
+    safety: float = DEFAULT_SAFETY_SIGMA,
+    k_grad: float = DEFAULT_K_GRAD,
+    abs_floor_frac: Optional[float] = None,
+    source_precision: SourcePrecision = "float64",
+    k_eps: float = DEFAULT_K_EPS_FALLBACK,
+    visible_rel_tol: float = DEFAULT_VISIBLE_REL_TOL,
+    *,
+    merge_gap: int = 1,
+    min_segment_len: int = 1,
+    min_onset_distance: int = 6,
+) -> list[tuple[int, int, float]]:
+    """Return de-cluttered divergent segments as (start, end, score).
+
+    This is a stricter variant of raw segment extraction intended for
+    supervisor-facing figures: it merges tiny gaps, drops tiny segments, and
+    suppresses multiple nearby onsets in the same transition region.
+    """
+    tol = _tolerance(
+        mode, a, b,
+        noise_floor_a=noise_floor_a, noise_floor_b=noise_floor_b,
+        safety=safety, k_grad=k_grad, abs_floor_frac=abs_floor_frac,
+        source_precision=source_precision, k_eps=k_eps,
+        visible_rel_tol=visible_rel_tol,
+    )
+    diff = np.abs(a - b)
+    mask = diff > tol
+    n = len(mask)
+    if n == 0 or not np.any(mask):
+        return []
+
+    # 1) Merge small zero-gaps between two divergent runs.
+    if merge_gap > 0:
+        i = 0
+        while i < n:
+            if not mask[i]:
+                z0 = i
+                while i < n and not mask[i]:
+                    i += 1
+                z1 = i
+                gap_len = z1 - z0
+                if z0 > 0 and z1 < n and gap_len <= merge_gap:
+                    mask[z0:z1] = True
+            else:
+                i += 1
+
+    # 2) Build segments (start, end inclusive, score=max excess over tol).
+    segments: list[tuple[int, int, float]] = []
+    i = 0
+    while i < n:
+        if not mask[i]:
+            i += 1
+            continue
+        s = i
+        while i + 1 < n and mask[i + 1]:
+            i += 1
+        e = i
+        seg_len = e - s + 1
+        if seg_len >= min_segment_len:
+            score = float(np.max(diff[s:e + 1] - tol[s:e + 1]))
+            segments.append((s, e, score))
+        i += 1
+
+    if not segments:
+        return []
+
+    # 3) Non-maximum suppression in onset-index space.
+    kept: list[tuple[int, float]] = []
+    for s, _e, score in segments:
+        if not kept:
+            kept.append((s, score))
+            continue
+        prev_s, prev_score = kept[-1]
+        if s - prev_s <= min_onset_distance:
+            if score > prev_score:
+                kept[-1] = (s, score)
+        else:
+            kept.append((s, score))
+    kept_onsets = [int(s) for s, _score in kept]
+    onset_set = set(kept_onsets)
+    return [(s, e, score) for s, e, score in segments if s in onset_set]
+
+
+def filtered_divergence_segment_onsets(
+    a: np.ndarray,
+    b: np.ndarray,
+    mode: Mode = "visible",
+    noise_floor_a: Optional[np.ndarray] = None,
+    noise_floor_b: Optional[np.ndarray] = None,
+    safety: float = DEFAULT_SAFETY_SIGMA,
+    k_grad: float = DEFAULT_K_GRAD,
+    abs_floor_frac: Optional[float] = None,
+    source_precision: SourcePrecision = "float64",
+    k_eps: float = DEFAULT_K_EPS_FALLBACK,
+    visible_rel_tol: float = DEFAULT_VISIBLE_REL_TOL,
+    *,
+    merge_gap: int = 1,
+    min_segment_len: int = 1,
+    min_onset_distance: int = 6,
+) -> list[int]:
+    """Return de-cluttered divergence onsets for presentation plots."""
+    seg = _filtered_divergence_segments(
+        a, b,
+        mode=mode,
+        noise_floor_a=noise_floor_a,
+        noise_floor_b=noise_floor_b,
+        safety=safety,
+        k_grad=k_grad,
+        abs_floor_frac=abs_floor_frac,
+        source_precision=source_precision,
+        k_eps=k_eps,
+        visible_rel_tol=visible_rel_tol,
+        merge_gap=merge_gap,
+        min_segment_len=min_segment_len,
+        min_onset_distance=min_onset_distance,
+    )
+    return [int(s) for s, _e, _score in seg]
+
+
+def filtered_divergence_segment_rejoins(
+    a: np.ndarray,
+    b: np.ndarray,
+    mode: Mode = "visible",
+    noise_floor_a: Optional[np.ndarray] = None,
+    noise_floor_b: Optional[np.ndarray] = None,
+    safety: float = DEFAULT_SAFETY_SIGMA,
+    k_grad: float = DEFAULT_K_GRAD,
+    abs_floor_frac: Optional[float] = None,
+    source_precision: SourcePrecision = "float64",
+    k_eps: float = DEFAULT_K_EPS_FALLBACK,
+    visible_rel_tol: float = DEFAULT_VISIBLE_REL_TOL,
+    *,
+    merge_gap: int = 1,
+    min_segment_len: int = 1,
+    min_onset_distance: int = 6,
+) -> list[int]:
+    """Return de-cluttered rejoin indices where separated curves overlap again."""
+    seg = _filtered_divergence_segments(
+        a, b,
+        mode=mode,
+        noise_floor_a=noise_floor_a,
+        noise_floor_b=noise_floor_b,
+        safety=safety,
+        k_grad=k_grad,
+        abs_floor_frac=abs_floor_frac,
+        source_precision=source_precision,
+        k_eps=k_eps,
+        visible_rel_tol=visible_rel_tol,
+        merge_gap=merge_gap,
+        min_segment_len=min_segment_len,
+        min_onset_distance=min_onset_distance,
+    )
+    n = len(a)
+    out: list[int] = []
+    for _s, e, _score in seg:
+        if e + 1 < n:
+            out.append(int(e + 1))
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Noise-floor .npz loader
 # ---------------------------------------------------------------------------
@@ -278,6 +446,16 @@ def plot_single_panel(
     abs_floor_frac: Optional[float] = None,
     source_precision: SourcePrecision = "float64",
     k_eps: float = DEFAULT_K_EPS_FALLBACK,
+    # Marker policy for readability:
+    show_all_divergent_cells: bool = False,
+    show_rejoin_points: bool = True,
+    show_rejoin_labels: bool = True,
+    onset_merge_gap: int = 1,
+    onset_min_segment_len: int = 1,
+    onset_min_distance: int = 6,
+    label_min_distance: int = DEFAULT_LABEL_MIN_DISTANCE,
+    max_onset_labels: int = DEFAULT_MAX_ONSET_LABELS,
+    max_rejoin_labels: int = DEFAULT_MAX_REJOIN_LABELS,
     title: Optional[str] = None,
 ) -> Optional[int]:
     """Plot two solver lines and annotate the first-divergence index.
@@ -287,9 +465,8 @@ def plot_single_panel(
     ax.plot(x_a, a, color="tab:blue", linewidth=1.5, label=label_a)
     ax.plot(x_b, b, color="tab:red", linewidth=1.5, linestyle="--", label=label_b)
 
-    # Per supervisor request (2026-04-16/17): mark every cell where HLLC and
-    # Rusanov visibly diverge, and label the onset of each contiguous segment
-    # (segment = shock / contact / rarefaction crossing) separately.
+    # Supervisor-facing default: only mark onset points where profiles clearly
+    # move from overlapping to separated (de-cluttered by merge/NMS filters).
     detector_kwargs = dict(
         mode=mode,
         noise_floor_a=noise_floor_a, noise_floor_b=noise_floor_b,
@@ -298,32 +475,84 @@ def plot_single_panel(
         visible_rel_tol=visible_rel_tol,
     )
     all_idx = all_divergence_indices(a, b, **detector_kwargs)
-    seg_onsets = divergence_segment_onsets(a, b, **detector_kwargs)
+    seg_onsets = filtered_divergence_segment_onsets(
+        a, b,
+        **detector_kwargs,
+        merge_gap=onset_merge_gap,
+        min_segment_len=onset_min_segment_len,
+        min_onset_distance=onset_min_distance,
+    )
+    seg_rejoins = filtered_divergence_segment_rejoins(
+        a, b,
+        **detector_kwargs,
+        merge_gap=onset_merge_gap,
+        min_segment_len=onset_min_segment_len,
+        min_onset_distance=onset_min_distance,
+    )
     div_idx = int(all_idx[0]) if len(all_idx) else None
 
     if div_idx is not None:
-        # Small x at every divergent cell (dense but readable because shock regions
-        # are typically <5 cells wide at visible tol).
-        ax.plot(x_a[all_idx], a[all_idx], "x",
-                color="tab:red", markersize=6, markeredgewidth=1.2,
-                label=f"Divergent cells (n={len(all_idx)})")
+        def _pick_label_indices(points: list[int], max_labels: int) -> list[int]:
+            if not points or max_labels <= 0:
+                return []
+            picked: list[int] = []
+            for p in points:
+                if not picked or p - picked[-1] >= label_min_distance:
+                    picked.append(p)
+            if len(picked) <= max_labels:
+                return picked
+            slots = np.unique(np.linspace(0, len(picked) - 1, num=max_labels, dtype=int))
+            return [picked[int(i)] for i in slots]
 
-        # Larger x + text annotation at each segment onset, so the reader sees
-        # distinct shock/contact/rarefaction entries rather than one blob.
+        span_x = float(x_a[-1] - x_a[0]) if len(x_a) > 1 else 1.0
+        span_y = float(np.max(a) - np.min(a))
+        if span_y <= 0.0:
+            span_y = 1.0
+
+        if show_all_divergent_cells:
+            ax.plot(x_a[all_idx], a[all_idx], "x",
+                    color="tab:red", markersize=6, markeredgewidth=1.2,
+                    label=f"Divergent cells (n={len(all_idx)})")
+
+        # Mark every kept onset point, but annotate only a sparse subset.
+        onset_label_idx = set(_pick_label_indices(seg_onsets, max_onset_labels))
         for k, onset in enumerate(seg_onsets):
             xo = x_a[onset]
             yo = a[onset]
             ax.plot(xo, yo, "x",
                     color="darkred", markersize=11, markeredgewidth=2.2,
-                    label="Segment onset" if k == 0 else None)
-            ax.annotate(
-                f"i={onset}\nx={xo:.3f}",
-                xy=(xo, yo),
-                xytext=(xo + 0.03 * (x_a[-1] - x_a[0]), yo),
-                fontsize=7,
-                color="darkred",
-                arrowprops=dict(arrowstyle="->", color="darkred", lw=0.8),
-            )
+                    label="Divergence onset" if k == 0 else None)
+            if onset in onset_label_idx:
+                level = (k % 3) + 1
+                ax.annotate(
+                    f"i={onset}\nx={xo:.3f}",
+                    xy=(xo, yo),
+                    xytext=(xo + 0.02 * span_x, yo + 0.035 * level * span_y),
+                    fontsize=7,
+                    color="darkred",
+                    arrowprops=dict(arrowstyle="->", color="darkred", lw=0.8),
+                )
+
+        if show_rejoin_points:
+            rejoin_label_idx = set(_pick_label_indices(seg_rejoins, max_rejoin_labels))
+            for k, rejoin in enumerate(seg_rejoins):
+                xr = x_a[rejoin]
+                yr = a[rejoin]
+                ax.plot(
+                    xr, yr, "o",
+                    color="darkgreen", markersize=5, markeredgewidth=0.8,
+                    label="Rejoin point" if k == 0 else None,
+                )
+                if show_rejoin_labels and rejoin in rejoin_label_idx:
+                    level = (k % 3) + 1
+                    ax.annotate(
+                        f"i={rejoin}\nx={xr:.3f}",
+                        xy=(xr, yr),
+                        xytext=(xr - 0.02 * span_x, yr - 0.035 * level * span_y),
+                        fontsize=7,
+                        color="darkgreen",
+                        arrowprops=dict(arrowstyle="->", color="darkgreen", lw=0.8),
+                    )
     else:
         ax.text(
             0.98, 0.98,
@@ -374,9 +603,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--input-b", required=True, metavar="PATH", help="Path to solver B data file.")
     p.add_argument("--label-b", default="B", metavar="STR", help="Label for solver B.")
     p.add_argument("--variable", choices=list(COLUMN_MAP.keys()), default="rho",
-                   help="Variable to plot (rho=col 1, u=col 2, p=col 4).")
-    p.add_argument("--mode", choices=["visible", "noise_floor", "strict_fp"], default="visible",
-                   help="Divergence-detection mode (default: visible).")
+                   help="Variable to plot (rho=col 1, u=col 2, v=col 3, p=col 4).")
+    p.add_argument("--mode", choices=["visible", "noise_floor", "strict_fp"], default="noise_floor",
+                   help="Divergence-detection mode (default: noise_floor).")
     p.add_argument("--visible-rel-tol", type=float, default=DEFAULT_VISIBLE_REL_TOL,
                    metavar="FLOAT", help="Relative tolerance for visible mode.")
     # Stage-2 noise_floor arguments
@@ -395,6 +624,24 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="Source precision for strict_fp mode (default float64).")
     p.add_argument("--k-eps", type=float, default=DEFAULT_K_EPS_FALLBACK, metavar="FLOAT",
                    help="ulp multiplier for strict_fp mode (default 10.0).")
+    p.add_argument("--show-all-divergent-cells", action="store_true",
+                   help="Also mark every divergent cell with small x (off by default).")
+    p.add_argument("--hide-rejoin-points", action="store_true",
+                   help="Hide points where curves rejoin (on by default).")
+    p.add_argument("--hide-rejoin-labels", action="store_true",
+                   help="Hide text labels for rejoin points (markers remain).")
+    p.add_argument("--onset-merge-gap", type=int, default=1, metavar="INT",
+                   help="Merge non-divergent gaps up to this many cells before onset detection.")
+    p.add_argument("--onset-min-segment-len", type=int, default=1, metavar="INT",
+                   help="Drop divergent segments shorter than this many cells.")
+    p.add_argument("--onset-min-distance", type=int, default=6, metavar="INT",
+                   help="Suppress nearby onset markers within this many cell indices.")
+    p.add_argument("--label-min-distance", type=int, default=DEFAULT_LABEL_MIN_DISTANCE, metavar="INT",
+                   help="Minimum index spacing between annotated labels.")
+    p.add_argument("--max-onset-labels", type=int, default=DEFAULT_MAX_ONSET_LABELS, metavar="INT",
+                   help="Maximum number of onset text labels per panel.")
+    p.add_argument("--max-rejoin-labels", type=int, default=DEFAULT_MAX_REJOIN_LABELS, metavar="INT",
+                   help="Maximum number of rejoin text labels per panel.")
     p.add_argument("--output", required=True, metavar="PATH", help="Output PNG path.")
     p.add_argument("--title", default=None, metavar="STR", help="Optional figure title.")
     return p
@@ -435,6 +682,15 @@ def main() -> None:
         abs_floor_frac=args.abs_floor_frac,
         source_precision=args.source_precision,
         k_eps=args.k_eps,
+        show_all_divergent_cells=args.show_all_divergent_cells,
+        show_rejoin_points=not args.hide_rejoin_points,
+        show_rejoin_labels=not args.hide_rejoin_labels,
+        onset_merge_gap=args.onset_merge_gap,
+        onset_min_segment_len=args.onset_min_segment_len,
+        onset_min_distance=args.onset_min_distance,
+        label_min_distance=args.label_min_distance,
+        max_onset_labels=args.max_onset_labels,
+        max_rejoin_labels=args.max_rejoin_labels,
         title=args.title,
     )
 

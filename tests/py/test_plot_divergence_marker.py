@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.abspath(_SCRIPTS_DIR))
 
 from plot_divergence_marker import (  # noqa: E402
     all_divergence_indices,
+    filtered_divergence_segment_rejoins,
     divergence_segment_onsets,
     first_divergence_index,
 )
@@ -218,6 +219,20 @@ def test_divergence_segment_onsets_collapses_contiguous_runs():
     b[80] = 1.0
     onsets = divergence_segment_onsets(a, b, mode="visible")
     assert onsets == [10, 50, 80]
+
+
+def test_filtered_divergence_segment_rejoins_marks_split_to_merge_points():
+    """Rejoin points should be first non-divergent cells after kept segments."""
+    a = np.zeros(100)
+    b = np.zeros(100)
+    b[10] = 1.0
+    b[50:53] = 1.0
+    b[80] = 1.0
+    rejoins = filtered_divergence_segment_rejoins(
+        a, b, mode="visible", visible_rel_tol=1e-6,
+        merge_gap=0, min_segment_len=1, min_onset_distance=0,
+    )
+    assert rejoins == [11, 53, 81]
 
 
 # ---------------------------------------------------------------------------
