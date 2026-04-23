@@ -110,7 +110,8 @@ def _plot_slice(
     prim_a / prim_b : (ny, nx, 4) primitive-variable mean arrays.
     sigma_a / sigma_b : (ny, nx, 4) per-cell std arrays.
     """
-    fig, axes = plt.subplots(3, 1, figsize=(8, 9), sharex=True)
+    fig, axes = plt.subplots(3, 1, figsize=(8, 11), sharex=True,
+                             gridspec_kw={"hspace": 0.55})
     fig.suptitle(f"y = {slice_y:g} slice — HLLC vs Rusanov", fontsize=11, fontweight="bold")
 
     var_info = [
@@ -125,6 +126,8 @@ def _plot_slice(
         nf_a = sigma_a[j_slice, :, vi]
         nf_b = sigma_b[j_slice, :, vi]
 
+        # Title is set on the axes below with extra pad so divergence-marker
+        # onset labels (placed above the data point) don't collide with it.
         plot_single_panel(
             ax, x, a_slice, x, b_slice,
             label_a=label_a,
@@ -133,12 +136,11 @@ def _plot_slice(
             mode="noise_floor",
             noise_floor_a=nf_a,
             noise_floor_b=nf_b,
-            title=f"y = {slice_y:g} slice — {vlabel}",
         )
+        ax.set_title(f"y = {slice_y:g} slice — {vlabel}", fontsize=10, pad=18)
 
     axes[-1].set_xlabel("x")
-    fig.tight_layout()
-    fig.savefig(str(out_path), dpi=150)
+    fig.savefig(str(out_path), dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 
