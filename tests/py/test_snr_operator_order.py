@@ -13,7 +13,6 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 # Make scripts/ importable regardless of working directory.
 sys.path.insert(0, str(Path(__file__).parents[2] / "scripts"))
@@ -57,7 +56,8 @@ def _make_checkerboard_samples(
 
 def test_wrong_order_underestimates_noise() -> None:
     """sigma_right / sigma_wrong >= 100 on checkerboard-anti-correlated samples."""
-    samples = _make_checkerboard_samples()
+    nx, ny = 8, 4
+    samples = _make_checkerboard_samples(nx=nx, ny=ny)
 
     # WRONG order: spatial L1 of each sample first, then std across samples.
     per_sample_l1 = np.sum(np.abs(samples), axis=(1, 2))  # (nsamples,)
@@ -72,6 +72,16 @@ def test_wrong_order_underestimates_noise() -> None:
         f"Operator order invariant violated: sigma_right={sigma_right:.6g}, "
         f"sigma_wrong={sigma_wrong:.6g}, ratio={ratio:.3f} (expected >= 100).\n"
         "This means the implementation is using the WRONG spatial-L1-first order."
+    )
+
+    # Independent lower bound: sigma_right must be near the analytic value
+    # (std of the per-sample amplitude ≈ 1.0, summed over ny*nx cells).
+    # With seed=42 and nsamples=30 the realised std is ~0.78, so we guard at
+    # 50 % of the ideal to catch genuine undercounting (wrong order gives ~0).
+    # This catches any regression that undercounts per-cell noise.
+    assert sigma_right > 0.5 * ny * nx, (
+        f"sigma_right={sigma_right:.3g} is below 50% of the analytic lower "
+        f"bound {ny * nx}. The per-cell std computation is undercounting noise."
     )
 
 

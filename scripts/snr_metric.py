@@ -25,6 +25,23 @@ from io_helper import stack_samples, load_seeds, cons_to_prim
 # Primitive variable names and order — mirrors IDX_* in io_helper.py.
 VAR_ORDER = ("rho", "u", "v", "p")
 
+# ---------------------------------------------------------------------------
+# Floor helpers
+# ---------------------------------------------------------------------------
+
+_EPS = np.finfo(np.float64).eps
+_SQRT_EPS = np.sqrt(_EPS)
+
+
+def _var_floor(u_ref_var: np.ndarray) -> float:
+    """Floor prevents div-by-zero in vacuum-like cells.
+
+    Spec: sqrt(eps) * max_j |U_ref(j)|.  All-zero u_ref (v-component in
+    a symmetric run, pure vacuum) collapses that to zero, so we also
+    impose a never-vanishing absolute floor of sqrt(eps) itself.
+    """
+    return max(_SQRT_EPS * float(np.abs(u_ref_var).max()), _SQRT_EPS)
+
 _CSV_FIELDNAMES = [
     "solver", "precision", "variable",
     "sigma_fp_l1", "sigma_fp_max", "n_cells", "n_samples",
@@ -70,8 +87,8 @@ def compute_snr_fields(
     sigma_fp = compute_sigma_fp_field(samples)
     mu_trunc = samples.mean(axis=0) - u_ref
 
-    # Precision-aware floor: sqrt(eps_f64) * max_j |U_ref(j)|
-    floor = np.sqrt(np.finfo(np.float64).eps) * np.abs(u_ref).max()
+    # Precision-aware floor: sqrt(eps_f64) * max_j |U_ref(j)|, never zero.
+    floor = _var_floor(u_ref)
     snr_local = np.abs(mu_trunc) / np.maximum(sigma_fp, floor)
 
     return mu_trunc, sigma_fp, snr_local
