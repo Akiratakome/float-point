@@ -3,6 +3,7 @@
 #include "euler/euler_solver.hpp"
 #include "euler/exact_riemann.hpp"
 #include "utils/error_norms.hpp"
+#include "utils/io.hpp"
 #include "toro_tests.hpp"
 #include "lw_tests.hpp"
 
@@ -70,7 +71,42 @@ static void get_riemann_ic(const std::string& test,
 // Rusanov is the designated baseline vs HLLC for FP-sensitivity comparison.
 static FluxScheme parse_flux(const Config& cfg) {
     std::string s = cfg.get_string("solver", "rusanov");
-    return (s == "rusanov") ? FluxScheme::Rusanov : FluxScheme::HLLC;
+    if (s == "rusanov") return FluxScheme::Rusanov;
+    if (s == "hllc") return FluxScheme::HLLC;
+    throw std::runtime_error(
+        "Unknown solver: " + s + " (expected 'hllc' or 'rusanov')");
+}
+
+static BoundaryType parse_boundary(const Config& cfg) {
+    std::string bc  = cfg.get_string("bc", "");
+    std::string bcx = cfg.get_string("bc_x", "");
+    std::string bcy = cfg.get_string("bc_y", "");
+
+    // For now solver supports one boundary mode for both directions.
+    if (!bcx.empty() || !bcy.empty()) {
+        if (bcx.empty()) {
+            if (!bcy.empty()) bcx = bcy;
+            else if (!bc.empty()) bcx = bc;
+            else bcx = "outflow";
+        }
+        if (bcy.empty()) {
+            if (!bcx.empty()) bcy = bcx;
+            else if (!bc.empty()) bcy = bc;
+            else bcy = "outflow";
+        }
+        if (bcx != bcy) {
+            throw std::runtime_error(
+                "Mixed bc_x/bc_y not supported yet (got bc_x=" + bcx + ", bc_y=" + bcy + ")");
+        }
+        bc = bcx;
+    }
+    if (bc.empty()) bc = "outflow";
+
+    if (bc == "outflow") return BoundaryType::Outflow;
+    if (bc == "periodic") return BoundaryType::Periodic;
+    if (bc == "reflective") return BoundaryType::Reflective;
+    throw std::runtime_error(
+        "Unknown boundary type: " + bc + " (expected outflow|periodic|reflective)");
 }
 
 static void run_convergence(const Config& cfg) {
@@ -158,6 +194,9 @@ static void run_normal(const Config& cfg) {
             "output_precision must be in [1, 17] (got " + std::to_string(out_prec) + ")");
     }
     FluxScheme flux = parse_flux(cfg);
+    BoundaryType boundary = parse_boundary(cfg);
+    std::string output_format = cfg.get_string("output_format", "table");
+    std::string output_file = cfg.get_string("output_file", "");
 
     double dx = (xmax - xmin) / nx;
 
@@ -165,12 +204,26 @@ static void run_normal(const Config& cfg) {
         // ── 2D path ───────────────────────────────────────────────────────────
         double dy = (ymax - ymin) / ny;
         EulerSolver<double> solver(nx, ny, dx, dy, xmin, ymin,
-                                   gamma, cfl, t_end, flux);
+                                   gamma, cfl, t_end, flux, boundary);
         setup_ic(solver.grid_view(), test, gamma);
         solver.run();
 
         std::cerr << "Finished: " << solver.step_count() << " steps, t = "
                   << solver.time() << "\n";
+
+        if (output_format == "binary") {
+            if (output_file.empty()) {
+                throw std::runtime_error(
+                    "output_file must be set when output_format=binary");
+            }
+            write_binary<double, EulerNVars>(
+                output_file, solver.grid_view(), nx, ny, dx, dy, solver.time());
+            return;
+        }
+        if (output_format != "table") {
+            throw std::runtime_error(
+                "Unknown output_format: " + output_format + " (expected table|binary)");
+        }
 
         auto gv = solver.grid_view();
         std::cout << std::setprecision(out_prec);
@@ -196,7 +249,7 @@ static void run_normal(const Config& cfg) {
     }
 
     // ── 1D path (preserve bit-identical legacy output format) ─────────────────
-    EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end, flux);
+    EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end, flux, boundary);
     setup_ic(solver.grid_view(), test, gamma);
     solver.run();
 
@@ -204,6 +257,19 @@ static void run_normal(const Config& cfg) {
               << solver.time() << "\n";
 
     auto gv = solver.grid_view();
+    if (output_format == "binary") {
+        if (output_file.empty()) {
+            throw std::runtime_error(
+                "output_file must be set when output_format=binary");
+        }
+        write_binary<double, EulerNVars>(
+            output_file, gv, nx, 1, dx, dx, solver.time());
+        return;
+    }
+    if (output_format != "table") {
+        throw std::runtime_error(
+            "Unknown output_format: " + output_format + " (expected table|binary)");
+    }
     std::cout << std::setprecision(out_prec);
     for (int i = 0; i < nx; ++i) {
         double x = xmin + (i + 0.5) * dx;

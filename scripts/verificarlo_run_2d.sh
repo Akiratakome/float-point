@@ -20,10 +20,14 @@
 #
 # Defaults:
 #     --config    tests/cases/liska_wendroff_2d/config3.cfg
-#     --solver    hllc   (if 'rusanov' and no --config given, switches to
-#                 tests/cases/liska_wendroff_2d/config3_rusanov.cfg)
+#     --solver    omitted by default; effective solver comes from config
+#                 (config3.cfg currently sets solver = rusanov)
+#                 If --solver is given without --config, script auto-selects
+#                 the bundled config whose solver matches --solver.
+#                 If both --solver and --config are given, --solver overrides
+#                 solver in the copied per-sample run.cfg.
 #     --samples   required (no default; pass 3 for smoke or 5 for feasibility)
-#     --out       experiments/week4/2d_vfc/smoke/<test>/<solver>
+#     --out       experiments/week4/2d_vfc/smoke/<test>/<solver-effective>
 # ──────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
@@ -34,8 +38,9 @@ if [[ ! -f CMakeLists.txt ]]; then
 fi
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
-CFG_DEFAULT_HLLC="tests/cases/liska_wendroff_2d/config3.cfg"
-CFG_DEFAULT_RUSANOV="tests/cases/liska_wendroff_2d/config3_rusanov.cfg"
+CFG_BUNDLED_A="tests/cases/liska_wendroff_2d/config3.cfg"
+CFG_BUNDLED_B="tests/cases/liska_wendroff_2d/config3_rusanov.cfg"
+CFG_DEFAULT_BASE="$CFG_BUNDLED_A"
 
 CONFIG=""
 SOLVER=""
@@ -79,18 +84,41 @@ if ! [[ "$N_SAMPLES" =~ ^[0-9]+$ ]] || [[ "$N_SAMPLES" -le 0 ]]; then
 fi
 
 # Resolve solver vs config interaction.
-if [[ -z "$CONFIG" ]]; then
-    case "${SOLVER:-hllc}" in
-        hllc)     CONFIG="$CFG_DEFAULT_HLLC" ;;
-        rusanov)  CONFIG="$CFG_DEFAULT_RUSANOV" ;;
-        *)
-            echo "ERROR: --solver must be 'hllc' or 'rusanov' (got '${SOLVER:-}')" >&2
-            exit 2
-            ;;
-    esac
-elif [[ -n "$SOLVER" ]] && [[ "$SOLVER" != "hllc" && "$SOLVER" != "rusanov" ]]; then
+if [[ -n "$SOLVER" ]] && [[ "$SOLVER" != "hllc" && "$SOLVER" != "rusanov" ]]; then
     echo "ERROR: --solver must be 'hllc' or 'rusanov' (got '$SOLVER')" >&2
     exit 2
+fi
+
+read_solver_from_cfg() {
+    local cfg="$1"
+    awk -F= '/^[[:space:]]*solver[[:space:]]*=/ {gsub(/[[:space:]]/,"",$2); print $2; exit}' "$cfg"
+}
+
+pick_bundled_config_for_solver() {
+    local wanted="$1"
+    local candidate cfg_solver
+    for candidate in "$CFG_BUNDLED_A" "$CFG_BUNDLED_B"; do
+        [[ -f "$candidate" ]] || continue
+        cfg_solver="$(read_solver_from_cfg "$candidate")"
+        if [[ "$cfg_solver" == "$wanted" ]]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+if [[ -z "$CONFIG" ]]; then
+    if [[ -n "$SOLVER" ]]; then
+        if ! CONFIG="$(pick_bundled_config_for_solver "$SOLVER")"; then
+            echo "ERROR: no bundled config declares solver='$SOLVER' among:" >&2
+            echo "       $CFG_BUNDLED_A" >&2
+            echo "       $CFG_BUNDLED_B" >&2
+            exit 2
+        fi
+    else
+        CONFIG="$CFG_DEFAULT_BASE"
+    fi
 fi
 
 if [[ ! -f "$CONFIG" ]]; then
@@ -98,13 +126,23 @@ if [[ ! -f "$CONFIG" ]]; then
     exit 1
 fi
 
+CONFIG_SOLVER="$(read_solver_from_cfg "$CONFIG")"
+if [[ -n "$CONFIG_SOLVER" ]] && [[ "$CONFIG_SOLVER" != "hllc" && "$CONFIG_SOLVER" != "rusanov" ]]; then
+    echo "ERROR: solver in config must be hllc or rusanov (got '$CONFIG_SOLVER' in '$CONFIG')." >&2
+    exit 2
+fi
+
 if [[ -n "$SOLVER" ]]; then
     SOLVER_EFFECTIVE="$SOLVER"
+    SOLVER_SOURCE="cli"
 else
-    SOLVER_EFFECTIVE="$(awk -F= '/^[[:space:]]*solver[[:space:]]*=/ {gsub(/[[:space:]]/,"",$2); print $2; exit}' "$CONFIG")"
-    if [[ -z "${SOLVER_EFFECTIVE:-}" ]]; then
-        SOLVER_EFFECTIVE="hllc"
-    fi
+    SOLVER_EFFECTIVE="$CONFIG_SOLVER"
+    SOLVER_SOURCE="config"
+fi
+
+if [[ -z "${SOLVER_EFFECTIVE:-}" ]]; then
+    echo "ERROR: no solver resolved. Add 'solver = hllc|rusanov' to '$CONFIG' or pass --solver." >&2
+    exit 2
 fi
 if [[ "$SOLVER_EFFECTIVE" != "hllc" && "$SOLVER_EFFECTIVE" != "rusanov" ]]; then
     echo "ERROR: effective solver must be hllc or rusanov (got '$SOLVER_EFFECTIVE')." >&2
@@ -163,7 +201,10 @@ export MKL_NUM_THREADS=1
 export VECLIB_MAXIMUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 echo "[mca] VFC_BASE=${VFC_BASE}"
-echo "[cfg] CONFIG=${CONFIG}  SOLVER=${SOLVER_EFFECTIVE}  SAMPLES=${N_SAMPLES}  OUT=${OUT_DIR}"
+echo "[cfg] CONFIG=${CONFIG}  CONFIG_SOLVER=${CONFIG_SOLVER:-unset}  SOLVER_EFFECTIVE=${SOLVER_EFFECTIVE} (source=${SOLVER_SOURCE})  SAMPLES=${N_SAMPLES}  OUT=${OUT_DIR}"
+if [[ -n "$SOLVER" && -n "$CONFIG_SOLVER" && "$SOLVER" != "$CONFIG_SOLVER" ]]; then
+    echo "[cfg] note: --solver=${SOLVER} overrides config solver=${CONFIG_SOLVER} in generated run.cfg"
+fi
 
 # ── Run N samples with independent /dev/urandom seeds ─────────────────────────
 for k in $(seq 1 "$N_SAMPLES"); do
