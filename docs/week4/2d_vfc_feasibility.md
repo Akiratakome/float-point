@@ -90,9 +90,57 @@ the interflop init banner.
    Initial attempt failed at the cmake step inside the container; not
    yet pursued.
 
-## 4. CSC production (stage 3 — 200² × N=30, HLLC + Rusanov)
+## 4. Production (stage 3 — 200² × N=30, HLLC + Rusanov)
 
-_Blocked pending resolution of the 200² verificarlo-c++ segfault above._
+### 4.1 Platform switch — CSC SLURM → Cambridge LSC lovelace (2026-04-23)
+
+Actual production host is `lovelace.lsc.phy.private.cam.ac.uk` (Cambridge
+Physics LSC), **not** a SLURM cluster. Environment:
+
+- 64 cores, 251 GB RAM, single shared node
+- Ubuntu 24.04; Verificarlo 2.4.0 at `/lsc/opt/verificarlo-2.4.0/` on
+  **Clang 18.1.3** (vs Clang 7.0.1 in the local Docker image that
+  segfaulted at 200²)
+- No `module`, no SLURM (`sinfo` missing) — workflow uses `xargs -P`
+  single-node parallelism instead of `sbatch --array`.
+
+### 4.2 Single-node runner
+
+`scripts/run_lovelace_parallel.sh` replaces `scripts/slurm/verificarlo_2d_array.sh`
+on lovelace. Same output layout (`sample_NN/grid.bin`, `seeds/seed_NN.csv`)
+so the analyzer chain is unchanged. Per-sample seed comes from
+`/dev/urandom` inlined into `VFC_BACKENDS`, PRNG thread isolation via
+`OMP_NUM_THREADS=1` + BLAS throttle. All 30 samples spawn concurrently
+across 30 of the 64 cores.
+
+Typical submission:
+```bash
+cd ~/floatpoint
+export PATH=/lsc/opt/verificarlo-2.4.0/bin:$PATH
+export LD_LIBRARY_PATH=/lsc/opt/verificarlo-2.4.0/lib:${LD_LIBRARY_PATH:-}
+
+bash scripts/run_lovelace_parallel.sh \
+    --config tests/cases/liska_wendroff_2d/config3.cfg \
+    --solver hllc --samples 30 --parallel 30
+
+bash scripts/run_lovelace_parallel.sh \
+    --config tests/cases/liska_wendroff_2d/config3_rusanov.cfg \
+    --solver rusanov --samples 30 --parallel 30
+```
+
+Expected wall-clock per solver at 200²: ≈ 1 × per-sample wall-clock
+(all 30 samples run concurrently on 30 cores, plenty of RAM headroom).
+Local Docker benchmarks suggest per-sample `t_{200²}` ≈ 5 min → total
+~5 min per solver, ~10 min for HLLC + Rusanov combined — subject to
+confirmation against Clang 18 codegen (the local 200² crash was a
+Clang 7 issue).
+
+### 4.3 Stage-3 go/no-go
+
+Prereq sanity: run ONE 200² MCA sample on lovelace first. If
+`Finished: 259 steps, t = 0.3` + exit 0, proceed with the N=30
+batches above. If it still segfaults under Clang 18, fall back to
+N=180 production with the same runner.
 
 Submission commands — see `scripts/slurm/README.md`.
 Per-task wall-clock + resource report captured via:
