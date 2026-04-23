@@ -24,6 +24,7 @@ from losos_metric import (  # noqa: E402
     compute_s_accuracy,
     compute_s_worst,
     compute_losos_fields,
+    SIG_DIGITS_CEILING,
     _SQRT_EPS,
     _var_floor,
 )

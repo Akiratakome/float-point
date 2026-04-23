@@ -12,16 +12,12 @@ Edge-case policy
 ----------------
 - sigma_fp == 0 exactly  → ratio argument to -log10 is 0 → log10(0) = -inf.
   We use np.errstate(divide="ignore", invalid="ignore") to suppress the
-  RuntimeWarning, then replace every cell where the raw -log10 value is +inf
-  (i.e. the original ratio was <= 0) with np.inf (large-is-good sentinel).
-  The raw field therefore MAY contain +inf; callers that need finite arrays
-  (e.g. plotting) clamp with np.clip(np.where(np.isinf(f), CAP, f), 0, CAP).
+  RuntimeWarning.  The raw -log10 value is +inf in that case; we immediately
+  clamp it to SIG_DIGITS_CEILING (20.0) via nan_to_num so that all emitted
+  fields are strictly finite and downstream percentile/mean follow the spec
+  literal formulas without any finite-only filtering workaround.
 - mu_sample == 0 / u_ref == 0 : covered by max(|...|, floor_var) in denominator.
-- No NaN or -inf is emitted: any -inf produced by log10 of a positive argument
-  (impossible given the floor) would only arise if ratio > 1 somehow, which
-  the floor prevents.  We do NOT clamp -inf explicitly because it should never
-  appear; if the field somehow contains -inf we intentionally let assertions
-  catch it in tests.
+- All three fields are guaranteed finite in [0, SIG_DIGITS_CEILING].
 """
 
 from __future__ import annotations
@@ -49,7 +45,12 @@ VAR_ORDER = ("rho", "u", "v", "p")
 _EPS = np.finfo(np.float64).eps
 _SQRT_EPS = np.sqrt(_EPS)
 
-# Display cap: +inf values are clamped to this for heatmap display.
+# Ceiling for significant-digit counts: float64 gives 15–17 sig digits, so
+# 20.0 is safely above any physically meaningful value and serves as the
+# clamp target for cells where sigma_fp == 0 or mu == u_ref exactly.
+SIG_DIGITS_CEILING = 20.0
+
+# Display cap: values are clamped to this for heatmap display.
 _DISPLAY_CAP = 16.0
 
 _CSV_FIELDNAMES = [
@@ -87,8 +88,8 @@ def compute_s_reliability(
 
     Returns
     -------
-    s_reliability : (ny, nx) significant-digit count.  +inf where sigma_fp==0
-                    (perfectly reproducible cell).  No NaN, no -inf.
+    s_reliability : (ny, nx) significant-digit count, clamped to
+                    [0, SIG_DIGITS_CEILING].  Strictly finite — no NaN, no inf.
     """
     mu = samples.mean(axis=0)                           # (ny, nx)
     sigma = samples.std(axis=0, ddof=1)                 # (ny, nx)
@@ -96,15 +97,11 @@ def compute_s_reliability(
 
     with np.errstate(divide="ignore", invalid="ignore"):
         ratio = sigma / denom
-        log_ratio = np.log10(ratio)                     # -inf where ratio==0
+        raw = -np.log10(ratio)                          # +inf where sigma==0
 
-    # Negate: large-is-good.  Where ratio==0 log_ratio==-inf → -log=+inf (good).
-    neg_log = -log_ratio
-
-    # Any cell where sigma==0 gives ratio==0 → log10(0)==-inf → neg=+inf: correct.
-    # Any cell where ratio > 0 gives finite neg_log.
-    # There should be no NaN here (denom >= floor > 0, sigma >= 0).
-    return neg_log
+    # Clamp: +inf (sigma==0) → SIG_DIGITS_CEILING; NaN → 0; -inf → 0.
+    return np.nan_to_num(raw, nan=0.0,
+                         posinf=SIG_DIGITS_CEILING, neginf=0.0)
 
 
 def compute_s_accuracy(
@@ -122,8 +119,8 @@ def compute_s_accuracy(
 
     Returns
     -------
-    s_accuracy : (ny, nx) significant-digit count.  +inf where mu == u_ref exactly.
-                 No NaN, no -inf.
+    s_accuracy : (ny, nx) significant-digit count, clamped to
+                 [0, SIG_DIGITS_CEILING].  Strictly finite — no NaN, no inf.
     """
     mu = samples.mean(axis=0)                           # (ny, nx)
     denom = np.maximum(np.abs(u_ref), floor)            # (ny, nx), >= floor > 0
@@ -131,12 +128,11 @@ def compute_s_accuracy(
 
     with np.errstate(divide="ignore", invalid="ignore"):
         ratio = abs_err / denom
-        log_ratio = np.log10(ratio)                     # -inf where abs_err==0
+        raw = -np.log10(ratio)                          # +inf where abs_err==0
 
-    neg_log = -log_ratio
-
-    # Where abs_err==0 → ratio==0 → log10(0)==-inf → neg=+inf: correct.
-    return neg_log
+    # Clamp: +inf (mu==u_ref) → SIG_DIGITS_CEILING; NaN → 0; -inf → 0.
+    return np.nan_to_num(raw, nan=0.0,
+                         posinf=SIG_DIGITS_CEILING, neginf=0.0)
 
 
 def compute_s_worst(
@@ -180,26 +176,19 @@ def compute_losos_scalars(
 ) -> tuple[float, float, float]:
     """Compute (min, q05, mean) for a LoSoS field.
 
-    Finite values only: +inf cells are excluded from mean and percentile so
-    that a small number of perfectly-reproducible cells don't inflate
-    statistics.  min is computed over all values including +inf.
+    Fields are guaranteed finite (clamped to [0, SIG_DIGITS_CEILING] at
+    computation time), so these are the literal spec formulas with no
+    finite-only filtering.
 
     Returns
     -------
-    f_min  : minimum value (worst cell, may be +inf)
-    f_q05  : 5th-percentile (worst 5% region, excludes +inf)
-    f_mean : mean over finite cells
+    f_min  : minimum value (worst cell)
+    f_q05  : 5th-percentile (worst 5% region)
+    f_mean : spatial mean
     """
-    f_min = float(np.min(field))
-    finite_mask = np.isfinite(field)
-    if finite_mask.any():
-        finite_vals = field[finite_mask]
-        f_q05 = float(np.percentile(finite_vals, 5))
-        f_mean = float(np.mean(finite_vals))
-    else:
-        # All cells +inf → all perfectly reproducible / accurate.
-        f_q05 = float("inf")
-        f_mean = float("inf")
+    f_min  = float(np.min(field))
+    f_q05  = float(np.percentile(field, 5))
+    f_mean = float(np.mean(field))
     return f_min, f_q05, f_mean
 
 
