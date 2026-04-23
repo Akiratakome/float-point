@@ -19,62 +19,80 @@ solver yet).
 Native scaling: 40² → 200² costs ~50×, consistent with 5× grid refine +
 ~5× steps (CFL-limited).
 
-## 2. MCA local smoke (stage 1 — 40² × 3 samples, WSL + Docker)
+## 2. MCA local smoke (stage 1 — 40² × 3 samples, WSL + Docker, 2026-04-23)
 
-_Pending — scheduled when WSL + Docker Verificarlo is available._
-
-Command (run from repo root inside WSL):
+Command (run from repo root inside WSL with Docker engine reachable):
 ```bash
-bash scripts/verificarlo_run_2d.sh \
-    --solver hllc --samples 3 \
-    --out experiments/week4/2d_vfc/smoke/lw_config3/hllc
+sed 's/nx = 200/nx = 40/;s/ny = 200/ny = 40/' \
+    tests/cases/liska_wendroff_2d/config3.cfg > /tmp/lw40_hllc.cfg
+docker run --rm \
+    -v "$(pwd)":/work -v /tmp:/tmp_host -w /work \
+    verificarlo/verificarlo:v2.4.0 \
+    bash -c 'cp /tmp_host/lw40_hllc.cfg /tmp/lw40_hllc.cfg && \
+        bash scripts/verificarlo_run_2d.sh --config /tmp/lw40_hllc.cfg \
+            --solver hllc --samples 3'
 ```
 
-Verification:
-- `experiments/.../sample_01/grid.bin` parses via `scripts/io_helper.py`.
-- `experiments/.../seeds/seed_01.csv` … `seed_03.csv` present, all seeds distinct.
-- Per-sample wall-clock logged below.
+Result — **PASS**: 23 s wall-clock (whole batch incl. Docker startup).
 
-| Sample | Seed (dec) | Wall-clock | Notes |
-|--------|------------|-----------|-------|
-|   01   |  —         |    —      | to be filled |
-|   02   |  —         |    —      | to be filled |
-|   03   |  —         |    —      | to be filled |
+| Sample | Seed (dec)            | Steps | Notes |
+|--------|-----------------------|-------|-------|
+|   01   | 7752574735489982007  | 51    | OK    |
+|   02   | 9029454494804915967  | 51    | OK    |
+|   03   | 2352970436582514550  | 51    | OK    |
 
-## 3. MCA local feasibility (stage 2 — 100² × 5 samples)
+Per-cell ρ statistics across the 3 samples:
+- ρ ∈ [0.138000, 1.500390]  (mean 0.936226)
+- per-cell σ(ρ) ∈ [0, 2.6 × 10⁻¹⁵], mean 5.7 × 10⁻¹⁶
 
-_Pending._
+→ MCA noise floor is at the expected p=53 binary64 limit; 3 distinct
+seeds confirm `/dev/urandom` PRNG independence.
 
-Purpose: measure `t_{100²}` per-sample. Extrapolate
-`t_{200²} ≈ 4 · t_{100²} · 1.3` (1.3 = analyzer / IO overhead coefficient).
-Verify `t_{200²} ≤ 12 h` per-task (§A3.0 `--time` cap).
+## 3. MCA local feasibility (stage 2 — 100² × 1 sample, 2026-04-23)
 
-Command:
-```bash
-# Temporary cfg overriding nx=ny=100
-sed 's/nx = 200/nx = 100/;s/ny = 200/ny = 100/' \
-    tests/cases/liska_wendroff_2d/config3.cfg > /tmp/lw100_hllc.cfg
-bash scripts/verificarlo_run_2d.sh \
-    --config /tmp/lw100_hllc.cfg --solver hllc --samples 5 \
-    --out experiments/week4/2d_vfc/feasibility/lw_config3/hllc
-```
+Purpose: measure per-sample wall-clock and bisect the largest grid that
+the verificarlo-instrumented binary can run end-to-end.
 
-| Sample | Seed (dec) | Wall-clock | Notes |
-|--------|------------|-----------|-------|
-|   01   |  —         |    —      | to be filled |
-|   02   |  —         |    —      | to be filled |
-|   03   |  —         |    —      | to be filled |
-|   04   |  —         |    —      | to be filled |
-|   05   |  —         |    —      | to be filled |
+| N (grid)  | Backend        | Steps | Per-sample wall-clock | Result |
+|-----------|----------------|-------|-----------------------|--------|
+| 100       | MCA p=53 rr    | 128   | 54 s                  | OK     |
+| 140       | MCA p=53 rr    | 180   | ~75 s                 | OK     |
+| 160       | MCA p=53 rr    | 206   | ~95 s                 | OK     |
+| 180       | MCA p=53 rr    | 233   | ~135 s                | OK     |
+| **200**   | **MCA p=53 rr**| —     | **<1 s**              | **SIGSEGV** |
+| **200**   | **IEEE (passthrough)** | — | **<1 s**            | **SIGSEGV** |
 
-Extrapolation:
-- `t_{100²}_mean` = _tbd_
-- `t_{200²}_est` = `4 × t_{100²}_mean × 1.3` = _tbd_
-- Decision: `t_{200²}_est ≤ 12 h` → **proceed to stage 3**; else stop + replan.
+Critical finding (2026-04-23): the `verificarlo-c++` (Clang 7.0.1, Verificarlo
+v2.4.0 Docker image `verificarlo/verificarlo:v2.4.0`) build of `hrsc`
+**segfaults on the LW Config 3 200² problem before completing the first
+step**, *regardless* of the chosen interflop backend (MCA or IEEE
+passthrough). The native Windows MinGW build runs the same problem
+end-to-end in 10.4 s. The crash is therefore in the verificarlo-instrumented
+codegen, not in the solver itself.
+
+Bisection puts the failure threshold strictly between N=180 (works) and
+N=200 (crashes). Crash signature: `SIGSEGV (signal 11)`, no stderr beyond
+the interflop init banner.
+
+### Production plan revisions under consideration
+
+1. **Drop production grid to N=180** (or N=190 if it also works) —
+   plan §A3.0 statistical methodology is grid-agnostic; N=30 samples
+   still gives χ² 90% CI σ ±15%. Pros: unblocked today. Cons: deviates
+   from plan §A3.2 nominal 200² and from the "200²×30 → 400²×30
+   refinement" cadence.
+2. **Try a newer Verificarlo image** (`verificarlo/verificarlo:latest`,
+   or rebuild from source against Clang 14+). Highest fix probability.
+3. **Try CSC's `module load verificarlo-2.4.0`** which may be built
+   against a different LLVM. If that runs 200² cleanly, production
+   proceeds unchanged.
+4. **Build with `-O0 -g`** (debug) — quick test for an optimizer bug.
+   Initial attempt failed at the cmake step inside the container; not
+   yet pursued.
 
 ## 4. CSC production (stage 3 — 200² × N=30, HLLC + Rusanov)
 
-_To be submitted after feasibility gate._
+_Blocked pending resolution of the 200² verificarlo-c++ segfault above._
 
 Submission commands — see `scripts/slurm/README.md`.
 Per-task wall-clock + resource report captured via:
