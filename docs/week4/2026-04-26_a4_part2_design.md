@@ -110,6 +110,23 @@ s_req = -np.log10(E_trunc) + 1.0
 - `× ||U_ref||_∞` 与场幅值同量纲；`× N_cells` 与 L1 求和的 cell 数对齐。
 - 与 SNR / LoSoS 模块共用同一约定，避免脚本间 floor 不一致。
 
+### `s_req` 数值兜底（NaN/Inf 处理）
+
+`E_trunc=0`（完美匹配）会让 `-log10(0)+1 = +inf`，`np.log10` 还会发 RuntimeWarning。统一处理：
+
+```python
+from losos_metric import SIG_DIGITS_CEILING   # 复用 commit 8883c25 既有常量
+with np.errstate(divide="ignore"):
+    s_req = -np.log10(e_trunc) + 1.0
+s_req = np.where(np.isfinite(s_req), s_req, SIG_DIGITS_CEILING)
+```
+
+**为何不写 `nan_to_num(posinf=15.0)`**：`15.0` 数值上恰好等于 `BITWISE_DOUBLE_S_RELIABILITY` 但语义完全不同（一个是"可复现位数工程阈值"，一个是"log 截断 ceiling"）。用同一字面值会让未来读者误以为它们关联——直接从 `losos_metric` 复用 `SIG_DIGITS_CEILING`，与既有 inf-clamp 约定一致，零新魔术数。
+
+### gamma 传递
+
+`cons_to_prim(coarse_cons, args.gamma)` 显式传入，函数内不出现 `1.4` 字面值。CLI `--gamma` 默认 `1.4`，但代码路径上 gamma 是参数，不是常量——为未来 real-gas EOS / 多 gamma 测预留。
+
 ### CLI
 
 ```bash
@@ -224,7 +241,7 @@ python scripts/pareto_plot.py \
 | 4 | `test(scripts): s_req scaling + floor + block-avg conservation invariants` | `tests/py/test_s_req_scaling.py` |
 | 5 | `feat(scripts): tradeoff_summary_table — headline conclusion table generator` | `scripts/tradeoff_summary_table.py` |
 | 6 | `feat(scripts): pareto_plot — sigma_FP × s_worst with s_req(N) target band` | `scripts/pareto_plot.py` |
-| 7 | `data(week4): s_req + losos CSVs + headline table + pareto plot for LW Config 3 N=200` | `experiments/week4/metrics/*.csv` + `docs/week4/tradeoff_summary_tables/lw_config3_200.md` + `experiments/week4/figures/a4_pareto/pareto_lw_config3_200.png` |
+| 7 | `chore(a4): s_req + losos CSVs + headline table + pareto plot for LW Config 3 N=200` | `experiments/week4/metrics/*.csv` + `docs/week4/tradeoff_summary_tables/lw_config3_200.md` + `experiments/week4/figures/a4_pareto/pareto_lw_config3_200.png`。前缀 `chore(a4)` 沿用 `dbaf6fd` 既定约定（generated artifacts），Commitlint 兼容 |
 | 8 | `docs(week4): 800² reference workflow + a3 production log + email + noise_floor calibration` | `docs/week4/800_reference_workflow.md` / `docs/week4/2d_vfc_feasibility.md`（diff 部分）/ `docs/week4/2d_vfc_report.md` / `docs/week4/noise_floor_calibration.md` / `docs/week4/email_supervisor_2026-04-23_week4_progress.md` |
 
 **Causality 论点**：commit 1 是真正"enabled 800² to land"的代码改动；commit 8 是"what we did + analysis log"，自然在分析脚本之后。两端各自一个 commit，1–6 中段是新增脚本与产出，git log 时序与因果正序一致。
