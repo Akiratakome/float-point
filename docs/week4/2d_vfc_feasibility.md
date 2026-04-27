@@ -142,13 +142,11 @@ Prereq sanity: run ONE 200² MCA sample on lovelace first. If
 batches above. If it still segfaults under Clang 18, fall back to
 N=180 production with the same runner.
 
-Submission commands — see `scripts/slurm/README.md`.
-Per-task wall-clock + resource report captured via:
-```bash
-sacct -j <hllc_jobid> -j <rusanov_jobid> \
-    --format=JobID,State,ExitCode,Elapsed,MaxRSS,NodeList \
-    > experiments/week4/2d_vfc_cluster/sacct_report.txt
-```
+Submission commands — use `scripts/run_lovelace_parallel.sh` on lovelace.
+Because this host does not provide SLURM accounting, resource/timing notes
+are logged in:
+- `experiments/week4/2d_vfc_cluster/sacct_report.txt` (compatibility path; marked N/A for sacct)
+- `docs/week4/2d_vfc_report.md` (sample completeness + figure outputs + workflow notes)
 
 Seed independence check (auto-run at analyzer entry):
 ```python
