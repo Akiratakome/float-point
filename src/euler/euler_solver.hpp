@@ -10,6 +10,7 @@
 #include "euler/hllc.hpp"
 #include "euler/rusanov.hpp"
 
+#include <array>
 #include <vector>
 #include <cmath>
 #include <algorithm>
@@ -42,20 +43,27 @@ class EulerSolver {
     Real m_time;
     int  m_step;
     FluxScheme m_flux;
-    BoundaryType m_boundary;
+    BoundaryType m_bc_x;
+    BoundaryType m_bc_y;
 
     void apply_boundary_conditions() {
         auto gv = m_grid.view();
-        switch (m_boundary) {
-            case BoundaryType::Outflow:
-                apply_outflow_bc(gv);
-                break;
-            case BoundaryType::Periodic:
-                apply_periodic_bc(gv);
-                break;
-            case BoundaryType::Reflective:
-                apply_reflective_bc(gv);
-                break;
+        // Euler-specific reflective flip lists. MHD will live in its own
+        // solver class with its own flip lists ({RHOU, BX}, {RHOV, BY}).
+        static constexpr std::array<int, 1> kFlipX = {RHOU};
+        static constexpr std::array<int, 1> kFlipY = {RHOV};
+
+        // X-pass first so the Y-pass can read x-ghost columns when filling
+        // corner cells (matches legacy ordering).
+        switch (m_bc_x) {
+            case BoundaryType::Outflow:    apply_outflow_bc(gv, Axis::X); break;
+            case BoundaryType::Periodic:   apply_periodic_bc(gv, Axis::X); break;
+            case BoundaryType::Reflective: apply_reflective_bc(gv, Axis::X, kFlipX); break;
+        }
+        switch (m_bc_y) {
+            case BoundaryType::Outflow:    apply_outflow_bc(gv, Axis::Y); break;
+            case BoundaryType::Periodic:   apply_periodic_bc(gv, Axis::Y); break;
+            case BoundaryType::Reflective: apply_reflective_bc(gv, Axis::Y, kFlipY); break;
         }
     }
 
@@ -141,7 +149,8 @@ public:
                 Real xmin, Real ymin,
                 Real gamma, Real cfl, Real t_end,
                 FluxScheme flux = FluxScheme::HLLC,
-                BoundaryType boundary = BoundaryType::Outflow)
+                BoundaryType bc_x = BoundaryType::Outflow,
+                BoundaryType bc_y = BoundaryType::Outflow)
         : m_grid(nx, ny),
           m_xmin(xmin),
           m_ymin(ymin),
@@ -151,7 +160,8 @@ public:
           m_time(Real(0)),
           m_step(0),
           m_flux(flux),
-          m_boundary(boundary)
+          m_bc_x(bc_x),
+          m_bc_y(bc_y)
     {
         m_grid.dx = dx;
         m_grid.dy = dy;
@@ -160,8 +170,9 @@ public:
     // 1D convenience constructor
     EulerSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, Real t_end,
                 FluxScheme flux = FluxScheme::HLLC,
-                BoundaryType boundary = BoundaryType::Outflow)
-        : EulerSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end, flux, boundary)
+                BoundaryType bc_x = BoundaryType::Outflow,
+                BoundaryType bc_y = BoundaryType::Outflow)
+        : EulerSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end, flux, bc_x, bc_y)
     {}
 
     GridView<Real, EulerNVars> grid_view() {

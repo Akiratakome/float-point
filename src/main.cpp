@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <string>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 #include <cmath>
 
@@ -77,36 +78,29 @@ static FluxScheme parse_flux(const Config& cfg) {
         "Unknown solver: " + s + " (expected 'hllc' or 'rusanov')");
 }
 
-static BoundaryType parse_boundary(const Config& cfg) {
-    std::string bc  = cfg.get_string("bc", "");
+static BoundaryType bc_from_string(const std::string& s) {
+    if (s == "outflow")    return BoundaryType::Outflow;
+    if (s == "periodic")   return BoundaryType::Periodic;
+    if (s == "reflective") return BoundaryType::Reflective;
+    throw std::runtime_error(
+        "Unknown boundary type: " + s + " (expected outflow|periodic|reflective)");
+}
+
+// Resolve per-axis BCs from config. Each axis takes its bc_x/bc_y key if
+// non-empty, else falls back to bc, else "outflow". Mixed per-axis modes
+// are first-class (Week 5 KH uses bc_x=periodic, bc_y=reflective).
+static std::pair<BoundaryType, BoundaryType> parse_boundary(const Config& cfg) {
+    std::string bc  = cfg.get_string("bc",   "");
     std::string bcx = cfg.get_string("bc_x", "");
     std::string bcy = cfg.get_string("bc_y", "");
-
-    // For now solver supports one boundary mode for both directions.
-    if (!bcx.empty() || !bcy.empty()) {
-        if (bcx.empty()) {
-            if (!bcy.empty()) bcx = bcy;
-            else if (!bc.empty()) bcx = bc;
-            else bcx = "outflow";
-        }
-        if (bcy.empty()) {
-            if (!bcx.empty()) bcy = bcx;
-            else if (!bc.empty()) bcy = bc;
-            else bcy = "outflow";
-        }
-        if (bcx != bcy) {
-            throw std::runtime_error(
-                "Mixed bc_x/bc_y not supported yet (got bc_x=" + bcx + ", bc_y=" + bcy + ")");
-        }
-        bc = bcx;
-    }
-    if (bc.empty()) bc = "outflow";
-
-    if (bc == "outflow") return BoundaryType::Outflow;
-    if (bc == "periodic") return BoundaryType::Periodic;
-    if (bc == "reflective") return BoundaryType::Reflective;
-    throw std::runtime_error(
-        "Unknown boundary type: " + bc + " (expected outflow|periodic|reflective)");
+    auto pick = [](const std::string& axis, const std::string& fallback,
+                   const char* default_value) {
+        if (!axis.empty())     return axis;
+        if (!fallback.empty()) return fallback;
+        return std::string(default_value);
+    };
+    return { bc_from_string(pick(bcx, bc, "outflow")),
+             bc_from_string(pick(bcy, bc, "outflow")) };
 }
 
 static void run_convergence(const Config& cfg) {
@@ -194,7 +188,7 @@ static void run_normal(const Config& cfg) {
             "output_precision must be in [1, 17] (got " + std::to_string(out_prec) + ")");
     }
     FluxScheme flux = parse_flux(cfg);
-    BoundaryType boundary = parse_boundary(cfg);
+    auto [bc_x, bc_y] = parse_boundary(cfg);
     std::string output_format = cfg.get_string("output_format", "table");
     std::string output_file = cfg.get_string("output_file", "");
     // Wall-clock throttled progress on stderr (<=0 disables; default off
@@ -207,7 +201,7 @@ static void run_normal(const Config& cfg) {
         // ── 2D path ───────────────────────────────────────────────────────────
         double dy = (ymax - ymin) / ny;
         EulerSolver<double> solver(nx, ny, dx, dy, xmin, ymin,
-                                   gamma, cfl, t_end, flux, boundary);
+                                   gamma, cfl, t_end, flux, bc_x, bc_y);
         setup_ic(solver.grid_view(), test, gamma);
         solver.run(progress_interval_s);
 
@@ -252,7 +246,7 @@ static void run_normal(const Config& cfg) {
     }
 
     // ── 1D path (preserve bit-identical legacy output format) ─────────────────
-    EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end, flux, boundary);
+    EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end, flux, bc_x, bc_y);
     setup_ic(solver.grid_view(), test, gamma);
     solver.run(progress_interval_s);
 
