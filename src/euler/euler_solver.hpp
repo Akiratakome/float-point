@@ -14,11 +14,22 @@
 #include <cmath>
 #include <algorithm>
 #include <limits>
+#include <chrono>
+#include <cstdio>
 
 namespace hrsc {
 
 enum class FluxScheme { HLLC, Rusanov };
 enum class BoundaryType { Outflow, Periodic, Reflective };
+
+namespace detail {
+    // ETA estimator becomes unreliable when the simulation has barely begun
+    // (t / t_end too small): print "0.0s" rather than a meaningless huge number.
+    constexpr double kProgressEtaMinFrac = 1e-12;
+    // Wall-clock granularity floor for the per-tick rate estimate; below this
+    // the steps/s computation underflows or produces nonsense due to clock noise.
+    constexpr double kProgressMinIntervalSeconds = 1e-9;
+}
 
 template <typename Real>
 class EulerSolver {
@@ -55,6 +66,7 @@ class EulerSolver {
         int ny = gv.ny;
         int n_interfaces = nx + 1;
 
+        #pragma omp parallel for schedule(static)
         for (int j = 0; j < ny; ++j) {
             std::vector<Vec<Real, EulerNVars>> flux(n_interfaces);
 
@@ -91,6 +103,7 @@ class EulerSolver {
         int ny = gv.ny;
         int n_interfaces = ny + 1;
 
+        #pragma omp parallel for schedule(static)
         for (int i = 0; i < nx; ++i) {
             std::vector<Vec<Real, EulerNVars>> flux(n_interfaces);
 
@@ -168,6 +181,7 @@ public:
         Real max_Sx = std::numeric_limits<Real>::lowest();
         Real max_Sy = std::numeric_limits<Real>::lowest();
 
+        #pragma omp parallel for collapse(2) reduction(max:max_Sx,max_Sy) schedule(static)
         for (int j = 0; j < ny; ++j) {
             for (int i = 0; i < nx; ++i) {
                 Vec<Real, EulerNVars> cons;
@@ -223,6 +237,47 @@ public:
         while (m_time < m_t_end) {
             step();
         }
+    }
+
+    // Run with a wall-clock-throttled progress line on stderr.
+    // progress_interval_s <= 0 disables printing (equivalent to run()).
+    // Line format: "[progress] step=K t=T/T_end (P%) elapsed=Ws eta=Ws steps/s=R"
+    // Emits one line at start, every progress_interval_s, and one at finish.
+    void run(double progress_interval_s) {
+        if (progress_interval_s <= 0.0) { run(); return; }
+        using clk = std::chrono::steady_clock;
+        auto t0 = clk::now();
+        auto t_last_print = t0;
+        int  step_at_last_print = m_step;
+        auto print_line = [&](const char* tag) {
+            auto now = clk::now();
+            double elapsed = std::chrono::duration<double>(now - t0).count();
+            double t_frac = (m_t_end > Real(0))
+                ? static_cast<double>(m_time) / static_cast<double>(m_t_end)
+                : 0.0;
+            double eta = (t_frac > detail::kProgressEtaMinFrac) ? elapsed * (1.0 - t_frac) / t_frac : 0.0;
+            double dt_interval = std::chrono::duration<double>(now - t_last_print).count();
+            double steps_per_s = (dt_interval > detail::kProgressMinIntervalSeconds)
+                ? (m_step - step_at_last_print) / dt_interval : 0.0;
+            std::fprintf(stderr,
+                "[progress:%s] step=%d t=%.6g/%.6g (%.2f%%) elapsed=%.1fs eta=%.1fs rate=%.1f steps/s\n",
+                tag, m_step,
+                static_cast<double>(m_time), static_cast<double>(m_t_end),
+                100.0 * t_frac, elapsed, eta, steps_per_s);
+            std::fflush(stderr);
+        };
+        print_line("start");
+        while (m_time < m_t_end) {
+            step();
+            auto now = clk::now();
+            double since_last = std::chrono::duration<double>(now - t_last_print).count();
+            if (since_last >= progress_interval_s) {
+                print_line("tick");
+                t_last_print = now;
+                step_at_last_print = m_step;
+            }
+        }
+        print_line("done");
     }
 };
 

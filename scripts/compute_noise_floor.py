@@ -235,7 +235,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "vfc_version": vfc_version,
         "git_sha": git_sha,
         "seeds_sha256": seeds_sha256,
-        "generated_utc": _dt.datetime.utcnow().isoformat() + "Z",
+        "generated_utc": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 
     out_path.parent.mkdir(parents=True, exist_ok=True)

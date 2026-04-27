@@ -50,7 +50,10 @@ _SQRT_EPS = np.sqrt(_EPS)
 # clamp target for cells where sigma_fp == 0 or mu == u_ref exactly.
 SIG_DIGITS_CEILING = 20.0
 
-# Display cap: values are clamped to this for heatmap display.
+# Display cap for heatmap colorbars: 16.0 sits just below SIG_DIGITS_CEILING
+# (20.0) but well above any realistic IEEE-double s_reliability (~15) so that
+# cells clamped at the ceiling are visually distinguishable from genuinely
+# high-reliability regions. Coding guidance §4: explain *why*, not *what*.
 _DISPLAY_CAP = 16.0
 
 _CSV_FIELDNAMES = [
