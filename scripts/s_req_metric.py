@@ -136,3 +136,144 @@ def compute_s_req(e_trunc: float) -> float:
     if not np.isfinite(raw):
         return SIG_DIGITS_CEILING
     return float(np.clip(raw, 0.0, SIG_DIGITS_CEILING))
+
+
+# ---------------------------------------------------------------------------
+# IO helpers
+# ---------------------------------------------------------------------------
+
+def _load_coarse_candidate(bin_path: Path, gamma: float) -> np.ndarray:
+    """Read a candidate .bin (e.g. deterministic 200²) and return primitive (ny, nx, 4)."""
+    h, cons = read_binary(bin_path)
+    if cons.ndim != 3 or cons.shape[-1] != len(VAR_ORDER):
+        raise ValueError(f"unexpected candidate shape {cons.shape} in {bin_path}")
+    return cons_to_prim(cons.astype(np.float64), gamma)
+
+
+def _load_block_avg_reference(
+    bin_path: Path, gamma: float
+) -> tuple[np.ndarray, int]:
+    """Read 800² reference, block-avg cons → 200², convert to primitive.
+
+    Returns (prim_coarse (ny, nx, 4), fine_N).
+    """
+    h, cons_fine = read_binary(bin_path)
+    if cons_fine.ndim != 3 or cons_fine.shape[-1] != len(VAR_ORDER):
+        raise ValueError(f"unexpected reference shape {cons_fine.shape} in {bin_path}")
+    cons_coarse = block_average_4x_to_coarse(cons_fine.astype(np.float64))
+    prim_coarse = cons_to_prim(cons_coarse, gamma)
+    return prim_coarse, h.nx
+
+
+# ---------------------------------------------------------------------------
+# CSV emission
+# ---------------------------------------------------------------------------
+
+_CSV_FIELDNAMES = [
+    "solver", "variable", "N",
+    "U_ref_L1", "U_ref_inf", "n_cells", "floor_L1",
+    "mu_trunc_l1", "E_trunc", "s_req",
+]
+
+
+def _row_for(
+    solver: str, variable: str, N: int,
+    mu: np.ndarray, u_ref: np.ndarray, eps_real: float,
+    var_index: int,
+) -> dict:
+    n_cells = u_ref.shape[0] * u_ref.shape[1]
+    sqrt_eps = float(np.sqrt(eps_real))
+    diff_l1 = float(np.abs(mu[..., var_index] - u_ref[..., var_index]).sum())
+    ref_l1 = float(np.abs(u_ref[..., var_index]).sum())
+    ref_inf = float(np.abs(u_ref[..., var_index]).max())
+    floor_l1 = sqrt_eps * ref_inf * n_cells
+    denom = max(ref_l1, floor_l1) or sqrt_eps
+    e_trunc = diff_l1 / denom
+    return {
+        "solver": solver,
+        "variable": variable,
+        "N": N,
+        "U_ref_L1": ref_l1,
+        "U_ref_inf": ref_inf,
+        "n_cells": n_cells,
+        "floor_L1": floor_l1,
+        "mu_trunc_l1": diff_l1,
+        "E_trunc": e_trunc,
+        "s_req": compute_s_req(e_trunc),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def _parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(
+        description="Compute s_req(N) for HLLC and Rusanov via 800² block-avg reference."
+    )
+    p.add_argument("--candidate-hllc-bin",  required=True, type=Path)
+    p.add_argument("--candidate-rusanov-bin", required=True, type=Path)
+    p.add_argument("--reference-hllc-bin",  required=True, type=Path)
+    p.add_argument("--reference-rusanov-bin", required=True, type=Path)
+    p.add_argument("--gamma", type=float, default=1.4,
+                   help="Ratio of specific heats (default: 1.4).")
+    p.add_argument("--out-csv", required=True, type=Path,
+                   help="Output CSV path (parent dir created if absent).")
+    p.add_argument("--out-ref-npz", required=True, type=Path,
+                   help="Side-output .npz with u_ref_hllc / u_ref_rusanov primitive arrays "
+                        "for losos_metric.py --reference.")
+    return p.parse_args()
+
+
+def main() -> None:
+    args = _parse_args()
+    args.out_csv.parent.mkdir(parents=True, exist_ok=True)
+    args.out_ref_npz.parent.mkdir(parents=True, exist_ok=True)
+
+    eps_real = float(np.finfo(np.float64).eps)
+
+    print("[s_req] loading candidates…", file=sys.stderr)
+    mu_hllc = _load_coarse_candidate(args.candidate_hllc_bin, args.gamma)
+    mu_rusanov = _load_coarse_candidate(args.candidate_rusanov_bin, args.gamma)
+
+    print("[s_req] loading + block-averaging references…", file=sys.stderr)
+    ref_hllc, fine_N_h = _load_block_avg_reference(args.reference_hllc_bin, args.gamma)
+    ref_rusanov, fine_N_r = _load_block_avg_reference(args.reference_rusanov_bin, args.gamma)
+
+    if mu_hllc.shape != ref_hllc.shape:
+        raise ValueError(
+            f"HLLC shape mismatch: candidate {mu_hllc.shape} vs block-avg ref {ref_hllc.shape}"
+        )
+    if mu_rusanov.shape != ref_rusanov.shape:
+        raise ValueError(
+            f"Rusanov shape mismatch: candidate {mu_rusanov.shape} vs block-avg ref {ref_rusanov.shape}"
+        )
+
+    N = mu_hllc.shape[0]
+    print(f"[s_req] coarse grid: {N}² (fine ref was {fine_N_h}²)", file=sys.stderr)
+
+    rows: list[dict] = []
+    for solver, mu, u_ref in (
+        ("hllc", mu_hllc, ref_hllc),
+        ("rusanov", mu_rusanov, ref_rusanov),
+    ):
+        for vi, var_name in enumerate(VAR_ORDER):
+            rows.append(_row_for(solver, var_name, N, mu, u_ref, eps_real, vi))
+
+    with open(args.out_csv, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=_CSV_FIELDNAMES)
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"[s_req] wrote {args.out_csv}", file=sys.stderr)
+
+    np.savez(
+        args.out_ref_npz,
+        u_ref_hllc=ref_hllc,
+        u_ref_rusanov=ref_rusanov,
+    )
+    print(f"[s_req] wrote {args.out_ref_npz}", file=sys.stderr)
+    print("[s_req] done.", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
