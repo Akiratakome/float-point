@@ -70,6 +70,18 @@ if [[ ! -x "$HRSC" ]]; then
     exit 1
 fi
 
+# ── PRNG thread isolation (matches verificarlo_run_2d.sh / SLURM array) ──────
+# Plan §A2.5 / §A3.3: libinterflop's MCA PRNG is not documented thread-safe,
+# and compute_dt()'s OpenMP `reduction(max:...)` would non-deterministically
+# reorder additions across threads — both contaminate the per-cell std field.
+# Pin to one thread; per-sample independence comes from the /dev/urandom seed
+# loop below, not from in-process parallelism.
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export VECLIB_MAXIMUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+
 # ── MCA backend base string (seed appended per-sample via --seed=<N>) ─────────
 # Verificarlo's interflop_mca reads seed from the backend CLI flag --seed=<N>,
 # NOT from the VFC_BACKENDS_SEED env var (empirically verified 2026-04-22:
