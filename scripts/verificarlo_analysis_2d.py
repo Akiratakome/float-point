@@ -175,12 +175,35 @@ def main() -> None:
     rusanov_root = root / args.rusanov_subdir
 
     # ---- seed-independence check (fail fast) --------------------------------
-    load_seeds(hllc_root / "seeds", args.expected_n)
-    load_seeds(rusanov_root / "seeds", args.expected_n)
+    hllc_seeds = load_seeds(hllc_root / "seeds", args.expected_n)
+    rusanov_seeds = load_seeds(rusanov_root / "seeds", args.expected_n)
 
     # ---- load and stack samples ---------------------------------------------
     h_a, cons_a, _ = stack_samples(hllc_root)
     h_b, cons_b, _ = stack_samples(rusanov_root)
+
+    # The analysis contract is strict N=expected_n samples per solver.
+    # If sample collection was partial, fail instead of silently averaging fewer runs.
+    n_hllc = cons_a.shape[0]
+    n_rusanov = cons_b.shape[0]
+    if n_hllc != args.expected_n:
+        sys.exit(
+            f"[analysis-2d] ERROR: HLLC sample count {n_hllc} != expected {args.expected_n}"
+        )
+    if n_rusanov != args.expected_n:
+        sys.exit(
+            f"[analysis-2d] ERROR: Rusanov sample count {n_rusanov} != expected {args.expected_n}"
+        )
+
+    # Cross-check seed rows and sample stacks: both must represent the same N tasks.
+    if len(hllc_seeds) != n_hllc:
+        sys.exit(
+            f"[analysis-2d] ERROR: HLLC seeds rows {len(hllc_seeds)} != samples {n_hllc}"
+        )
+    if len(rusanov_seeds) != n_rusanov:
+        sys.exit(
+            f"[analysis-2d] ERROR: Rusanov seeds rows {len(rusanov_seeds)} != samples {n_rusanov}"
+        )
 
     # Consistency: both grids must share the same shape
     if (h_a.nx, h_a.ny) != (h_b.nx, h_b.ny):

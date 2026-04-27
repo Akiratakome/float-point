@@ -21,6 +21,22 @@ if(RIEMANN_STRICT_INEQUALITY)
     target_compile_definitions(hrsc_core INTERFACE RIEMANN_STRICT_INEQUALITY)
 endif()
 
+# OpenMP parallelisation of the per-row / per-column sweep loops.
+# Disable with -DENABLE_OPENMP=OFF when running under Verificarlo MCA
+# (the libinterflop PRNG is not thread-safe; MCA runs must stay serial
+# via OMP_NUM_THREADS=1 in any case, but turning the pragmas off at
+# build time makes the intent explicit).
+option(ENABLE_OPENMP "Enable OpenMP parallelisation in sweeps" ON)
+if(ENABLE_OPENMP)
+    find_package(OpenMP)
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(hrsc_core INTERFACE OpenMP::OpenMP_CXX)
+        message(STATUS "OpenMP enabled (${OpenMP_CXX_VERSION})")
+    else()
+        message(WARNING "ENABLE_OPENMP=ON but OpenMP not found; building serial")
+    endif()
+endif()
+
 # --- Main executable ---
 add_executable(hrsc src/main.cpp)
 target_link_libraries(hrsc PRIVATE hrsc_core)

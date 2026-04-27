@@ -197,6 +197,9 @@ static void run_normal(const Config& cfg) {
     BoundaryType boundary = parse_boundary(cfg);
     std::string output_format = cfg.get_string("output_format", "table");
     std::string output_file = cfg.get_string("output_file", "");
+    // Wall-clock throttled progress on stderr (<=0 disables; default off
+    // preserves legacy bit-identical behaviour for existing cfgs).
+    double progress_interval_s = cfg.get_double("progress_interval_s", 0.0);
 
     double dx = (xmax - xmin) / nx;
 
@@ -206,7 +209,7 @@ static void run_normal(const Config& cfg) {
         EulerSolver<double> solver(nx, ny, dx, dy, xmin, ymin,
                                    gamma, cfl, t_end, flux, boundary);
         setup_ic(solver.grid_view(), test, gamma);
-        solver.run();
+        solver.run(progress_interval_s);
 
         std::cerr << "Finished: " << solver.step_count() << " steps, t = "
                   << solver.time() << "\n";
@@ -251,7 +254,7 @@ static void run_normal(const Config& cfg) {
     // ── 1D path (preserve bit-identical legacy output format) ─────────────────
     EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end, flux, boundary);
     setup_ic(solver.grid_view(), test, gamma);
-    solver.run();
+    solver.run(progress_interval_s);
 
     std::cerr << "Finished: " << solver.step_count() << " steps, t = "
               << solver.time() << "\n";
