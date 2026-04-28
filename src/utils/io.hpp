@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
 #include <stdexcept>
 
 // Ensure little-endian (both x86 Windows and x86_64 Linux satisfy this)
@@ -20,6 +21,15 @@ void write_binary(const std::string& filename,
                   GridViewBase<Real, NVars, Ptr> grid,
                   int nx, int ny, Real dx, Real dy, Real time)
 {
+    // Auto-create parent directory so cfgs that point at nested paths
+    // (e.g. experiments/week4/.../candidate_200.bin) work standalone
+    // without forcing every caller to mkdir first.
+    std::filesystem::path out_path(filename);
+    if (out_path.has_parent_path()) {
+        std::error_code ec;
+        std::filesystem::create_directories(out_path.parent_path(), ec);
+    }
+
     FILE* fp = std::fopen(filename.c_str(), "wb");
     if (!fp) throw std::runtime_error("Cannot open file for writing: " + filename);
 
