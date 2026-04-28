@@ -8,7 +8,9 @@ import sys
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).parent))
+_SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_SCRIPTS_ROOT))               # io_helper at scripts/ root
+sys.path.insert(0, str(_SCRIPTS_ROOT / "metrics"))   # downsample_2d, phase_error_metrics
 from downsample_2d import compare_candidate_to_reference, downsample_conserved
 from io_helper import cons_to_prim, read_binary
 from phase_error_metrics import compute_phase_metrics_from_primitive

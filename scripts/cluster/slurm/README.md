@@ -9,7 +9,7 @@ ignored by `interflop_mca`).
 ## One-time cluster setup
 
 1. `ssh <csc-login>` and `cd` to your project root on the cluster.
-2. Clone / rsync this repository (see `scripts/rsync_from_cluster.sh` for
+2. Clone / rsync this repository (see `scripts/cluster/rsync_from_cluster.sh` for
    the inverse direction — result retrieval). A typical push from the
    local machine:
    ```bash
@@ -90,7 +90,7 @@ The analyzer concatenates via glob at read time.
 
 From the local machine (repo root):
 ```bash
-bash scripts/rsync_from_cluster.sh <csc-login>:/path/to/floatpoint
+bash scripts/cluster/rsync_from_cluster.sh <csc-login>:/path/to/floatpoint
 ```
 
 ## Notes on array concurrency

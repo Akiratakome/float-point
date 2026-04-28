@@ -2,13 +2,13 @@
 compute_noise_floor.py — build per-cell MCA noise-floor envelope.
 
 Stage 2 (A2-S2). Consumes N Verificarlo MCA sample files produced by
-``scripts/noise_floor_run.sh`` and writes a single ``.npz`` containing
+``scripts/verificarlo/noise_floor_run.sh`` and writes a single ``.npz`` containing
 per-cell standard deviations for (rho, u, v, p), plus provenance metadata.
 
 Input sample file format (produced by the HRSC solver in 1D):
     columns: x  rho  u  v  p     (5 columns)
 
-The divergence detector (``scripts/plot_divergence_marker.py`` in mode
+The divergence detector (``scripts/figures/plot_divergence_marker.py`` in mode
 ``noise_floor``) consumes the resulting ``.npz`` to build per-cell tolerance.
 """
 
@@ -146,7 +146,7 @@ def _precision_bits_from_runtime_env() -> int:
     if not vfc_backends:
         raise RuntimeError(
             "VFC_BACKENDS is unset; cannot derive MCA precision_bits metadata. "
-            "Run via scripts/noise_floor_run.sh (or set VFC_BACKENDS explicitly)."
+            "Run via scripts/verificarlo/noise_floor_run.sh (or set VFC_BACKENDS explicitly)."
         )
 
     match = re.search(r"(?:^|\s)--precision-binary64=(\d+)(?:\s|$)", vfc_backends)

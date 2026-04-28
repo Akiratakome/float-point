@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """gen_a2_s2_figures.py — produce the 8 A2-S2 supervisor figures.
 
-Pairs the MCA p=53 noise-floor .npz artefacts (from scripts/noise_floor_run.sh)
+Pairs the MCA p=53 noise-floor .npz artefacts (from scripts/verificarlo/noise_floor_run.sh)
 with IEEE-precision HLLC/Rusanov reference runs (from the host build) and
-calls scripts/plot_divergence_marker.py in --mode noise_floor. Emits 4 figures
+calls scripts/figures/plot_divergence_marker.py in --mode noise_floor. Emits 4 figures
 (one per test: sod, stationary_contact, toro2, toro4) × 2 variables (rho, p)
 = 8 PNGs total.
 
@@ -65,7 +65,7 @@ def plot(test: str, variable: str) -> None:
     out_png.parent.mkdir(parents=True, exist_ok=True)
 
     run([
-        sys.executable, "scripts/plot_divergence_marker.py",
+        sys.executable, "scripts/figures/plot_divergence_marker.py",
         "--input-a", hllc_txt, "--label-a", "HLLC",
         "--input-b", rus_txt, "--label-b", "Rusanov",
         "--variable", variable,

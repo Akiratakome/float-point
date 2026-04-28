@@ -36,7 +36,8 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # io_helper at scripts/ root
+sys.path.insert(0, str(Path(__file__).resolve().parent))           # sibling: losos_metric
 from io_helper import read_binary, cons_to_prim
 from losos_metric import SIG_DIGITS_CEILING
 

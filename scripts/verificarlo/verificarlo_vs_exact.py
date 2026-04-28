@@ -5,8 +5,8 @@ Links floating-point stability (MCA std) with discretisation error (|numerical -
 at each grid cell, identifying where floating-point noise becomes the precision bottleneck.
 
 Usage:
-    python scripts/verificarlo_vs_exact.py                # all tests
-    python scripts/verificarlo_vs_exact.py --test sod     # single test
+    python scripts/verificarlo/verificarlo_vs_exact.py                # all tests
+    python scripts/verificarlo/verificarlo_vs_exact.py --test sod     # single test
 
 Output (in docs/verificarlo/):
     - vfc_{test}_error_budget.png   — per-cell discretisation vs FP error
@@ -27,7 +27,7 @@ import matplotlib.ticker as ticker
 # (imported via sys.path to avoid code duplication)
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(SCRIPT_DIR))
+sys.path.insert(0, str(SCRIPT_DIR.parent / "regression"))  # verify_toro lives in regression/
 from verify_toro import exact_riemann, TESTS
 
 # Variable columns in the output: x=0, rho=1, u=2, v=3, p=4
@@ -352,7 +352,7 @@ def main():
 
     if not vfc_dir.exists():
         print(f"ERROR: Verificarlo output not found: {vfc_dir}")
-        print("Run  bash scripts/verificarlo_run.sh  first.")
+        print("Run  bash scripts/verificarlo/verificarlo_run.sh  first.")
         sys.exit(1)
 
     test_names = [args.test] if args.test else list(TESTS.keys())

@@ -32,7 +32,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from io_helper import stack_samples, load_seeds, cons_to_prim
 
 # Primitive variable names and order — mirrors IDX_* in io_helper.py.

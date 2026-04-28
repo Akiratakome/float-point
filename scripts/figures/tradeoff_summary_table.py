@@ -27,7 +27,7 @@ import csv
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from _tradeoff_thresholds import (
     REGIME_MARGIN_OVER_PROVISIONED,
     REGIME_MARGIN_WELL_MATCHED,

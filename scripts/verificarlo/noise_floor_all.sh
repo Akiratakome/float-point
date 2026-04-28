@@ -8,7 +8,7 @@
 # Usage (inside the verificarlo/verificarlo:latest container, from repo root):
 #   docker run --rm -v "$(pwd)":/work -w /work \
 #       verificarlo/verificarlo:latest \
-#       bash scripts/noise_floor_all.sh
+#       bash scripts/verificarlo/noise_floor_all.sh
 #
 # Runtime: ~2–4 hours on laptop (240 MCA p=53 runs total).
 # Output:  experiments/week4/noise_floor/<test>/<solver>/{sample_NN.txt, seeds.csv, noise_floor.npz}
@@ -56,12 +56,12 @@ for test in "${TESTS[@]}"; do
         echo "  → ${out_dir}"
         echo "=================================================================="
 
-        bash scripts/noise_floor_run.sh "$cfg" "$solver" "$out_dir" "$N_SAMPLES"
+        bash scripts/verificarlo/noise_floor_run.sh "$cfg" "$solver" "$out_dir" "$N_SAMPLES"
     done
 done
 
 echo ""
 echo "=================================================================="
 echo "  A2-S2 overnight batch complete."
-echo "  Next: python scripts/plot_divergence_marker.py --mode noise_floor ..."
+echo "  Next: python scripts/figures/plot_divergence_marker.py --mode noise_floor ..."
 echo "=================================================================="

@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from io_helper import stack_samples, load_seeds, cons_to_prim
 from plot_divergence_marker import plot_single_panel
 

@@ -397,7 +397,7 @@ def load_noise_floor(npz_path: Path, variable: str) -> np.ndarray:
     Parameters
     ----------
     npz_path : Path
-        Output of ``scripts/compute_noise_floor.py``.
+        Output of ``scripts/metrics/compute_noise_floor.py``.
     variable : {"rho","u","v","p"}
         Which field's std to return.
 

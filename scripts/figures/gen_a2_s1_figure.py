@@ -7,7 +7,7 @@ mode from "visible" to "noise_floor" and pass the MCA noise_floor.npz paths;
 this script's structure stays the same.
 
 Usage:
-    python scripts/gen_a2_s1_figure.py
+    python scripts/figures/gen_a2_s1_figure.py
 """
 
 from __future__ import annotations
@@ -18,9 +18,11 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Import the divergence helpers from the sibling script.
-_SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, _SCRIPTS_DIR)
+# Import the divergence helpers from the sibling script in figures/.
+_SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))           # scripts/figures/
+_SCRIPTS_ROOT = os.path.dirname(_SCRIPTS_DIR)                       # scripts/
+sys.path.insert(0, _SCRIPTS_DIR)                                    # plot_divergence_marker (sibling)
+sys.path.insert(0, _SCRIPTS_ROOT)                                   # shared helpers if needed
 
 from plot_divergence_marker import (  # noqa: E402
     COLUMN_MAP,
@@ -29,7 +31,7 @@ from plot_divergence_marker import (  # noqa: E402
 )
 
 # Week-3 sample outputs live under a legacy directory containing a space.
-REPO_ROOT = os.path.abspath(os.path.join(_SCRIPTS_DIR, ".."))
+REPO_ROOT = os.path.abspath(os.path.join(_SCRIPTS_ROOT, ".."))
 DATA_DIR = os.path.join(REPO_ROOT, "experiments", "week 3", "week4_rusanov", "data")
 OUT_PATH = os.path.join(
     REPO_ROOT,

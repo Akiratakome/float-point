@@ -214,8 +214,8 @@ fi
 echo ""
 echo "============================================================"
 echo "All samples saved under: ${OUT_DIR}"
-echo "Analyse baseline: python scripts/verificarlo_analysis.py --vfc-dir ${OUT_DIR}"
+echo "Analyse baseline: python scripts/verificarlo/verificarlo_analysis.py --vfc-dir ${OUT_DIR}"
 if [[ "$COMPARE_FLOAT" -eq 1 ]]; then
-    echo "Compare modes:    python scripts/plot_real_vs_vprec.py ${OUT_DIR}/real_float ${OUT_DIR}/vprec_p24 --tests sod"
+    echo "Compare modes:    python scripts/figures/plot_real_vs_vprec.py ${OUT_DIR}/real_float ${OUT_DIR}/vprec_p24 --tests sod"
 fi
 echo "============================================================"

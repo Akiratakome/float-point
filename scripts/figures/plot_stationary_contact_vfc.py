@@ -7,7 +7,7 @@ Generates spatial profiles of significant digits to reveal:
   - HLLC vs Rusanov sensitivity near the contact
 
 Usage:
-    python scripts/plot_stationary_contact_vfc.py
+    python scripts/figures/plot_stationary_contact_vfc.py
 """
 
 import numpy as np

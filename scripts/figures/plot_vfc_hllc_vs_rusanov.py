@@ -5,7 +5,7 @@ Generates summary comparison plots from Verificarlo MCA data for both
 flux schemes at p53 (double) and p24 (float32) precision levels.
 
 Usage:
-    python scripts/plot_vfc_hllc_vs_rusanov.py
+    python scripts/figures/plot_vfc_hllc_vs_rusanov.py
 """
 
 import numpy as np

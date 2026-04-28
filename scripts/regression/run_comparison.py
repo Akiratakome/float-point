@@ -13,8 +13,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-# Add scripts dir for verify_toro exact solver
-sys.path.insert(0, str(Path(__file__).parent))
+# Sibling import: verify_toro lives in the same regression/ dir.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from verify_toro import exact_riemann
 
 ROOT = Path(__file__).resolve().parent.parent

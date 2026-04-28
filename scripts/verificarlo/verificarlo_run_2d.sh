@@ -3,7 +3,7 @@
 # verificarlo_run_2d.sh — Week 4 Task A3 local 2D MCA runner (smoke/feasibility).
 #
 # Builds (once) with verificarlo-c++ into build-vfc-p53 — the same directory
-# used by scripts/noise_floor_run.sh — and fires N independent MCA samples of
+# used by scripts/verificarlo/noise_floor_run.sh — and fires N independent MCA samples of
 # a 2D Liska-Wendroff config, each with a fresh /dev/urandom seed. Raw 2D
 # outputs are written as binary grids:
 #   $OUT/sample_NN/grid.bin
@@ -14,7 +14,7 @@
 # deferred to a Week 5 2D analyzer (compute_noise_floor.py is 1D-only).
 #
 # Usage (from repo root, inside WSL / Docker-Verificarlo):
-#     bash scripts/verificarlo_run_2d.sh \
+#     bash scripts/verificarlo/verificarlo_run_2d.sh \
 #         [--config CFG] [--solver hllc|rusanov] \
 #         [--samples N] [--out OUTDIR]
 #
@@ -68,7 +68,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "ERROR: unknown argument: $1" >&2
-            echo "Usage: bash scripts/verificarlo_run_2d.sh [--config CFG] [--solver hllc|rusanov] [--samples N] [--out OUTDIR]" >&2
+            echo "Usage: bash scripts/verificarlo/verificarlo_run_2d.sh [--config CFG] [--solver hllc|rusanov] [--samples N] [--out OUTDIR]" >&2
             exit 2
             ;;
     esac
@@ -191,7 +191,7 @@ if [[ ! -x "$HRSC" ]]; then
 fi
 
 # ── MCA backend base (seed appended per-sample via --seed=<N>) ────────────────
-# See scripts/noise_floor_run.sh comment for seed-mechanism rationale:
+# See scripts/verificarlo/noise_floor_run.sh comment for seed-mechanism rationale:
 # VFC_BACKENDS_SEED env var is silently ignored by interflop_mca; the seed
 # must be inlined in VFC_BACKENDS as --seed=<decimal uint64>.
 VFC_BASE="libinterflop_mca.so --mode=rr --precision-binary64=53"

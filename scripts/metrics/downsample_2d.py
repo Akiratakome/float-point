@@ -8,7 +8,7 @@ import sys
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from io_helper import cons_to_prim, read_binary
 
 VAR_NAMES = ("rho", "u", "v", "p")

@@ -6,9 +6,9 @@ computes significant digits for each grid point and variable, and
 generates diagnostic plots.
 
 Usage:
-    python scripts/verificarlo_analysis.py                  # all tests
-    python scripts/verificarlo_analysis.py --test sod       # single test
-    python scripts/verificarlo_analysis.py --precision 24   # annotate as float32 run
+    python scripts/verificarlo/verificarlo_analysis.py                  # all tests
+    python scripts/verificarlo/verificarlo_analysis.py --test sod       # single test
+    python scripts/verificarlo/verificarlo_analysis.py --precision 24   # annotate as float32 run
 
 Output (in docs/verificarlo/):
     - Per-test significant-digit heatmaps
@@ -440,7 +440,7 @@ def main():
 
     if not vfc_dir.exists():
         print(f"ERROR: Verificarlo output directory not found: {vfc_dir}")
-        print("Run  bash scripts/verificarlo_run.sh  first.")
+        print("Run  bash scripts/verificarlo/verificarlo_run.sh  first.")
         sys.exit(1)
 
     test_names = [args.test] if args.test else list(TESTS.keys())

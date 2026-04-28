@@ -12,7 +12,7 @@ import numpy as np
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from io_helper import cons_to_prim, read_binary
 
 

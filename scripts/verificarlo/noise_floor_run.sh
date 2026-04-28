@@ -4,12 +4,12 @@
 #
 # Stage 2 (A2-S2). Builds once with verificarlo-c++, then runs the solver N
 # times with independent /dev/urandom seeds, recording each seed to a CSV for
-# provenance. Finally calls scripts/compute_noise_floor.py to emit the .npz
+# provenance. Finally calls scripts/metrics/compute_noise_floor.py to emit the .npz
 # noise-floor envelope consumed by scripts/plot_divergence_marker.py
 # (mode=noise_floor).
 #
 # Usage (run inside WSL / Docker-Verificarlo from repo root):
-#     bash scripts/noise_floor_run.sh <TEST_CFG> <SOLVER> <OUT_DIR> [N_SAMPLES]
+#     bash scripts/verificarlo/noise_floor_run.sh <TEST_CFG> <SOLVER> <OUT_DIR> [N_SAMPLES]
 #
 # Arguments:
 #     TEST_CFG   : path to HRSC config file, e.g. tests/cases/toro_1d/sod.cfg
@@ -128,7 +128,7 @@ done
 # ── Analysis: per-cell std → noise_floor.npz ─────────────────────────────────
 NPZ_OUT="${OUT_DIR}/noise_floor.npz"
 echo "[analysis] computing per-cell std → ${NPZ_OUT}"
-python3 scripts/compute_noise_floor.py \
+python3 scripts/metrics/compute_noise_floor.py \
     --samples "${OUT_DIR}"/sample_??.txt \
     --seeds   "$SEEDS_CSV" \
     --out     "$NPZ_OUT" \

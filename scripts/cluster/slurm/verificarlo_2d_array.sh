@@ -6,7 +6,7 @@
 # sample of a 2D Liska-Wendroff config. Per-task seed comes from /dev/urandom
 # and is inlined in VFC_BACKENDS (VFC_BACKENDS_SEED env var is silently
 # ignored by interflop_mca — the seed MUST be passed as --seed=<decimal>).
-# See scripts/noise_floor_run.sh and scripts/verificarlo_run_2d.sh for the
+# See scripts/verificarlo/noise_floor_run.sh and scripts/verificarlo/verificarlo_run_2d.sh for the
 # same mechanism used locally; keeping parity ensures local smoke / feasibility
 # and cluster production share one analyzer chain.
 #

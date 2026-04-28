@@ -6,14 +6,18 @@ if [[ ! -f CMakeLists.txt ]]; then
     exit 1
 fi
 
-CFG_BASE="tests/cases/liska_wendroff_2d"
-OUT_DIR="experiments/week4/float_regression/2d"
+CFG_DIR="tests/cases/toro_1d"
+OUT_DIR="experiments/week4/float_regression/1d"
+TESTS=(sod toro2 toro3 toro4 toro5 stationary_contact)
 
-# Pick a real Python (see float_regression_1d.sh for rationale).
+# Pick a real Python: prefer $PYTHON env var, else py launcher, else python3,
+# else python. On MSYS/Git-Bash the bare `python` may resolve to the
+# Microsoft Store stub (no real interpreter), so fall through to alternatives.
 resolve_python() {
     if [[ -n "${PYTHON:-}" ]] && command -v "$PYTHON" >/dev/null 2>&1; then echo "$PYTHON"; return; fi
     for cand in py python3 python; do
         if command -v "$cand" >/dev/null 2>&1; then
+            # MSYS path: pruning the WindowsApps stub
             local p; p="$(command -v "$cand")"
             case "$p" in *WindowsApps*) continue;; esac
             echo "$cand"; return
@@ -39,14 +43,15 @@ BUILD_FLOAT="$(resolve_bin build-float/hrsc)"
 
 mkdir -p "$OUT_DIR"
 
-"$BUILD_DOUBLE" "${CFG_BASE}/config3_ref800.cfg"
-
-for res in 200 400; do
-    "$BUILD_DOUBLE" "${CFG_BASE}/config3_n${res}.cfg"
-    cp "${OUT_DIR}/candidate_${res}.bin" "${OUT_DIR}/double_${res}.bin"
-    "$BUILD_FLOAT" "${CFG_BASE}/config3_n${res}.cfg"
-    cp "${OUT_DIR}/candidate_${res}.bin" "${OUT_DIR}/float_${res}.bin"
+for test in "${TESTS[@]}"; do
+    cfg="${CFG_DIR}/convergence_${test}.cfg"
+    if [[ ! -f "$cfg" ]]; then
+        echo "ERROR: missing config $cfg" >&2
+        exit 1
+    fi
+    "$BUILD_DOUBLE" "$cfg" > "${OUT_DIR}/${test}_double.csv"
+    "$BUILD_FLOAT" "$cfg" > "${OUT_DIR}/${test}_float.csv"
 done
 
-"$PY" scripts/float_regression_report.py --mode 2d --input "$OUT_DIR"
+"$PY" scripts/regression/float_regression_report.py --mode 1d --input "$OUT_DIR"
 
