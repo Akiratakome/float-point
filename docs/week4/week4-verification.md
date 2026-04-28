@@ -99,13 +99,13 @@ bc_y = outflow
 **前提**: Phase B 验收通过（`build-double` 与 `build-float` 都已 build）。
 
 ```bash
-bash scripts/float_regression_1d.sh
+bash scripts/regression/float_regression_1d.sh
 ```
 
 脚本步骤（用于人工对照）：
 1. `mkdir -p experiments/week4/float_regression/1d`
 2. 对 `sod toro2 toro3 toro4 toro5 stationary_contact` 各跑 `convergence_*.cfg`，分别用 `build-double/hrsc` 和 `build-float/hrsc`，输出到 `<test>_double.csv` / `<test>_float.csv`
-3. 调 `python scripts/float_regression_report.py --mode 1d --input experiments/week4/float_regression/1d`
+3. 调 `python scripts/regression/float_regression_report.py --mode 1d --input experiments/week4/float_regression/1d`
 
 **期望产出**:
 ```
@@ -130,14 +130,14 @@ experiments/week4/float_regression/1d/
 **警告**: ref800 在双精度下 ≈ 20–40 分钟单核（800² × ~2000 步）。
 
 ```bash
-bash scripts/float_regression_2d.sh
+bash scripts/regression/float_regression_2d.sh
 ```
 
 脚本步骤：
 1. `mkdir -p experiments/week4/float_regression/2d`
 2. 跑 `config3_ref800.cfg`（double，CFL=0.4 提稳）→ `reference_800.bin`
 3. 对 `res in {200, 400}` 各跑 double + float，每次跑完 `cp candidate_${res}.bin {double|float}_${res}.bin`
-4. 调 `python scripts/float_regression_report.py --mode 2d --input experiments/week4/float_regression/2d`
+4. 调 `python scripts/regression/float_regression_report.py --mode 2d --input experiments/week4/float_regression/2d`
 
 **期望产出**:
 ```
@@ -176,7 +176,7 @@ pytest tests/py/test_ssim_scalar.py -v
 ### 3.1 单模式跑通（real-float）
 
 ```bash
-./scripts/verificarlo_run.sh --real-float -t sod -n 5
+./scripts/verificarlo/verificarlo_run.sh --real-float -t sod -n 5
 ```
 
 **期望产出目录**: `experiments/verificarlo/runs_real_float_p24_mca/sod/run_001.txt … run_005.txt` + `reference_ieee.txt`。
@@ -185,8 +185,8 @@ pytest tests/py/test_ssim_scalar.py -v
 ### 3.2 对比模式（real-float vs VPREC p24）
 
 ```bash
-./scripts/verificarlo_run.sh --compare-float -t "sod stationary_contact" -n 30
-python scripts/plot_real_vs_vprec.py \
+./scripts/verificarlo/verificarlo_run.sh --compare-float -t "sod stationary_contact" -n 30
+python scripts/figures/plot_real_vs_vprec.py \
     experiments/verificarlo/runs_compare_p24_mca/real_float \
     experiments/verificarlo/runs_compare_p24_mca/vprec_p24 \
     --tests sod stationary_contact
@@ -230,10 +230,10 @@ cmake --build build-double && cmake --build build-float
 ./build-double/unit_tests -r compact && ./build-float/unit_tests -r compact
 
 # Step 3: Phase C1 1D（约 1–2 分钟，6 case × 5 resolutions × 2 builds）
-bash scripts/float_regression_1d.sh
+bash scripts/regression/float_regression_1d.sh
 
 # Step 4: Phase C1 2D（约 30–45 分钟，800² ref + 4 候选）
-bash scripts/float_regression_2d.sh
+bash scripts/regression/float_regression_2d.sh
 
 # Step 5: 检查产出
 ls experiments/week4/float_regression/1d/summary.md

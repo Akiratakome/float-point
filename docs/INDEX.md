@@ -76,7 +76,7 @@ tests/
 |---|---|---|
 | `build-double/` | double | Phase B canonical, baseline reference for Phase C |
 | `build-float/` | float | Phase B canonical, float regression candidate |
-| `build-vfc-p53/` | double | Verificarlo MCA p=53 (auto-recreated by `scripts/verificarlo_run.sh`) |
+| `build-vfc-p53/` | double | Verificarlo MCA p=53 (auto-recreated by `scripts/verificarlo/verificarlo_run.sh`) |
 
 All build dirs are `.gitignore`'d. Build via:
 ```bash
@@ -93,10 +93,10 @@ cmake --build build-double
 | Build both precisions | `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double && cmake -B build-float -G Ninja -DFLOAT_PRECISION=float && cmake --build build-float` |
 | Run all unit tests | `./build-double/unit_tests -r compact && ./build-float/unit_tests -r compact` |
 | Run Sod 1D | `./build-double/hrsc tests/cases/toro_1d/sod.cfg` |
-| 1D float regression (6 Toro cases × 2 precisions × 5 N) | `bash scripts/float_regression_1d.sh` |
-| 2D LW Config 3 float regression (n200/n400 + 800² ref) | `bash scripts/float_regression_2d.sh` |
-| Verificarlo MCA noise floor | `bash scripts/verificarlo_run.sh -t sod -n 30` |
-| Verificarlo real-float vs VPREC | `bash scripts/verificarlo_run.sh --compare-float -t "sod stationary_contact"` |
+| 1D float regression (6 Toro cases × 2 precisions × 5 N) | `bash scripts/regression/float_regression_1d.sh` |
+| 2D LW Config 3 float regression (n200/n400 + 800² ref) | `bash scripts/regression/float_regression_2d.sh` |
+| Verificarlo MCA noise floor | `bash scripts/verificarlo/verificarlo_run.sh -t sod -n 30` |
+| Verificarlo real-float vs VPREC | `bash scripts/verificarlo/verificarlo_run.sh --compare-float -t "sod stationary_contact"` |
 
 For the full step-by-step manual recipe see [week4/week4-verification.md](week4/week4-verification.md).
 
