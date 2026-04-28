@@ -32,6 +32,12 @@ namespace detail {
     constexpr double kProgressMinIntervalSeconds = 1e-9;
 }
 
+// EulerSolver class: declaration only. Long method bodies (ctor, sweeps,
+// compute_dt, step, run) live in euler_solver.cpp with explicit instantiation
+// for float and double at the bottom. Free function templates such as
+// hllc_flux/rusanov_flux/muscl_hancock_* remain header-only because unit tests
+// instantiate them directly and small inline functions are kept in the header
+// for future GPU kernel reuse.
 template <typename Real>
 class EulerSolver {
     Grid2D<Real, EulerNVars> m_grid;
@@ -46,102 +52,9 @@ class EulerSolver {
     BoundaryType m_bc_x;
     BoundaryType m_bc_y;
 
-    void apply_boundary_conditions() {
-        auto gv = m_grid.view();
-        // Euler-specific reflective flip lists. MHD will live in its own
-        // solver class with its own flip lists ({RHOU, BX}, {RHOV, BY}).
-        static constexpr std::array<int, 1> kFlipX = {RHOU};
-        static constexpr std::array<int, 1> kFlipY = {RHOV};
-
-        // X-pass first so the Y-pass can read x-ghost columns when filling
-        // corner cells (matches legacy ordering).
-        switch (m_bc_x) {
-            case BoundaryType::Outflow:    apply_outflow_bc(gv, Axis::X); break;
-            case BoundaryType::Periodic:   apply_periodic_bc(gv, Axis::X); break;
-            case BoundaryType::Reflective: apply_reflective_bc(gv, Axis::X, kFlipX); break;
-        }
-        switch (m_bc_y) {
-            case BoundaryType::Outflow:    apply_outflow_bc(gv, Axis::Y); break;
-            case BoundaryType::Periodic:   apply_periodic_bc(gv, Axis::Y); break;
-            case BoundaryType::Reflective: apply_reflective_bc(gv, Axis::Y, kFlipY); break;
-        }
-    }
-
-    // X-direction sweep: compute x-interface fluxes and update conserved variables.
-    void x_sweep(Real dt) {
-        auto gv = m_grid.view();
-        int nx = gv.nx;
-        int ny = gv.ny;
-        int n_interfaces = nx + 1;
-
-        #pragma omp parallel for schedule(static)
-        for (int j = 0; j < ny; ++j) {
-            std::vector<Vec<Real, EulerNVars>> flux(n_interfaces);
-
-            for (int k = 0; k < n_interfaces; ++k) {
-                int iL = k - 1;
-                int iR = k;
-
-                Vec<Real, EulerNVars> qL_left{}, qL_right{};
-                Vec<Real, EulerNVars> qR_left{}, qR_right{};
-
-                muscl_hancock_x(gv, iL, j, dt, m_gamma, qL_left, qL_right);
-                muscl_hancock_x(gv, iR, j, dt, m_gamma, qR_left, qR_right);
-
-                flux[k] = (m_flux == FluxScheme::Rusanov)
-                    ? rusanov_flux(qL_right, qR_left, m_gamma)
-                    : hllc_flux(qL_right, qR_left, m_gamma);
-            }
-
-            Real dtdx = dt / gv.dx;
-            for (int i = 0; i < nx; ++i) {
-                for (int v = 0; v < EulerNVars; ++v) {
-                    gv(i, j, v) -= dtdx * (flux[i + 1][v] - flux[i][v]);
-                }
-            }
-        }
-    }
-
-    // Y-direction sweep: compute y-interface fluxes and update conserved variables.
-    // muscl_hancock_y uses euler_flux_y internally for the predictor half-step.
-    // The HLLC corrector reuses the x-direction solver via momentum rotation.
-    void y_sweep(Real dt) {
-        auto gv = m_grid.view();
-        int nx = gv.nx;
-        int ny = gv.ny;
-        int n_interfaces = ny + 1;
-
-        #pragma omp parallel for schedule(static)
-        for (int i = 0; i < nx; ++i) {
-            std::vector<Vec<Real, EulerNVars>> flux(n_interfaces);
-
-            for (int k = 0; k < n_interfaces; ++k) {
-                int jB = k - 1;  // cell below interface
-                int jT = k;      // cell above interface
-
-                Vec<Real, EulerNVars> qB_bot{}, qB_top{};
-                Vec<Real, EulerNVars> qT_bot{}, qT_top{};
-
-                muscl_hancock_y(gv, i, jB, dt, m_gamma, qB_bot, qB_top);
-                muscl_hancock_y(gv, i, jT, dt, m_gamma, qT_bot, qT_top);
-
-                // Rotate → flux → rotate back
-                auto rotL = swap_momentum(qB_top);
-                auto rotR = swap_momentum(qT_bot);
-                auto f_iface = (m_flux == FluxScheme::Rusanov)
-                    ? rusanov_flux(rotL, rotR, m_gamma)
-                    : hllc_flux(rotL, rotR, m_gamma);
-                flux[k] = swap_momentum(f_iface);
-            }
-
-            Real dtdy = dt / gv.dy;
-            for (int j = 0; j < ny; ++j) {
-                for (int v = 0; v < EulerNVars; ++v) {
-                    gv(i, j, v) -= dtdy * (flux[j + 1][v] - flux[j][v]);
-                }
-            }
-        }
-    }
+    void apply_boundary_conditions();
+    void x_sweep(Real dt);
+    void y_sweep(Real dt);
 
 public:
     // 2D constructor
@@ -150,146 +63,30 @@ public:
                 Real gamma, Real cfl, Real t_end,
                 FluxScheme flux = FluxScheme::HLLC,
                 BoundaryType bc_x = BoundaryType::Outflow,
-                BoundaryType bc_y = BoundaryType::Outflow)
-        : m_grid(nx, ny),
-          m_xmin(xmin),
-          m_ymin(ymin),
-          m_gamma(gamma),
-          m_cfl(cfl),
-          m_t_end(t_end),
-          m_time(Real(0)),
-          m_step(0),
-          m_flux(flux),
-          m_bc_x(bc_x),
-          m_bc_y(bc_y)
-    {
-        m_grid.dx = dx;
-        m_grid.dy = dy;
-    }
+                BoundaryType bc_y = BoundaryType::Outflow);
 
     // 1D convenience constructor
     EulerSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, Real t_end,
                 FluxScheme flux = FluxScheme::HLLC,
                 BoundaryType bc_x = BoundaryType::Outflow,
-                BoundaryType bc_y = BoundaryType::Outflow)
-        : EulerSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end, flux, bc_x, bc_y)
-    {}
+                BoundaryType bc_y = BoundaryType::Outflow);
 
     GridView<Real, EulerNVars> grid_view() {
         return m_grid.view();
     }
 
-    Real time() const { return m_time; }
+    Real time()       const { return m_time; }
     int  step_count() const { return m_step; }
-    Real xmin() const { return m_xmin; }
-    Real ymin() const { return m_ymin; }
+    Real xmin()       const { return m_xmin; }
+    Real ymin()       const { return m_ymin; }
 
-    // Compute stable time step: dt = CFL * min(dx/Sx, dy/Sy)
-    Real compute_dt() const {
-        auto gv = m_grid.view();
-        int nx = gv.nx;
-        int ny = gv.ny;
-        Real max_Sx = std::numeric_limits<Real>::lowest();
-        Real max_Sy = std::numeric_limits<Real>::lowest();
-
-        #pragma omp parallel for collapse(2) reduction(max:max_Sx,max_Sy) schedule(static)
-        for (int j = 0; j < ny; ++j) {
-            for (int i = 0; i < nx; ++i) {
-                Vec<Real, EulerNVars> cons;
-                for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, j, v);
-
-                Real rho = cons[RHO];
-                Real u   = cons[RHOU] / rho;
-                Real vel_v = cons[RHOV] / rho;
-                Real p   = pressure(cons, m_gamma);
-                Real a   = sound_speed(rho, p, m_gamma);
-
-                max_Sx = std::max(max_Sx, std::abs(u) + a);
-                max_Sy = std::max(max_Sy, std::abs(vel_v) + a);
-            }
-        }
-
-        Real dt = m_cfl * std::min(gv.dx / max_Sx, gv.dy / max_Sy);
-
-        if (m_time + dt > m_t_end) {
-            dt = m_t_end - m_time;
-        }
-
-        return dt;
-    }
-
-    void step() {
-        apply_boundary_conditions();
-
-        Real dt = compute_dt();
-        if (dt <= Real(0)) return;
-
-        if (m_grid.ny == 1) {
-            // 1D path: x-sweep only, exact backward compatibility
-            x_sweep(dt);
-        } else {
-            // 2D path: alternating Godunov splitting
-            if (m_step % 2 == 0) {
-                x_sweep(dt);
-                apply_boundary_conditions();
-                y_sweep(dt);
-            } else {
-                y_sweep(dt);
-                apply_boundary_conditions();
-                x_sweep(dt);
-            }
-        }
-
-        m_time += dt;
-        m_step++;
-    }
-
-    void run() {
-        while (m_time < m_t_end) {
-            step();
-        }
-    }
+    Real compute_dt() const;
+    void step();
+    void run();
 
     // Run with a wall-clock-throttled progress line on stderr.
     // progress_interval_s <= 0 disables printing (equivalent to run()).
-    // Line format: "[progress] step=K t=T/T_end (P%) elapsed=Ws eta=Ws steps/s=R"
-    // Emits one line at start, every progress_interval_s, and one at finish.
-    void run(double progress_interval_s) {
-        if (progress_interval_s <= 0.0) { run(); return; }
-        using clk = std::chrono::steady_clock;
-        auto t0 = clk::now();
-        auto t_last_print = t0;
-        int  step_at_last_print = m_step;
-        auto print_line = [&](const char* tag) {
-            auto now = clk::now();
-            double elapsed = std::chrono::duration<double>(now - t0).count();
-            double t_frac = (m_t_end > Real(0))
-                ? static_cast<double>(m_time) / static_cast<double>(m_t_end)
-                : 0.0;
-            double eta = (t_frac > detail::kProgressEtaMinFrac) ? elapsed * (1.0 - t_frac) / t_frac : 0.0;
-            double dt_interval = std::chrono::duration<double>(now - t_last_print).count();
-            double steps_per_s = (dt_interval > detail::kProgressMinIntervalSeconds)
-                ? (m_step - step_at_last_print) / dt_interval : 0.0;
-            std::fprintf(stderr,
-                "[progress:%s] step=%d t=%.6g/%.6g (%.2f%%) elapsed=%.1fs eta=%.1fs rate=%.1f steps/s\n",
-                tag, m_step,
-                static_cast<double>(m_time), static_cast<double>(m_t_end),
-                100.0 * t_frac, elapsed, eta, steps_per_s);
-            std::fflush(stderr);
-        };
-        print_line("start");
-        while (m_time < m_t_end) {
-            step();
-            auto now = clk::now();
-            double since_last = std::chrono::duration<double>(now - t_last_print).count();
-            if (since_last >= progress_interval_s) {
-                print_line("tick");
-                t_last_print = now;
-                step_at_last_print = m_step;
-            }
-        }
-        print_line("done");
-    }
+    void run(double progress_interval_s);
 };
 
 } // namespace hrsc
