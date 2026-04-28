@@ -45,28 +45,32 @@ class EulerSolver {
     Real m_ymin;
     Real m_gamma;
     Real m_cfl;
-    Real m_t_end;
-    Real m_time;
+    // Time accumulator is TimeReal=double regardless of Real -- see
+    // src/core/types.hpp for the rationale (avoids float32 clock stall
+    // for long evolutions, decouples state precision from clock precision).
+    TimeReal m_t_end;
+    TimeReal m_time;
+    TimeReal m_kahan_c;  // Kahan compensated-summation running correction
     int  m_step;
     FluxScheme m_flux;
     BoundaryType m_bc_x;
     BoundaryType m_bc_y;
 
     void apply_boundary_conditions();
-    void x_sweep(Real dt);
-    void y_sweep(Real dt);
+    void x_sweep(TimeReal dt);
+    void y_sweep(TimeReal dt);
 
 public:
     // 2D constructor
     EulerSolver(int nx, int ny, Real dx, Real dy,
                 Real xmin, Real ymin,
-                Real gamma, Real cfl, Real t_end,
+                Real gamma, Real cfl, TimeReal t_end,
                 FluxScheme flux = FluxScheme::HLLC,
                 BoundaryType bc_x = BoundaryType::Outflow,
                 BoundaryType bc_y = BoundaryType::Outflow);
 
     // 1D convenience constructor
-    EulerSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, Real t_end,
+    EulerSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, TimeReal t_end,
                 FluxScheme flux = FluxScheme::HLLC,
                 BoundaryType bc_x = BoundaryType::Outflow,
                 BoundaryType bc_y = BoundaryType::Outflow);
@@ -75,12 +79,12 @@ public:
         return m_grid.view();
     }
 
-    Real time()       const { return m_time; }
-    int  step_count() const { return m_step; }
-    Real xmin()       const { return m_xmin; }
-    Real ymin()       const { return m_ymin; }
+    TimeReal time()       const { return m_time; }
+    int      step_count() const { return m_step; }
+    Real     xmin()       const { return m_xmin; }
+    Real     ymin()       const { return m_ymin; }
 
-    Real compute_dt() const;
+    TimeReal compute_dt() const;
     void step();
     void run();
 

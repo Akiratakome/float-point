@@ -18,7 +18,7 @@ namespace hrsc {
 template <typename Real>
 EulerSolver<Real>::EulerSolver(int nx, int ny, Real dx, Real dy,
                                Real xmin, Real ymin,
-                               Real gamma, Real cfl, Real t_end,
+                               Real gamma, Real cfl, TimeReal t_end,
                                FluxScheme flux,
                                BoundaryType bc_x,
                                BoundaryType bc_y)
@@ -28,7 +28,8 @@ EulerSolver<Real>::EulerSolver(int nx, int ny, Real dx, Real dy,
       m_gamma(gamma),
       m_cfl(cfl),
       m_t_end(t_end),
-      m_time(Real(0)),
+      m_time(TimeReal(0)),
+      m_kahan_c(TimeReal(0)),
       m_step(0),
       m_flux(flux),
       m_bc_x(bc_x),
@@ -40,7 +41,7 @@ EulerSolver<Real>::EulerSolver(int nx, int ny, Real dx, Real dy,
 
 template <typename Real>
 EulerSolver<Real>::EulerSolver(int nx, Real dx, Real xmin,
-                               Real gamma, Real cfl, Real t_end,
+                               Real gamma, Real cfl, TimeReal t_end,
                                FluxScheme flux,
                                BoundaryType bc_x,
                                BoundaryType bc_y)
@@ -71,9 +72,13 @@ void EulerSolver<Real>::apply_boundary_conditions()
 }
 
 // X-direction sweep: compute x-interface fluxes and update conserved variables.
+// dt arrives in TimeReal=double; we down-cast to Real exactly once at entry
+// so the rest of the sweep keeps the established Week-3 numerics intact.
+// This single down-cast is the only Real/TimeReal coupling point.
 template <typename Real>
-void EulerSolver<Real>::x_sweep(Real dt)
+void EulerSolver<Real>::x_sweep(TimeReal dt)
 {
+    const Real dt_real = static_cast<Real>(dt);
     auto gv = m_grid.view();
     int nx = gv.nx;
     int ny = gv.ny;
@@ -90,15 +95,15 @@ void EulerSolver<Real>::x_sweep(Real dt)
             Vec<Real, EulerNVars> qL_left{}, qL_right{};
             Vec<Real, EulerNVars> qR_left{}, qR_right{};
 
-            muscl_hancock_x(gv, iL, j, dt, m_gamma, qL_left, qL_right);
-            muscl_hancock_x(gv, iR, j, dt, m_gamma, qR_left, qR_right);
+            muscl_hancock_x(gv, iL, j, dt_real, m_gamma, qL_left, qL_right);
+            muscl_hancock_x(gv, iR, j, dt_real, m_gamma, qR_left, qR_right);
 
             flux[k] = (m_flux == FluxScheme::Rusanov)
                 ? rusanov_flux(qL_right, qR_left, m_gamma)
                 : hllc_flux(qL_right, qR_left, m_gamma);
         }
 
-        Real dtdx = dt / gv.dx;
+        Real dtdx = dt_real / gv.dx;
         for (int i = 0; i < nx; ++i) {
             for (int v = 0; v < EulerNVars; ++v) {
                 gv(i, j, v) -= dtdx * (flux[i + 1][v] - flux[i][v]);
@@ -111,8 +116,9 @@ void EulerSolver<Real>::x_sweep(Real dt)
 // muscl_hancock_y uses euler_flux_y internally for the predictor half-step.
 // The HLLC corrector reuses the x-direction solver via momentum rotation.
 template <typename Real>
-void EulerSolver<Real>::y_sweep(Real dt)
+void EulerSolver<Real>::y_sweep(TimeReal dt)
 {
+    const Real dt_real = static_cast<Real>(dt);
     auto gv = m_grid.view();
     int nx = gv.nx;
     int ny = gv.ny;
@@ -129,8 +135,8 @@ void EulerSolver<Real>::y_sweep(Real dt)
             Vec<Real, EulerNVars> qB_bot{}, qB_top{};
             Vec<Real, EulerNVars> qT_bot{}, qT_top{};
 
-            muscl_hancock_y(gv, i, jB, dt, m_gamma, qB_bot, qB_top);
-            muscl_hancock_y(gv, i, jT, dt, m_gamma, qT_bot, qT_top);
+            muscl_hancock_y(gv, i, jB, dt_real, m_gamma, qB_bot, qB_top);
+            muscl_hancock_y(gv, i, jT, dt_real, m_gamma, qT_bot, qT_top);
 
             // Rotate -> flux -> rotate back
             auto rotL = swap_momentum(qB_top);
@@ -141,7 +147,7 @@ void EulerSolver<Real>::y_sweep(Real dt)
             flux[k] = swap_momentum(f_iface);
         }
 
-        Real dtdy = dt / gv.dy;
+        Real dtdy = dt_real / gv.dy;
         for (int j = 0; j < ny; ++j) {
             for (int v = 0; v < EulerNVars; ++v) {
                 gv(i, j, v) -= dtdy * (flux[j + 1][v] - flux[j][v]);
@@ -151,8 +157,10 @@ void EulerSolver<Real>::y_sweep(Real dt)
 }
 
 // Compute stable time step: dt = CFL * min(dx/Sx, dy/Sy)
+// Wave speeds are computed in Real (state precision) and the resulting
+// dt promoted to TimeReal=double for the time accumulator.
 template <typename Real>
-Real EulerSolver<Real>::compute_dt() const
+TimeReal EulerSolver<Real>::compute_dt() const
 {
     auto gv = m_grid.view();
     int nx = gv.nx;
@@ -177,7 +185,9 @@ Real EulerSolver<Real>::compute_dt() const
         }
     }
 
-    Real dt = m_cfl * std::min(gv.dx / max_Sx, gv.dy / max_Sy);
+    TimeReal dt = static_cast<TimeReal>(m_cfl)
+                * std::min(static_cast<TimeReal>(gv.dx) / static_cast<TimeReal>(max_Sx),
+                           static_cast<TimeReal>(gv.dy) / static_cast<TimeReal>(max_Sy));
 
     if (m_time + dt > m_t_end) {
         dt = m_t_end - m_time;
@@ -191,8 +201,8 @@ void EulerSolver<Real>::step()
 {
     apply_boundary_conditions();
 
-    Real dt = compute_dt();
-    if (dt <= Real(0)) return;
+    TimeReal dt = compute_dt();
+    if (dt <= TimeReal(0)) return;
 
     if (m_grid.ny == 1) {
         // 1D path: x-sweep only, exact backward compatibility
@@ -210,7 +220,15 @@ void EulerSolver<Real>::step()
         }
     }
 
-    m_time += dt;
+    // Kahan compensated summation: keeps full double precision for the
+    // time accumulator even after ~1e8 steps. m_kahan_c carries the
+    // running "lost bits" correction. Without this, naive m_time += dt
+    // loses bits monotonically once t >> dt.
+    TimeReal y     = dt - m_kahan_c;
+    TimeReal t_new = m_time + y;
+    m_kahan_c = (t_new - m_time) - y;
+    m_time    = t_new;
+
     m_step++;
 }
 
@@ -236,7 +254,7 @@ void EulerSolver<Real>::run(double progress_interval_s)
     auto print_line = [&](const char* tag) {
         auto now = clk::now();
         double elapsed = std::chrono::duration<double>(now - t0).count();
-        double t_frac = (m_t_end > Real(0))
+        double t_frac = (m_t_end > TimeReal(0))
             ? static_cast<double>(m_time) / static_cast<double>(m_t_end)
             : 0.0;
         double eta = (t_frac > detail::kProgressEtaMinFrac) ? elapsed * (1.0 - t_frac) / t_frac : 0.0;

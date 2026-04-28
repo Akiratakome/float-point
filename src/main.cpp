@@ -138,7 +138,7 @@ static void run_convergence(const Config& cfg) {
         double dx = (xmax - xmin) / nx;
         EulerSolver<Real> solver(nx, static_cast<Real>(dx),
                                  static_cast<Real>(xmin),
-                                 gamma, cfl, static_cast<Real>(t_end), flux);
+                                 gamma, cfl, t_end, flux);
         setup_ic(solver.grid_view(), test, gamma);
         solver.run();
 
@@ -218,13 +218,13 @@ static void run_normal(const Config& cfg) {
         EulerSolver<Real> solver(nx, ny,
                                  static_cast<Real>(dx), static_cast<Real>(dy),
                                  static_cast<Real>(xmin), static_cast<Real>(ymin),
-                                 gamma, cfl, static_cast<Real>(t_end),
+                                 gamma, cfl, t_end,
                                  flux, bc_x, bc_y);
         setup_ic(solver.grid_view(), test, gamma);
         solver.run(progress_interval_s);
 
         std::cerr << "Finished: " << solver.step_count() << " steps, t = "
-                  << static_cast<double>(solver.time()) << "\n";
+                  << solver.time() << "\n";
 
         if (output_format == "binary") {
             if (output_file.empty()) {
@@ -268,7 +268,7 @@ static void run_normal(const Config& cfg) {
     // ── 1D path (preserve bit-identical legacy output format) ─────────────────
     EulerSolver<Real> solver(nx, static_cast<Real>(dx),
                              static_cast<Real>(xmin),
-                             gamma, cfl, static_cast<Real>(t_end),
+                             gamma, cfl, t_end,
                              flux, bc_x, bc_y);
     setup_ic(solver.grid_view(), test, gamma);
     solver.run(progress_interval_s);
