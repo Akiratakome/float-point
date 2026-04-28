@@ -1450,6 +1450,8 @@ void apply_reflective_bc(GridView<Real, NVars> grid,
 
 **目的**：让 BC 类型**可配置**。当前 `EulerSolver::step()` hard-code `apply_outflow_bc`；需要通过 cfg 切换 outflow/periodic/reflective，**独立控制 X 和 Y 方向**（因为有些测试 X 是 periodic、Y 是 outflow）。
 
+**实现偏离说明（Phase B 实际落地）**：最终没有引入这里规划的 `apply_boundary(...)` dispatcher 模板，而是采用了 `apply_outflow_bc/apply_periodic_bc/apply_reflective_bc` 的 per-axis 原语，由 `EulerSolver::apply_boundary_conditions()` 逐轴 `switch` 调度。该实现与计划目标等价且可直接扩展到 Week 12 MHD（`BoundaryType` 已上移到 `src/core/boundary.hpp` 供复用）；另外，`euler_solver.cpp` 中 Kahan 累加“中段”按数值稳定性优化，保持数值等价但不承诺跨平台/编译选项的 bitwise 一致。
+
 **新文件/改动**：
 
 1. `src/core/boundary.hpp` 加 enum + dispatcher（signature 与 B2 的 flip_indices 对齐）：

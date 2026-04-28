@@ -21,7 +21,6 @@
 namespace hrsc {
 
 enum class FluxScheme { HLLC, Rusanov };
-enum class BoundaryType { Outflow, Periodic, Reflective };
 
 namespace detail {
     // ETA estimator becomes unreliable when the simulation has barely begun

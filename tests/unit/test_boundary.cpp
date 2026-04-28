@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "core/boundary.hpp"
+#include "core/eos.hpp"
 
 #include <array>
 

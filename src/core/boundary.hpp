@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/grid.hpp"
-#include "core/eos.hpp"
 
 #include <array>
 #include <cstddef>
@@ -24,6 +23,7 @@ namespace hrsc {
 // degenerates to a pure mirror copy — useful for symmetric scalar fields.
 
 enum class Axis { X, Y };
+enum class BoundaryType { Outflow, Periodic, Reflective };
 
 // Outflow (transmissive) boundary conditions on a single axis.
 // Copies the outermost physical cell value into the ghost layer on that axis.
