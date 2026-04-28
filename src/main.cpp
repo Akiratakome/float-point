@@ -15,9 +15,17 @@
 #include <vector>
 #include <cmath>
 
+#ifndef HRSC_REAL
+#define HRSC_REAL double   // fallback if built without PrecisionConfig
+#endif
+
+// Per overall.md "Precision-Generic Design": the build system selects one
+// Real type per binary. All solver objects in main use this single type.
+using Real = HRSC_REAL;
+
 using namespace hrsc;
 
-static void setup_ic(GridView<double, EulerNVars> gv, const std::string& test, double gamma) {
+static void setup_ic(GridView<Real, EulerNVars> gv, const std::string& test, Real gamma) {
     if (test == "sod") {
         setup_sod(gv, gamma);
     } else if (test == "toro2") {
@@ -105,8 +113,11 @@ static std::pair<BoundaryType, BoundaryType> parse_boundary(const Config& cfg) {
 
 static void run_convergence(const Config& cfg) {
     std::string test = cfg.get_string("test");
-    double gamma = cfg.get_double("gamma", 1.4);
-    double cfl   = cfg.get_double("cfl", 0.8);
+    // Read in double (Config API), cast on use to Real for solver state.
+    // The exact Riemann reference solution stays in double regardless of
+    // the build precision -- it's the ground truth for L_p convergence.
+    Real gamma   = static_cast<Real>(cfg.get_double("gamma", 1.4));
+    Real cfl     = static_cast<Real>(cfg.get_double("cfl", 0.8));
     double t_end = cfg.get_double("t_end", 0.25);
     double xmin  = cfg.get_double("xmin", 0.0);
     double xmax  = cfg.get_double("xmax", 1.0);
@@ -125,27 +136,31 @@ static void run_convergence(const Config& cfg) {
 
     for (int nx : resolutions) {
         double dx = (xmax - xmin) / nx;
-        EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end, flux);
+        EulerSolver<Real> solver(nx, static_cast<Real>(dx),
+                                 static_cast<Real>(xmin),
+                                 gamma, cfl, static_cast<Real>(t_end), flux);
         setup_ic(solver.grid_view(), test, gamma);
         solver.run();
 
-        // Extract numerical solution and compute exact solution
+        // Numerical solution is cast to double for comparison with the
+        // double-precision exact reference (consistent error norms across
+        // float and double builds).
         std::vector<double> num_rho(nx), num_u(nx), num_p(nx);
         std::vector<double> ext_rho(nx), ext_u(nx), ext_p(nx);
 
         auto gv = solver.grid_view();
         for (int i = 0; i < nx; ++i) {
-            Vec<double, EulerNVars> cons;
+            Vec<Real, EulerNVars> cons;
             for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, 0, v);
-            Vec<double, EulerNVars> prim = cons_to_prim(cons, gamma);
-            num_rho[i] = prim[PRHO];
-            num_u[i]   = prim[VX];
-            num_p[i]   = prim[PRES];
+            Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
+            num_rho[i] = static_cast<double>(prim[PRHO]);
+            num_u[i]   = static_cast<double>(prim[VX]);
+            num_p[i]   = static_cast<double>(prim[PRES]);
 
             double x = xmin + (i + 0.5) * dx;
             double xi = (x - x0) / t_end;
             double erho, eu, ep;
-            exact_riemann_sample(gamma, xi,
+            exact_riemann_sample(static_cast<double>(gamma), xi,
                 rhoL, uL, pL, rhoR, uR, pR,
                 erho, eu, ep);
             ext_rho[i] = erho;
@@ -179,8 +194,8 @@ static void run_normal(const Config& cfg) {
             "ymax must be > ymin when ny > 1 (got ymin=" + std::to_string(ymin) +
             ", ymax=" + std::to_string(ymax) + ")");
     }
-    double gamma = cfg.get_double("gamma", 1.4);
-    double cfl   = cfg.get_double("cfl", 0.8);
+    Real   gamma = static_cast<Real>(cfg.get_double("gamma", 1.4));
+    Real   cfl   = static_cast<Real>(cfg.get_double("cfl", 0.8));
     double t_end = cfg.get_double("t_end", 0.25);
     int    out_prec = cfg.get_int("output_precision", 17);
     if (out_prec < 1 || out_prec > 17) {
@@ -200,21 +215,26 @@ static void run_normal(const Config& cfg) {
     if (ny > 1) {
         // ── 2D path ───────────────────────────────────────────────────────────
         double dy = (ymax - ymin) / ny;
-        EulerSolver<double> solver(nx, ny, dx, dy, xmin, ymin,
-                                   gamma, cfl, t_end, flux, bc_x, bc_y);
+        EulerSolver<Real> solver(nx, ny,
+                                 static_cast<Real>(dx), static_cast<Real>(dy),
+                                 static_cast<Real>(xmin), static_cast<Real>(ymin),
+                                 gamma, cfl, static_cast<Real>(t_end),
+                                 flux, bc_x, bc_y);
         setup_ic(solver.grid_view(), test, gamma);
         solver.run(progress_interval_s);
 
         std::cerr << "Finished: " << solver.step_count() << " steps, t = "
-                  << solver.time() << "\n";
+                  << static_cast<double>(solver.time()) << "\n";
 
         if (output_format == "binary") {
             if (output_file.empty()) {
                 throw std::runtime_error(
                     "output_file must be set when output_format=binary");
             }
-            write_binary<double, EulerNVars>(
-                output_file, solver.grid_view(), nx, ny, dx, dy, solver.time());
+            write_binary<Real, EulerNVars>(
+                output_file, solver.grid_view(),
+                nx, ny, static_cast<Real>(dx), static_cast<Real>(dy),
+                static_cast<Real>(solver.time()));
             return;
         }
         if (output_format != "table") {
@@ -229,16 +249,16 @@ static void run_normal(const Config& cfg) {
             double y = ymin + (j + 0.5) * dy;
             for (int i = 0; i < nx; ++i) {
                 double x = xmin + (i + 0.5) * dx;
-                Vec<double, EulerNVars> cons;
+                Vec<Real, EulerNVars> cons;
                 for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, j, v);
-                Vec<double, EulerNVars> prim = cons_to_prim(cons, gamma);
+                Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
 
-                std::cout << x          << "\t"
-                          << y          << "\t"
-                          << prim[PRHO] << "\t"
-                          << prim[VX]   << "\t"
-                          << prim[VY]   << "\t"
-                          << prim[PRES] << "\n";
+                std::cout << x                                 << "\t"
+                          << y                                 << "\t"
+                          << static_cast<double>(prim[PRHO])   << "\t"
+                          << static_cast<double>(prim[VX])     << "\t"
+                          << static_cast<double>(prim[VY])     << "\t"
+                          << static_cast<double>(prim[PRES])   << "\n";
             }
             std::cout << "\n";
         }
@@ -246,12 +266,15 @@ static void run_normal(const Config& cfg) {
     }
 
     // ── 1D path (preserve bit-identical legacy output format) ─────────────────
-    EulerSolver<double> solver(nx, dx, xmin, gamma, cfl, t_end, flux, bc_x, bc_y);
+    EulerSolver<Real> solver(nx, static_cast<Real>(dx),
+                             static_cast<Real>(xmin),
+                             gamma, cfl, static_cast<Real>(t_end),
+                             flux, bc_x, bc_y);
     setup_ic(solver.grid_view(), test, gamma);
     solver.run(progress_interval_s);
 
     std::cerr << "Finished: " << solver.step_count() << " steps, t = "
-              << solver.time() << "\n";
+              << static_cast<double>(solver.time()) << "\n";
 
     auto gv = solver.grid_view();
     if (output_format == "binary") {
@@ -259,8 +282,10 @@ static void run_normal(const Config& cfg) {
             throw std::runtime_error(
                 "output_file must be set when output_format=binary");
         }
-        write_binary<double, EulerNVars>(
-            output_file, gv, nx, 1, dx, dx, solver.time());
+        write_binary<Real, EulerNVars>(
+            output_file, gv, nx, 1,
+            static_cast<Real>(dx), static_cast<Real>(dx),
+            static_cast<Real>(solver.time()));
         return;
     }
     if (output_format != "table") {
@@ -270,15 +295,15 @@ static void run_normal(const Config& cfg) {
     std::cout << std::setprecision(out_prec);
     for (int i = 0; i < nx; ++i) {
         double x = xmin + (i + 0.5) * dx;
-        Vec<double, EulerNVars> cons;
+        Vec<Real, EulerNVars> cons;
         for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, 0, v);
-        Vec<double, EulerNVars> prim = cons_to_prim(cons, gamma);
+        Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
 
-        std::cout << x          << "\t"
-                  << prim[PRHO] << "\t"
-                  << prim[VX]   << "\t"
-                  << prim[VY]   << "\t"
-                  << prim[PRES] << "\n";
+        std::cout << x                                 << "\t"
+                  << static_cast<double>(prim[PRHO])   << "\t"
+                  << static_cast<double>(prim[VX])     << "\t"
+                  << static_cast<double>(prim[VY])     << "\t"
+                  << static_cast<double>(prim[PRES])   << "\n";
     }
 }
 

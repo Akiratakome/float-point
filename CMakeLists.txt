@@ -8,12 +8,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Compiler warnings
 add_compile_options(-Wall -Wextra -Wpedantic)
 
-# Precision option (variable only for now, switching in Week 4)
-set(FLOAT_PRECISION "double" CACHE STRING "Floating-point precision (float/double)")
-
 # --- INTERFACE library for include paths ---
 add_library(hrsc_core INTERFACE)
 target_include_directories(hrsc_core INTERFACE ${CMAKE_SOURCE_DIR}/src)
+
+# Precision selector: defines HRSC_REAL on hrsc_core. Must come AFTER
+# add_library(hrsc_core INTERFACE) because it attaches compile defs to it.
+include(${CMAKE_SOURCE_DIR}/cmake/PrecisionConfig.cmake)
 
 # Riemann solver inequality variant: <= (default) vs < (strict)
 option(RIEMANN_STRICT_INEQUALITY "Use strict < instead of <= in HLLC/HLLD" OFF)
