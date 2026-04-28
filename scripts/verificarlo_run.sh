@@ -1,168 +1,221 @@
 #!/usr/bin/env bash
-# ──────────────────────────────────────────────────────────────────────────────
-# Verificarlo Monte Carlo Arithmetic (MCA) sampling for HRSC solver
-#
-# Usage (inside WSL2 or Linux with Verificarlo installed):
-#   cd /path/to/floatpoint
-#   bash scripts/verificarlo_run.sh              # default: 30 samples, all tests
-#   bash scripts/verificarlo_run.sh -n 50        # 50 samples
-#   bash scripts/verificarlo_run.sh -t sod       # only Sod test
-#   bash scripts/verificarlo_run.sh -p 24        # simulate float32 (24-bit mantissa)
-#
-# All output goes to experiments/verificarlo/ (gitignored).
-# Uses configs from tests/cases/toro_1d/ (solver defaults to setprecision(17)).
-# ──────────────────────────────────────────────────────────────────────────────
+# Verificarlo MCA sampling for 1D Toro tests.
 set -euo pipefail
 
-# ── Defaults ──────────────────────────────────────────────────────────────────
 N_SAMPLES=30
-PRECISION=53          # binary64 mantissa bits (53 = full double, 24 = float32)
-MCA_MODE="mca"        # mca | ieee | mca-rr (relative rounding)
+PRECISION=53
+MCA_MODE="mca"
 TESTS="sod toro2 toro3 toro4 toro5"
-SOLVER=""             # "" = hllc (default), "rusanov" = use *_rusanov.cfg files
-INST_FMA=""           # set to "--inst-fma" to instrument FMA operations
+SOLVER=""
+INST_FMA=0
+REAL_FLOAT=0
+COMPARE_FLOAT=0
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 EXP_DIR="${ROOT}/experiments/verificarlo"
 CFG_DIR="${ROOT}/tests/cases/toro_1d"
 
-# ── Parse arguments ───────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -n|--samples)   N_SAMPLES="$2";  shift 2 ;;
-        -p|--precision) PRECISION="$2";  shift 2 ;;
-        -m|--mode)      MCA_MODE="$2";   shift 2 ;;
-        -t|--test)      TESTS="$2";      shift 2 ;;
-        -s|--solver)    SOLVER="$2";     shift 2 ;;
-        --inst-fma)     INST_FMA="--inst-fma"; shift ;;
+        -n|--samples)   N_SAMPLES="$2"; shift 2 ;;
+        -p|--precision) PRECISION="$2"; shift 2 ;;
+        -m|--mode)      MCA_MODE="$2"; shift 2 ;;
+        -t|--test)      TESTS="$2"; shift 2 ;;
+        -s|--solver)    SOLVER="$2"; shift 2 ;;
+        --inst-fma)     INST_FMA=1; shift ;;
+        --real-float)   REAL_FLOAT=1; shift ;;
+        --compare-float) COMPARE_FLOAT=1; shift ;;
         -h|--help)
-            echo "Usage: $0 [-n samples] [-p precision] [-m mode] [-t test] [-s solver] [--inst-fma]"
+            echo "Usage: $0 [-n samples] [-p precision] [-m mode] [-t test] [-s solver] [--inst-fma] [--real-float] [--compare-float]"
             echo "  -n  Number of MCA samples (default: 30)"
-            echo "  -p  Mantissa precision bits (default: 53=double, 24=float)"
-            echo "  -m  MCA mode: mca | ieee | mca-rr (default: mca)"
+            echo "  -p  Mantissa precision bits (default: 53 for double build path)"
+            echo "  -m  MCA mode for libinterflop_mca (default: mca)"
             echo "  -t  Test name(s): sod toro2 toro3 toro4 toro5 (default: all)"
             echo "  -s  Solver: hllc (default) or rusanov (uses *_rusanov.cfg files)"
-            echo "  --inst-fma  Instrument FMA operations"
-            exit 0 ;;
-        *) echo "Unknown option: $1"; exit 1 ;;
+            echo "  --inst-fma      Instrument FMA operations in Verificarlo build"
+            echo "  --real-float    Build/run FLOAT_PRECISION=float with MCA backend"
+            echo "  --compare-float Run both modes into deterministic subdirs:"
+            echo "                  real_float/ and vprec_p24/"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            exit 1
+            ;;
     esac
 done
 
-# Config suffix: "" for hllc, "_rusanov" for rusanov
+if [[ "$COMPARE_FLOAT" -eq 1 && "$REAL_FLOAT" -eq 1 ]]; then
+    echo "INFO: --compare-float implies both modes; ignoring standalone --real-float."
+fi
+
+if [[ "$SOLVER" != "" && "$SOLVER" != "hllc" && "$SOLVER" != "rusanov" ]]; then
+    echo "ERROR: --solver must be hllc or rusanov (got '${SOLVER}')." >&2
+    exit 2
+fi
+
+if ! [[ "$N_SAMPLES" =~ ^[0-9]+$ ]] || [[ "$N_SAMPLES" -le 0 ]]; then
+    echo "ERROR: --samples must be a positive integer." >&2
+    exit 2
+fi
+
+if ! [[ "$PRECISION" =~ ^[0-9]+$ ]] || [[ "$PRECISION" -le 0 ]]; then
+    echo "ERROR: --precision must be a positive integer." >&2
+    exit 2
+fi
+
 CFG_SUFFIX=""
-[[ -n "$SOLVER" && "$SOLVER" == "rusanov" ]] && CFG_SUFFIX="_rusanov"
+[[ "$SOLVER" == "rusanov" ]] && CFG_SUFFIX="_rusanov"
 
-# Tag for output directory (allows multiple runs with different settings)
-TAG="p${PRECISION}_${MCA_MODE}"
-[[ -n "$INST_FMA" ]] && TAG="${TAG}_fma"
-[[ -n "$CFG_SUFFIX" ]] && TAG="${TAG}_rusanov"
-OUT_DIR="${EXP_DIR}/runs_${TAG}"
-
-# ── Check Verificarlo is available ────────────────────────────────────────────
-if ! command -v verificarlo-c++ &>/dev/null; then
-    echo "ERROR: verificarlo-c++ not found in PATH."
-    echo "Install: https://github.com/verificarlo/verificarlo"
-    echo "Docker:  docker run -v \$(pwd):/work -w /work verificarlo/verificarlo bash scripts/verificarlo_run.sh"
+if ! command -v verificarlo-c++ >/dev/null 2>&1; then
+    echo "ERROR: verificarlo-c++ not found in PATH." >&2
+    exit 1
+fi
+if ! command -v cmake >/dev/null 2>&1; then
+    echo "ERROR: cmake not found in PATH." >&2
     exit 1
 fi
 
-echo "============================================================"
-echo "  Verificarlo MCA Sampling"
-echo "  Samples:   ${N_SAMPLES}"
-echo "  Precision: ${PRECISION} bits (mantissa)"
-echo "  Mode:      ${MCA_MODE}"
-echo "  Solver:    ${SOLVER:-hllc}"
-echo "  FMA:       ${INST_FMA:-off}"
-echo "  Tests:     ${TESTS}"
-echo "  Output:    ${OUT_DIR}"
-echo "============================================================"
+mkdir -p "${EXP_DIR}"
 
-# ── Build with Verificarlo ────────────────────────────────────────────────────
-echo ""
-echo "[1/3] Building with Verificarlo compiler..."
-
-HRSC="${EXP_DIR}/hrsc_vfc"
-verificarlo-c++ -O2 -std=c++17 ${INST_FMA} \
-    -I"${ROOT}/src" -I"${ROOT}/tests/cases/toro_1d" \
-    "${ROOT}/src/main.cpp" -o "${HRSC}" 2>&1
-
-if [[ ! -x "$HRSC" ]]; then
-    echo "ERROR: Build failed."
-    exit 1
-fi
-echo "Build OK: ${HRSC}"
-
-# ── Configure MCA backend ────────────────────────────────────────────────────
-export VFC_BACKENDS="libinterflop_mca.so --mode=${MCA_MODE} --precision-binary64=${PRECISION}"
-echo ""
-echo "[2/3] VFC_BACKENDS=${VFC_BACKENDS}"
-
-# ── Run MCA samples ──────────────────────────────────────────────────────────
-echo ""
-echo "[3/3] Running MCA samples..."
-
-for test in ${TESTS}; do
-    cfg="${CFG_DIR}/${test}${CFG_SUFFIX}.cfg"
-    if [[ ! -f "$cfg" ]]; then
-        echo "  [SKIP] ${test}: config not found at ${cfg}"
-        continue
+build_hrsc() {
+    local build_dir="$1"
+    local float_precision="$2"
+    local -a cmake_args
+    cmake_args=(
+        -S "${ROOT}"
+        -B "${build_dir}"
+        -DCMAKE_BUILD_TYPE=Release
+        -DENABLE_OPENMP=OFF
+        "-DFLOAT_PRECISION=${float_precision}"
+    )
+    if [[ "$INST_FMA" -eq 1 ]]; then
+        cmake_args+=("-DCMAKE_CXX_FLAGS=--inst-fma")
     fi
+    CXX=verificarlo-c++ cmake "${cmake_args[@]}"
+    cmake --build "${build_dir}" -j
+    local hrsc="${build_dir}/hrsc"
+    if [[ ! -x "${hrsc}" ]]; then
+        echo "ERROR: expected executable not found: ${hrsc}" >&2
+        exit 1
+    fi
+}
 
-    test_dir="${OUT_DIR}/${test}"
-    mkdir -p "${test_dir}"
+run_mode() {
+    local mode_label="$1"
+    local build_dir="$2"
+    local float_precision="$3"
+    local vfc_backends="$4"
+    local out_dir="$5"
+    local hrsc
 
     echo ""
-    echo "  --- ${test} (${N_SAMPLES} samples) ---"
+    echo "============================================================"
+    echo "  Verificarlo run mode: ${mode_label}"
+    echo "  Samples:      ${N_SAMPLES}"
+    echo "  Float build:  ${float_precision}"
+    echo "  Mode:         ${MCA_MODE}"
+    echo "  Solver:       ${SOLVER:-hllc}"
+    echo "  Tests:        ${TESTS}"
+    echo "  Build dir:    ${build_dir}"
+    echo "  Output dir:   ${out_dir}"
+    echo "============================================================"
 
-    for i in $(seq 1 "${N_SAMPLES}"); do
-        outfile="${test_dir}/run_$(printf '%03d' $i).txt"
-        "${HRSC}" "${cfg}" > "${outfile}" 2>/dev/null
-        if (( i % 10 == 0 )) || (( i == N_SAMPLES )); then
-            echo "    ${i}/${N_SAMPLES} done"
+    build_hrsc "${build_dir}" "${float_precision}"
+    hrsc="${build_dir}/hrsc"
+    mkdir -p "${out_dir}"
+
+    export OMP_NUM_THREADS=1
+    export VFC_BACKENDS="${vfc_backends}"
+    echo "[mca] VFC_BACKENDS=${VFC_BACKENDS}"
+
+    for test in ${TESTS}; do
+        local cfg="${CFG_DIR}/${test}${CFG_SUFFIX}.cfg"
+        if [[ ! -f "${cfg}" ]]; then
+            echo "  [SKIP] ${test}: config not found at ${cfg}"
+            continue
         fi
+        local test_dir="${out_dir}/${test}"
+        mkdir -p "${test_dir}"
+        echo "  --- ${test} (${N_SAMPLES} samples) ---"
+        for i in $(seq 1 "${N_SAMPLES}"); do
+            local outfile="${test_dir}/run_$(printf '%03d' "${i}").txt"
+            "${hrsc}" "${cfg}" > "${outfile}" 2>/dev/null
+            if (( i % 10 == 0 )) || (( i == N_SAMPLES )); then
+                echo "    ${i}/${N_SAMPLES} done"
+            fi
+        done
     done
-done
 
-# ── IEEE reference run (no perturbation) ──────────────────────────────────────
-echo ""
-echo "  --- IEEE reference run (no perturbation) ---"
-export VFC_BACKENDS="libinterflop_ieee.so"
-for test in ${TESTS}; do
-    cfg="${CFG_DIR}/${test}${CFG_SUFFIX}.cfg"
-    [[ ! -f "$cfg" ]] && continue
-    ref_file="${OUT_DIR}/${test}/reference_ieee.txt"
-    "${HRSC}" "${cfg}" > "${ref_file}" 2>/dev/null
-done
+    echo "  --- IEEE reference run ---"
+    export VFC_BACKENDS="libinterflop_ieee.so"
+    for test in ${TESTS}; do
+        local cfg="${CFG_DIR}/${test}${CFG_SUFFIX}.cfg"
+        [[ ! -f "${cfg}" ]] && continue
+        local ref_file="${out_dir}/${test}/reference_ieee.txt"
+        "${hrsc}" "${cfg}" > "${ref_file}" 2>/dev/null
+    done
+}
+
+TAG_BASE="p${PRECISION}_${MCA_MODE}"
+[[ "$INST_FMA" -eq 1 ]] && TAG_BASE="${TAG_BASE}_fma"
+[[ -n "$CFG_SUFFIX" ]] && TAG_BASE="${TAG_BASE}_rusanov"
+
+if [[ "$COMPARE_FLOAT" -eq 1 ]]; then
+    TAG_COMPARE="p24_${MCA_MODE}"
+    [[ "$INST_FMA" -eq 1 ]] && TAG_COMPARE="${TAG_COMPARE}_fma"
+    [[ -n "$CFG_SUFFIX" ]] && TAG_COMPARE="${TAG_COMPARE}_rusanov"
+    if [[ "$PRECISION" -ne 24 ]]; then
+        echo "INFO: --compare-float uses fixed p24 in both modes; ignoring --precision=${PRECISION}."
+    fi
+    OUT_DIR="${EXP_DIR}/runs_compare_${TAG_COMPARE}"
+    run_mode \
+        "real_float" \
+        "${ROOT}/build-vfc-real" \
+        "float" \
+        "libinterflop_mca.so --mode=${MCA_MODE} --precision-binary32=24" \
+        "${OUT_DIR}/real_float"
+    run_mode \
+        "vprec_p24" \
+        "${ROOT}/build-vfc-vprec" \
+        "double" \
+        "libinterflop_vprec.so --precision-binary64=24" \
+        "${OUT_DIR}/vprec_p24"
+else
+    if [[ "$REAL_FLOAT" -eq 1 ]]; then
+        EFF_FLOAT_PREC="${PRECISION}"
+        if [[ "$EFF_FLOAT_PREC" -gt 24 ]]; then
+            echo "INFO: --real-float with precision>${24} is clamped to 24 for binary32."
+            EFF_FLOAT_PREC=24
+        fi
+        MODE_TAG="real_float"
+        TAG_REAL="p${EFF_FLOAT_PREC}_${MCA_MODE}"
+        [[ "$INST_FMA" -eq 1 ]] && TAG_REAL="${TAG_REAL}_fma"
+        [[ -n "$CFG_SUFFIX" ]] && TAG_REAL="${TAG_REAL}_rusanov"
+        OUT_DIR="${EXP_DIR}/runs_${MODE_TAG}_${TAG_REAL}"
+        run_mode \
+            "${MODE_TAG}" \
+            "${ROOT}/build-vfc-real" \
+            "float" \
+            "libinterflop_mca.so --mode=${MCA_MODE} --precision-binary32=${EFF_FLOAT_PREC}" \
+            "${OUT_DIR}"
+    else
+        MODE_TAG="double_mca"
+        OUT_DIR="${EXP_DIR}/runs_${MODE_TAG}_${TAG_BASE}"
+        run_mode \
+            "${MODE_TAG}" \
+            "${ROOT}/build-vfc-p53" \
+            "double" \
+            "libinterflop_mca.so --mode=${MCA_MODE} --precision-binary64=${PRECISION}" \
+            "${OUT_DIR}"
+    fi
+fi
 
 echo ""
 echo "============================================================"
-echo "  All samples saved to: ${OUT_DIR}/"
-echo "  Analyse: python scripts/verificarlo_analysis.py --vfc-dir ${OUT_DIR}"
+echo "All samples saved under: ${OUT_DIR}"
+echo "Analyse baseline: python scripts/verificarlo_analysis.py --vfc-dir ${OUT_DIR}"
+if [[ "$COMPARE_FLOAT" -eq 1 ]]; then
+    echo "Compare modes:    python scripts/plot_real_vs_vprec.py ${OUT_DIR}/real_float ${OUT_DIR}/vprec_p24 --tests sod"
+fi
 echo "============================================================"
-
-# ============================================================
-# Unstable Branch Detection (Week 3)
-# Runs VPREC at 40-bit precision for 30 MCA samples to identify
-# floating-point sensitive branch conditions in HLLC and MUSCL.
-# ============================================================
-
-BRANCH_DIR="output/branch_detection"
-mkdir -p "$BRANCH_DIR"
-
-echo "=== Unstable Branch Detection: VPREC 40-bit, 30 samples ==="
-
-# Compile with verificarlo wrapper + FMA instrumentation
-verificarlo-c++ --inst-fma -O2 -std=c++17 \
-    -I src -I tests/cases/toro_1d \
-    src/main.cpp -o hrsc_vfc_branch -lm
-
-export VFC_BACKENDS="libinterflop_vprec.so --precision-binary64=40"
-
-N_SAMPLES=30
-for i in $(seq 1 $N_SAMPLES); do
-    echo "  Sample $i/$N_SAMPLES"
-    ./hrsc_vfc_branch tests/cases/toro_1d/sod.cfg \
-        > "$BRANCH_DIR/sample_${i}.txt" 2>&1
-done
-
-echo "Branch detection samples saved to $BRANCH_DIR/"
