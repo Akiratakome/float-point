@@ -285,20 +285,21 @@ Report 1 要求 (each 20%):
 
 #### Week 5 (04/20 - 04/26): 2D Euler Tests + GPU Development Start
 
-**Code (2D tests — only 2 configs needed initially, can add more later):**
-- `tests/liska_wendroff_2d/lw_tests.hpp` — IC for configs 3 and 6 (supersonic shocks ✓, satisfies 1D+2D requirement with Toro tests)
-- `tests/shock_bubble/shock_bubble.hpp` — shock-bubble IC (supersonic shock ✓)
-- Config files for 2D tests
-- `common/timer.hpp` — wall-clock timing (records every run for performance analysis)
+**Code (2D tests + closing Phase 1 infra gaps):**
+- Replace the Config-6 stub in `tests/cases/liska_wendroff_2d/lw_tests.hpp` (`setup_liska_wendroff_config6` currently throws) with a real IC + add `config6_n200.cfg` / `config6_n400.cfg`.
+- `tests/cases/shock_bubble/` — new IC header + cfg for shock-bubble interaction (supersonic shock ✓, satisfies 1D+2D requirement with Toro tests).
+- `src/utils/timer.hpp` — wall-clock timer (records every run for performance analysis).
 
-**Code (GPU — start early to reduce Week 6 risk):**
-- Add `#pragma omp parallel for` to sweep loops in euler_solver
-- `gpu/cuda_utils.cuh` — CUDA error checking, DeviceArray wrapper
-- `gpu/gpu_grid.cuh` — device mirror of Grid2D, host<->device transfers
-- Begin `gpu/euler_kernels.cuh` — first kernels (conservative update, boundary conditions)
+**Code (GPU bring-up — skeleton only):**
+- OpenMP `#pragma omp parallel for` already wired into sweep loops + CFL reduction (delivered Week 4 — no action needed here).
+- `src/gpu/cuda_utils.cuh` — CUDA error-check macro, DeviceArray wrapper.
+- `src/gpu/gpu_grid.cuh` — device mirror of Grid2D, host↔device transfers.
+- `src/gpu/euler_kernels.cuh` — first kernels (conservative update, BC). Compilable empty implementations are acceptable; full kernels are Week 6.
+
+**Risk note:** Full GPU Euler solver is deferred to Weeks 6–7. If Week 5 progress is tight, shock-bubble may slip to Week 6 — Config 6 + GPU skeleton are the non-deferrable items because they unblock 2D test coverage and the Week-6 kernel work.
 
 **Analysis:**
-- `analysis/plot_2d.py` — 2D density pseudocolor, schlieren plots
+- `scripts/figures/plot_2d.py` (or equivalent in `scripts/figures/`) — 2D density pseudocolor, schlieren plots. Note: phase-error heatmaps + SSIM already provided by `scripts/metrics/phase_error_metrics.py` from Week 4.
 
 **Milestone:** 2D CPU results match published figures. GPU infrastructure compiles on local machine.
 
@@ -317,6 +318,8 @@ Report 1 要求 (each 20%):
 
 **Milestone:** GPU Euler solver matches CPU to machine epsilon. Runs on CSC cluster GPU nodes.
 
+> **Carry-over from Week 5**: complete remaining 2D Euler tests if not finished. Extend the Phase-C float-regression pipeline to GPU outputs once kernels land — same `summary.{md,json}` schema, same SSIM / L1 / phase metrics; CPU-vs-GPU same-precision diff must be ≤ ULP-level.
+
 ---
 
 #### Week 7 (05/04 - 05/10): Experiments + Data Collection for Report 1
@@ -331,6 +334,7 @@ Report 1 要求 (each 20%):
 - L1/L2/Linf error norms for each configuration
 - Grid convergence: N = 50, 100, 200, 400, 800
 - Generate all plots: 1D profiles, 2D pseudocolor, difference maps, convergence curves
+- Reuse the Week-4-established Verificarlo + SNR / LoSoS / s_req(N) / Pareto pipeline for the full Euler matrix. Performance timing (via `src/utils/timer.hpp`) recorded per run; build matrix automated via `scripts/build_all.sh`. CPU-vs-GPU same-precision diff is enforced as a regression gate.
 
 **Milestone:** All experimental data for Report 1 collected and analyzed.
 
