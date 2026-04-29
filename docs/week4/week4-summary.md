@@ -27,9 +27,9 @@ This document summarises what was actually delivered in Week 4 (calendar 04/22�
 
 ### A4: SNR / LoSoS metric + truncation-anchored s_req(N) + Pareto + headline conclusion
 - Headline table: [week4_a4_lw_config3_200_tradeoff_table.md](../experiment_logs/week4_a4_lw_config3_200_tradeoff_table.md).
-- Pareto figure: [experiments/week4/figures/a4_pareto/pareto_lw_config3_200.png](../../experiments/week4/figures/a4_pareto/pareto_lw_config3_200.png) (HLLC vs RUSANOV at N=200² double; both points sit below `s_req(N=200) ≈ 3.13`, i.e. FP noise dominates truncation at this resolution — answers supervisor "how many sig digits do we need").
+- Pareto figure: [experiments/week4/figures/a4_pareto/pareto_lw_config3_200.png](../../experiments/week4/figures/a4_pareto/pareto_lw_config3_200.png) (HLLC vs RUSANOV at N=200² p53; both points sit below `s_req(N=200) ≈ 3.13`, i.e. FP noise dominates truncation at this resolution — answers supervisor "how many sig digits do we need").
 - Tooling: `scripts/snr_metric.py`, `scripts/losos_metric.py`, `scripts/s_req_metric.py`, `scripts/pareto_plot.py`, `scripts/tradeoff_summary_table.py`.
-- Completion-gate note (2026-04-29): the checked-in headline table is p53-only (HLLC/Rusanov). The original Week-4 plan asked for double/float rows; those float rows remain a Week-5 carry-over unless regenerated from the Phase-C float artifacts.
+- Completion-gate update (2026-04-29): the official headline table now has four rows: HLLC/RUSANOV × p53/p24-real-float. The p24-real-float rows come from Athena SLURM MCA ensembles, not deterministic float snapshots. Canonical scalar inputs needed to regenerate the table are tracked under `experiments/week4/metrics/`; p24 heatmaps are tracked under `experiments/week4/figures/a4_float_p24/`.
 
 ---
 
@@ -87,5 +87,4 @@ Implementation deviation note (documented at [week4-plan.md §B3](week4-plan.md)
 ## Outstanding for Week 5
 
 - Begin 2D Liska–Wendroff Configs 4/6 + Kelvin–Helmholtz (now that BC dispatch supports periodic + reflective, see plan §7.1).
-- Complete the A4 headline trade-off table with float rows, or explicitly narrow the A4 scope in the plan/history.
 - GPU development start (plan §7.1, §7.2).
