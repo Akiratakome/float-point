@@ -599,30 +599,33 @@ This week focuses on **understanding and explaining** the errors, not just measu
 
 ## Appendix: Secondary & Optional Items (Week 17 if time permits)
 
-### Tier 1 — Secondary experiments (highest value, lowest effort)
+### Tier 1 — Core methods (already adopted in Weeks 3–4)
 
-| Item | Effort | Insight | Notes |
-|---|---|---|---|
-| **FMA control** (`-ffp-contract`, `--fmad`) | Low (CMake flag) | Explains specific compiler effect on FP associativity | Add to CompilerFlags.cmake |
-| **CFL sensitivity** (0.2, 0.4, 0.6, 0.8) | Low (re-run existing tests) | Separates time integration error from flux error | `cfl_sensitivity.py` |
-| **Limiter sensitivity** (minmod, van Leer, MC) | Low (already in code) | Does reconstruction amplify round-off? | Compare float-double norms across limiters |
+| Item | Status | Notes |
+|---|---|---|
+| Verificarlo MCA (`p=53` noise floor, `p=24` float-surrogate, 2D batch) | adopted | See `scripts/verificarlo/`, `experiments/verificarlo/runs_p53_mca*` |
+| SNR / LoSoS / s_req(N) / Pareto metrics | adopted | See `scripts/metrics/` + `scripts/figures/pareto_plot.py` |
+| FMA control (`-ffp-contract`, `--fmad`, `--inst-fma`) | adopted | C2 `_fma` variant runs already exist |
+| `vfc_precexp` (mixed-precision exploration) | planned (carry-over from Week-3 supervisor ask) | Schedule: Week 14 once MHD lands, or earlier if MHD slips |
+| Verificarlo unstable-branch detection | planned (carry-over from Week-3 supervisor ask) | Schedule: alongside `vfc_precexp` |
 
-### Tier 2 — Additional experiments (medium value)
+### Tier 2 — Incremental experiments (do if time permits)
 
-| Item | Effort | Insight | Notes |
-|---|---|---|---|
-| **OpenMP thread count** (1, 2, 4, 8) | Low | Non-deterministic reduction ordering | Addresses "thread/process scheduling" in brief |
-| **-mtune / vectorisation** | Low (CMake flag) | CPU microarchitecture effects | |
-| **Quad precision** (1D CPU only) | Medium (Boost) | Ground truth reference | |
-| **MPI non-determinism demo** | Medium | Standalone MPI_Reduce script showing LSB variance across process counts. Provides empirical evidence for "reproducibility" section and justifies MPI omission from main code | |
+| Item | Notes |
+|---|---|
+| CFL sensitivity (0.2, 0.4, 0.6, 0.8) | Time integration vs flux error separation |
+| Limiter sensitivity (minmod, van Leer, MC) | Reconstruction round-off amplification |
+| OpenMP thread count (1, 2, 4, 8) | Reduction-ordering non-determinism |
+| `-mtune` / vectorisation options | CPU microarchitecture effects |
+| Quad precision (1D CPU only) | Ground-truth reference; do not attempt 2D / GPU |
+| MPI non-determinism demo | Standalone `MPI_Reduce` script for Report 2 reproducibility section |
 
-### Tier 3 — Advanced tools and ML (lowest priority)
+### Tier 3 — Advanced / exploratory (lowest priority)
 
-| Item | Effort | Insight | Notes |
-|---|---|---|---|
-| **Verificarlo** (stochastic arithmetic) | High (special compiler) | Complements round-off analysis | `/lsc/opt/verificarlo-2.4.0`, clang++-18 |
-| **RAPTOR** (mixed precision) | High (special compiler) | Which variables tolerate lower precision | `/lsc/opt/raptor`, clang++-20 |
-| **ML error predictor** | Medium | Predictive model from sweep data | `ml_error_predictor.py`, scikit-learn |
+| Item | Notes |
+|---|---|
+| RAPTOR (mixed precision, special compiler) | `/lsc/opt/raptor`, clang++-20 |
+| ML error predictor | scikit-learn; only if Tier-1+2 complete |
 
 ### If none completed:
 
