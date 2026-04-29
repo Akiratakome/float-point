@@ -17,7 +17,7 @@ This plan is the design spec produced by the brainstorming process; it will be t
 | Q2 | GPU toolchain target | **Local CUDA laptop**; CSC GPU nodes deferred to Week 6 |
 | Q3 | Verification depth | **Three-layer (unit + solver + harness) + `week5-verification.md`** |
 | Q4 | Liska-Wendroff Config 6 | **Faithful to LW 2003 (4 contact discontinuities, no shocks)**; correct overall.md table |
-| Q5 | Shock-bubble version | **Single-fluid shock-density-bubble test inspired by Toro/Hu-Khoo**, `[0,1]×[0,0.5]`, `400×200`, Mach 1.22 |
+| Q5 | Shock-bubble version | **Single-fluid shock-density-bubble test, half-symmetric Toro/Quirk-Karni setup**, domain `[0,1]×[0,0.25]`, grid `400×100`, bubble centred at (0.25, 0) on symmetry plane, Mach 1.22 |
 | Q6 | GPU skeleton depth | **Toolchain + `GpuGrid` host↔device roundtrip + Catch2 `[gpu]` test** |
 | Q7 | `plot_2d.py` shape | **`scripts/figures/plot_2d.py`, single-grid → image, CLI** (no batch, no multi-panel) |
 | Q8 | `timer.hpp` granularity | **`Timer` + opt-in `ScopedTimer` profiling, `HRSC_ENABLE_PROFILING` macro, default OFF** |
@@ -101,13 +101,13 @@ Boundary: outflow on all four sides.
 **New directory** `tests/cases/shock_bubble/`
 
 - `shock_bubble_tests.hpp`
-  - Domain: `[0,1] × [0,0.5]`, γ = 1.4 throughout. This is a **single-fluid approximation** inspired by the Mach-1.22 shock/helium-bubble benchmark: the bubble is represented by a density contrast only, with no species equation and no variable γ. Do not claim one-to-one reproduction of the multi-gas literature case.
+  - Domain: `[0,1] × [0, 0.25]` (**half-symmetric**: y = 0 is the symmetry plane through the bubble centre; the full physical bubble is recovered by mirroring about y = 0 when plotting). γ = 1.4 throughout. This is a **single-fluid approximation** inspired by the Mach-1.22 shock/helium-bubble benchmark (Quirk-Karni 1996; Toro 2009 §17.1.4): the bubble is represented by a density contrast only, with no species equation and no variable γ. Do not claim one-to-one reproduction of the multi-gas literature case.
   - Planar shock at x = 0.05, Mach 1.22 moving right; left = post-shock state from Rankine-Hugoniot, right = pre-shock (ρ=1, p=1, u=0)
-  - Helium bubble: centre (0.25, 0.25), radius 0.1, ρ_bubble = 0.138, p and u match surrounding pre-shock air
-  - Boundary: cfg sets `bc_x = outflow` (both x sides outflow) and `bc_y = reflective` (both y sides reflective). The parser at `src/main.cpp:100` (`parse_boundary`) takes a single value per axis, applied to both sides of that axis; do not write `bc_x = outflow,outflow`.
+  - Helium bubble: centre (0.25, 0), radius 0.1 — i.e. only the upper half of the bubble lies in the computational domain; the lower half is provided implicitly by the y = 0 symmetry BC.
+  - Boundary: cfg sets `bc_x = outflow` (both x sides outflow) and `bc_y = reflective` (y = 0 acts as symmetry mirror for the bubble; y = 0.25 is the upper channel wall, also reflective — matches Quirk-Karni half-symmetric channel). The parser at `src/main.cpp:100` (`parse_boundary`) takes a single value per axis, applied to both sides of that axis; do not write `bc_x = outflow,outflow`.
   - Register `test=shock_bubble` in `main.cpp` `select_test(...)`
-- `shock_bubble_n400x200.cfg` — `t_end=0.4`, `cfl=0.5`, `nx=400`, `ny=200`, `solver=hllc`, `output_format=binary`, `output_file=experiments/week5/baselines/shock_bubble_n400x200_hllc/grid.bin`
-- `shock_bubble_n400x200_rusanov.cfg` — same axes/grid/bc, `solver=rusanov`, `output_format=binary`, `output_file=experiments/week5/baselines/shock_bubble_n400x200_rusanov/grid.bin`
+- `shock_bubble_n400x100.cfg` — `t_end=0.4`, `cfl=0.5`, `nx=400`, `ny=100` (preserves dx = dy = 0.0025), `xmax=1.0`, `ymax=0.25`, `solver=hllc`, `output_format=binary`, `bc_x=outflow`, `bc_y=reflective`, `output_file=experiments/week5/baselines/shock_bubble_n400x100_hllc/grid.bin`
+- `shock_bubble_n400x100_rusanov.cfg` — same axes/grid/bc, `solver=rusanov`, `output_format=binary`, `output_file=experiments/week5/baselines/shock_bubble_n400x100_rusanov/grid.bin`
 
 **Unit test** `tests/unit/test_shock_bubble.cpp` — see §3 Layer 1
 
@@ -119,7 +119,7 @@ Boundary: outflow on all four sides.
 
 **New files**
 
-- `cmake/CUDASetup.cmake` — `find_package(CUDAToolkit REQUIRED)`; auto-detect `CMAKE_CUDA_ARCHITECTURES` (fallback: `native`); coexist with OpenMP
+- `cmake/CUDASetup.cmake` — `find_package(CUDAToolkit REQUIRED)`; auto-detect `CMAKE_CUDA_ARCHITECTURES` (fallback: `native`); coexist with OpenMP. Policy CMP0104 is automatically NEW because root `CMakeLists.txt:1` already requires CMake ≥ 3.18, so no explicit `cmake_policy(SET CMP0104 NEW)` is needed; if the minimum is ever lowered, add the explicit policy line back to prevent cryptic nvcc target-architecture errors
 - `src/gpu/gpu_smoke.cu` — minimal program calling `cudaGetDeviceCount()` and printing each device name + compute capability
 
 **Modifications**
@@ -170,23 +170,38 @@ cmake --build build-cuda --target gpu_smoke
 
 - `src/gpu/euler_kernels.cuh` — single kernel `__global__ void device_copy_kernel(const Real* in, Real* out, std::size_t n)` performing `out[i] = in[i]`
 
-**Test** `tests/unit/test_gpu_roundtrip.cu`, Catch2 tag `[gpu]`:
-- `Grid2D<double,4>` and `Grid2D<float,4>`, each with 100 random seeds
-- Pipeline: host fill → upload to `GpuGrid` → allocate a separate `DeviceArray<Real>` output buffer → launch `device_copy_kernel(in, out)` → download output into a fresh host `Grid2D` → assert byte-identical. Avoid in-place copy; it would not prove the kernel/data path.
+**Test** — split into two files to avoid compiling Catch2 v2 single-header (~18k LOC, `external/catch2/catch.hpp`) through nvcc:
+
+- `tests/unit/test_gpu_roundtrip.cpp` — Catch2 `TEST_CASE("[gpu] roundtrip", ...)`, picked up by the existing CXX glob. Calls into the wrapper functions below.
+- `tests/unit/gpu_roundtrip_kernel.cu` — `device_copy_kernel` definition + two `extern "C"` host-callable wrappers:
+  ```cpp
+  extern "C" bool gpu_roundtrip_double(const double* host_in, double* host_out,
+                                       std::size_t n);
+  extern "C" bool gpu_roundtrip_float (const float*  host_in, float*  host_out,
+                                       std::size_t n);
+  ```
+  Each wrapper does: `cudaMalloc` in/out → `cudaMemcpy H→D` → launch `device_copy_kernel` → `cudaMemcpy D→H` → free → return true on success.
+
+Test logic in the `.cpp`: `Grid2D<double,4>` and `Grid2D<float,4>`, each with 100 random seeds; host fill → call `gpu_roundtrip_<T>(...)` → assert byte-identical.
+
+This split keeps `external/catch2/catch.hpp` away from nvcc entirely (huge compile-time saving and avoids host/device warning noise) and isolates CUDA code in a single small `.cu` TU.
 
 **Build wiring** in the root `CMakeLists.txt` (there is no `tests/unit/CMakeLists.txt` in this repository), placed next to the existing `add_executable(unit_tests ${TEST_SOURCES})`:
 ```cmake
 if(ENABLE_CUDA)
-  target_sources(unit_tests PRIVATE tests/unit/test_gpu_roundtrip.cu)
-  set_source_files_properties(tests/unit/test_gpu_roundtrip.cu
+  # The .cpp half is auto-picked by the existing GLOB.
+  # Add the .cu half explicitly and pin its language.
+  target_sources(unit_tests PRIVATE tests/unit/gpu_roundtrip_kernel.cu)
+  set_source_files_properties(tests/unit/gpu_roundtrip_kernel.cu
     PROPERTIES LANGUAGE CUDA)
   set_target_properties(unit_tests PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+  target_link_libraries(unit_tests PRIVATE CUDA::cudart)
 endif()
 ```
 
-Note: the existing `file(GLOB TEST_SOURCES tests/unit/test_*.cpp)` only matches `.cpp`, so `.cu` files must be added explicitly via `target_sources` as above (do NOT extend the glob to `test_*.{cpp,cu}` — it mixes CUDA and CXX languages opaquely and breaks CPU-only builds).
+Note: `cmake_minimum_required(VERSION 3.18)` (root `CMakeLists.txt:1`) automatically sets policy CMP0104 to NEW, so explicit `cmake_policy(SET CMP0104 NEW)` is **not needed**. If anyone lowers the minimum version below 3.18 in the future, add the explicit policy line back. The existing `file(GLOB TEST_SOURCES tests/unit/test_*.cpp)` matches only `.cpp`, so `.cu` files must be added explicitly via `target_sources` as above (do NOT extend the glob to `test_*.{cpp,cu}` — it mixes CUDA and CXX languages opaquely and breaks CPU-only builds).
 
 **Explicitly out of scope (Week 6)**: `__device__` HD_FUNC instantiation of EOS/flux/HLLC, BC kernel, reconstruction kernel, CFL reduction, `EulerGpuSolver` class, CSC GPU node build.
 
@@ -211,7 +226,9 @@ Field implementations:
 
 Output: single PNG per field, with colorbar and axis labels. **No batch mode**, **no summary.json reading** (Week 7 may add a thin batch wrapper if needed).
 
-Reuse existing binary reader from `scripts/regression/` or `scripts/metrics/` (whichever already provides `read_grid_bin`); do not introduce a new reader.
+Reader: **must** use the existing `scripts/io_helper.py:read_binary` (it parses the 64-byte header's `precision_tag` and returns numpy arrays with explicit dtype `<f4` for float / `<f8` for double). Do **not** call `np.fromfile` or any reader that ignores the precision tag — that silently corrupts data when the binary was written by `build-float/hrsc`.
+
+Python deps: `numpy`, `matplotlib` are already in `analysis/requirements.txt` (numpy ≥ 1.21, matplotlib ≥ 3.5). No new dependencies introduced this week. Verify via `grep matplotlib analysis/requirements.txt` before assuming.
 
 **Smoke test** `tests/py/test_plot_2d.py` — see §3 Layer 1
 
@@ -244,7 +261,7 @@ F = Layer-3 harness smoke + week5-verification.md  ← collected after all of th
 | `Timer` basic | `tests/unit/test_timer.cpp` | `sleep_for(100ms)` → `elapsed_seconds()` ∈ [0.09, 0.20]; multiple `start/stop` accumulate | OS jitter → raise upper bound to 0.30s |
 | `ProfilingRegistry` accumulation | same file (guarded by `#ifdef HRSC_ENABLE_PROFILING`) | repeated `add` for same name accumulates; `snapshot()` returns sorted map. Test case is compiled out under default `OFF` build. | — |
 | Config 6 IC values | `tests/unit/test_liska_wendroff.cpp` (append cases) | 4 quadrants ρ ∈ {1, 2, 1, 3}; p ≡ 1.0; u/v match table per cell with tight `Approx` tolerance | — |
-| Shock-bubble IC | `tests/unit/test_shock_bubble.cpp` | bubble interior ρ ≈ 0.138 ± 1e-12; post-shock RH relations satisfied to 1e-12 (double); bubble interface cell count ∈ [80, 120] on 400×200 | check RH formula and γ |
+| Shock-bubble IC | `tests/unit/test_shock_bubble.cpp` | bubble interior ρ ≈ 0.138 ± 1e-12 (cells with y < 0.1 inside half-disc); post-shock RH relations satisfied to 1e-12 (double); bubble interface cell count ∈ [40, 60] on 400×100 (half-bubble arc length is half the full circle) | check RH formula, γ, and the half-symmetric geometry (centre at y=0) |
 | GPU roundtrip (`[gpu]`) | `tests/unit/test_gpu_roundtrip.cu` | 100 random seeds × {double, float} × `Grid2D<,4>`, all byte-identical | stop-the-world; review `Grid2D` layout / `HD_FUNC` |
 | `plot_2d.py` smoke | `tests/py/test_plot_2d.py` | each of 4 fields → PNG file size > 0, pixel dims ≥ 100×100 | — |
 
@@ -263,7 +280,7 @@ F = Layer-3 harness smoke + week5-verification.md  ← collected after all of th
 | Config 6 double 200² baseline | `./build-double/hrsc tests/cases/liska_wendroff_2d/config6_n200.cfg` | `.bin` lands; 4-quadrant interfaces evolved into contact-wave structure; visual match to LW 2003 Fig. 6 |
 | Config 6 double 400² baseline | analogous with `_n400.cfg` | same; interfaces sharper at higher resolution |
 | Config 6 float regression | rerun both cfgs from `build-float/` | SSIM vs double **recorded** via `phase_error_metrics.py` and reported in `week5-verification.md`. **No fixed pass threshold** this week — Week 5 establishes the baseline for float-vs-double contact-resolution behaviour. Investigation triggers only if SSIM < 0.90 (significant structural divergence). |
-| Shock-bubble HLLC double baseline | `./build-double/hrsc tests/cases/shock_bubble/shock_bubble_n400x200.cfg` | plausible single-fluid shock/light-bubble interaction at t=0.4 (shock crosses the light-density bubble, transmitted/reflected structures visible); do not require one-to-one match to multi-gas Toro/Hu-Khoo figures |
+| Shock-bubble HLLC double baseline | `./build-double/hrsc tests/cases/shock_bubble/shock_bubble_n400x100.cfg` | plausible single-fluid shock/light-bubble interaction at t=0.4 (shock crosses the light-density bubble, transmitted/reflected structures visible); when plotting, mirror about y=0 to get the full bubble; do not require one-to-one match to multi-gas Toro/Quirk-Karni figures |
 | Shock-bubble HLLC vs Rusanov | run both cfgs in `build-double/` | qualitative: Rusanov contact more diffused, HLLC sharper. **Expected**, not a bug. |
 | Wall-clock visible | observe `[timing] total_s=...` line in stderr for any of the above runs | line present, value > 0 |
 
@@ -273,7 +290,7 @@ For each baseline, generate ρ + p + |∇ρ| PNGs via `plot_2d.py` and embed ref
 
 **Failure fallback**:
 - Config 6 evolution doesn't match LW 2003 → check IC table (most common error: u/v sign), then BC (must be outflow on all four sides)
-- Shock-bubble mushroom asymmetric → check reflective BC momentum-flip index
+- Shock-bubble mushroom asymmetric about the y=0 symmetry plane (when mirrored) → check reflective BC momentum-flip index at y=0; if asymmetry appears at y=0.25 wall instead, that is the upper channel wall and is expected to develop a separate reflected-shock structure
 - Visual differs from literature but wave structure is qualitatively right → accept; record under "known differences" in `week5-verification.md`
 
 ### Layer 3 — Harness pipeline smoke
@@ -304,11 +321,11 @@ Goal: drive the full `config → build → run → measure → aggregate → plo
      "precision": "float",  "build": "cpu-float-O2-ieee-leq",
      "output_file": "grid.bin"},
     {"name": "sb-d-400",  "binary": "build-double/hrsc",
-     "config": "tests/cases/shock_bubble/shock_bubble_n400x200.cfg",
+     "config": "tests/cases/shock_bubble/shock_bubble_n400x100.cfg",
      "precision": "double", "build": "cpu-double-O2-ieee-leq",
      "output_file": "grid.bin"},
     {"name": "sb-f-400",  "binary": "build-float/hrsc",
-     "config": "tests/cases/shock_bubble/shock_bubble_n400x200.cfg",
+     "config": "tests/cases/shock_bubble/shock_bubble_n400x100.cfg",
      "precision": "float",  "build": "cpu-float-O2-ieee-leq",
      "output_file": "grid.bin"}
   ]
@@ -385,7 +402,7 @@ Mirror `week4-verification.md` format:
 **Done criteria**:
 - `./build-double/unit_tests "[shock_bubble]"` passes
 - `pytest tests/py/test_plot_2d.py` passes
-- 12 PNGs land under `experiments/week5/baselines/figures/`; Config 6 visually matches LW 2003 contact-only structure, and shock-bubble shows plausible single-fluid shock/light-bubble interaction
+- 12 PNGs land under `experiments/week5/baselines/figures/`; Config 6 visually matches LW 2003 contact-only structure, and shock-bubble shows plausible single-fluid shock/light-bubble interaction (mirror about y=0 in the figure caption to interpret as full bubble)
 
 ### Day 4 — GPU data path (Block D.2)
 
@@ -401,8 +418,13 @@ Mirror `week4-verification.md` format:
 **Tasks**:
 - Write `experiments/week5/smoke/matrix.json` (6 runs)
 - Run dry-run + live + aggregate + plot
-- Write `docs/week5/week5-verification.md` (Layer 1/2/3, command-by-command, expected outputs)
-- Write `docs/week5/week5-summary.md` (commits + experiment paths + W5 → W6 handoff)
+- **After `summary.json` and the 6 figures land**, programmatically remove the smoke `grid.bin` files (HARNESS.md §6 transient-data discipline; `baselines/` `.bin` files are kept untouched):
+  ```bash
+  find experiments/week5/smoke/runs -name 'grid.bin' -delete
+  ```
+  Run this command from the `week5-verification.md` Section 4 so future reproductions enforce the same discipline rather than relying on manual cleanup.
+- Write `docs/week5/week5-verification.md` (Layer 1/2/3, command-by-command, expected outputs; embed the cleanup command as the last step of Section 4)
+- Write `docs/week5/week5-summary.md` (commits + experiment paths + W5 → W6 handoff; record the smoke retention policy explicitly)
 - Update `docs/INDEX.md` §2 table (add Week 5 row)
 - **Author manually walks through `week5-verification.md` from scratch** (cannot be skipped)
 - PR / merge per `superpowers:finishing-a-development-branch`
@@ -476,8 +498,8 @@ experiments/week5/
 ├── baselines/
 │   ├── lw_config6_n200/grid.bin
 │   ├── lw_config6_n400/grid.bin
-│   ├── shock_bubble_n400x200_hllc/grid.bin
-│   ├── shock_bubble_n400x200_rusanov/grid.bin
+│   ├── shock_bubble_n400x100_hllc/grid.bin
+│   ├── shock_bubble_n400x100_rusanov/grid.bin
 │   └── figures/                         # 12 PNGs (Config6 × 2 res × 3 fields + shock-bubble × 2 solver × 3 fields)
 └── smoke/
     ├── matrix.json
