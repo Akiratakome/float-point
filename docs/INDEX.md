@@ -40,6 +40,9 @@ Week 4 also keeps:
 - [week4-verification.md](week4/week4-verification.md) — manual verification checklist (Phase B/C reproduction recipe)
 - [week3_to_week4_bridge.md](week4/week3_to_week4_bridge.md) — Week 3 → Week 4 state migration
 
+Week 5 pre-start bridge:
+- [week4_to_week5_bridge.md](week5/week4_to_week5_bridge.md) — Week 4 → Week 5 handoff (delivered work, reusable interfaces, Week 5 gaps)
+
 ---
 
 ## 3. Code structure quick-reference
