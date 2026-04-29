@@ -114,6 +114,8 @@ For the full step-by-step manual recipe see [week4/week4-verification.md](week4/
 | `experiments/week4/float_regression/1d/` | Phase C1 1D: 12 CSVs (sod, toro2-5, stationary_contact × {double, float}) + summary.{md,json} |
 | `experiments/week4/float_regression/2d/` | Phase C1 2D: reference_800.bin + 4 candidates + 16 difference heatmaps + summary.{md,json} |
 | `experiments/week4/figures/a4_pareto/` | A4 σ_FP × s_worst Pareto figure (`pareto_lw_config3_200.png`) |
+| `experiments/week4/figures/a4_float_p24/` | A4 p24-real-float Athena heatmaps (σ_FP, LoSoS reliability/accuracy/worst) |
+| `experiments/week4/metrics/` | A4 metrics: p53 LoSoS/s_req, p24-real-float SNR/LoSoS, merged CSVs for the four-row headline table |
 | `experiments/week4/figures/deterministic_2d/` | A1 deterministic 2D plots (HLLC vs Rusanov density/pressure diff maps) |
 | `experiments/verificarlo/runs_p53_mca[*]/` | A2 / A4 MCA samples (cross-week, 1D Toro × 30 samples × p53) |
 | `experiments/verificarlo/runs_compare_p24_mca_real_vs_double*/` | C2 real-float vs p24-surrogate compare runs (baseline / fma / rusanov) |
