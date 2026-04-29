@@ -6,6 +6,25 @@ from pathlib import Path
 import pytest
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_all_case_configs_pin_solver_after_default_change() -> None:
+    cfgs = sorted((REPO_ROOT / "tests" / "cases").rglob("*.cfg"))
+    missing = []
+    for cfg in cfgs:
+        text = cfg.read_text(encoding="utf-8")
+        if not any(
+            line.strip().startswith("solver")
+            and "=" in line
+            and not line.strip().startswith("#")
+            for line in text.splitlines()
+        ):
+            missing.append(str(cfg.relative_to(REPO_ROOT)))
+
+    assert missing == []
+
+
 def test_build_all_matrix_names_are_stable() -> None:
     from scripts import build_matrix
 
@@ -116,6 +135,72 @@ def test_aggregate_metrics_combines_summary_jsons(tmp_path: Path) -> None:
     assert combined["summary_count"] == 2
     assert combined["summaries"][0]["source"] == str(first)
     assert combined["summaries"][1]["payload"]["mode"] == "2d"
+
+
+def test_a4_metric_clis_accept_precision_label() -> None:
+    from scripts.metrics import losos_metric, snr_metric
+
+    snr_args = snr_metric._parse_args(
+        [
+            "--root", "experiments/week4/2d_vfc_cluster",
+            "--reference", "experiments/week4/metrics/u_ref_200_blockavg.npz",
+            "--out-dir", "experiments/week4/metrics",
+            "--precision-label", "p24-real-float",
+        ]
+    )
+    losos_args = losos_metric._parse_args(
+        [
+            "--root", "experiments/week4/2d_vfc_cluster",
+            "--reference", "experiments/week4/metrics/u_ref_200_blockavg.npz",
+            "--out-dir", "experiments/week4/metrics",
+            "--precision-label", "p24-real-float",
+        ]
+    )
+
+    assert snr_args.precision_label == "p24-real-float"
+    assert losos_args.precision_label == "p24-real-float"
+
+
+def test_tradeoff_summary_table_discovers_p53_and_float_rows(tmp_path: Path) -> None:
+    from scripts.figures import tradeoff_summary_table
+
+    snr_csv = tmp_path / "snr.csv"
+    losos_csv = tmp_path / "losos.csv"
+    sreq_csv = tmp_path / "sreq.csv"
+
+    snr_csv.write_text(
+        "solver,precision,variable,sigma_fp_l1\n"
+        "hllc,p53,rho,1e-11\n"
+        "hllc,p24-real-float,rho,1e-6\n"
+        "rusanov,p53,rho,2e-11\n"
+        "rusanov,p24-real-float,rho,2e-6\n",
+        encoding="utf-8",
+    )
+    losos_csv.write_text(
+        "solver,precision,variable,s_worst_q05\n"
+        "hllc,p53,rho,1.5\n"
+        "hllc,p24-real-float,rho,0.8\n"
+        "rusanov,p53,rho,1.2\n"
+        "rusanov,p24-real-float,rho,0.7\n",
+        encoding="utf-8",
+    )
+    sreq_csv.write_text(
+        "solver,variable,mu_trunc_l1,s_req\n"
+        "hllc,rho,277.0,3.13\n"
+        "rusanov,rho,418.0,2.95\n",
+        encoding="utf-8",
+    )
+
+    rows = tradeoff_summary_table.build_rows(
+        tradeoff_summary_table._read_csv(snr_csv),
+        tradeoff_summary_table._read_csv(losos_csv),
+        tradeoff_summary_table._read_csv(sreq_csv),
+    )
+    markdown = tradeoff_summary_table._format_markdown(rows, N=200)
+
+    assert len(rows) == 4
+    assert "| HLLC    | p24-real-float" in markdown
+    assert "| RUSANOV | p24-real-float" in markdown
 
 
 def test_missing_run_matrix_fields_raise_clear_error(tmp_path: Path) -> None:

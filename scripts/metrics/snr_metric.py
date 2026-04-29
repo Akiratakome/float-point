@@ -243,7 +243,7 @@ def _plot_snr_heatmap(
 # Main routine
 # ---------------------------------------------------------------------------
 
-def _parse_args() -> argparse.Namespace:
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="Compute SNR metric for Verificarlo MCA 2D ensembles."
     )
@@ -261,7 +261,9 @@ def _parse_args() -> argparse.Namespace:
                    help="Optional .npz with u_ref_hllc and u_ref_rusanov arrays.")
     p.add_argument("--out-dir", required=True, type=Path,
                    help="Output directory (created if absent).")
-    return p.parse_args()
+    p.add_argument("--precision-label", default="p53",
+                   help="Label written to the CSV precision column (default: p53).")
+    return p.parse_args(argv)
 
 
 def main() -> None:
@@ -326,7 +328,7 @@ def main() -> None:
 
             row: dict = {
                 "solver":       solver_name,
-                "precision":    "p53",
+                "precision":    args.precision_label,
                 "variable":     var_name,
                 "sigma_fp_l1":  float(np.sum(np.abs(sigma_fp))),
                 "sigma_fp_max": float(sigma_fp.max()),
