@@ -150,16 +150,19 @@ if (SL <= Real(0) && Real(0) <= S_star)
 
 ### Report 1 (Euler Validation)
 
-| Test Case | Grid | t_end | Type |
-|---|---|---|---|
-| Sod (Toro 1) | 200x1 | 0.25 | 1D shock tube |
-| Lax (Toro 2) | 200x1 | 0.15 | 1D stronger shock |
-| 123 Problem (Toro 3) | 200x1 | 0.15 | 1D two rarefactions |
-| Blast Wave (Toro 4) | 200x1 | 0.035 | 1D strong blasts |
-| Stationary Contact | 200x1 | 0.5 | 1D: p_L=p_R, u=0, rho differs → S_M=0 exactly. **Targeted test for `<=` vs `<` and ±0.0 FP edge cases** |
-| Liska-Wendroff Config 3 | 400x400 | 0.3 | 2D four-shock |
-| Liska-Wendroff Config 6 | 400x400 | 0.3 | 2D different pattern |
-| Shock-Bubble | 400x200 | varies | 2D complex interaction |
+| Test Case | cfg | Grid | t_end | Type |
+|---|---|---|---|---|
+| sod (Toro 1) | `tests/cases/toro_1d/sod.cfg` | 200×1 | 0.25 | 1D shock tube |
+| toro2 (Lax) | `toro2.cfg` | 200×1 | 0.15 | 1D stronger shock |
+| toro3 (123 problem) | `toro3.cfg` | 200×1 | 0.15 | 1D two rarefactions |
+| toro4 (blast) | `toro4.cfg` | 200×1 | 0.035 | 1D strong shocks |
+| toro5 | `toro5.cfg` | 200×1 | 0.012 | 1D shock-contact-shock |
+| stationary_contact | `stationary_contact.cfg` | 200×1 | 0.5 | 1D: p_L=p_R, u=0, ρ_L≠ρ_R → S_M=0 (targeted `<=` vs `<` test) |
+| Liska-Wendroff Config 3 | `liska_wendroff_2d/config3_n200.cfg` | 200×200 / 400×400 | 0.3 | 2D four-shock |
+| Liska-Wendroff Config 6 | (planned Week 5) | 400×400 | 0.3 | 2D different pattern |
+| Shock-Bubble | (planned Week 5) | 400×200 | varies | 2D complex interaction |
+
+> **Solver default**: `solver = rusanov` is the default since Week 4 (supervisor Phase A1). HLLC is enabled per-cfg via `solver = hllc`; `*_rusanov.cfg` and HLLC twins exist for several Toro cases for direct A/B comparison.
 
 Each run in: {float, double} x {O2, Ofast} x {CPU, GPU} = 8 configs minimum.
 
