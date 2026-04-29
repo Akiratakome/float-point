@@ -17,7 +17,7 @@ This plan is the design spec produced by the brainstorming process; it will be t
 | Q2 | GPU toolchain target | **Local CUDA laptop**; CSC GPU nodes deferred to Week 6 |
 | Q3 | Verification depth | **Three-layer (unit + solver + harness) + `week5-verification.md`** |
 | Q4 | Liska-Wendroff Config 6 | **Faithful to LW 2003 (4 contact discontinuities, no shocks)**; correct overall.md table |
-| Q5 | Shock-bubble version | **Toro 2009 §17.1.4 helium bubble**, `[0,1]×[0,0.5]`, `400×200`, Mach 1.22 |
+| Q5 | Shock-bubble version | **Single-fluid shock-density-bubble test inspired by Toro/Hu-Khoo**, `[0,1]×[0,0.5]`, `400×200`, Mach 1.22 |
 | Q6 | GPU skeleton depth | **Toolchain + `GpuGrid` host↔device roundtrip + Catch2 `[gpu]` test** |
 | Q7 | `plot_2d.py` shape | **`scripts/figures/plot_2d.py`, single-grid → image, CLI** (no batch, no multi-panel) |
 | Q8 | `timer.hpp` granularity | **`Timer` + opt-in `ScopedTimer` profiling, `HRSC_ENABLE_PROFILING` macro, default OFF** |
@@ -61,10 +61,10 @@ The brainstorming-skill default spec path (`docs/superpowers/specs/...`) is over
 
 **Modifications**
 
-- `src/euler/euler_solver.cpp` — wrap `evolve(...)` with `Timer total`; expose `last_wall_clock_s()` getter; do **not** change cfg defaults or numeric behaviour
-- `src/main.cpp` — after `evolve` returns, print a single machine-parseable line: `[timing] total_s=<value>`
-- `scripts/run_matrix.py` — parse the `[timing]` line from stdout, write `metadata.json.timing.total_s`
-- 5 ScopedTimer probes inserted only under `HRSC_ENABLE_PROFILING`: `reconstruction`, `riemann`, `update`, `bc`, `cfl`
+- `src/main.cpp` — time the call to `solver.run(...)` at the call site; do **not** change cfg defaults or numerical behaviour
+- `src/main.cpp` — after `solver.run(...)` returns, print a single machine-parseable line to **stderr**: `[timing] total_s=<value>` (stdout remains reserved for existing table/convergence output). The top-level `Timer` is unconditional (not gated by `HRSC_ENABLE_PROFILING`), so this line appears in every build.
+- `src/euler/euler_solver.cpp` — under `#ifdef HRSC_ENABLE_PROFILING`, wrap the five solver phases (`reconstruction`, `riemann`, `update`, `bc`, `cfl`) with `ScopedTimer`; default build (macro OFF) leaves the file binary-identical to current. No change to algorithmic path or cfg defaults under any setting.
+- `scripts/run_matrix.py` — parse the `[timing]` line from stderr, write `metadata.json.timing.total_s`
 - `CMakeLists.txt` — new option `HRSC_ENABLE_PROFILING` default `OFF`
 
 **Unit test** `tests/unit/test_timer.cpp` — see §3 Layer 1
@@ -87,27 +87,27 @@ LW 2003 Config 6 (γ = 1.4, domain `[0,1]²`, t_end = 0.3, four-quadrant initial
 Boundary: outflow on all four sides.
 
 **New cfgs**
-- `tests/cases/liska_wendroff_2d/config6_n200.cfg` — `output_file=experiments/week5/baselines/lw_config6_n200/grid.bin`
-- `tests/cases/liska_wendroff_2d/config6_n400.cfg` — `output_file=experiments/week5/baselines/lw_config6_n400/grid.bin`
+- `tests/cases/liska_wendroff_2d/config6_n200.cfg` — `solver=hllc`, `output_format=binary`, `output_file=experiments/week5/baselines/lw_config6_n200/grid.bin`, `bc=outflow`
+- `tests/cases/liska_wendroff_2d/config6_n400.cfg` — same, `output_file=experiments/week5/baselines/lw_config6_n400/grid.bin`
 
-(Both default to `solver=hllc`; HLLC vs Rusanov contrast is left to Week 6. `src/utils/io.hpp` auto-creates parent dirs, so no `mkdir -p` needed.)
+(Both explicitly set `solver=hllc`; do not rely on the global default, which is `rusanov` since Week 4. Both explicitly set `output_format=binary`; the default falls back to `table` and would not produce the `.bin` files Layer 2/3 expect. HLLC vs Rusanov contrast is left to Week 6. `src/utils/io.hpp` auto-creates parent dirs, so no `mkdir -p` needed.)
 
-**Unit test additions** in the existing LW test file: 4-quadrant ρ assignment, p ≡ 1.0, u/v sign symmetry; double precision exact (tolerance 0).
+**Unit test additions** in the existing LW test file: 4-quadrant ρ assignment, p ≡ 1.0, u/v sign symmetry; use tight `Approx` tolerances (`~1e-14` for double pressure after conserved→primitive roundtrip, wider for float builds).
 
 ---
 
-### Block C — Shock-bubble (Toro 2009 §17.1.4 helium bubble)
+### Block C — Shock-bubble (single-fluid shock-density-bubble test)
 
 **New directory** `tests/cases/shock_bubble/`
 
 - `shock_bubble_tests.hpp`
-  - Domain: `[0,1] × [0,0.5]`, γ = 1.4 (single-fluid simplification: helium represented purely by density contrast, no species tracking)
+  - Domain: `[0,1] × [0,0.5]`, γ = 1.4 throughout. This is a **single-fluid approximation** inspired by the Mach-1.22 shock/helium-bubble benchmark: the bubble is represented by a density contrast only, with no species equation and no variable γ. Do not claim one-to-one reproduction of the multi-gas literature case.
   - Planar shock at x = 0.05, Mach 1.22 moving right; left = post-shock state from Rankine-Hugoniot, right = pre-shock (ρ=1, p=1, u=0)
   - Helium bubble: centre (0.25, 0.25), radius 0.1, ρ_bubble = 0.138, p and u match surrounding pre-shock air
-  - Boundary: x = outflow / outflow, y = reflective / reflective
+  - Boundary: cfg sets `bc_x = outflow` (both x sides outflow) and `bc_y = reflective` (both y sides reflective). The parser at `src/main.cpp:100` (`parse_boundary`) takes a single value per axis, applied to both sides of that axis; do not write `bc_x = outflow,outflow`.
   - Register `test=shock_bubble` in `main.cpp` `select_test(...)`
-- `shock_bubble_n400x200.cfg` — t_end=0.4, CFL=0.5, N=400×200, solver=hllc, `output_file=experiments/week5/baselines/shock_bubble_n400x200_hllc/grid.bin`
-- `shock_bubble_n400x200_rusanov.cfg` — Rusanov twin (A/B contrast), `output_file=experiments/week5/baselines/shock_bubble_n400x200_rusanov/grid.bin`
+- `shock_bubble_n400x200.cfg` — `t_end=0.4`, `cfl=0.5`, `nx=400`, `ny=200`, `solver=hllc`, `output_format=binary`, `output_file=experiments/week5/baselines/shock_bubble_n400x200_hllc/grid.bin`
+- `shock_bubble_n400x200_rusanov.cfg` — same axes/grid/bc, `solver=rusanov`, `output_format=binary`, `output_file=experiments/week5/baselines/shock_bubble_n400x200_rusanov/grid.bin`
 
 **Unit test** `tests/unit/test_shock_bubble.cpp` — see §3 Layer 1
 
@@ -172,14 +172,21 @@ cmake --build build-cuda --target gpu_smoke
 
 **Test** `tests/unit/test_gpu_roundtrip.cu`, Catch2 tag `[gpu]`:
 - `Grid2D<double,4>` and `Grid2D<float,4>`, each with 100 random seeds
-- Pipeline: host fill → upload to `GpuGrid` → launch `device_copy_kernel` → download to a fresh host `Grid2D` → assert byte-identical
+- Pipeline: host fill → upload to `GpuGrid` → allocate a separate `DeviceArray<Real>` output buffer → launch `device_copy_kernel(in, out)` → download output into a fresh host `Grid2D` → assert byte-identical. Avoid in-place copy; it would not prove the kernel/data path.
 
-**Build wiring** `tests/unit/CMakeLists.txt`:
+**Build wiring** in the root `CMakeLists.txt` (there is no `tests/unit/CMakeLists.txt` in this repository), placed next to the existing `add_executable(unit_tests ${TEST_SOURCES})`:
 ```cmake
 if(ENABLE_CUDA)
-  target_sources(unit_tests PRIVATE test_gpu_roundtrip.cu)
+  target_sources(unit_tests PRIVATE tests/unit/test_gpu_roundtrip.cu)
+  set_source_files_properties(tests/unit/test_gpu_roundtrip.cu
+    PROPERTIES LANGUAGE CUDA)
+  set_target_properties(unit_tests PROPERTIES
+    CUDA_SEPARABLE_COMPILATION ON
+    CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
 endif()
 ```
+
+Note: the existing `file(GLOB TEST_SOURCES tests/unit/test_*.cpp)` only matches `.cpp`, so `.cu` files must be added explicitly via `target_sources` as above (do NOT extend the glob to `test_*.{cpp,cu}` — it mixes CUDA and CXX languages opaquely and breaks CPU-only builds).
 
 **Explicitly out of scope (Week 6)**: `__device__` HD_FUNC instantiation of EOS/flux/HLLC, BC kernel, reconstruction kernel, CFL reduction, `EulerGpuSolver` class, CSC GPU node build.
 
@@ -235,17 +242,19 @@ F = Layer-3 harness smoke + week5-verification.md  ← collected after all of th
 | Test | File | Pass criterion | Failure fallback |
 |---|---|---|---|
 | `Timer` basic | `tests/unit/test_timer.cpp` | `sleep_for(100ms)` → `elapsed_seconds()` ∈ [0.09, 0.20]; multiple `start/stop` accumulate | OS jitter → raise upper bound to 0.30s |
-| `ProfilingRegistry` accumulation | same file | repeated `add` for same name accumulates; `snapshot()` returns sorted map | — |
-| Config 6 IC values | `tests/unit/test_liska_wendroff.cpp` (append cases) | 4 quadrants ρ ∈ {1, 2, 1, 3}; p ≡ 1.0; u/v match table per cell, double tolerance 0 | — |
+| `ProfilingRegistry` accumulation | same file (guarded by `#ifdef HRSC_ENABLE_PROFILING`) | repeated `add` for same name accumulates; `snapshot()` returns sorted map. Test case is compiled out under default `OFF` build. | — |
+| Config 6 IC values | `tests/unit/test_liska_wendroff.cpp` (append cases) | 4 quadrants ρ ∈ {1, 2, 1, 3}; p ≡ 1.0; u/v match table per cell with tight `Approx` tolerance | — |
 | Shock-bubble IC | `tests/unit/test_shock_bubble.cpp` | bubble interior ρ ≈ 0.138 ± 1e-12; post-shock RH relations satisfied to 1e-12 (double); bubble interface cell count ∈ [80, 120] on 400×200 | check RH formula and γ |
 | GPU roundtrip (`[gpu]`) | `tests/unit/test_gpu_roundtrip.cu` | 100 random seeds × {double, float} × `Grid2D<,4>`, all byte-identical | stop-the-world; review `Grid2D` layout / `HD_FUNC` |
 | `plot_2d.py` smoke | `tests/py/test_plot_2d.py` | each of 4 fields → PNG file size > 0, pixel dims ≥ 100×100 | — |
 
 **Aggregate pass criteria**:
-- `./build-double/unit_tests -r compact` passes; assertion count ≥ current (3660) + new (≥ 30)
-- `./build-float/unit_tests -r compact` passes
+- `./build-double/unit_tests -r compact` passes (default `HRSC_ENABLE_PROFILING=OFF`; `ProfilingRegistry` case compiled out) — covers the default code path
+- One additional build with `-DHRSC_ENABLE_PROFILING=ON` (e.g. `build-double-prof/`) — `./build-double-prof/unit_tests -r compact` passes; this run exercises the `ProfilingRegistry` case and the 5 ScopedTimer probes in `euler_solver.cpp`
+- `./build-float/unit_tests -r compact` passes (default `OFF`)
 - `./build-cuda/unit_tests "[gpu]"` passes (when `ENABLE_CUDA=ON`)
 - `pytest tests/py/test_plot_2d.py` passes
+- Combined assertion count across the default `build-double` run ≥ current 3660 + new (≥ 30)
 
 ### Layer 2 — Solver end-to-end (manual + semi-automated)
 
@@ -253,10 +262,10 @@ F = Layer-3 harness smoke + week5-verification.md  ← collected after all of th
 |---|---|---|
 | Config 6 double 200² baseline | `./build-double/hrsc tests/cases/liska_wendroff_2d/config6_n200.cfg` | `.bin` lands; 4-quadrant interfaces evolved into contact-wave structure; visual match to LW 2003 Fig. 6 |
 | Config 6 double 400² baseline | analogous with `_n400.cfg` | same; interfaces sharper at higher resolution |
-| Config 6 float regression | rerun both cfgs from `build-float/` | SSIM vs double > 0.99 (via `phase_error_metrics.py`), confirming float doesn't significantly degrade contact-only test |
-| Shock-bubble HLLC double baseline | `./build-double/hrsc tests/cases/shock_bubble/shock_bubble_n400x200.cfg` | visual match to Toro 2009 Fig. 17.4 at t=0.4 (mushroom-cap forming, shock accelerated through helium, reflected shock visible) |
+| Config 6 float regression | rerun both cfgs from `build-float/` | SSIM vs double **recorded** via `phase_error_metrics.py` and reported in `week5-verification.md`. **No fixed pass threshold** this week — Week 5 establishes the baseline for float-vs-double contact-resolution behaviour. Investigation triggers only if SSIM < 0.90 (significant structural divergence). |
+| Shock-bubble HLLC double baseline | `./build-double/hrsc tests/cases/shock_bubble/shock_bubble_n400x200.cfg` | plausible single-fluid shock/light-bubble interaction at t=0.4 (shock crosses the light-density bubble, transmitted/reflected structures visible); do not require one-to-one match to multi-gas Toro/Hu-Khoo figures |
 | Shock-bubble HLLC vs Rusanov | run both cfgs in `build-double/` | qualitative: Rusanov contact more diffused, HLLC sharper. **Expected**, not a bug. |
-| Wall-clock visible | observe `[timing] total_s=...` line in stdout for any of the above runs | line present, value > 0 |
+| Wall-clock visible | observe `[timing] total_s=...` line in stderr for any of the above runs | line present, value > 0 |
 
 For each baseline, generate ρ + p + |∇ρ| PNGs via `plot_2d.py` and embed reference paths in `week5-verification.md`.
 
@@ -307,11 +316,12 @@ Goal: drive the full `config → build → run → measure → aggregate → plo
 ```
 
 **Pass criteria**:
-1. `python scripts/run_matrix.py experiments/week5/smoke/matrix.json --dry-run` produces 6 `<run>/config.cfg` + `<run>/metadata.json`, no stderr
-2. Live run: 6 runs all return 0; each run dir contains `stdout.txt`, `stderr.txt`, `grid.bin`, `metadata.json`
-3. Each `metadata.json` includes git commit hash + verbatim cfg copy + `timing.total_s`
-4. `python scripts/aggregate_metrics.py --output experiments/week5/smoke/summary.json experiments/week5/smoke/*/metadata.json` produces aggregated 6-run summary
-5. `plot_2d.py` produces a ρ-PNG for each `grid.bin` under `experiments/week5/smoke/figures/`
+1. `python scripts/run_matrix.py experiments/week5/smoke/matrix.json --dry-run` produces 6 `runs/<run>/config.cfg` + `runs/<run>/metadata.json`, no stderr
+2. Live run: 6 runs all return 0; each run dir under `experiments/week5/smoke/runs/` contains `stdout.txt`, `stderr.txt`, `grid.bin`, `metadata.json`
+3. `experiments/week5/smoke/matrix_summary.json` lands at the experiment root (written by `run_matrix.py:162`) — contains experiment name, git commit, output_root, and per-run return codes
+4. Each `metadata.json` includes git commit hash, source/run cfg paths, raw output path, and `timing.total_s`; the verbatim generated cfg is stored as sibling `config.cfg`
+5. `python scripts/aggregate_metrics.py --output experiments/week5/smoke/summary.json experiments/week5/smoke/runs/*/metadata.json` produces aggregated 6-run summary
+6. `plot_2d.py` produces a ρ-PNG for each `grid.bin` under `experiments/week5/smoke/figures/`
 
 **Failure fallback**:
 - `run_matrix.py` crashes on shock-bubble (long path / nested dirs) → fix the harness, not the cfg; record in `INDEX.md` §7 pitfalls
@@ -324,7 +334,7 @@ Mirror `week4-verification.md` format:
 ```
 1. Build (CPU + CUDA)              # full cmake commands + expected build output
 2. Unit tests                       # three build dirs + expected case/assertion counts
-3. Solver baselines                 # Layer 2 commands + expected stdout snippets + reference PNGs
+3. Solver baselines                 # Layer 2 commands + expected stdout/stderr snippets + reference PNGs
 4. Harness matrix smoke             # Layer 3 four steps + expected file landings
 5. plot_2d.py                       # Python smoke + expected PNG list
 6. Known differences / follow-ups   # things to revisit in Week 6
@@ -352,7 +362,7 @@ Mirror `week4-verification.md` format:
 **Done criteria**:
 - `./build-cuda/gpu_smoke` prints local GPU name + compute capability
 - `./build-double/unit_tests "[timer]"` passes
-- A Sod run: `./build-double/hrsc tests/cases/toro_1d/sod.cfg` stdout includes `[timing] total_s=...`
+- A Sod run: `./build-double/hrsc tests/cases/toro_1d/sod.cfg` stderr includes `[timing] total_s=...` (top-level `Timer` is unconditional; `HRSC_ENABLE_PROFILING` may stay default OFF for this check)
 
 **Day 1 risk responses**:
 - nvcc / host-compiler incompatibility → fall back to WSL CUDA environment (per memory: WSL CUDA stack is in place)
@@ -375,7 +385,7 @@ Mirror `week4-verification.md` format:
 **Done criteria**:
 - `./build-double/unit_tests "[shock_bubble]"` passes
 - `pytest tests/py/test_plot_2d.py` passes
-- 12 PNGs land under `experiments/week5/baselines/figures/`; visual match to LW 2003 / Toro 2009
+- 12 PNGs land under `experiments/week5/baselines/figures/`; Config 6 visually matches LW 2003 contact-only structure, and shock-bubble shows plausible single-fluid shock/light-bubble interaction
 
 ### Day 4 — GPU data path (Block D.2)
 
@@ -471,12 +481,13 @@ experiments/week5/
 │   └── figures/                         # 12 PNGs (Config6 × 2 res × 3 fields + shock-bubble × 2 solver × 3 fields)
 └── smoke/
     ├── matrix.json
-    ├── lw3-d-200/{config.cfg,metadata.json,stdout.txt,stderr.txt,grid.bin}
-    ├── lw3-f-200/...
-    ├── lw6-d-200/...
-    ├── lw6-f-200/...
-    ├── sb-d-400/...
-    ├── sb-f-400/...
+    ├── runs/
+    │   ├── lw3-d-200/{config.cfg,metadata.json,stdout.txt,stderr.txt,grid.bin}
+    │   ├── lw3-f-200/...
+    │   ├── lw6-d-200/...
+    │   ├── lw6-f-200/...
+    │   ├── sb-d-400/...
+    │   └── sb-f-400/...
     ├── summary.json
     └── figures/                         # 6 PNGs (one ρ-plot per run)
 ```
