@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Compiler warnings
 add_compile_options(-Wall -Wextra -Wpedantic)
+include(${CMAKE_SOURCE_DIR}/cmake/CompilerFlags.cmake)
 
 # --- INTERFACE library for include paths ---
 add_library(hrsc_core INTERFACE)

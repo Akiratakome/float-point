@@ -14,6 +14,7 @@
 | If you need… | Read |
 |---|---|
 | Project requirements, deliverables, deadlines | [requirement/overall.md](requirement/overall.md) |
+| Canonical experiment harness workflow | [HARNESS.md](HARNESS.md) |
 | Coding conventions, style, FP guidance | [requirement/coding guidance.md](requirement/coding%20guidance.md) |
 | Project briefs (PDFs from supervisor) | [requirement/](requirement/) (`*.pdf`) |
 | What's been done so far this project | per-week `weekN-summary.md` (see §2) |
@@ -94,6 +95,7 @@ cmake --build build-double
 | Task | Command |
 |---|---|
 | Build both precisions | `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double && cmake -B build-float -G Ninja -DFLOAT_PRECISION=float && cmake --build build-float` |
+| Build full CPU FP matrix | `bash scripts/build_all.sh` |
 | Run all unit tests | `./build-double/unit_tests -r compact && ./build-float/unit_tests -r compact` |
 | Run Sod 1D | `./build-double/hrsc tests/cases/toro_1d/sod.cfg` |
 | 1D float regression (6 Toro cases × 2 precisions × 5 N) | `bash scripts/regression/float_regression_1d.sh` |

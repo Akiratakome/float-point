@@ -1,6 +1,9 @@
 # Build
 build/
+build-*/
+build-matrix/
 build_vfc/
+build_vfc*/
 build_vfc_hrsc
 cmake-build-*/
 
