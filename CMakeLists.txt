@@ -6,7 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Compiler warnings
-add_compile_options(-Wall -Wextra -Wpedantic)
+add_compile_options(
+    $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wall>
+    $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wextra>
+    $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wpedantic>
+)
 include(${CMAKE_SOURCE_DIR}/cmake/CompilerFlags.cmake)
 
 # --- INTERFACE library for include paths ---
@@ -61,3 +65,19 @@ target_link_libraries(unit_tests PRIVATE hrsc_core hrsc_euler)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/external/catch2)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/toro_1d)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/liska_wendroff_2d)
+
+# --- Optional CUDA path (Week 5 D.1 = toolchain smoke; Week 5 D.2 = data path;
+# --- Week 6 = real kernels). Default OFF preserves CPU-only build behaviour.
+option(ENABLE_CUDA "Enable CUDA toolchain (Week 5 GPU bring-up)" OFF)
+if(ENABLE_CUDA)
+    include(${CMAKE_SOURCE_DIR}/cmake/CUDASetup.cmake)
+    enable_language(CUDA)
+    hrsc_configure_cuda_toolkit()
+
+    # Standalone toolchain validator. Not linked into hrsc.
+    add_executable(gpu_smoke src/gpu/gpu_smoke.cu)
+    target_link_libraries(gpu_smoke PRIVATE CUDA::cudart)
+    set_target_properties(gpu_smoke PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
+        CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+endif()
