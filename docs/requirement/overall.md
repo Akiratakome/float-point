@@ -222,6 +222,8 @@ Report 1 要求 (each 20%):
 
 **Writing:** Begin reading literature (Toro 2009, Goldberg floating-point paper, Bard & Dorelli 2014)
 
+> **Actually delivered (as of 2026-04-29)**: Core infrastructure landed; `src/common/` split into `src/core/` + `src/utils/` for clearer FP-vs-utility boundaries — see [week1-summary.md](../week1/week1-summary.md).
+
 ---
 
 #### Week 2 (03/30 - 04/05): 1D Euler Solver Core
@@ -238,6 +240,8 @@ Report 1 要求 (each 20%):
 - `tests/toro_1d/sod.cfg`
 
 **Milestone:** Sod shock tube (含激波，超音速) produces correct density/pressure/velocity profiles
+
+> **Actually delivered (as of 2026-04-29)**: Sod 1D end-to-end correct; HLLC + Rusanov both available (Rusanov added as fallback solver) — see [week2-summary.md](../week2/week2-summary.md).
 
 ---
 
@@ -261,6 +265,8 @@ Report 1 要求 (each 20%):
 
 **Milestone:** All 4 Toro tests pass validation. >=3 tests contain supersonic waves (shocks).
 
+> **Actually delivered (as of 2026-04-29)**: All Toro 1D tests pass against exact Riemann solution. Verificarlo MCA brought online (`p=53` noise floor). Supervisor Week-3 feedback added a parallel work-line — SLIC branch + `vfc_precexp` / unstable-branch detection / FMA instrumentation — folded into Cross-cutting numerical-analysis methods (§Architecture). See [week3-summary.md](../week3/week3-summary.md).
+
 ---
 
 #### Week 4 (04/13 - 04/19): Float/Double Templating + 2D Extension
@@ -272,6 +278,8 @@ Report 1 要求 (each 20%):
 - `common/boundary.hpp` — add periodic and reflective BCs for 2D
 
 **Milestone:** 1D tests run in both float and double. 2D solver framework compiles.
+
+> **Actually delivered (as of 2026-04-29)**: Three phases delivered — Phase A (A1 Rusanov default, A2 divergence-marker tool, A3 2D Verificarlo cluster runs at 200²×30, A4 SNR / LoSoS / s_req(N) / Pareto metrics), Phase B (PrecisionConfig, EulerSolver split for explicit instantiation, per-axis BC dispatch with periodic+reflective, Catch2 115 cases / 3660 assertions), Phase C (C1 1D + 2D float regression, C2 real-float vs VPREC p24 comparison). See [week4-summary.md](../week4/week4-summary.md).
 
 ---
 
