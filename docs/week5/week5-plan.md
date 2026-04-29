@@ -168,7 +168,15 @@ cmake --build build-cuda --target gpu_smoke
   };
   ```
 
-- `src/gpu/euler_kernels.cuh` — single kernel `__global__ void device_copy_kernel(const Real* in, Real* out, std::size_t n)` performing `out[i] = in[i]`
+- `src/gpu/euler_kernels.cuh` — a single **templated** kernel:
+  ```cpp
+  template <typename T>
+  __global__ void device_copy_kernel(const T* in, T* out, std::size_t n) {
+    auto i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) out[i] = in[i];
+  }
+  ```
+  Templating (rather than two non-template overloads or a typedef'd `Real`) is what lets the same kernel back both `gpu_roundtrip_double` and `gpu_roundtrip_float` wrappers below; the wrappers then explicitly instantiate via `device_copy_kernel<double><<<…>>>(…)` and `device_copy_kernel<float><<<…>>>(…)`.
 
 **Test** — split into two files to avoid compiling Catch2 v2 single-header (~18k LOC, `external/catch2/catch.hpp`) through nvcc:
 
@@ -180,7 +188,7 @@ cmake --build build-cuda --target gpu_smoke
   extern "C" bool gpu_roundtrip_float (const float*  host_in, float*  host_out,
                                        std::size_t n);
   ```
-  Each wrapper does: `cudaMalloc` in/out → `cudaMemcpy H→D` → launch `device_copy_kernel` → `cudaMemcpy D→H` → free → return true on success.
+  Each wrapper does: construct two `DeviceArray<T>` (in/out) → `copy_from_host` → launch `device_copy_kernel<T><<<grid, block>>>(in.data(), out.data(), n)` → `cudaDeviceSynchronize` → check `cudaGetLastError` → `copy_to_host` → return true on success. **Use `DeviceArray<T>` rather than raw `cudaMalloc/cudaFree`** — the wrapper is `DeviceArray`'s only Week-5 caller, so dogfooding here gives the RAII wrapper its first concrete usage and exception-safety check before any Week-6 kernel is built on top of it.
 
 Test logic in the `.cpp`: `Grid2D<double,4>` and `Grid2D<float,4>`, each with 100 random seeds; host fill → call `gpu_roundtrip_<T>(...)` → assert byte-identical.
 
@@ -227,6 +235,15 @@ Field implementations:
 Output: single PNG per field, with colorbar and axis labels. **No batch mode**, **no summary.json reading** (Week 7 may add a thin batch wrapper if needed).
 
 Reader: **must** use the existing `scripts/io_helper.py:read_binary` (it parses the 64-byte header's `precision_tag` and returns numpy arrays with explicit dtype `<f4` for float / `<f8` for double). Do **not** call `np.fromfile` or any reader that ignores the precision tag — that silently corrupts data when the binary was written by `build-float/hrsc`.
+
+Import idiom: `plot_2d.py` lives at `scripts/figures/plot_2d.py`; `io_helper` lives at `scripts/io_helper.py` (parent directory). The project's established pattern (see `scripts/metrics/phase_error_metrics.py:15`) is:
+```python
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from io_helper import read_binary, cons_to_prim
+```
+Use this exact idiom (not `from ..io_helper import ...`, since `scripts/` is not a Python package and there is no `__init__.py`).
 
 Python deps: `numpy`, `matplotlib` are already in `analysis/requirements.txt` (numpy ≥ 1.21, matplotlib ≥ 3.5). No new dependencies introduced this week. Verify via `grep matplotlib analysis/requirements.txt` before assuming.
 
