@@ -24,6 +24,18 @@ All computational kernels are **templated on `Real`** (float, double, optionally
   1. X-sweep and Y-sweep: regular flux updates (hyperbolic transport of psi included in fluxes, but **no multi-dimensional source terms**)
   2. **Separate multi-dimensional source term step** after both sweeps: compute div(B) = ∂Bx/∂x + ∂By/∂y over the full 2D grid, then integrate the source `∂ψ/∂t = -c_h² div(B) - (c_h/c_p)ψ`. This avoids diagonal divergence accumulation from splitting the inherently multi-dimensional divergence operator into 1D sweeps.
 
+### Cross-cutting numerical-analysis methods
+
+Beyond the deterministic FVM solver, the project relies on a set of stochastic / instrumented FP-analysis tools as **core methodology** (not optional extensions):
+
+- **Verificarlo MCA (Monte-Carlo Arithmetic)** — perturbs every FP op at chosen virtual precision *p*. Used to (i) establish noise floors per test (`p=53` baseline), (ii) act as a virtual-precision surrogate for `float` (`p=24`) when comparing against real `float`, (iii) drive 2D large-grid statistical batches (200²×30 SLURM array on CSC).
+- **Verificarlo `vfc_precexp` (mixed-precision exploration)** — per-call minimum-precision search; informs which routines tolerate `float` vs require `double`. Feeds Report 2 mixed-precision argument.
+- **Verificarlo unstable-branch detection** — flags conditional branches whose taken-side is FP-rounding-sensitive (e.g. HLLC `S* == 0` selection, `<= vs <` choice).
+- **FMA instrumentation** (`--inst-fma`) — quantifies the contribution of fused-multiply-add single-rounding to result drift.
+- **SNR / LoSoS / s_req(N) / Pareto metrics** — quantitative answer to «how many significant digits does the simulation actually deliver, and at what cost?». `s_req(N)` anchors precision to truncation-error level; Pareto plots trade σ_FP against worst-cell error.
+
+Implication: Verificarlo is treated as a *Tier-1 cross-cutting method* (originally Tier 3 in the Week-1 plan), used continuously from Week 3 onward, not deferred to Week 17.
+
 ### Directory & File Structure
 
 ```
