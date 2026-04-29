@@ -111,7 +111,10 @@ For the full step-by-step manual recipe see [week4/week4-verification.md](week4/
 | `experiments/week4/figures/a4_pareto/` | A4 σ_FP × s_worst Pareto figure (`pareto_lw_config3_200.png`) |
 | `experiments/week4/figures/deterministic_2d/` | A1 deterministic 2D plots (HLLC vs Rusanov density/pressure diff maps) |
 | `experiments/verificarlo/runs_p53_mca[*]/` | A2 / A4 MCA samples (cross-week, 1D Toro × 30 samples × p53) |
+| `experiments/verificarlo/runs_compare_p24_mca_real_vs_double*/` | C2 real-float vs p24-surrogate compare runs (baseline / fma / rusanov) |
 | `experiments/week4/2d_vfc_cluster/` | A3 cluster outputs (200²×30 samples, LW Config 3) |
+
+C2 main result log: [experiment_logs/c2_real_float_vs_vprec.md](experiment_logs/c2_real_float_vs_vprec.md).
 
 ---
 

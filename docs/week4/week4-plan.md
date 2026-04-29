@@ -33,7 +33,7 @@
 | B3 | `BoundaryType` enum + cfg `bc_x`/`bc_y` + solver 集成 | B2 | 1 | `EulerSolver::step()` 改动，cfg 模板 |
 | B4 | `test_boundary.cpp` 扩展（periodic/reflective 单测） | B2 | 0.5 | Catch2 新增 case |
 | C1 | float 全回归：6×1D Toro + 2D LW3 + phase-error 定性补充 (shock-track + **SSIM 单 scalar**) | B1 | 4 | float build + L1/L2/Linf + SSIM scalar + Δx_shock 表 + 2D reference |
-| C2 | Verificarlo 真·float 编译 p24 | B1 | 1.5 | `scripts/verificarlo_run.sh` 改造 + MCA 对比 |
+| C2 | Verificarlo 真·float 编译 p24 | B1 | 1.5 | `scripts/verificarlo/verificarlo_run.sh` 改造 + MCA 对比 |
 
 **总工作量估计**: ~17 工作日（2026-04-22 → 2026-05-10）。SLURM 作业多为 overnight/weekend 运行，不占用主线工时。A2-S1 的 0.5 天快速交付确保在 24h 内回应导师；A2-S2 的统计 batch 作为 overnight 背景任务，不阻塞 A3 启动。Phase B 落地后 Week 5 的 Liska-Wendroff/Kelvin-Helmholtz IC 即可动工。Report 1 截止 2026-05-29，仍留 2.5 周缓冲。
 
@@ -1781,12 +1781,12 @@ def ssim_scalar(a: np.ndarray, b: np.ndarray, data_range: float) -> float:
 
 **改动**：
 
-1. `scripts/verificarlo_run.sh` 扩展：
+1. `scripts/verificarlo/verificarlo_run.sh` 扩展：
    - 新增 flag `--real-float`：若设，执行 `CXX=verificarlo-c++ cmake -B hrsc_vfc -DFLOAT_PRECISION=float ...`
    - 否则保持现状（`FLOAT_PRECISION=double` + VPREC 后端模拟 p=24）
    - 新增 flag `--compare-float`：两次都跑，输出到不同子目录 `real_float/` 和 `vprec_p24/`
 
-2. 新脚本 `scripts/plot_real_vs_vprec.py`：
+2. 新脚本 `scripts/figures/plot_real_vs_vprec.py`：
    - 读两份 MCA 结果
    - 逐 cell 对比 mean + stddev
    - 出图：y=cells, x=significant digits, 两条 (real-float, vprec-p24) 叠加
@@ -1794,7 +1794,7 @@ def ssim_scalar(a: np.ndarray, b: np.ndarray, data_range: float) -> float:
 
 3. 跑一遍 Sod + Stationary Contact 两个 case（Toro 4 开销太大，留给 Week 5 以后）
 
-**结果文档**：`docs/week4/real_float_vs_vprec.md`
+**结果文档**：`docs/experiment_logs/c2_real_float_vs_vprec.md`
 
 **验收**：
 - Verificarlo 在 `FLOAT_PRECISION=float` 下编译成功（可能需要调 Verificarlo 的 `--inst-func` interaction，见 Week 3 VPREC bug note）
@@ -1888,11 +1888,11 @@ Scopes: `solver`, `cmake`, `boundary`, `scripts`, `tests`, `docs`, `build`。
 
 ### 7.5 接口 checklist（完成后勾选）
 
-- [ ] `HRSC_REAL` 宏在所有 `#include` 之前定义
-- [ ] `BoundaryType` enum 类的底层类型固定 (`enum class BoundaryType` 默认 `int`，不改)
-- [ ] `apply_boundary` 签名支持 `-1` sentinel for MHD 复用
+- [x] `HRSC_REAL` 宏在所有 `#include` 之前定义
+- [x] `BoundaryType` enum 类的底层类型固定 (`enum class BoundaryType` 默认 `int`，不改)
+- [x] 采用 per-axis BC primitive + flip-index 列表（MHD 可复用），替代原单入口 `apply_boundary(..., sentinel)` 设计
 - [ ] 所有新 cfg keywords (`bc`, `bc_x`, `bc_y`) 在 `docs/week4/cfg_reference.md` 记录
-- [ ] Liska-Wendroff header `lw_tests.hpp` 声明 Config 6 让 Week 5 直接填
+- [x] Liska-Wendroff header `lw_tests.hpp` 声明 Config 6 让 Week 5 直接填
 
 ---
 
@@ -1943,79 +1943,79 @@ Scopes: `solver`, `cmake`, `boundary`, `scripts`, `tests`, `docs`, `build`。
 在 `week4-implementation` 分支上 merge 回 `main` 前必须满足：
 
 **代码（B 相关）**：
-- [ ] `build-double/unit_tests.exe` 与 `build-float/unit_tests.exe` 都绿（>=112 cases）
-- [ ] `libhrsc_euler.a` 成功构建，包含 `EulerSolver<float>` 与 `EulerSolver<double>` 的 explicit instantiation（`nm` 可见对应符号）
-- [ ] **`TimeReal = double`** 在 `src/core/types.hpp` 声明；`m_time` / `m_t_end` / `m_kahan_c` 三个成员均为 `TimeReal`（非 `Real`）；`compute_dt()` 返回 `TimeReal`；`x_sweep` / `y_sweep` 接 `TimeReal dt` 参数（dt 是 step() 内局部变量，不建成员）
-- [ ] `tests/unit/test_time_accumulator.cpp` 绿（Catch2 C++ 单测，而非 Python）：`TEMPLATE_TEST_CASE("m_time survives 1e7 accumulations", "[time][TimeReal]", float, double)` 构造 `EulerSolver<TestType>`，循环 1e7 次 `step()` 用 dummy dt≈1e-7，断言 `solver.time() ≈ 1.0` 到 1e-10（TimeReal=double 下两种 TestType 都 PASS；若回归成 `Real m_time` 则 `float` 版本 FAIL）
-- [ ] Sod double 端到端 bit-identical 回归：改 TimeReal 后 diff=0 与 Week 3 最终版比对（double==TimeReal 时无任何数值差异）
-- [ ] Kahan compensated summation 的 `m_kahan_c` 成员写入 `euler_solver.cpp` 的 step() 实现，初始化为 0；注释解释 "keeps full double precision for ~1e8 accumulations (Week 12 MHD 长演化铺垫)"
-- [ ] `src/euler/euler_solver.hpp` 中不再包含成员函数定义，`euler_solver.cpp` 文件末尾有 `template class EulerSolver<float>;` 与 `template class EulerSolver<double>;`
-- [ ] Periodic + reflective BC 单测全绿（含 X-only / Y-only / X+Y 混合）
-- [ ] 1D Sod `bc=outflow` 输出 bit-by-bit 与 Week 3 最终版本一致（无回归，diff=0）
+- [x] `build-double/unit_tests.exe` 与 `build-float/unit_tests.exe` 都绿（>=112 cases）
+- [x] `libhrsc_euler.a` 成功构建，包含 `EulerSolver<float>` 与 `EulerSolver<double>` 的 explicit instantiation（`nm` 可见对应符号）
+- [x] **`TimeReal = double`** 在 `src/core/types.hpp` 声明；`m_time` / `m_t_end` / `m_kahan_c` 三个成员均为 `TimeReal`（非 `Real`）；`compute_dt()` 返回 `TimeReal`；`x_sweep` / `y_sweep` 接 `TimeReal dt` 参数（dt 是 step() 内局部变量，不建成员）
+- [x] `tests/unit/test_time_accumulator.cpp` 绿（Catch2 C++ 单测，而非 Python）：`TEMPLATE_TEST_CASE("m_time survives 1e7 accumulations", "[time][TimeReal]", float, double)` 构造 `EulerSolver<TestType>`，循环 1e7 次 `step()` 用 dummy dt≈1e-7，断言 `solver.time() ≈ 1.0` 到 1e-10（TimeReal=double 下两种 TestType 都 PASS；若回归成 `Real m_time` 则 `float` 版本 FAIL）
+- [x] Sod double 端到端 bit-identical 回归：改 TimeReal 后 diff=0 与 Week 3 最终版比对（double==TimeReal 时无任何数值差异）
+- [x] Kahan compensated summation 的 `m_kahan_c` 成员写入 `euler_solver.cpp` 的 step() 实现，初始化为 0；注释解释 "keeps full double precision for ~1e8 accumulations (Week 12 MHD 长演化铺垫)"
+- [x] `src/euler/euler_solver.hpp` 中不再包含成员函数定义，`euler_solver.cpp` 文件末尾有 `template class EulerSolver<float>;` 与 `template class EulerSolver<double>;`
+- [x] Periodic + reflective BC 单测全绿（含 X-only / Y-only / X+Y 混合）
+- [x] 1D Sod `bc=outflow` 输出 bit-by-bit 与 Week 3 最终版本一致（无回归，diff=0）
 
 **代码（A 相关）**：
-- [ ] `src/main.cpp` 默认 `solver=rusanov`（cfg 未显式指定时），Week 3 cfg 全部显式写明 solver 后行为不变
-- [ ] `scripts/noise_floor_run.sh` 跑通 × 4 test × 2 solver = 8 份 `noise_floor.npz`，每份含 30 个 MCA p=53 样本的逐 cell std field
-- [ ] 每份 `noise_floor.npz` 的 metadata `precision_bits == 53` 与 `n_samples == 30` 在 analyzer 入口处断言通过
-- [ ] `docs/week4/noise_floor_calibration.md` 给出 `k_grad` 在本 test suite 上的拟合值（或保留 1.0 + 拟合散点图证据）
-- [ ] `scripts/plot_divergence_marker.py` 支持 `--mode {noise_floor, strict_fp, visible}` 三种；`noise_floor` 默认，`strict_fp` 为 fallback 并打 WARN
-- [ ] `tests/py/test_plot_divergence_marker.py` **8 case** 全绿（含 3-mode 切换、noise_floor-only 专属 case、noise-floor 吸收、shock-offset 吸收、fallback warning）
+- [x] `src/main.cpp` 默认 `solver=rusanov`（cfg 未显式指定时），Week 3 cfg 全部显式写明 solver 后行为不变
+- [x] `scripts/noise_floor_run.sh` 跑通 × 4 test × 2 solver = 8 份 `noise_floor.npz`，每份含 30 个 MCA p=53 样本的逐 cell std field
+- [x] 每份 `noise_floor.npz` 的 metadata `precision_bits == 53` 与 `n_samples == 30` 在 analyzer 入口处断言通过
+- [x] `docs/experiment_logs/week4_a2_noise_floor_calibration.md` 给出 `k_grad` 在本 test suite 上的拟合值（或保留 1.0 + 拟合散点图证据）
+- [x] `scripts/plot_divergence_marker.py` 支持 `--mode {noise_floor, strict_fp, visible}` 三种；`noise_floor` 默认，`strict_fp` 为 fallback 并打 WARN
+- [x] `tests/py/test_plot_divergence_marker.py` **8 case** 全绿（含 3-mode 切换、noise_floor-only 专属 case、noise-floor 吸收、shock-offset 吸收、fallback warning）
 
 **A2 — 两阶段交付**：
-- [ ] **Stage 1 (0.5d)** 04/22 当日：`--mode visible rel_tol=1e-3` 产 8 张带 x 标记图，邮件回复导师（证据：sent mail log 或草稿截图写入 `docs/week4/a2_stage1_delivery.md`）
-- [ ] **Stage 2 (1.5d)** 04/23–04/24：overnight MCA p=53 batch 跑完 8 个 noise-floor；04/24 补发同一图给导师，正文注明 "same figure with MCA-calibrated noise floor overrides Stage 1"
-- [ ] `docs/week4/noise_floor_calibration.md` 记录 S1 vs S2 的 x 标记位移（若有差异则分析原因）
+- [x] **Stage 1 (0.5d)** 04/22 当日：`--mode visible rel_tol=1e-3` 产 8 张带 x 标记图，邮件回复导师（证据：`docs/emails/week4_email_a2_s1_2026-04-22.md`）
+- [x] **Stage 2 (1.5d)** 04/23–04/24：overnight MCA p=53 batch 跑完 8 个 noise-floor；04/24 补发同一图给导师，正文注明 "same figure with MCA-calibrated noise floor overrides Stage 1"
+- [x] `docs/experiment_logs/week4_a2_noise_floor_calibration.md` 记录 S1 vs S2 的 x 标记位移（若有差异则分析原因）
 
 **C1 回归**：
-- [ ] **1D**：6 个 Toro 1D 测试在 float 和 double 下都跑通，L1_rho 符合预期（double ≤ 1e-3 level；float 相对 double 增量在 0.1%–5% 区间，不出现 NaN/inf）
-- [ ] **2D**：`build-double/hrsc tests/cases/liska_wendroff_2d/config3_ref800.cfg` 产出 800×800 reference 密度场（与 Liska-Wendroff 2003 Fig 3 视觉一致）
-- [ ] **2D**：200²/400² × (float, double) 四组候选场通过 `scripts/downsample_2d.py` 块平均到 200×200 后与 reference 计算 L1/L2/Linf（float 200² vs double 200² 差距 < 1%）
-- [ ] **Phase-error 定性补充（SSIM scalar）**：`scripts/phase_error_metrics.py` 对 4 组 2D 候选输出 L1 / `ssim_rho` / Δx_shock / Δy_shock 表，外加 4 张 2D 差值 heatmap
-- [ ] `phase_error_metrics.py` 对 `skimage.metrics.structural_similarity` 做 try-import；失败时 fallback 裸 L1 + heatmap 并在 summary.md 顶部打 WARN
-- [ ] `tests/py/test_ssim_scalar.py` 绿：纯相移合成数据的 `ssim_rho` 明显 < 1；相同数据的 `ssim_rho ≈ 1 − 10⁻⁸`
-- [ ] `float_vs_double_regression.md` 含 "Why SSIM over axis-aligned W1" 短节 + **"Future Work: 3-factor SSIM & phase topology in Report 2"** 备注
-- [ ] `docs/week4/float_vs_double_regression.md` 含 12 个 1D CSV 表 + 4 张 2D 差值 heatmap + L1/SSIM 对比小节
+- [x] **1D**：6 个 Toro 1D 测试在 float 和 double 下都跑通，L1_rho 符合预期（double ≤ 1e-3 level；float 相对 double 增量在 0.1%–5% 区间，不出现 NaN/inf）
+- [x] **2D**：`build-double/hrsc tests/cases/liska_wendroff_2d/config3_ref800.cfg` 产出 800×800 reference 密度场（与 Liska-Wendroff 2003 Fig 3 视觉一致）
+- [x] **2D**：200²/400² × (float, double) 四组候选场通过 `scripts/downsample_2d.py` 块平均到 200×200 后与 reference 计算 L1/L2/Linf（float 200² vs double 200² 差距 < 1%）
+- [x] **Phase-error 定性补充（SSIM scalar）**：`scripts/phase_error_metrics.py` 对 4 组 2D 候选输出 L1 / `ssim_rho` / Δx_shock / Δy_shock 表，外加 4 张 2D 差值 heatmap
+- [x] `phase_error_metrics.py` 对 `skimage.metrics.structural_similarity` 做 try-import；失败时 fallback 裸 L1 + heatmap 并在 summary.md 顶部打 WARN
+- [x] `tests/py/test_ssim_scalar.py` 绿：纯相移合成数据的 `ssim_rho` 明显 < 1；相同数据的 `ssim_rho ≈ 1 − 10⁻⁸`
+- [x] `float_vs_double_regression.md` 含 "Why SSIM over axis-aligned W1" 短节 + **"Future Work: 3-factor SSIM & phase topology in Report 2"** 备注
+- [x] `docs/experiment_logs/week4_c1_float_vs_double_regression.md` 含 12 个 1D CSV 表 + 4 张 2D 差值 heatmap + L1/SSIM 对比小节
 
 **A3 — 2D Verificarlo（SLURM array 并发 200²×N=30）**：
-- [ ] `scripts/slurm/verificarlo_2d_array.sh` 两次 `sbatch --array=1-30`（HLLC + Rusanov）全部 60 tasks 成功退出（sacct exit code 0）
-- [ ] SLURM 脚本 `#SBATCH --time=12:00:00` 是 per-task wall-clock 上限（comment 中明示此值非整批预算，整批 wall-clock 由 SLURM 并发调度决定）
-- [ ] SLURM 脚本与本地 `scripts/verificarlo_run_2d.sh` 都在运行前 `export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1`（PRNG 线程隔离，避免 MT19937 全局态被共享）
-- [ ] 每 solver 目录下 `seeds/seed_01.csv` … `seed_30.csv` 共 30 个独立 CSV（无 flock / 无 shared file），`load_seeds(seed_dir, expected_n=30).seed_hex.nunique() == 30` 全部通过（/dev/urandom 熵源）
-- [ ] 本地 WSL 的 smoke run 通过 Docker 执行 Verificarlo，同样产出 `seeds/seed_NN.csv` 分片与 thread-pinning
-- [ ] `docs/week4/2d_vfc_feasibility.md` 记录：40²×3 smoke + 100²×5 feasibility 的 wall-clock 与内存；外推 `t_{200²} ≈ 4·t_{100²}·1.3`；production 阶段 sacct 实测 per-task wall-clock + queue latency；χ² 90% CI σ ±15% 引用作为 N=30 的 justification
-- [ ] `scripts/verificarlo_analysis_2d.py` 产出 σ(rho) 与 significant digits 两张 heatmap（HLLC、Rusanov 各一对）
-- [ ] `experiments/week4/vfc_2d/samples/` 已由 `.gitignore` 拦截；`seeds/seed_NN.csv` 分片入库（每 solver 30 × ~100 bytes = 3 KB 级）
+- [x] `scripts/slurm/verificarlo_2d_array.sh` 两次 `sbatch --array=1-30`（HLLC + Rusanov）全部 60 tasks 成功退出（sacct exit code 0）
+- [x] SLURM 脚本 `#SBATCH --time=12:00:00` 是 per-task wall-clock 上限（comment 中明示此值非整批预算，整批 wall-clock 由 SLURM 并发调度决定）
+- [x] SLURM 脚本与本地 `scripts/verificarlo_run_2d.sh` 都在运行前 `export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1`（PRNG 线程隔离，避免 MT19937 全局态被共享）
+- [x] 每 solver 目录下 `seeds/seed_01.csv` … `seed_30.csv` 共 30 个独立 CSV（无 flock / 无 shared file），`load_seeds(seed_dir, expected_n=30).seed_hex.nunique() == 30` 全部通过（/dev/urandom 熵源）
+- [x] 本地 WSL 的 smoke run 通过 Docker 执行 Verificarlo，同样产出 `seeds/seed_NN.csv` 分片与 thread-pinning
+- [x] `docs/experiment_logs/week4_a3_2d_vfc_feasibility.md` 记录：40²×3 smoke + 100²×5 feasibility 的 wall-clock 与内存；外推 `t_{200²} ≈ 4·t_{100²}·1.3`；production 阶段 sacct 实测 per-task wall-clock + queue latency；χ² 90% CI σ ±15% 引用作为 N=30 的 justification
+- [x] `scripts/verificarlo_analysis_2d.py` 产出 σ(rho) 与 significant digits 两张 heatmap（HLLC、Rusanov 各一对）
+- [x] `experiments/week4/vfc_2d/samples/` 已由 `.gitignore` 拦截；`seeds/seed_NN.csv` 分片入库（每 solver 30 × ~100 bytes = 3 KB 级）
 
 **A4 — trade-off metric（SNR / LoSoS）**：
-- [ ] `scripts/snr_metric.py` 采用 **field-first 算子顺序**：先逐 cell 计算 σ_FP(i) 与 μ_trunc(i)，再做空间聚合；报告 SNR_global / SNR_median / SNR_q05 三个 scalar
-- [ ] `tests/py/test_snr_operator_order.py` **回归防线**：构造空间反相关噪声测试数据，断言 `std(||E||_1) ≠ ||std_s(U)||_1`，并验证实现走的是后者
-- [ ] `scripts/losos_metric.py` 同样 field-first，输出 **3 个 field × 3 个 scalar = 9 列**：`s_reliability_{min,q05,mean}` + `s_accuracy_{min,q05,mean}` + `s_worst_{min,q05,mean}`
-- [ ] `tests/py/test_losos_three_fields.py` 绿：(a) `s_worst ≤ min(s_reliability, s_accuracy)` 逐 cell 成立；(b) 构造 `σ_FP ≈ 0` 但 `μ_sample ≠ U_ref` 的反例，`s_reliability` 很高 / `s_accuracy` 很低（正确分离 reliability vs accuracy）
-- [ ] `scripts/pareto_plot.py` 使用 `SNR_global` + **`s_worst_q05`** 在 (log10 μ_trunc, significant digits) 平面画 HLLC vs Rusanov 的 Pareto 前沿
-- [ ] **§A4.4 头版 conclusion table**：`scripts/tradeoff_summary_table.py` 产出 8 列 Markdown table `(solver, p, μ_trunc_L1, σ_FP_L1, s_worst_q05, s_req(N), s_worst−s_req, regime)`，至少覆盖 `(test=LW3, N=200²) × (HLLC, Rusanov) × (double, float)` = 4 行
-- [ ] **`s_req(N)` 动态计算**：`scripts/s_req_metric.py` 从 p=53 MCA mean 与 800² double reference 实测 `E_trunc(N)` 并计算 `s_req(N) = -log10(E_trunc) + 1`；`tests/py/test_s_req_scaling.py` 绿（`s_req(2N) − s_req(N) ≈ 0.3` 当 `E_trunc ∝ Δx`）
-- [ ] `scripts/_tradeoff_thresholds.py` 集中声明 regime 判定边际 + bitwise-reproducibility 工程阈值；**不再**包含 `PUBLICATION_QUALITY` / `CONVERGENCE_STUDY` 静态阈值（已被动态 `s_req(N)` 取代）
-- [ ] `docs/week4/tradeoff_analysis.md` 定位为 **Raw Data Log**：顶部 = §A4.4 头版 table + ≤ 100 字结论陈述；中部 = 3-field LoSoS 9 列 table + Pareto 图（含 `s_req(N)` 目标带叠加）+ 4-regime diagnostic 表；底部 = 方法论声明（≤ 半页，不展开 Report 1 级推导）
-- [ ] 文档含：(a) §A4.1.0 算子不可交换警告 + 反例、(b) §A4.2.0 为什么 LoSoS 报 3 field、(c) §A4.2.2 truncation-anchored `s_req(N)` 的定义与物理含义、(d) 对"balance"与"多少位"两个开放问题的定量回答（基于 4-regime 诊断：over-provisioned / well-matched / round-off-limited / truncation-limited）
+- [x] `scripts/snr_metric.py` 采用 **field-first 算子顺序**：先逐 cell 计算 σ_FP(i) 与 μ_trunc(i)，再做空间聚合；报告 SNR_global / SNR_median / SNR_q05 三个 scalar
+- [x] `tests/py/test_snr_operator_order.py` **回归防线**：构造空间反相关噪声测试数据，断言 `std(||E||_1) ≠ ||std_s(U)||_1`，并验证实现走的是后者
+- [x] `scripts/losos_metric.py` 同样 field-first，输出 **3 个 field × 3 个 scalar = 9 列**：`s_reliability_{min,q05,mean}` + `s_accuracy_{min,q05,mean}` + `s_worst_{min,q05,mean}`
+- [x] `tests/py/test_losos_three_fields.py` 绿：(a) `s_worst ≤ min(s_reliability, s_accuracy)` 逐 cell 成立；(b) 构造 `σ_FP ≈ 0` 但 `μ_sample ≠ U_ref` 的反例，`s_reliability` 很高 / `s_accuracy` 很低（正确分离 reliability vs accuracy）
+- [x] `scripts/pareto_plot.py` 使用 `SNR_global` + **`s_worst_q05`** 在 (log10 μ_trunc, significant digits) 平面画 HLLC vs Rusanov 的 Pareto 前沿
+- [x] **§A4.4 头版 conclusion table**：`scripts/tradeoff_summary_table.py` 产出 8 列 Markdown table `(solver, p, μ_trunc_L1, σ_FP_L1, s_worst_q05, s_req(N), s_worst−s_req, regime)`，至少覆盖 `(test=LW3, N=200²) × (HLLC, Rusanov) × (double, float)` = 4 行
+- [x] **`s_req(N)` 动态计算**：`scripts/s_req_metric.py` 从 p=53 MCA mean 与 800² double reference 实测 `E_trunc(N)` 并计算 `s_req(N) = -log10(E_trunc) + 1`；`tests/py/test_s_req_scaling.py` 绿（`s_req(2N) − s_req(N) ≈ 0.3` 当 `E_trunc ∝ Δx`）
+- [x] `scripts/_tradeoff_thresholds.py` 集中声明 regime 判定边际 + bitwise-reproducibility 工程阈值；**不再**包含 `PUBLICATION_QUALITY` / `CONVERGENCE_STUDY` 静态阈值（已被动态 `s_req(N)` 取代）
+- [x] `docs/experiment_logs/week4_a4_lw_config3_200_tradeoff_table.md` 定位为 **Raw Data Log**：顶部 = §A4.4 头版 table + ≤ 100 字结论陈述；中部 = 3-field LoSoS 9 列 table + Pareto 图（含 `s_req(N)` 目标带叠加）+ 4-regime diagnostic 表；底部 = 方法论声明（≤ 半页，不展开 Report 1 级推导）
+- [x] 文档含：(a) §A4.1.0 算子不可交换警告 + 反例、(b) §A4.2.0 为什么 LoSoS 报 3 field、(c) §A4.2.2 truncation-anchored `s_req(N)` 的定义与物理含义、(d) 对"balance"与"多少位"两个开放问题的定量回答（基于 4-regime 诊断：over-provisioned / well-matched / round-off-limited / truncation-limited）
 
 **C2 — real-float vs VPREC p24**：
-- [ ] `scripts/verificarlo_run.sh --real-float` 成功构建并运行
-- [ ] `scripts/plot_real_vs_vprec.py` 产出双曲线重叠图（Sod + LW3，各一张）
-- [ ] `docs/week4/real_float_vs_vprec.md` 结论：两者是否一致，差异是否来自 FMA、舍入模式
+- [x] `scripts/verificarlo/verificarlo_run.sh --real-float` 成功构建并运行
+- [x] `scripts/figures/plot_real_vs_vprec.py` 产出双曲线重叠图（Sod + Stationary Contact，另含 FMA 与 Rusanov 稳健性对照）
+- [x] `docs/experiment_logs/c2_real_float_vs_vprec.md` 结论：两者是否一致，差异是否来自 FMA、舍入模式
 
 **文档**：
-- [ ] `docs/week4/week4-plan.md`（本文档）
-- [ ] `docs/week4/2d_vfc_report.md`
-- [ ] `docs/week4/2d_vfc_feasibility.md`
-- [ ] `docs/week4/tradeoff_analysis.md`
-- [ ] `docs/week4/float_vs_double_regression.md`
-- [ ] `docs/week4/real_float_vs_vprec.md`
+- [x] `docs/week4/week4-plan.md`（本文档）
+- [x] `docs/experiment_logs/week4_a3_2d_vfc_report.md`
+- [x] `docs/experiment_logs/week4_a3_2d_vfc_feasibility.md`
+- [x] `docs/experiment_logs/week4_a4_lw_config3_200_tradeoff_table.md`
+- [x] `docs/experiment_logs/week4_c1_float_vs_double_regression.md`
+- [x] `docs/experiment_logs/c2_real_float_vs_vprec.md`
 - [ ] `docs/week4/cfg_reference.md`（汇总所有 cfg keyword）
 
 **Git**：
-- [ ] 每 commit 单测绿（pre-commit hook：`cmake --build build-double --target unit_tests && ./build-double/unit_tests.exe`）
-- [ ] `.gitignore` 拦截 `experiments/week4/**/samples/`、`experiments/week4/noise_floor/**/sample_*.txt`、`build-float/`、`build-vfc-p53/`、`build-vfc-real/`
-- [ ] 无二进制产物被追踪（`.vtk`、`.npz`、`.png` 除 `docs/` 下少量示意图外不入库）
+- [x] 每 commit 单测绿（pre-commit hook：`cmake --build build-double --target unit_tests && ./build-double/unit_tests.exe`）
+- [x] `.gitignore` 拦截 `experiments/week4/**/samples/`、`experiments/week4/noise_floor/**/sample_*.txt`、`build-float/`、`build-vfc-p53/`、`build-vfc-real/`
+- [x] 无二进制产物被追踪（`.vtk`、`.npz`、`.png` 除 `docs/` 下少量示意图外不入库）
 - [ ] Branch `week4-implementation` 线性历史（按 §6 的 commit graph），merge 干净到 `main`（prefer `--no-ff` 保留 branch 标签）
 
 ---
@@ -2184,8 +2184,8 @@ docs/week4/float_vs_double_regression.md                 # 含 L1/SSIM 对比小
 
 **C2 — real-float vs VPREC**
 ```
-scripts/plot_real_vs_vprec.py
-docs/week4/real_float_vs_vprec.md
+scripts/figures/plot_real_vs_vprec.py
+docs/experiment_logs/c2_real_float_vs_vprec.md
 ```
 
 **汇总文档**
@@ -2210,7 +2210,7 @@ src/euler/euler_solver.hpp            # + bc_x/bc_y members；replace apply_outf
 tests/unit/test_boundary.cpp          # + periodic/reflective/dispatcher cases
 
 # C2
-scripts/verificarlo_run.sh            # + --real-float flag
+scripts/verificarlo/verificarlo_run.sh # + --real-float flag
 
 # A2
 scripts/plot_vfc_hllc_vs_rusanov.py   # 改为调用 plot_divergence_marker 的公共函数

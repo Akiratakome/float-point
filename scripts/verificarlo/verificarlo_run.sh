@@ -10,8 +10,9 @@ SOLVER=""
 INST_FMA=0
 REAL_FLOAT=0
 COMPARE_FLOAT=0
+COMPARE_MCA_DOUBLE=0
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 EXP_DIR="${ROOT}/experiments/verificarlo"
 CFG_DIR="${ROOT}/tests/cases/toro_1d"
 
@@ -25,6 +26,7 @@ while [[ $# -gt 0 ]]; do
         --inst-fma)     INST_FMA=1; shift ;;
         --real-float)   REAL_FLOAT=1; shift ;;
         --compare-float) COMPARE_FLOAT=1; shift ;;
+        --compare-mca-double) COMPARE_MCA_DOUBLE=1; shift ;;
         -h|--help)
             echo "Usage: $0 [-n samples] [-p precision] [-m mode] [-t test] [-s solver] [--inst-fma] [--real-float] [--compare-float]"
             echo "  -n  Number of MCA samples (default: 30)"
@@ -36,6 +38,9 @@ while [[ $# -gt 0 ]]; do
             echo "  --real-float    Build/run FLOAT_PRECISION=float with MCA backend"
             echo "  --compare-float Run both modes into deterministic subdirs:"
             echo "                  real_float/ and vprec_p24/"
+            echo "  --compare-mca-double"
+            echo "                  Compare real-float MCA p24 vs double MCA p24 (both"
+            echo "                  stochastic). Outputs into real_float/ and double_mca_p24/."
             exit 0
             ;;
         *)
@@ -47,6 +52,11 @@ done
 
 if [[ "$COMPARE_FLOAT" -eq 1 && "$REAL_FLOAT" -eq 1 ]]; then
     echo "INFO: --compare-float implies both modes; ignoring standalone --real-float."
+fi
+
+if [[ "$COMPARE_FLOAT" -eq 1 && "$COMPARE_MCA_DOUBLE" -eq 1 ]]; then
+    echo "ERROR: --compare-float and --compare-mca-double are mutually exclusive." >&2
+    exit 2
 fi
 
 if [[ "$SOLVER" != "" && "$SOLVER" != "hllc" && "$SOLVER" != "rusanov" ]]; then
@@ -181,6 +191,26 @@ if [[ "$COMPARE_FLOAT" -eq 1 ]]; then
         "double" \
         "libinterflop_vprec.so --precision-binary64=24" \
         "${OUT_DIR}/vprec_p24"
+elif [[ "$COMPARE_MCA_DOUBLE" -eq 1 ]]; then
+    TAG_COMPARE="p24_${MCA_MODE}_real_vs_double"
+    [[ "$INST_FMA" -eq 1 ]] && TAG_COMPARE="${TAG_COMPARE}_fma"
+    [[ -n "$CFG_SUFFIX" ]] && TAG_COMPARE="${TAG_COMPARE}_rusanov"
+    if [[ "$PRECISION" -ne 24 ]]; then
+        echo "INFO: --compare-mca-double uses fixed p24 in both modes; ignoring --precision=${PRECISION}."
+    fi
+    OUT_DIR="${EXP_DIR}/runs_compare_${TAG_COMPARE}"
+    run_mode \
+        "real_float" \
+        "${ROOT}/build-vfc-real" \
+        "float" \
+        "libinterflop_mca.so --mode=${MCA_MODE} --precision-binary32=24" \
+        "${OUT_DIR}/real_float"
+    run_mode \
+        "double_mca_p24" \
+        "${ROOT}/build-vfc-double-mca-p24" \
+        "double" \
+        "libinterflop_mca.so --mode=${MCA_MODE} --precision-binary64=24" \
+        "${OUT_DIR}/double_mca_p24"
 else
     if [[ "$REAL_FLOAT" -eq 1 ]]; then
         EFF_FLOAT_PREC="${PRECISION}"
@@ -217,5 +247,8 @@ echo "All samples saved under: ${OUT_DIR}"
 echo "Analyse baseline: python scripts/verificarlo/verificarlo_analysis.py --vfc-dir ${OUT_DIR}"
 if [[ "$COMPARE_FLOAT" -eq 1 ]]; then
     echo "Compare modes:    python scripts/figures/plot_real_vs_vprec.py ${OUT_DIR}/real_float ${OUT_DIR}/vprec_p24 --tests sod"
+fi
+if [[ "$COMPARE_MCA_DOUBLE" -eq 1 ]]; then
+    echo "Compare modes:    python scripts/figures/plot_real_vs_vprec.py ${OUT_DIR}/real_float ${OUT_DIR}/double_mca_p24 --tests sod stationary_contact --label-b double_mca_p24"
 fi
 echo "============================================================"

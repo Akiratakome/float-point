@@ -1,6 +1,6 @@
 # Week 4 Summary
 
-**Date**: 2026-04-28
+**Date**: 2026-04-29
 **Branch**: `week4-implementation`
 **Plan**: [week4-plan.md](week4-plan.md)
 **Verification recipe**: [week4-verification.md](week4-verification.md)
@@ -50,7 +50,7 @@ Implementation deviation note (documented at [week4-plan.md §B3](week4-plan.md)
 
 ---
 
-## Phase C — float regression — partially committed
+## Phase C — float regression — delivered
 
 ### C1.1 — 1D Toro 6-case float regression — done
 - 12 CSVs, 5 resolutions each (50/100/200/400/800).
@@ -64,10 +64,10 @@ Implementation deviation note (documented at [week4-plan.md §B3](week4-plan.md)
 - Heatmaps: 16 PNGs in `experiments/week4/float_regression/2d/phase_error_heatmaps/`.
 - Output: [experiments/week4/float_regression/2d/summary.md](../../experiments/week4/float_regression/2d/summary.md).
 
-### C2 — Verificarlo real-float vs VPREC p24 — code ready, not run
-- Plot tooling + cfg complete (`scripts/plot_real_vs_vprec.py`, `scripts/verificarlo_run.sh --compare-float`).
-- Pending: overnight run on CSC cluster (Verificarlo toolchain).
-- Raw log skeleton: [week4_c2_real_float_vs_vprec.md](../experiment_logs/week4_c2_real_float_vs_vprec.md).
+### C2 — Verificarlo real-float vs VPREC p24 — done
+- Cluster run + analysis completed; main result file: [c2_real_float_vs_vprec.md](../experiment_logs/c2_real_float_vs_vprec.md).
+- Tooling used: `scripts/figures/plot_real_vs_vprec.py`, `scripts/verificarlo/verificarlo_run.sh --compare-float`.
+- Artifacts: `experiments/verificarlo/runs_compare_p24_mca_real_vs_double/` (+ `_fma`, `_rusanov` variants), with per-case overlays and JSON summaries.
 
 ---
 
@@ -85,6 +85,5 @@ Implementation deviation note (documented at [week4-plan.md §B3](week4-plan.md)
 
 ## Outstanding for Week 5
 
-- Phase C2 cluster run (1.5 day budget per plan §C2).
 - Begin 2D Liska–Wendroff Configs 4/6 + Kelvin–Helmholtz (now that BC dispatch supports periodic + reflective, see plan §7.1).
 - GPU development start (plan §7.1, §7.2).

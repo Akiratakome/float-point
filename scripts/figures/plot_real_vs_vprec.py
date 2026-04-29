@@ -44,10 +44,18 @@ def _compute_stats(runs: np.ndarray) -> dict:
         samples = runs[:, :, col]
         mean = np.mean(samples, axis=0)
         std = np.std(samples, axis=0, ddof=1) if samples.shape[0] > 1 else np.zeros_like(mean)
+        # True if every sample is bitwise identical for this cell — the actual
+        # definition of "deterministic across MCA runs". Using this directly is
+        # more robust than thresholding std, since np.std of identical doubles
+        # still leaks ~1e-16 from mean-subtraction roundoff.
+        if samples.shape[0] > 1:
+            all_equal = np.all(samples == samples[0:1, :], axis=0)
+        else:
+            all_equal = np.ones_like(mean, dtype=bool)
         with np.errstate(divide="ignore", invalid="ignore"):
             sig = -np.log10(np.abs(std / mean))
             sig = np.where(np.isfinite(sig), sig, np.nan)
-        out[var_name] = {"mean": mean, "std": std, "sig": sig}
+        out[var_name] = {"mean": mean, "std": std, "sig": sig, "all_equal": all_equal}
     return out
 
 
@@ -57,23 +65,43 @@ def _plot_test(
     x: np.ndarray,
     real_stats: dict,
     vprec_stats: dict,
+    label_a: str = "real_float",
+    label_b: str = "vprec_p24",
+    out_stem: str = "real_vs_vprec",
 ) -> Path:
     fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
-    fig.suptitle(f"Real float vs VPREC p24: {test}", fontsize=12, fontweight="bold")
+    fig.suptitle(f"{label_a} vs {label_b}: {test}", fontsize=12, fontweight="bold")
 
     for ax, var in zip(axes, VARS.keys()):
-        real_sig = np.clip(real_stats[var]["sig"], 0, 16)
-        vprec_sig = np.clip(vprec_stats[var]["sig"], 0, 16)
-        ax.plot(x, real_sig, label="real_float", lw=1.1)
-        ax.plot(x, vprec_sig, label="vprec_p24", lw=1.1)
+        real_sig = real_stats[var]["sig"]
+        vprec_sig = vprec_stats[var]["sig"]
+
+        ax.plot(x, real_sig, label=label_a, lw=1.1, color="C0")
+
+        if np.all(np.isnan(vprec_sig)):
+            ax.text(
+                0.5, 0.92,
+                f"{label_b}: zero variance (deterministic backend)",
+                transform=ax.transAxes, ha="center", va="top",
+                color="C1", fontsize=8,
+                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="C1", alpha=0.85),
+            )
+        else:
+            ax.plot(x, vprec_sig, label=label_b, lw=1.1, color="C1")
+
+        finite_real = real_sig[np.isfinite(real_sig)]
+        ymin = -2.0
+        if finite_real.size:
+            ymin = float(min(ymin, np.min(finite_real) - 0.5))
+        ax.axhline(0.0, color="gray", ls=":", lw=0.5, alpha=0.6)
         ax.set_ylabel(f"{var} sig.d")
-        ax.set_ylim(0, 17)
+        ax.set_ylim(ymin, 17)
         ax.grid(alpha=0.25)
         ax.legend(loc="best", fontsize=8)
 
     axes[-1].set_xlabel("x")
     fig.tight_layout(rect=[0, 0, 1, 0.95])
-    out_path = out_dir / f"{test}_real_vs_vprec_sigdigits.png"
+    out_path = out_dir / f"{test}_{out_stem}_sigdigits.png"
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
     return out_path
@@ -112,7 +140,14 @@ def main() -> int:
         default=Path("docs/week4/figures/real_float_vs_vprec"),
         help="Directory for plots + JSON summary.",
     )
+    parser.add_argument("--label-a", default="real_float",
+                        help="Legend/title label for the first directory (default: real_float).")
+    parser.add_argument("--label-b", default="vprec_p24",
+                        help="Legend/title label for the second directory (default: vprec_p24).")
+    parser.add_argument("--out-stem", default=None,
+                        help="Base filename stem for plots (default: real_vs_<label-b>).")
     args = parser.parse_args()
+    out_stem = args.out_stem or f"real_vs_{args.label_b}"
 
     if not args.real_dir.is_dir():
         raise FileNotFoundError(f"real_dir not found: {args.real_dir}")
@@ -134,30 +169,42 @@ def main() -> int:
 
         x_real = real_runs[0, :, 0]
         x_vprec = vprec_runs[0, :, 0]
-        if not np.allclose(x_real, x_vprec, rtol=0.0, atol=1e-12):
+        # Allow small differences due to different precision in x-coordinate computation
+        if not np.allclose(x_real, x_vprec, rtol=1e-6, atol=1e-7):
             raise ValueError(f"x-grid mismatch for test '{test}' between modes.")
 
         real_stats = _compute_stats(real_runs)
         vprec_stats = _compute_stats(vprec_runs)
         for var in VARS:
-            if np.all(vprec_stats[var]["std"] == 0.0):
-                print(
-                    f"WARNING: {test}:{var} has zero VPREC sample variance; "
-                    "sig-digits are undefined for deterministic traces.",
-                    file=sys.stderr,
-                )
-        plot_path = _plot_test(args.out_dir, test, x_real, real_stats, vprec_stats)
+            # VPREC backend is deterministic: mark cells where all MCA samples
+            # are bitwise identical as NaN, so the plot can annotate determinism
+            # rather than draw a misleading line at the np.std roundoff floor.
+            v_sig = vprec_stats[var]["sig"]
+            v_sig = np.where(vprec_stats[var]["all_equal"], np.nan, v_sig)
+            v_sig = np.where(np.isfinite(v_sig), v_sig, np.nan)
+            vprec_stats[var]["sig"] = v_sig
+
+            # Keep real-float sig.d as-is, including negative values where
+            # |mean|->0 (e.g. stationary contact velocity). Earlier code clipped
+            # these to 0 which made the line vanish at the y-axis floor.
+            r_sig = real_stats[var]["sig"]
+            real_stats[var]["sig"] = np.where(np.isfinite(r_sig), r_sig, np.nan)
+
+        plot_path = _plot_test(
+            args.out_dir, test, x_real, real_stats, vprec_stats,
+            label_a=args.label_a, label_b=args.label_b, out_stem=out_stem,
+        )
 
         summary[test] = {
-            "real_float": _summary_entry(real_stats),
-            "vprec_p24": _summary_entry(vprec_stats),
+            args.label_a: _summary_entry(real_stats),
+            args.label_b: _summary_entry(vprec_stats),
             "n_samples_real": int(real_runs.shape[0]),
             "n_samples_vprec": int(vprec_runs.shape[0]),
             "plot_file": str(plot_path),
         }
         print(f"[ok] {test}: wrote {plot_path}")
 
-    summary_path = args.out_dir / "real_vs_vprec_summary.json"
+    summary_path = args.out_dir / f"{out_stem}_summary.json"
     with summary_path.open("w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
     print(f"[ok] summary: {summary_path}")
