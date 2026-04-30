@@ -27,19 +27,38 @@ if(RIEMANN_STRICT_INEQUALITY)
     target_compile_definitions(hrsc_core INTERFACE RIEMANN_STRICT_INEQUALITY)
 endif()
 
+# Optional CUDA path (Week 5 D.1 = toolchain smoke; Week 5 D.2 = data path;
+# Week 6 = real kernels). Default OFF preserves CPU-only build behaviour.
+option(ENABLE_CUDA "Enable CUDA toolchain (Week 5 GPU bring-up)" OFF)
+
 # OpenMP parallelisation of the per-row / per-column sweep loops.
 # Disable with -DENABLE_OPENMP=OFF when running under Verificarlo MCA
 # (the libinterflop PRNG is not thread-safe; MCA runs must stay serial
 # via OMP_NUM_THREADS=1 in any case, but turning the pragmas off at
 # build time makes the intent explicit).
 option(ENABLE_OPENMP "Enable OpenMP parallelisation in sweeps" ON)
+option(HRSC_MSVC_OPENMP_LLVM "Use the MSVC LLVM OpenMP runtime for CPU OpenMP builds" OFF)
 if(ENABLE_OPENMP)
-    find_package(OpenMP)
-    if(OpenMP_CXX_FOUND)
-        target_link_libraries(hrsc_core INTERFACE OpenMP::OpenMP_CXX)
-        message(STATUS "OpenMP enabled (${OpenMP_CXX_VERSION})")
+    if(MSVC AND NOT ENABLE_CUDA AND NOT HRSC_MSVC_OPENMP_LLVM)
+        message(WARNING
+            "ENABLE_OPENMP=ON requested, but classic MSVC OpenMP cannot "
+            "compile the existing reduction(max:...) pragmas; building "
+            "serial. Configure with -DHRSC_MSVC_OPENMP_LLVM=ON to opt into "
+            "/openmp:llvm for CPU OpenMP builds.")
     else()
-        message(WARNING "ENABLE_OPENMP=ON but OpenMP not found; building serial")
+        find_package(OpenMP)
+        if(OpenMP_CXX_FOUND)
+            target_link_libraries(hrsc_core INTERFACE OpenMP::OpenMP_CXX)
+            if(MSVC AND NOT ENABLE_CUDA AND HRSC_MSVC_OPENMP_LLVM)
+                target_compile_options(hrsc_core INTERFACE
+                    $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/openmp:llvm>)
+                message(STATUS "OpenMP enabled with MSVC /openmp:llvm (${OpenMP_CXX_VERSION})")
+            else()
+                message(STATUS "OpenMP enabled (${OpenMP_CXX_VERSION})")
+            endif()
+        else()
+            message(WARNING "ENABLE_OPENMP=ON but OpenMP not found; building serial")
+        endif()
     endif()
 endif()
 
@@ -76,9 +95,6 @@ target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/to
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/liska_wendroff_2d)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/shock_bubble)
 
-# --- Optional CUDA path (Week 5 D.1 = toolchain smoke; Week 5 D.2 = data path;
-# --- Week 6 = real kernels). Default OFF preserves CPU-only build behaviour.
-option(ENABLE_CUDA "Enable CUDA toolchain (Week 5 GPU bring-up)" OFF)
 if(ENABLE_CUDA)
     include(${CMAKE_SOURCE_DIR}/cmake/CUDASetup.cmake)
     if(MSVC)
