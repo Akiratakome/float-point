@@ -108,6 +108,17 @@ paths:
 If you need the kept baseline grids to be double precision after checking the
 float path, rerun the two double commands before plotting or archiving.
 
+Config 6 SSIM record:
+
+- Existing `lw_config6_n200` baseline self-comparison sanity check:
+  `L1_rho=0.000000e+00`, `ssim_rho=1.000000`,
+  `ssim_fallback_used=false`.
+- Week 5 does not threshold-gate Config 6 SSIM. The exact float-vs-double SSIM
+  is not recoverable from current kept artefacts without regenerating grids:
+  smoke `grid.bin` files are deleted transient outputs, and the baseline Config
+  6 float/double runs share the same `grid.bin` paths. Record the float-vs-double
+  value during any human walkthrough that preserves both precision grids.
+
 ### Shock-Bubble
 
 ```bash
@@ -195,14 +206,17 @@ Expected:
 - Dry-run materializes per-run cfg and metadata without solving.
 - Live run writes six `grid.bin` files plus `stdout.txt`, `stderr.txt`, and
   `metadata.json`.
+- `matrix_summary.json` records the 6-run matrix execution.
 - `summary.json` aggregates 6 entries.
 - Six smoke `rho` PNGs are generated.
 - Each live run metadata records command, git commit, generated cfg, raw output
   path, return code, and `timing.total_s`.
 
-Cleanup smoke grids after summary and figures exist:
+Cleanup smoke grids only after `matrix_summary.json`, `summary.json`, and all
+six smoke figures exist:
 
 ```bash
+test -f experiments/week5/smoke/matrix_summary.json
 test -f experiments/week5/smoke/summary.json
 test "$(find experiments/week5/smoke/figures -maxdepth 1 -name '*_rho.png' | wc -l)" -eq 6
 find experiments/week5/smoke/runs -name 'grid.bin' -delete
@@ -213,6 +227,7 @@ test -f experiments/week5/baselines/lw_config6_n200/grid.bin
 PowerShell cleanup equivalent:
 
 ```powershell
+if (-not (Test-Path experiments/week5/smoke/matrix_summary.json)) { throw "missing smoke matrix summary" }
 if (-not (Test-Path experiments/week5/smoke/summary.json)) { throw "missing smoke summary" }
 if ((Get-ChildItem experiments/week5/smoke/figures -Filter '*_rho.png').Count -ne 6) { throw "missing smoke figures" }
 Get-ChildItem experiments/week5/smoke/runs -Recurse -Filter grid.bin | Remove-Item
@@ -257,3 +272,7 @@ Implementation notes to verify during review:
   gradients.
 - Config 6 float and double baseline runs write the same `grid.bin` paths. Copy
   or rerun double last if both precision artifacts must be compared later.
+- Config 6 SSIM sanity is recorded for the existing n200 baseline
+  self-comparison (`ssim_rho=1.000000`, fallback not used). The float-vs-double
+  SSIM remains record-only and must be captured in a walkthrough that preserves
+  both precision grids.

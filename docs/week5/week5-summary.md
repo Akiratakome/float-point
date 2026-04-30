@@ -44,6 +44,8 @@ workarounds stay under `ENABLE_CUDA`.
 ## Commits
 
 ```text
+245341e docs(index): add Week 5 row + verification.md link
+94c52f9 docs(week5): add week5-summary.md (deliverables + handoff)
 e9ef67c docs(week5): add reproduction recipe (week5-verification.md)
 f28be89 feat(harness): add Week 5 smoke matrix
 a41e4fb fix(cmake): avoid unsupported classic MSVC OpenMP by default
@@ -68,21 +70,28 @@ c152f17 feat(lw): implement Liska-Wendroff Config 6 IC (4 contact discontinuitie
 
 | Path | Status | Contents |
 |---|---|---|
-| `docs/week5/week5-verification.md` | kept | Manual Week 5 reproduction recipe |
-| `experiments/week5/baselines/lw_config6_n200/grid.bin` | kept | Config 6 200x200 reference grid |
-| `experiments/week5/baselines/lw_config6_n400/grid.bin` | kept | Config 6 400x400 reference grid |
-| `experiments/week5/baselines/shock_bubble_n400x100_hllc/grid.bin` | kept | Shock-bubble HLLC reference grid |
-| `experiments/week5/baselines/shock_bubble_n400x100_rusanov/grid.bin` | kept | Shock-bubble Rusanov reference grid |
-| `experiments/week5/baselines/figures/` | kept | 12 baseline PNGs (`rho`, `p`, `schlieren`) |
-| `experiments/week5/smoke/matrix.json` | committed | 6-run harness smoke matrix |
-| `experiments/week5/smoke/matrix_summary.json` | kept | Matrix dry-run / run summary |
-| `experiments/week5/smoke/summary.json` | kept | Aggregated smoke metadata summary |
-| `experiments/week5/smoke/figures/` | kept | 6 smoke `rho` PNGs |
-| `experiments/week5/smoke/runs/<name>/metadata.json` | kept | Per-run metadata, command, cfg, git commit, timing |
-| `experiments/week5/smoke/runs/<name>/stdout.txt` | kept | Solver stdout logs |
-| `experiments/week5/smoke/runs/<name>/stderr.txt` | kept | Solver stderr logs, including `[timing]` |
-| `experiments/week5/smoke/runs/<name>/config.cfg` | kept | Generated per-run cfg |
-| `experiments/week5/smoke/runs/<name>/grid.bin` | deleted | Transient smoke grids removed after aggregate / figures |
+| `docs/week5/week5-summary.md` | tracked | Week 5 deliverables and handoff summary |
+| `docs/week5/week5-verification.md` | tracked | Manual Week 5 reproduction recipe |
+| `experiments/week5/smoke/matrix.json` | tracked | 6-run harness smoke matrix recipe |
+| `experiments/week5/baselines/lw_config6_n200/grid.bin` | ignored/generated kept | Config 6 200x200 local reference grid; do not commit as a routine doc/harness artefact |
+| `experiments/week5/baselines/lw_config6_n400/grid.bin` | ignored/generated kept | Config 6 400x400 local reference grid; do not commit as a routine doc/harness artefact |
+| `experiments/week5/baselines/shock_bubble_n400x100_hllc/grid.bin` | ignored/generated kept | Shock-bubble HLLC local reference grid; do not commit as a routine doc/harness artefact |
+| `experiments/week5/baselines/shock_bubble_n400x100_rusanov/grid.bin` | ignored/generated kept | Shock-bubble Rusanov local reference grid; do not commit as a routine doc/harness artefact |
+| `experiments/week5/baselines/figures/` | ignored/generated kept | 12 baseline PNGs (`rho`, `p`, `schlieren`) |
+| `experiments/week5/smoke/matrix_summary.json` | ignored/generated kept | Matrix dry-run / run summary |
+| `experiments/week5/smoke/summary.json` | ignored/generated kept | Aggregated smoke metadata summary |
+| `experiments/week5/smoke/figures/` | ignored/generated kept | 6 smoke `rho` PNGs |
+| `experiments/week5/smoke/runs/<name>/metadata.json` | ignored/generated kept | Per-run metadata, command, cfg, git commit, timing |
+| `experiments/week5/smoke/runs/<name>/stdout.txt` | ignored/generated kept | Solver stdout logs |
+| `experiments/week5/smoke/runs/<name>/stderr.txt` | ignored/generated kept | Solver stderr logs, including `[timing]` |
+| `experiments/week5/smoke/runs/<name>/config.cfg` | ignored/generated kept | Generated per-run cfg |
+| `experiments/week5/smoke/runs/<name>/grid.bin` | deleted transient | Smoke grids removed after `matrix_summary.json`, `summary.json`, and figures exist |
+
+Tracked recipe/matrix files are the committed harness contract. Generated
+summaries, logs, figures, and baseline grids may be kept locally for review, but
+large grids should not be added to commits unless explicitly promoted to
+reference data. Smoke `grid.bin` files are transient and should stay deleted
+after aggregation and plotting.
 
 ---
 
