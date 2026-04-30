@@ -37,8 +37,6 @@ if(ENABLE_OPENMP)
     find_package(OpenMP)
     if(OpenMP_CXX_FOUND)
         target_link_libraries(hrsc_core INTERFACE OpenMP::OpenMP_CXX)
-        target_compile_options(hrsc_core INTERFACE
-            $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/openmp:llvm>)
         message(STATUS "OpenMP enabled (${OpenMP_CXX_VERSION})")
     else()
         message(WARNING "ENABLE_OPENMP=ON but OpenMP not found; building serial")
@@ -83,7 +81,13 @@ target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/sh
 option(ENABLE_CUDA "Enable CUDA toolchain (Week 5 GPU bring-up)" OFF)
 if(ENABLE_CUDA)
     include(${CMAKE_SOURCE_DIR}/cmake/CUDASetup.cmake)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler")
+    if(MSVC)
+        # CUDA/MSVC host compiler compatibility workaround. Keep this opt-in
+        # to CUDA builds so default CPU-only builds retain compiler defaults.
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler")
+        target_compile_options(hrsc_core INTERFACE
+            $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/openmp:llvm>)
+    endif()
     enable_language(CUDA)
     hrsc_configure_cuda_toolkit()
 
