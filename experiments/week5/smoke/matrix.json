@@ -1,0 +1,30 @@
+{
+  "experiment": "week5-smoke",
+  "output_root": "experiments/week5/smoke",
+  "runs": [
+    {"name": "lw3-d-200", "binary": "build-double/hrsc",
+     "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+     "precision": "double", "build": "cpu-double-O2-ieee-leq",
+     "output_file": "grid.bin"},
+    {"name": "lw3-f-200", "binary": "build-float/hrsc",
+     "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+     "precision": "float",  "build": "cpu-float-O2-ieee-leq",
+     "output_file": "grid.bin"},
+    {"name": "lw6-d-200", "binary": "build-double/hrsc",
+     "config": "tests/cases/liska_wendroff_2d/config6_n200.cfg",
+     "precision": "double", "build": "cpu-double-O2-ieee-leq",
+     "output_file": "grid.bin"},
+    {"name": "lw6-f-200", "binary": "build-float/hrsc",
+     "config": "tests/cases/liska_wendroff_2d/config6_n200.cfg",
+     "precision": "float",  "build": "cpu-float-O2-ieee-leq",
+     "output_file": "grid.bin"},
+    {"name": "sb-d-400",  "binary": "build-double/hrsc",
+     "config": "tests/cases/shock_bubble/shock_bubble_n400x100.cfg",
+     "precision": "double", "build": "cpu-double-O2-ieee-leq",
+     "output_file": "grid.bin"},
+    {"name": "sb-f-400",  "binary": "build-float/hrsc",
+     "config": "tests/cases/shock_bubble/shock_bubble_n400x100.cfg",
+     "precision": "float",  "build": "cpu-float-O2-ieee-leq",
+     "output_file": "grid.bin"}
+  ]
+}
