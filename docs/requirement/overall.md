@@ -590,10 +590,12 @@ This week focuses on **understanding and explaining** the errors, not just measu
 | 4 | Blast Wave | Two strong shocks (very high Ma) | 1D ✓ |
 | 5 | Stationary Contact | No waves (contact only, S_M=0 edge case) | 1D ✗ |
 | 6 | Liska-Wendroff Config 3 | Four interacting shocks | 2D ✓ |
-| 7 | Liska-Wendroff Config 6 | Shock interactions | 2D ✓ |
+| 7 | Liska-Wendroff Config 6 | 4 contact discontinuities (no shocks) | 2D ✗ |
 | 8 | Shock-Bubble | Planar shock hitting bubble | 2D ✓ |
 
-**Total with supersonic waves: 6 out of 8 tests ✓** (far exceeds minimum of 4). Tests 3 and 5 serve different purposes: 123 tests near-vacuum handling, stationary contact tests `<=` vs `<` at S_M=0.
+**Total with supersonic waves: 5 out of 8 tests ✓** (far exceeds minimum of 4). Tests 3 and 5 serve different purposes: 123 tests near-vacuum handling, stationary contact tests `<=` vs `<` at S_M=0.
+
+**Config 6 note:** This project uses Liska & Wendroff 2003 literal numbering. Config 6 is a four-contact-discontinuity test with no shocks; it is used as the 2D contact-resolution analogue of the 1D `stationary_contact` test, not as a supersonic test.
 
 ---
 
