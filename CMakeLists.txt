@@ -65,6 +65,7 @@ add_executable(hrsc src/main.cpp)
 target_link_libraries(hrsc PRIVATE hrsc_core hrsc_euler)
 target_include_directories(hrsc PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/toro_1d)
 target_include_directories(hrsc PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/liska_wendroff_2d)
+target_include_directories(hrsc PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/shock_bubble)
 
 # --- Unit tests ---
 file(GLOB TEST_SOURCES tests/unit/test_*.cpp)
@@ -73,6 +74,7 @@ target_link_libraries(unit_tests PRIVATE hrsc_core hrsc_euler)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/external/catch2)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/toro_1d)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/liska_wendroff_2d)
+target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/shock_bubble)
 
 # --- Optional CUDA path (Week 5 D.1 = toolchain smoke; Week 5 D.2 = data path;
 # --- Week 6 = real kernels). Default OFF preserves CPU-only build behaviour.
