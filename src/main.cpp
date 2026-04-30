@@ -7,6 +7,7 @@
 #include "utils/timer.hpp"
 #include "toro_tests.hpp"
 #include "lw_tests.hpp"
+#include "shock_bubble_tests.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -42,7 +43,9 @@ static void setup_ic(GridView<Real, EulerNVars> gv, const std::string& test, Rea
     } else if (test == "lw_config3") {
         setup_liska_wendroff_config3(gv, gamma);
     } else if (test == "lw_config6") {
-        setup_liska_wendroff_config6(gv, gamma);  // stub throws (Week 5)
+        setup_liska_wendroff_config6(gv, gamma);  // implemented Week 5
+    } else if (test == "shock_bubble") {
+        setup_shock_bubble(gv, gamma);
     } else {
         throw std::runtime_error("Unknown test: " + test);
     }
