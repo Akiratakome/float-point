@@ -43,6 +43,14 @@ if(ENABLE_OPENMP)
     endif()
 endif()
 
+# Optional per-phase wall-clock probes inside EulerSolver (Week 5 Block A).
+# OFF by default: solver TU is binary-identical and cfg behaviour unchanged.
+option(HRSC_ENABLE_PROFILING "Enable per-phase ScopedTimer probes in EulerSolver" OFF)
+if(HRSC_ENABLE_PROFILING)
+    target_compile_definitions(hrsc_core INTERFACE HRSC_ENABLE_PROFILING)
+    message(STATUS "HRSC profiling probes: ON")
+endif()
+
 # --- Separated Euler solver library ---
 # EulerSolver was split header-only -> .hpp/.cpp with explicit instantiation
 # for float and double in src/euler/euler_solver.cpp. Keeping the solver as
