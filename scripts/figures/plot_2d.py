@@ -27,7 +27,9 @@ GAMMA_DEFAULT = 1.4
 SUPPORTED_FIELDS = ("rho", "p", "vmag", "schlieren")
 
 
-def compute_field(arr: np.ndarray, field: str, gamma: float) -> np.ndarray:
+def compute_field(
+    arr: np.ndarray, field: str, gamma: float, *, dx: float, dy: float
+) -> np.ndarray:
     """Return a 2D (ny, nx) array for the named field.
 
     arr shape: (ny, nx, 4), conserved variables (rho, rho*u, rho*v, E).
@@ -49,8 +51,8 @@ def compute_field(arr: np.ndarray, field: str, gamma: float) -> np.ndarray:
         v = momy / rho
         return np.sqrt(u * u + v * v)
     if field == "schlieren":
-        gx = np.gradient(rho, axis=1)
-        gy = np.gradient(rho, axis=0)
+        gx = np.gradient(rho, dx, axis=1)
+        gy = np.gradient(rho, dy, axis=0)
         return np.sqrt(gx * gx + gy * gy)
     raise ValueError(f"Unknown field: {field}")
 
@@ -129,7 +131,7 @@ def main() -> None:
             out_path = out_base
         else:
             out_path = out_base.with_name(f"{out_base.stem}_{field}{out_base.suffix}")
-        arr2d = compute_field(arr, field, args.gamma)
+        arr2d = compute_field(arr, field, args.gamma, dx=header.dx, dy=header.dy)
         render_field(
             arr2d,
             header,
