@@ -94,6 +94,26 @@ def git_commit() -> str:
         return "unknown"
 
 
+def parse_timing_total_s(stderr_text: str) -> float | None:
+    """Parse '[timing] total_s=<value>' from solver stderr.
+
+    Returns the LAST occurrence's value (convergence mode emits one line
+    per resolution; the last is the largest grid). Returns None if absent.
+    """
+    last_value: float | None = None
+    for line in stderr_text.splitlines():
+        s = line.strip()
+        if not s.startswith("[timing]"):
+            continue
+        for tok in s.split():
+            if tok.startswith("total_s="):
+                try:
+                    last_value = float(tok.split("=", 1)[1])
+                except ValueError:
+                    pass
+    return last_value
+
+
 def build_metadata(
     run: MatrixRun,
     experiment: str,
@@ -132,6 +152,9 @@ def run_one(run: MatrixRun, experiment: str, dry_run: bool = False) -> dict[str,
         result_code = result.returncode
 
     metadata = build_metadata(run, experiment, command, git_commit(), result_code)
+    if not dry_run:
+        total_s = parse_timing_total_s(stderr_path.read_text(encoding="utf-8"))
+        metadata["timing"] = {"total_s": total_s}
     metadata["stdout"] = str(stdout_path)
     metadata["stderr"] = str(stderr_path)
     (run.run_dir / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
