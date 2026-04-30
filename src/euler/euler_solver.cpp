@@ -13,6 +13,10 @@
 
 #include "euler/euler_solver.hpp"
 
+#ifdef HRSC_ENABLE_PROFILING
+#include "utils/timer.hpp"
+#endif
+
 namespace hrsc {
 
 template <typename Real>
@@ -51,6 +55,9 @@ EulerSolver<Real>::EulerSolver(int nx, Real dx, Real xmin,
 template <typename Real>
 void EulerSolver<Real>::apply_boundary_conditions()
 {
+#ifdef HRSC_ENABLE_PROFILING
+    ScopedTimer __prof("bc", m_prof_);
+#endif
     auto gv = m_grid.view();
     // Euler-specific reflective flip lists. MHD will live in its own
     // solver class with its own flip lists ({RHOU, BX}, {RHOV, BY}).
@@ -80,6 +87,9 @@ void EulerSolver<Real>::x_sweep(TimeReal dt)
 {
     const Real dt_real = static_cast<Real>(dt);
     auto gv = m_grid.view();
+#ifdef HRSC_ENABLE_PROFILING
+    ScopedTimer __prof_sweep("sweep", m_prof_);
+#endif
     int nx = gv.nx;
     int ny = gv.ny;
     int n_interfaces = nx + 1;
@@ -120,6 +130,9 @@ void EulerSolver<Real>::y_sweep(TimeReal dt)
 {
     const Real dt_real = static_cast<Real>(dt);
     auto gv = m_grid.view();
+#ifdef HRSC_ENABLE_PROFILING
+    ScopedTimer __prof_sweep("sweep", m_prof_);
+#endif
     int nx = gv.nx;
     int ny = gv.ny;
     int n_interfaces = ny + 1;
@@ -162,6 +175,9 @@ void EulerSolver<Real>::y_sweep(TimeReal dt)
 template <typename Real>
 TimeReal EulerSolver<Real>::compute_dt() const
 {
+#ifdef HRSC_ENABLE_PROFILING
+    ScopedTimer __prof("cfl", m_prof_);
+#endif
     auto gv = m_grid.view();
     int nx = gv.nx;
     int ny = gv.ny;

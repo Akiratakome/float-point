@@ -10,6 +10,10 @@
 #include "euler/hllc.hpp"
 #include "euler/rusanov.hpp"
 
+#ifdef HRSC_ENABLE_PROFILING
+#include "utils/timer.hpp"
+#endif
+
 #include <array>
 #include <vector>
 #include <cmath>
@@ -58,6 +62,14 @@ class EulerSolver {
     void apply_boundary_conditions();
     void x_sweep(TimeReal dt);
     void y_sweep(TimeReal dt);
+
+#ifdef HRSC_ENABLE_PROFILING
+public:
+    ProfilingRegistry& profiling() { return m_prof_; }
+    const ProfilingRegistry& profiling() const { return m_prof_; }
+private:
+    mutable ProfilingRegistry m_prof_;
+#endif
 
 public:
     // 2D constructor
