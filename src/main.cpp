@@ -4,6 +4,7 @@
 #include "euler/exact_riemann.hpp"
 #include "utils/error_norms.hpp"
 #include "utils/io.hpp"
+#include "utils/timer.hpp"
 #include "toro_tests.hpp"
 #include "lw_tests.hpp"
 
@@ -140,7 +141,12 @@ static void run_convergence(const Config& cfg) {
                                  static_cast<Real>(xmin),
                                  gamma, cfl, t_end, flux);
         setup_ic(solver.grid_view(), test, gamma);
+        Timer total;
+        total.start();
         solver.run();
+        total.stop();
+        std::cerr << "[timing] total_s=" << total.elapsed_seconds()
+                  << " nx=" << nx << "\n";
 
         // Numerical solution is cast to double for comparison with the
         // double-precision exact reference (consistent error norms across
@@ -221,7 +227,11 @@ static void run_normal(const Config& cfg) {
                                  gamma, cfl, t_end,
                                  flux, bc_x, bc_y);
         setup_ic(solver.grid_view(), test, gamma);
+        Timer total;
+        total.start();
         solver.run(progress_interval_s);
+        total.stop();
+        std::cerr << "[timing] total_s=" << total.elapsed_seconds() << "\n";
 
         std::cerr << "Finished: " << solver.step_count() << " steps, t = "
                   << solver.time() << "\n";
@@ -271,7 +281,11 @@ static void run_normal(const Config& cfg) {
                              gamma, cfl, t_end,
                              flux, bc_x, bc_y);
     setup_ic(solver.grid_view(), test, gamma);
+    Timer total;
+    total.start();
     solver.run(progress_interval_s);
+    total.stop();
+    std::cerr << "[timing] total_s=" << total.elapsed_seconds() << "\n";
 
     std::cerr << "Finished: " << solver.step_count() << " steps, t = "
               << static_cast<double>(solver.time()) << "\n";
