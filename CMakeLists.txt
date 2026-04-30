@@ -37,6 +37,8 @@ if(ENABLE_OPENMP)
     find_package(OpenMP)
     if(OpenMP_CXX_FOUND)
         target_link_libraries(hrsc_core INTERFACE OpenMP::OpenMP_CXX)
+        target_compile_options(hrsc_core INTERFACE
+            $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/openmp:llvm>)
         message(STATUS "OpenMP enabled (${OpenMP_CXX_VERSION})")
     else()
         message(WARNING "ENABLE_OPENMP=ON but OpenMP not found; building serial")
@@ -81,6 +83,7 @@ target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/sh
 option(ENABLE_CUDA "Enable CUDA toolchain (Week 5 GPU bring-up)" OFF)
 if(ENABLE_CUDA)
     include(${CMAKE_SOURCE_DIR}/cmake/CUDASetup.cmake)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler")
     enable_language(CUDA)
     hrsc_configure_cuda_toolkit()
 
@@ -90,4 +93,15 @@ if(ENABLE_CUDA)
     set_target_properties(gpu_smoke PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+
+    # Day-4 GPU data path: the .cpp half is picked up by the existing
+    # test_*.cpp glob; the .cu wrapper is linked only for CUDA builds.
+    target_sources(unit_tests PRIVATE tests/unit/gpu_roundtrip_kernel.cu)
+    set_source_files_properties(tests/unit/gpu_roundtrip_kernel.cu
+        PROPERTIES LANGUAGE CUDA)
+    set_target_properties(unit_tests PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
+        CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+    target_link_libraries(unit_tests PRIVATE CUDA::cudart)
+    target_compile_definitions(unit_tests PRIVATE HRSC_HAS_CUDA)
 endif()
