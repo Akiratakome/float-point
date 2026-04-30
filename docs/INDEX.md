@@ -36,6 +36,7 @@
 | 2 | [week2-plan.md](week2/week2-plan.md) | [week2-summary.md](week2/week2-summary.md) | [week2/archive/](week2/archive/) |
 | 3 | [week3-plan.md](week3/week3-plan.md) | [week3-summary.md](week3/week3-summary.md) | [week3/archive/](week3/archive/) |
 | 4 | [week4-plan.md](week4/week4-plan.md) | [week4-summary.md](week4/week4-summary.md) | [week4/archive/](week4/archive/) |
+| 5 | [week5-plan.md](week5/week5-plan.md) | [week5-summary.md](week5/week5-summary.md) | (none) |
 
 Week 4 also keeps:
 - [week4-verification.md](week4/week4-verification.md) — manual verification checklist (Phase B/C reproduction recipe)
@@ -43,6 +44,7 @@ Week 4 also keeps:
 
 Week 5 pre-start bridge:
 - [week4_to_week5_bridge.md](week5/week4_to_week5_bridge.md) — Week 4 → Week 5 handoff (delivered work, reusable interfaces, Week 5 gaps)
+- [week5-verification.md](week5/week5-verification.md) — manual reproduction recipe for Week 5 (Phase A/B/C/D/E coverage)
 
 ---
 
