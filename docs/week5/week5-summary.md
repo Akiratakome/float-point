@@ -44,6 +44,7 @@ workarounds stay under `ENABLE_CUDA`.
 ## Commits
 
 ```text
+ce2f2ba docs(week5): clarify verification checks and artefact tracking
 245341e docs(index): add Week 5 row + verification.md link
 94c52f9 docs(week5): add week5-summary.md (deliverables + handoff)
 e9ef67c docs(week5): add reproduction recipe (week5-verification.md)
@@ -62,6 +63,11 @@ cc0f139 feat(cases): add LW Config 6 cfgs at 200x200 and 400x400
 5e4395c test(lw): cover Config 6 IC quadrant values + uniform pressure
 c152f17 feat(lw): implement Liska-Wendroff Config 6 IC (4 contact discontinuities)
 4d7c645 feat(harness): parse [timing] total_s from solver stderr into metadata.json
+cde34dd feat(euler): add per-phase ScopedTimer probes (under HRSC_ENABLE_PROFILING)
+d508bc1 feat(main): emit [timing] total_s=<value> on stderr per run
+3c38d43 test(timer): cover Timer accumulator + ProfilingRegistry/ScopedTimer
+19a2dcf feat(utils): add Timer + opt-in ProfilingRegistry/ScopedTimer
+5abbafd feat(gpu): add CUDA toolchain smoke target (Week 5 Day 1)
 ```
 
 ---
