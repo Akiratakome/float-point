@@ -23,6 +23,8 @@
 | `bc` / `bc_x` / `bc_y` 配置接入 | ✅ | `src/main.cpp` (`parse_boundary`) |
 | 1D/2D float regression（C1） | ✅ | `scripts/regression/float_regression_{1d,2d}.sh` |
 | C2 real-float vs p24 surrogate 对比 | ✅ | `docs/experiment_logs/c2_real_float_vs_vprec.md` |
+| A4 p53 + p24-real-float tradeoff table | ✅ | `docs/experiment_logs/week4_a4_lw_config3_200_tradeoff_table.md`, `docs/experiment_logs/week4_a4_p24_real_float_execution_summary.md` |
+| 最小 experiment harness 入口 | ✅ | `docs/HARNESS.md`, `scripts/build_all.sh`, `scripts/run_matrix.py`, `scripts/aggregate_metrics.py` |
 
 参考总结：`docs/week4/week4-summary.md`。
 
@@ -32,6 +34,32 @@
 2. `lw_config3` 已有 IC 与回归配置，可作为 Week 5 2D 基线。
 3. OpenMP 已在 `EulerSolver` sweeps 与 CFL reduction 接入（`#pragma omp parallel for`）。
 4. 数据与分析脚本链路已成型（回归、heatmap、summary JSON/MD）。
+5. A4 headline table 已包含 `p53` 与 `p24-real-float` 四行（HLLC/Rusanov × precision），可直接用于 Report 1/2 的 precision tradeoff 论证。
+6. 最小 harness 已落地：后续实验应优先通过 matrix build/run/aggregate 入口保存 cfg、command、commit、stdout/stderr 与 summary。
+
+### 1.3 A4 p24-real-float 交接要点
+
+Athena 上的 Liska-Wendroff Config 3 (`200 x 200`, `t_end=0.3`) p24-real-float MCA 已完成：
+
+| Solver | Samples | 结果 |
+|---|---:|---|
+| HLLC | 30 | success |
+| Rusanov | 30 | success |
+
+正式四行 headline table：
+
+- `docs/experiment_logs/week4_a4_lw_config3_200_tradeoff_table.md`
+
+执行与复现记录：
+
+- `docs/experiment_logs/week4_a4_p24_real_float_execution_summary.md`
+- `docs/experiment_logs/week4_a4_p24_real_float_readme.md`
+
+关键结论：
+
+- `p24-real-float` 与 `p53` 在 headline rho row 上共享相同的 `s_worst_q05` / regime，因为该行受 accuracy limit 主导。
+- precision effect 主要体现在 `sigma_FP_L1`：HLLC 从 `5.216e-11` 升至 `2.956e-02`，Rusanov 从 `2.278e-11` 升至 `8.199e-03`。
+- 两个 p24-real-float rows 均为 `round-off-limited`，可作为 Week 5/Report 1 中“低精度噪声显著抬升”的核心证据。
 
 ---
 
@@ -99,6 +127,25 @@ bc_y = reflective
 - 2D 降采样：`scripts/metrics/downsample_2d.py`
 - 结果汇总：`scripts/regression/float_regression_report.py`
 
+### 3.5 Harness 与 A4 指标入口
+
+- Harness 规范：`docs/HARNESS.md`
+- Build matrix：`scripts/build_all.sh`
+- Run matrix：`python scripts/run_matrix.py <matrix.json>`
+- Summary 聚合：`python scripts/aggregate_metrics.py --output <out.json> <summary.json>...`
+- A4 headline table 生成：
+
+```bash
+python scripts/figures/tradeoff_summary_table.py \
+  --snr-csv experiments/week4/metrics/a4_snr_with_float.csv \
+  --losos-csv experiments/week4/metrics/a4_losos_with_float.csv \
+  --s-req-csv experiments/week4/metrics/s_req_lw_config3_200.csv \
+  --N 200 \
+  --out docs/experiment_logs/week4_a4_lw_config3_200_tradeoff_table.md
+```
+
+Week 5 新实验若产生可比较数据，应尽量沿用同一 summary/table 结构，而不是新建一次性表格。
+
 ---
 
 ## Part 4. Week 5 建议执行顺序（最小阻塞）
@@ -107,7 +154,8 @@ bc_y = reflective
 2. **补 shock-bubble IC + cfg**（`tests/cases/shock_bubble/`）。  
 3. **统一 2D 图输出入口**（新增/整理 `plot_2d.py` 等效脚本）。  
 4. **GPU 起步骨架**：先落 `src/gpu/cuda_utils.cuh`、`src/gpu/gpu_grid.cuh`、`src/gpu/euler_kernels.cuh` 的可编译空实现。  
-5. 用现有 regression/summary 流程做 Week 5 第一轮基线，确保 CPU 2D 结果可复现，再进入 Week 6 完整 GPU solver。  
+5. 用现有 regression/summary/harness 流程做 Week 5 第一轮基线，确保 CPU 2D 结果可复现，再进入 Week 6 完整 GPU solver。  
+6. GPU 数据落地后，优先补 CPU-vs-GPU same-precision diff summary；不要先扩展新实验轴。  
 
 ---
 
@@ -123,6 +171,9 @@ cmake --build build-double
 
 # 运行边界条件与核心单测
 ./build-double/unit_tests "[boundary]"
+
+# Harness dry-run smoke（只生成 cfg/metadata，不跑 solver）
+python scripts/run_matrix.py <matrix.json> --dry-run
 ```
 
 ---
