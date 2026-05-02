@@ -16,6 +16,8 @@
 #include <utility>
 #include <vector>
 #include <cmath>
+#include <algorithm>
+#include <cstdlib>
 
 #ifndef HRSC_REAL
 #define HRSC_REAL double   // fallback if built without PrecisionConfig
@@ -126,6 +128,10 @@ static void run_convergence(const Config& cfg) {
     double xmin  = cfg.get_double("xmin", 0.0);
     double xmax  = cfg.get_double("xmax", 1.0);
     auto resolutions = cfg.get_int_list("resolutions");
+    if (resolutions.empty()) {
+        throw std::runtime_error("convergence: resolutions list is empty");
+    }
+    int largest_nx = *std::max_element(resolutions.begin(), resolutions.end());
     FluxScheme flux = parse_flux(cfg);
 
     double rhoL, uL, pL, rhoR, uR, pR, x0;
@@ -133,7 +139,7 @@ static void run_convergence(const Config& cfg) {
     // Allow config override for x0
     x0 = cfg.get_double("x0", x0);
 
-    std::cout << std::setprecision(6) << std::scientific;
+    std::cout << std::setprecision(15) << std::scientific;
     std::cout << "# N        dx            L1_rho        L2_rho        Linf_rho"
               << "      L1_u          L2_u          Linf_u"
               << "        L1_p          L2_p          Linf_p\n";
@@ -187,6 +193,21 @@ static void run_convergence(const Config& cfg) {
                   << "  " << err_u.L1   << "  " << err_u.L2   << "  " << err_u.Linf
                   << "  " << err_p.L1   << "  " << err_p.L2   << "  " << err_p.Linf
                   << "\n";
+
+        if (nx == largest_nx) {
+            const char* dump_dir = std::getenv("HRSC_DUMP_DIR");
+            const char* dump_tag = std::getenv("HRSC_DUMP_TAG");
+            if (dump_dir && dump_tag && dump_dir[0] && dump_tag[0]) {
+                std::string path = std::string(dump_dir) + "/" + test
+                                 + "_" + dump_tag + "_grid.bin";
+                write_binary<Real, EulerNVars>(
+                    path, solver.grid_view(),
+                    nx, 1,
+                    static_cast<Real>(dx), static_cast<Real>(dx),
+                    static_cast<Real>(solver.time()));
+                std::cerr << "[dump] wrote " << path << "\n";
+            }
+        }
     }
 }
 

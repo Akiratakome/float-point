@@ -58,13 +58,36 @@ def _safe_ratio(num: float, den: float) -> float:
     return num / den
 
 
+def _l1_norm_diff(a: np.ndarray, b: np.ndarray, dx: float) -> float:
+    return float(np.sum(np.abs(a - b)) * dx)
+
+
+def _read_grid_primitive(path: Path, gamma: float) -> tuple[float, np.ndarray, np.ndarray, np.ndarray]:
+    """Return (dx, rho, u, p) from a 1D HRSC binary."""
+    header, cons = read_binary(path)
+    if header.ny != 1:
+        raise ValueError(f"{path}: expected 1D dump (ny=1), got ny={header.ny}")
+    prim = cons_to_prim(cons.astype(np.float64), gamma)
+    return (
+        float(header.dx),
+        prim[0, :, 0],
+        prim[0, :, 1],
+        prim[0, :, 3],
+    )
+
+
 def _report_1d(input_dir: Path) -> dict[str, object]:
-    per_test: dict[str, dict[str, float]] = {}
+    per_test: dict[str, object] = {}
     md_lines = [
         "# Float vs Double Regression (1D)",
         "",
-        "| test | N_last | L1_rho d/f | L2_rho d/f | Linf_rho d/f | L1_u d/f | L2_u d/f | Linf_u d/f | L1_p d/f | L2_p d/f | Linf_p d/f |",
-        "|------|-------:|------------:|------------:|--------------:|---------:|---------:|-----------:|---------:|---------:|-----------:|",
+        "Two metrics per test are reported side-by-side:",
+        "",
+        "- **legacy d/f**: `||float - exact||_p / ||double - exact||_p`.",
+        "- **philip fmd/d_err**: `||float - double||_1 / ||double - exact||_1`.",
+        "",
+        "| test | N_last | L1_rho d/f | L2_rho d/f | Linf_rho d/f | L1_u d/f | L2_u d/f | Linf_u d/f | L1_p d/f | L2_p d/f | Linf_p d/f | L1_rho fmd/d_err | L1_u fmd/d_err | L1_p fmd/d_err |",
+        "|------|-------:|-----------:|-----------:|-------------:|---------:|---------:|-----------:|---------:|---------:|-----------:|-----------------:|---------------:|---------------:|",
     ]
     for test in TESTS_1D:
         p_double = input_dir / f"{test}_double.csv"
@@ -85,6 +108,28 @@ def _report_1d(input_dir: Path) -> dict[str, object]:
             "L1_p_ratio": _safe_ratio(r_float["L1_p"], r_double["L1_p"]),
             "L2_p_ratio": _safe_ratio(r_float["L2_p"], r_double["L2_p"]),
             "Linf_p_ratio": _safe_ratio(r_float["Linf_p"], r_double["Linf_p"]),
+        }
+        gamma = 1.4
+        gd = input_dir / f"{test}_double_grid.bin"
+        gf = input_dir / f"{test}_float_grid.bin"
+        if not gd.is_file() or not gf.is_file():
+            raise FileNotFoundError(f"Missing grid pair for {test}: {gd} / {gf}")
+        dx_d, rho_d, u_d, p_d = _read_grid_primitive(gd, gamma)
+        dx_f, rho_f, u_f, p_f = _read_grid_primitive(gf, gamma)
+        if rho_d.shape != rho_f.shape:
+            raise ValueError(f"Grid shape mismatch for {test}: {rho_d.shape} vs {rho_f.shape}")
+        if abs(dx_d - dx_f) > max(1e-12, 1e-6 * abs(dx_d)):
+            raise ValueError(f"dx mismatch for {test}: {dx_d} vs {dx_f}")
+        rho_fmd = _l1_norm_diff(rho_f, rho_d, dx_d)
+        u_fmd = _l1_norm_diff(u_f, u_d, dx_d)
+        p_fmd = _l1_norm_diff(p_f, p_d, dx_d)
+        philip = {
+            "L1_rho_fmd": rho_fmd,
+            "L1_u_fmd": u_fmd,
+            "L1_p_fmd": p_fmd,
+            "L1_rho_ratio": _safe_ratio(rho_fmd, r_double["L1_rho"]),
+            "L1_u_ratio": _safe_ratio(u_fmd, r_double["L1_u"]),
+            "L1_p_ratio": _safe_ratio(p_fmd, r_double["L1_p"]),
         }
         per_test[test] = {
             "N_last": r_double["N"],
@@ -111,11 +156,14 @@ def _report_1d(input_dir: Path) -> dict[str, object]:
                 "Linf_p": r_float["Linf_p"],
             },
             "ratio_float_over_double": ratios,
+            "philip": philip,
         }
         md_lines.append(
-            f"| {test} | {r_double['N']} | {ratios['L1_rho_ratio']:.3f} | {ratios['L2_rho_ratio']:.3f} | {ratios['Linf_rho_ratio']:.3f} | "
-            f"{ratios['L1_u_ratio']:.3f} | {ratios['L2_u_ratio']:.3f} | {ratios['Linf_u_ratio']:.3f} | "
-            f"{ratios['L1_p_ratio']:.3f} | {ratios['L2_p_ratio']:.3f} | {ratios['Linf_p_ratio']:.3f} |"
+            f"| {test} | {r_double['N']} | "
+            f"{ratios['L1_rho_ratio']:.6e} | {ratios['L2_rho_ratio']:.6e} | {ratios['Linf_rho_ratio']:.6e} | "
+            f"{ratios['L1_u_ratio']:.6e} | {ratios['L2_u_ratio']:.6e} | {ratios['Linf_u_ratio']:.6e} | "
+            f"{ratios['L1_p_ratio']:.6e} | {ratios['L2_p_ratio']:.6e} | {ratios['Linf_p_ratio']:.6e} | "
+            f"{philip['L1_rho_ratio']:.6e} | {philip['L1_u_ratio']:.6e} | {philip['L1_p_ratio']:.6e} |"
         )
     summary = {"mode": "1d", "input_dir": str(input_dir), "tests": per_test}
     _write_text(input_dir / "summary.md", "\n".join(md_lines) + "\n")
@@ -129,6 +177,8 @@ def _report_2d(input_dir: Path, gamma: float, smooth_sigma: float, allow_ssim_fa
         raise FileNotFoundError(f"Missing reference binary: {ref_path}")
     ref_header, ref_cons = read_binary(ref_path)
     ref_cons_f64 = ref_cons.astype(np.float64)
+    # Order matters: each double_NNN precedes its float_NNN twin, so the
+    # Philip metric can reuse the double-vs-reference denominator.
     cases = [
         ("double_200", input_dir / "double_200.bin"),
         ("float_200", input_dir / "float_200.bin"),
@@ -138,8 +188,13 @@ def _report_2d(input_dir: Path, gamma: float, smooth_sigma: float, allow_ssim_fa
     md_lines = [
         "# Float vs Double Regression (2D)",
         "",
-        "| case | L1_rho | L2_rho | Linf_rho | ssim_rho | delta_x_shock | delta_y_shock |",
-        "|------|-------:|-------:|---------:|---------:|--------------:|--------------:|",
+        "Two metrics per case:",
+        "",
+        "- **L1_rho** etc.: `||candidate - reference_800_downsampled||_1`.",
+        "- **L1_rho fmd/d_err**: `||float - double||_1 / ||double - reference_800_downsampled||_1`.",
+        "",
+        "| case | L1_rho | L2_rho | Linf_rho | ssim_rho | delta_x_shock | delta_y_shock | L1_rho fmd/d_err | L1_u fmd/d_err | L1_p fmd/d_err |",
+        "|------|-------:|-------:|---------:|---------:|--------------:|--------------:|-----------------:|---------------:|---------------:|",
     ]
     out_cases: dict[str, object] = {}
     any_ssim_fallback = False
@@ -173,11 +228,40 @@ def _report_2d(input_dir: Path, gamma: float, smooth_sigma: float, allow_ssim_fa
             "downsample_metrics": downsample_metrics["metrics"],
             "phase_metrics": phase_metrics,
         }
+        philip_metrics: dict[str, float] = {}
+        if label.startswith("float_"):
+            res_tag = label.split("_", 1)[1]
+            twin_label = f"double_{res_tag}"
+            twin_path = input_dir / f"{twin_label}.bin"
+            if not twin_path.is_file():
+                raise FileNotFoundError(f"Missing double twin for {label}: {twin_path}")
+            twin_header, twin_cons = read_binary(twin_path)
+            if (twin_header.nx, twin_header.ny) != (cand_header.nx, cand_header.ny):
+                raise ValueError(
+                    f"Grid shape mismatch for {label}: "
+                    f"{cand_header.nx}x{cand_header.ny} vs "
+                    f"{twin_header.nx}x{twin_header.ny}"
+                )
+            twin_prim = cons_to_prim(twin_cons.astype(np.float64), gamma)
+            cell_area = float(cand_header.dx * cand_header.dy)
+            for var_name, idx in (("rho", 0), ("u", 1), ("v", 2), ("p", 3)):
+                fmd = float(np.sum(np.abs(cand_prim[..., idx] - twin_prim[..., idx])) * cell_area)
+                philip_metrics[f"L1_{var_name}_fmd"] = fmd
+                d_err = float(out_cases[twin_label]["downsample_metrics"][var_name]["L1"])  # type: ignore[index]
+                philip_metrics[f"L1_{var_name}_ratio"] = _safe_ratio(fmd, d_err)
+        out_cases[label]["philip"] = philip_metrics  # type: ignore[index]
         rho_norms = downsample_metrics["metrics"]["rho"]
+        philip = out_cases[label].get("philip", {})  # type: ignore[union-attr]
+
+        def _fmt_philip(key: str) -> str:
+            value = philip.get(key)
+            return f"{value:.6e}" if isinstance(value, (int, float)) and np.isfinite(value) else "-"
+
         md_lines.append(
             f"| {label} | {rho_norms['L1']:.6e} | {rho_norms['L2']:.6e} | {rho_norms['Linf']:.6e} | "
             f"{float(phase_metrics['ssim_rho']):.6f} | {float(phase_metrics['delta_x_shock']):.6e} | "
-            f"{float(phase_metrics['delta_y_shock']):.6e} |"
+            f"{float(phase_metrics['delta_y_shock']):.6e} | "
+            f"{_fmt_philip('L1_rho_ratio')} | {_fmt_philip('L1_u_ratio')} | {_fmt_philip('L1_p_ratio')} |"
         )
     md_lines.extend(["", "## Difference heatmaps", ""])
     for label, _cand_path in cases:
