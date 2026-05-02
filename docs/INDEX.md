@@ -19,7 +19,7 @@
 | Project briefs (PDFs from supervisor) | [requirement/](requirement/) (`*.pdf`) |
 | What's been done so far this project | per-week `weekN-summary.md` (see §2) |
 | What's planned this week | per-week `weekN-plan.md` (see §2) |
-| Supervisor correspondence | [emails/](emails/) (named `weekN_<topic>_YYYY-MM-DD.md`) |
+| Supervisor correspondence + feedback artefacts | [emails/](emails/) — meeting scripts, replies, decision/comparison artefacts, supervisor-driven plans (named `weekN_<topic>_YYYY-MM-DD.md`) |
 | Raw experiment data logs (deliverable artefacts) | [experiment_logs/](experiment_logs/) (named `weekN_<phase>_<topic>.md`) |
 | Manual reproduction recipe (build → tests → regression) | [week4/week4-verification.md](week4/week4-verification.md) |
 | How Week N's state evolved from Week N-1 | `weekN/weekN-1_to_weekN_bridge.md` (kept at the target week) |
@@ -41,6 +41,7 @@
 Week 4 also keeps:
 - [week4-verification.md](week4/week4-verification.md) — manual verification checklist (Phase B/C reproduction recipe)
 - [week3_to_week4_bridge.md](week4/week3_to_week4_bridge.md) — Week 3 → Week 4 state migration
+- [cfg_reference.md](week4/cfg_reference.md) — Week-4 snapshot of runtime cfg keys (referenced from `week4-plan.md`)
 
 Week 5 pre-start bridge:
 - [week4_to_week5_bridge.md](week5/week4_to_week5_bridge.md) — Week 4 → Week 5 handoff (delivered work, reusable interfaces, Week 5 gaps)
@@ -158,4 +159,4 @@ When a structured reorganization or multi-step task is in progress, three files 
 
 ---
 
-*Last updated: 2026-04-28 (post-Week-4 reorganization).*
+*Last updated: 2026-05-02 (consolidated supervisor artefacts under `emails/`; archived week5 implementation plan; removed deprecated c2 alias).*
