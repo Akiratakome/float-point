@@ -33,6 +33,9 @@ void apply_outflow_bc_gpu(GpuGrid<Real, EulerNVars>& g, Axis axis);
 template <typename Real>
 void apply_periodic_bc_gpu(GpuGrid<Real, EulerNVars>& g, Axis axis);
 
+template <typename Real>
+void apply_reflective_bc_gpu(GpuGrid<Real, EulerNVars>& g, Axis axis);
+
 extern template void apply_outflow_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 extern template void apply_outflow_bc_gpu<double>(
@@ -41,6 +44,11 @@ extern template void apply_outflow_bc_gpu<double>(
 extern template void apply_periodic_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 extern template void apply_periodic_bc_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, Axis axis);
+
+extern template void apply_reflective_bc_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, Axis axis);
+extern template void apply_reflective_bc_gpu<double>(
     GpuGrid<double, EulerNVars>& g, Axis axis);
 #endif
 

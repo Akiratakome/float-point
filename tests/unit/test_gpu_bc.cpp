@@ -104,6 +104,55 @@ void require_gpu_periodic_matches_cpu(Axis axis, int nx, int ny,
     REQUIRE(byte_equal(got, oracle));
 }
 
+template <typename Real>
+void require_gpu_reflective_matches_cpu(Axis axis, int nx, int ny,
+                                        std::uint32_t seed) {
+    Grid2D<Real, EulerNVars> host(nx, ny);
+    host.dx = Real(1) / static_cast<Real>(nx);
+    host.dy = Real(1) / static_cast<Real>(ny);
+    fill_random(host, seed);
+
+    Grid2D<Real, EulerNVars> oracle = host;
+    if (axis == Axis::X) {
+        apply_reflective_bc(oracle.view(), axis, std::array<int, 1>{RHOU});
+    } else {
+        apply_reflective_bc(oracle.view(), axis, std::array<int, 1>{RHOV});
+    }
+
+    GpuGrid<Real, EulerNVars> dev(host);
+    apply_reflective_bc_gpu(dev, axis);
+
+    Grid2D<Real, EulerNVars> got(host.nx, host.ny);
+    got.dx = host.dx;
+    got.dy = host.dy;
+    dev.download_to(got);
+
+    REQUIRE(byte_equal(got, oracle));
+}
+
+template <typename Real>
+void require_gpu_reflective_xy_matches_cpu(int nx, int ny, std::uint32_t seed) {
+    Grid2D<Real, EulerNVars> host(nx, ny);
+    host.dx = Real(1) / static_cast<Real>(nx);
+    host.dy = Real(1) / static_cast<Real>(ny);
+    fill_random(host, seed);
+
+    Grid2D<Real, EulerNVars> oracle = host;
+    apply_reflective_bc(oracle.view(), Axis::X, std::array<int, 1>{RHOU});
+    apply_reflective_bc(oracle.view(), Axis::Y, std::array<int, 1>{RHOV});
+
+    GpuGrid<Real, EulerNVars> dev(host);
+    apply_reflective_bc_gpu(dev, Axis::X);
+    apply_reflective_bc_gpu(dev, Axis::Y);
+
+    Grid2D<Real, EulerNVars> got(host.nx, host.ny);
+    got.dx = host.dx;
+    got.dy = host.dy;
+    dev.download_to(got);
+
+    REQUIRE(byte_equal(got, oracle));
+}
+
 } // namespace
 
 TEST_CASE("GPU X outflow BC matches CPU oracle byte-for-byte",
@@ -146,6 +195,26 @@ TEST_CASE("GPU Y periodic BC matches CPU oracle byte-for-byte",
     require_gpu_periodic_matches_cpu<float>(Axis::Y, 5, 3, 0x6D0205u);
     require_gpu_periodic_matches_cpu<double>(Axis::Y, 19, 7, 0x6D0206u);
     require_gpu_periodic_matches_cpu<float>(Axis::Y, 19, 7, 0x6D0207u);
+}
+
+TEST_CASE("GPU X reflective BC matches CPU oracle byte-for-byte",
+          "[gpu][bc]") {
+    require_gpu_reflective_matches_cpu<double>(Axis::X, 17, 9, 0x6D0300u);
+    require_gpu_reflective_matches_cpu<float>(Axis::X, 17, 9, 0x6D0301u);
+}
+
+TEST_CASE("GPU Y reflective BC matches CPU oracle byte-for-byte",
+          "[gpu][bc]") {
+    require_gpu_reflective_matches_cpu<double>(Axis::Y, 19, 7, 0x6D0302u);
+    require_gpu_reflective_matches_cpu<float>(Axis::Y, 19, 7, 0x6D0303u);
+}
+
+TEST_CASE("GPU X-then-Y reflective BC composition matches CPU solver order",
+          "[gpu][bc]") {
+    require_gpu_reflective_xy_matches_cpu<double>(19, 7, 0x6D0304u);
+    require_gpu_reflective_xy_matches_cpu<float>(19, 7, 0x6D0305u);
+    require_gpu_reflective_xy_matches_cpu<double>(3, 5, 0x6D0306u);
+    require_gpu_reflective_xy_matches_cpu<float>(3, 5, 0x6D0307u);
 }
 
 #endif // HRSC_HAS_CUDA
