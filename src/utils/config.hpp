@@ -37,6 +37,8 @@ class Config {
     }
 
 public:
+    Config() = default;
+
     explicit Config(std::istream& is) { parse(is); }
 
     explicit Config(const std::string& filename) {
@@ -45,6 +47,10 @@ public:
             throw std::runtime_error("Cannot open config file: " + filename);
         }
         parse(file);
+    }
+
+    void set(const std::string& key, const std::string& value) {
+        m_entries[key] = value;
     }
 
     std::string get_string(const std::string& key,

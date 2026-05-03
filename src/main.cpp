@@ -353,6 +353,18 @@ int main(int argc, char* argv[]) {
 
     Config cfg(argv[1]);
     std::string mode = cfg.get_string("mode", "normal");
+    const std::string device = cfg.get_string("device", "cpu");
+    if (device != "cpu" && device != "gpu") {
+        throw std::runtime_error("Invalid device='" + device + "'; expected 'cpu' or 'gpu'");
+    }
+    if (device == "gpu") {
+#ifndef HRSC_HAS_CUDA
+        throw std::runtime_error("device=gpu requires building with -DENABLE_CUDA=ON");
+#else
+        // T17 wires this to EulerGpuSolver. For now: bail loudly.
+        throw std::runtime_error("device=gpu dispatch not yet implemented (Week 6 D5)");
+#endif
+    }
 
     if (mode == "convergence") {
         run_convergence(cfg);

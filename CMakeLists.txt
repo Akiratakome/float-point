@@ -106,6 +106,7 @@ if(ENABLE_CUDA)
     endif()
     enable_language(CUDA)
     hrsc_configure_cuda_toolkit()
+    target_compile_definitions(hrsc_core INTERFACE HRSC_HAS_CUDA)
 
     # Standalone toolchain validator. Not linked into hrsc.
     add_executable(gpu_smoke src/gpu/gpu_smoke.cu)
@@ -123,5 +124,4 @@ if(ENABLE_CUDA)
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
     target_link_libraries(unit_tests PRIVATE CUDA::cudart)
-    target_compile_definitions(unit_tests PRIVATE HRSC_HAS_CUDA)
 endif()
