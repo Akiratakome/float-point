@@ -97,10 +97,17 @@ target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/sh
 
 if(ENABLE_CUDA)
     include(${CMAKE_SOURCE_DIR}/cmake/CUDASetup.cmake)
+    if(WIN32)
+        # CUDA/MSVC host compiler compatibility workaround. This must be set
+        # before enable_language(CUDA) so compiler identification sees it.
+        string(FIND "${CMAKE_CUDA_FLAGS}" "--allow-unsupported-compiler" _hrsc_cuda_allow_unsupported)
+        if(_hrsc_cuda_allow_unsupported EQUAL -1)
+            set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler")
+        endif()
+    endif()
     if(MSVC)
-        # CUDA/MSVC host compiler compatibility workaround. Keep this opt-in
-        # to CUDA builds so default CPU-only builds retain compiler defaults.
-        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler")
+        # Keep the host OpenMP tweak opt-in to CUDA builds so default CPU-only
+        # builds retain compiler defaults.
         target_compile_options(hrsc_core INTERFACE
             $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/openmp:llvm>)
     endif()
@@ -114,6 +121,8 @@ if(ENABLE_CUDA)
     set_target_properties(gpu_smoke PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+    set_target_properties(hrsc PROPERTIES
+        CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
 
     # Day-4 GPU data path: the .cpp half is picked up by the existing
     # test_*.cpp glob; the .cu wrapper is linked only for CUDA builds.
@@ -124,4 +133,14 @@ if(ENABLE_CUDA)
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
     target_link_libraries(unit_tests PRIVATE CUDA::cudart)
+
+    # Week 6: GPU Euler solver bodies + kernels (single TU each).
+    target_sources(hrsc_euler PRIVATE
+        src/gpu/euler_gpu_solver.cu)
+    set_source_files_properties(src/gpu/euler_gpu_solver.cu
+        PROPERTIES LANGUAGE CUDA)
+    set_target_properties(hrsc_euler PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
+        CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+    target_link_libraries(hrsc_euler PUBLIC CUDA::cudart)
 endif()
