@@ -133,8 +133,12 @@ if(ENABLE_CUDA)
 
     # Day-4 GPU data path: the .cpp half is picked up by the existing
     # test_*.cpp glob; the .cu wrapper is linked only for CUDA builds.
-    target_sources(unit_tests PRIVATE tests/unit/gpu_roundtrip_kernel.cu)
-    set_source_files_properties(tests/unit/gpu_roundtrip_kernel.cu
+    target_sources(unit_tests PRIVATE
+        tests/unit/gpu_roundtrip_kernel.cu
+        tests/unit/gpu_layout_kernel.cu)
+    set_source_files_properties(
+        tests/unit/gpu_roundtrip_kernel.cu
+        tests/unit/gpu_layout_kernel.cu
         PROPERTIES LANGUAGE CUDA)
     set_target_properties(unit_tests PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
