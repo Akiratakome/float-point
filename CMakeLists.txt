@@ -30,6 +30,13 @@ endif()
 # Optional CUDA path (Week 5 D.1 = toolchain smoke; Week 5 D.2 = data path;
 # Week 6 = real kernels). Default OFF preserves CPU-only build behaviour.
 option(ENABLE_CUDA "Enable CUDA toolchain (Week 5 GPU bring-up)" OFF)
+if(STRICT_IEEE)
+    hrsc_apply_strict_ieee_cpu(hrsc_core)
+    if(ENABLE_CUDA)
+        hrsc_apply_strict_ieee_cuda(hrsc_core)
+    endif()
+    message(STATUS "HRSC STRICT_IEEE: ON")
+endif()
 
 # OpenMP parallelisation of the per-row / per-column sweep loops.
 # Disable with -DENABLE_OPENMP=OFF when running under Verificarlo MCA
@@ -117,7 +124,7 @@ if(ENABLE_CUDA)
 
     # Standalone toolchain validator. Not linked into hrsc.
     add_executable(gpu_smoke src/gpu/gpu_smoke.cu)
-    target_link_libraries(gpu_smoke PRIVATE CUDA::cudart)
+    target_link_libraries(gpu_smoke PRIVATE hrsc_core CUDA::cudart)
     set_target_properties(gpu_smoke PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")

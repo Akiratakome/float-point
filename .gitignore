@@ -7,6 +7,10 @@ build_vfc*/
 build_vfc_hrsc
 cmake-build-*/
 
+# Week 6 strict-IEEE build dirs (covered by build-*/ but listed for clarity)
+build-cpu-strict-*/
+build-cuda-*-strict/
+
 # Verificarlo-instrumented binary (built out-of-tree, ends up at repo root)
 /hrsc_vfc
 
