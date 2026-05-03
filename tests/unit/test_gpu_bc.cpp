@@ -82,6 +82,28 @@ void require_gpu_outflow_xy_matches_cpu(int nx, int ny, std::uint32_t seed) {
     REQUIRE(byte_equal(got, oracle));
 }
 
+template <typename Real>
+void require_gpu_periodic_matches_cpu(Axis axis, int nx, int ny,
+                                      std::uint32_t seed) {
+    Grid2D<Real, EulerNVars> host(nx, ny);
+    host.dx = Real(1) / static_cast<Real>(nx);
+    host.dy = Real(1) / static_cast<Real>(ny);
+    fill_random(host, seed);
+
+    Grid2D<Real, EulerNVars> oracle = host;
+    apply_periodic_bc(oracle.view(), axis);
+
+    GpuGrid<Real, EulerNVars> dev(host);
+    apply_periodic_bc_gpu(dev, axis);
+
+    Grid2D<Real, EulerNVars> got(host.nx, host.ny);
+    got.dx = host.dx;
+    got.dy = host.dy;
+    dev.download_to(got);
+
+    REQUIRE(byte_equal(got, oracle));
+}
+
 } // namespace
 
 TEST_CASE("GPU X outflow BC matches CPU oracle byte-for-byte",
@@ -108,6 +130,22 @@ TEST_CASE("GPU X-then-Y outflow BC composition matches CPU solver order",
           "[gpu][bc]") {
     require_gpu_outflow_xy_matches_cpu<double>(19, 7, 0xABCDu);
     require_gpu_outflow_xy_matches_cpu<float>(19, 7, 0xABCEu);
+}
+
+TEST_CASE("GPU X periodic BC matches CPU oracle byte-for-byte",
+          "[gpu][bc]") {
+    require_gpu_periodic_matches_cpu<double>(Axis::X, 3, 5, 0x6D0200u);
+    require_gpu_periodic_matches_cpu<float>(Axis::X, 3, 5, 0x6D0201u);
+    require_gpu_periodic_matches_cpu<double>(Axis::X, 17, 9, 0x6D0202u);
+    require_gpu_periodic_matches_cpu<float>(Axis::X, 17, 9, 0x6D0203u);
+}
+
+TEST_CASE("GPU Y periodic BC matches CPU oracle byte-for-byte",
+          "[gpu][bc]") {
+    require_gpu_periodic_matches_cpu<double>(Axis::Y, 5, 3, 0x6D0204u);
+    require_gpu_periodic_matches_cpu<float>(Axis::Y, 5, 3, 0x6D0205u);
+    require_gpu_periodic_matches_cpu<double>(Axis::Y, 19, 7, 0x6D0206u);
+    require_gpu_periodic_matches_cpu<float>(Axis::Y, 19, 7, 0x6D0207u);
 }
 
 #endif // HRSC_HAS_CUDA
