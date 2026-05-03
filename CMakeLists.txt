@@ -147,8 +147,11 @@ if(ENABLE_CUDA)
 
     # Week 6: GPU Euler solver bodies + kernels (single TU each).
     target_sources(hrsc_euler PRIVATE
-        src/gpu/euler_gpu_solver.cu)
-    set_source_files_properties(src/gpu/euler_gpu_solver.cu
+        src/gpu/euler_gpu_solver.cu
+        src/gpu/euler_kernels.cu)
+    set_source_files_properties(
+        src/gpu/euler_gpu_solver.cu
+        src/gpu/euler_kernels.cu
         PROPERTIES LANGUAGE CUDA)
     set_target_properties(hrsc_euler PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON

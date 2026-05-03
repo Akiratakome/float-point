@@ -1,0 +1,113 @@
+// tests/unit/test_gpu_bc.cpp
+//
+// CUDA-only bit-exact oracle tests for GPU boundary-condition kernels.
+
+#include "catch.hpp"
+
+#ifdef HRSC_HAS_CUDA
+
+#include "core/boundary.hpp"
+#include "core/grid.hpp"
+#include "gpu/euler_kernels.cuh"
+#include "gpu/gpu_grid.cuh"
+
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <random>
+
+using namespace hrsc;
+
+namespace {
+
+template <typename Real>
+void fill_random(Grid2D<Real, EulerNVars>& grid, std::uint32_t seed) {
+    std::mt19937 rng(seed);
+    std::uniform_real_distribution<double> dist(-1.0e6, 1.0e6);
+    for (auto& x : grid.data) {
+        x = static_cast<Real>(dist(rng));
+    }
+}
+
+template <typename Real>
+bool byte_equal(const Grid2D<Real, EulerNVars>& a,
+                const Grid2D<Real, EulerNVars>& b) {
+    return a.data.size() == b.data.size() &&
+           std::memcmp(a.data.data(), b.data.data(),
+                       a.data.size() * sizeof(Real)) == 0;
+}
+
+template <typename Real>
+void require_gpu_outflow_matches_cpu(Axis axis, int nx, int ny,
+                                     std::uint32_t seed) {
+    Grid2D<Real, EulerNVars> host(nx, ny);
+    host.dx = Real(1) / static_cast<Real>(nx);
+    host.dy = Real(1) / static_cast<Real>(ny);
+    fill_random(host, seed);
+
+    Grid2D<Real, EulerNVars> oracle = host;
+    apply_outflow_bc(oracle.view(), axis);
+
+    GpuGrid<Real, EulerNVars> dev(host);
+    apply_outflow_bc_gpu(dev, axis);
+
+    Grid2D<Real, EulerNVars> got(host.nx, host.ny);
+    got.dx = host.dx;
+    got.dy = host.dy;
+    dev.download_to(got);
+
+    REQUIRE(byte_equal(got, oracle));
+}
+
+template <typename Real>
+void require_gpu_outflow_xy_matches_cpu(int nx, int ny, std::uint32_t seed) {
+    Grid2D<Real, EulerNVars> host(nx, ny);
+    host.dx = Real(1) / static_cast<Real>(nx);
+    host.dy = Real(1) / static_cast<Real>(ny);
+    fill_random(host, seed);
+
+    Grid2D<Real, EulerNVars> oracle = host;
+    apply_outflow_bc(oracle.view(), Axis::X);
+    apply_outflow_bc(oracle.view(), Axis::Y);
+
+    GpuGrid<Real, EulerNVars> dev(host);
+    apply_outflow_bc_gpu(dev, Axis::X);
+    apply_outflow_bc_gpu(dev, Axis::Y);
+
+    Grid2D<Real, EulerNVars> got(host.nx, host.ny);
+    got.dx = host.dx;
+    got.dy = host.dy;
+    dev.download_to(got);
+
+    REQUIRE(byte_equal(got, oracle));
+}
+
+} // namespace
+
+TEST_CASE("GPU X outflow BC matches CPU oracle byte-for-byte",
+          "[gpu][bc]") {
+    require_gpu_outflow_matches_cpu<double>(Axis::X, 17, 9, 0xB00Cu);
+    require_gpu_outflow_matches_cpu<float>(Axis::X, 17, 9, 0xB00Du);
+}
+
+TEST_CASE("GPU Y outflow BC matches CPU oracle byte-for-byte",
+          "[gpu][bc]") {
+    require_gpu_outflow_matches_cpu<double>(Axis::Y, 17, 9, 0xC0DEu);
+    require_gpu_outflow_matches_cpu<float>(Axis::Y, 17, 9, 0xC0DFu);
+}
+
+TEST_CASE("GPU outflow BC matches CPU oracle in canonical 1D grid",
+          "[gpu][bc]") {
+    require_gpu_outflow_matches_cpu<double>(Axis::X, 23, 1, 0x1D00u);
+    require_gpu_outflow_matches_cpu<float>(Axis::X, 23, 1, 0x1D01u);
+    require_gpu_outflow_matches_cpu<double>(Axis::Y, 23, 1, 0x1D02u);
+    require_gpu_outflow_matches_cpu<float>(Axis::Y, 23, 1, 0x1D03u);
+}
+
+TEST_CASE("GPU X-then-Y outflow BC composition matches CPU solver order",
+          "[gpu][bc]") {
+    require_gpu_outflow_xy_matches_cpu<double>(19, 7, 0xABCDu);
+    require_gpu_outflow_xy_matches_cpu<float>(19, 7, 0xABCEu);
+}
+
+#endif // HRSC_HAS_CUDA
