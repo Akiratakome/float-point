@@ -2040,7 +2040,7 @@ Expected: 30+ commits land on remote.
 
 - [ ] **Step 1: Author `scripts/cluster/build_gpu_csc.sh`** (verbatim from `docs/week6/week6-design.md` §8.2; replace `cuda/12.4`, `gcc/11`, etc. with the modules captured in `csc_gpu_environment.md`).
 
-- [ ] **Step 2: Author `scripts/cluster/run_gpu_smoke.slurm`** (verbatim from §8.3; replace `--partition=ampere` and `--gres=gpu:1` with the values from `csc_gpu_environment.md`).
+- [ ] **Step 2: Author `scripts/cluster/run_gpu_smoke.slurm`** (verbatim from §8.3; replace `--partition=ampere` with the probed `--partition=csc-mphil-gpu`; keep `--gres=gpu:1`, which was confirmed by the D1 allocation probe).
 
 - [ ] **Step 3: Author `experiments/week6/csc_smoke/matrix.json`** (4 GPU rows from §8.4).
 
