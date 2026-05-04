@@ -36,6 +36,9 @@ void apply_periodic_bc_gpu(GpuGrid<Real, EulerNVars>& g, Axis axis);
 template <typename Real>
 void apply_reflective_bc_gpu(GpuGrid<Real, EulerNVars>& g, Axis axis);
 
+template <typename Real>
+TimeReal compute_dt_gpu(GpuGrid<Real, EulerNVars>& g, Real gamma, Real cfl);
+
 extern template void apply_outflow_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 extern template void apply_outflow_bc_gpu<double>(
@@ -50,6 +53,11 @@ extern template void apply_reflective_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 extern template void apply_reflective_bc_gpu<double>(
     GpuGrid<double, EulerNVars>& g, Axis axis);
+
+extern template TimeReal compute_dt_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, float gamma, float cfl);
+extern template TimeReal compute_dt_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, double gamma, double cfl);
 #endif
 
 } // namespace hrsc

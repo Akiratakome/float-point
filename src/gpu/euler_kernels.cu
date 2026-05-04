@@ -4,6 +4,9 @@
 
 #include "gpu/cuda_utils.cuh"
 
+#include <cstring>
+#include <limits>
+
 namespace hrsc {
 
 namespace {
@@ -13,6 +16,105 @@ __device__ int grid_index(int i, int j, int var, int nx) {
     constexpr int ng = GridView<Real, EulerNVars>::ng;
     const int nx_total = nx + 2 * ng;
     return ((j + ng) * nx_total + (i + ng)) * EulerNVars + var;
+}
+
+__device__ unsigned long long double_to_ordered_bits(double x) {
+    return static_cast<unsigned long long>(__double_as_longlong(x));
+}
+
+__host__ unsigned long long double_to_ordered_bits_host(double x) {
+    unsigned long long bits = 0;
+    std::memcpy(&bits, &x, sizeof(bits));
+    return bits;
+}
+
+__host__ double ordered_bits_to_double_host(unsigned long long bits) {
+    double x = 0.0;
+    std::memcpy(&x, &bits, sizeof(x));
+    return x;
+}
+
+__device__ void atomic_min_positive_double(unsigned long long* addr,
+                                           double value) {
+    const unsigned long long value_bits = double_to_ordered_bits(value);
+    unsigned long long old = *addr;
+    while (value_bits < old) {
+        const unsigned long long assumed = old;
+        old = atomicCAS(addr, assumed, value_bits);
+        if (old == assumed) return;
+    }
+}
+
+__device__ float device_abs(float x) {
+    return fabsf(x);
+}
+
+__device__ double device_abs(double x) {
+    return fabs(x);
+}
+
+__device__ float device_sqrt(float x) {
+    return sqrtf(x);
+}
+
+__device__ double device_sqrt(double x) {
+    return sqrt(x);
+}
+
+__device__ double reduce_min(double a, double b) {
+    return (b < a) ? b : a;
+}
+
+template <typename Real>
+__global__ void cfl_dt_kernel(const Real* data, int nx, int ny, Real dx,
+                              Real dy, Real gamma, Real cfl,
+                              unsigned long long* global_min_bits) {
+    extern __shared__ double block_dt[];
+
+    const int tid = threadIdx.x;
+    const int global_tid = blockIdx.x * blockDim.x + tid;
+    const int stride = blockDim.x * gridDim.x;
+    const int ncells = nx * ny;
+    double local_min = INFINITY;
+
+    for (int cell = global_tid; cell < ncells; cell += stride) {
+        const int i = cell % nx;
+        const int j = cell / nx;
+
+        const Real rho = data[grid_index<Real>(i, j, RHO, nx)];
+        const Real rho_u = data[grid_index<Real>(i, j, RHOU, nx)];
+        const Real rho_v = data[grid_index<Real>(i, j, RHOV, nx)];
+        const Real energy = data[grid_index<Real>(i, j, EN, nx)];
+
+        const Real u = rho_u / rho;
+        const Real vel_v = rho_v / rho;
+        const Real ke = Real(0.5) * (rho_u * rho_u + rho_v * rho_v) / rho;
+        const Real p = (gamma - Real(1)) * (energy - ke);
+        const Real a = device_sqrt(gamma * p / rho);
+        const Real sx = device_abs(u) + a;
+        const Real sy = device_abs(vel_v) + a;
+
+        const double dtx = static_cast<double>(dx) / static_cast<double>(sx);
+        const double dty = static_cast<double>(dy) / static_cast<double>(sy);
+        const double cell_dt =
+            static_cast<double>(cfl) * ((dty < dtx) ? dty : dtx);
+        local_min = reduce_min(local_min, cell_dt);
+    }
+
+    block_dt[tid] = local_min;
+    __syncthreads();
+
+    for (int offset = blockDim.x / 2; offset > 0; offset >>= 1) {
+        if (tid < offset) {
+            block_dt[tid] =
+                reduce_min(block_dt[tid], block_dt[tid + offset]);
+        }
+        __syncthreads();
+    }
+
+    if (tid == 0) {
+        atomic_min_positive_double(global_min_bits, block_dt[0]);
+    }
 }
 
 template <typename Real>
@@ -204,6 +306,28 @@ void apply_reflective_bc_gpu(GpuGrid<Real, EulerNVars>& g, Axis axis) {
     HRSC_CUDA_CHECK(cudaDeviceSynchronize());
 }
 
+template <typename Real>
+TimeReal compute_dt_gpu(GpuGrid<Real, EulerNVars>& g, Real gamma, Real cfl) {
+    constexpr int threads = 256;
+    const int cells = g.nx() * g.ny();
+    const int blocks = (cells + threads - 1) / threads;
+    const double inf = std::numeric_limits<double>::infinity();
+    const unsigned long long init_bits = double_to_ordered_bits_host(inf);
+
+    DeviceArray<unsigned long long> global_min_bits(1);
+    global_min_bits.copy_from_host(&init_bits, 1);
+
+    cfl_dt_kernel<Real><<<blocks, threads, threads * sizeof(double)>>>(
+        g.data(), g.nx(), g.ny(), g.dx(), g.dy(), gamma, cfl,
+        global_min_bits.data());
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+
+    unsigned long long result_bits = 0;
+    global_min_bits.copy_to_host(&result_bits, 1);
+    return ordered_bits_to_double_host(result_bits);
+}
+
 template void apply_outflow_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 template void apply_outflow_bc_gpu<double>(
@@ -218,5 +342,10 @@ template void apply_reflective_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 template void apply_reflective_bc_gpu<double>(
     GpuGrid<double, EulerNVars>& g, Axis axis);
+
+template TimeReal compute_dt_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, float gamma, float cfl);
+template TimeReal compute_dt_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, double gamma, double cfl);
 
 } // namespace hrsc
