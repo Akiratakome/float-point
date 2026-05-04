@@ -8,6 +8,7 @@
 #include "core/boundary.hpp"
 #include "core/eos.hpp"
 #include "core/grid.hpp"
+#include "core/vec.hpp"
 
 #ifdef HRSC_HAS_CUDA
 #include "gpu/gpu_grid.cuh"
@@ -39,6 +40,21 @@ void apply_reflective_bc_gpu(GpuGrid<Real, EulerNVars>& g, Axis axis);
 template <typename Real>
 TimeReal compute_dt_gpu(GpuGrid<Real, EulerNVars>& g, Real gamma, Real cfl);
 
+// MUSCL piecewise-linear reconstruction (minmod limiter), per-cell variant.
+// For X: produces qL (i-1/2 face state from cell i) and qR (i+1/2 face state
+// from cell i) for every interior cell. Output buffers are sized nx * ny
+// with linear index j*nx + i. For Y: q_bottom (j-1/2) and q_top (j+1/2),
+// same nx * ny layout. Bit-exact w.r.t. the CPU oracle in src/euler/muscl.hpp.
+template <typename Real>
+void muscl_reconstruct_x_gpu(GpuGrid<Real, EulerNVars>& g,
+                             Vec<Real, EulerNVars>* qL,
+                             Vec<Real, EulerNVars>* qR);
+
+template <typename Real>
+void muscl_reconstruct_y_gpu(GpuGrid<Real, EulerNVars>& g,
+                             Vec<Real, EulerNVars>* q_bottom,
+                             Vec<Real, EulerNVars>* q_top);
+
 extern template void apply_outflow_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 extern template void apply_outflow_bc_gpu<double>(
@@ -58,6 +74,20 @@ extern template TimeReal compute_dt_gpu<float>(
     GpuGrid<float, EulerNVars>& g, float gamma, float cfl);
 extern template TimeReal compute_dt_gpu<double>(
     GpuGrid<double, EulerNVars>& g, double gamma, double cfl);
+
+extern template void muscl_reconstruct_x_gpu<float>(
+    GpuGrid<float, EulerNVars>& g,
+    Vec<float, EulerNVars>* qL, Vec<float, EulerNVars>* qR);
+extern template void muscl_reconstruct_x_gpu<double>(
+    GpuGrid<double, EulerNVars>& g,
+    Vec<double, EulerNVars>* qL, Vec<double, EulerNVars>* qR);
+
+extern template void muscl_reconstruct_y_gpu<float>(
+    GpuGrid<float, EulerNVars>& g,
+    Vec<float, EulerNVars>* q_bottom, Vec<float, EulerNVars>* q_top);
+extern template void muscl_reconstruct_y_gpu<double>(
+    GpuGrid<double, EulerNVars>& g,
+    Vec<double, EulerNVars>* q_bottom, Vec<double, EulerNVars>* q_top);
 #endif
 
 } // namespace hrsc

@@ -2,6 +2,7 @@
 
 #include "gpu/euler_kernels.cuh"
 
+#include "euler/muscl.hpp"
 #include "gpu/cuda_utils.cuh"
 
 #include <cstring>
@@ -222,6 +223,40 @@ __global__ void reflective_x_kernel(Real* data, int nx, int ny) {
 }
 
 template <typename Real>
+__global__ void muscl_reconstruct_x_kernel(const Real* data, int nx, int ny,
+                                            Vec<Real, EulerNVars>* qL,
+                                            Vec<Real, EulerNVars>* qR) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nx || j >= ny) return;
+
+    ConstGridView<Real, EulerNVars> gv{data, nx, ny, Real(0), Real(0)};
+    Vec<Real, EulerNVars> q_left{}, q_right{};
+    muscl_reconstruct_x<Real>(gv, i, j, q_left, q_right);
+
+    const int idx = j * nx + i;
+    qL[idx] = q_left;
+    qR[idx] = q_right;
+}
+
+template <typename Real>
+__global__ void muscl_reconstruct_y_kernel(const Real* data, int nx, int ny,
+                                            Vec<Real, EulerNVars>* q_bottom,
+                                            Vec<Real, EulerNVars>* q_top) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nx || j >= ny) return;
+
+    ConstGridView<Real, EulerNVars> gv{data, nx, ny, Real(0), Real(0)};
+    Vec<Real, EulerNVars> qB{}, qT{};
+    muscl_reconstruct_y<Real>(gv, i, j, qB, qT);
+
+    const int idx = j * nx + i;
+    q_bottom[idx] = qB;
+    q_top[idx] = qT;
+}
+
+template <typename Real>
 __global__ void reflective_y_kernel(Real* data, int nx, int ny) {
     constexpr int ng = GridView<Real, EulerNVars>::ng;
     const int col = blockIdx.x * blockDim.x + threadIdx.x;
@@ -328,6 +363,32 @@ TimeReal compute_dt_gpu(GpuGrid<Real, EulerNVars>& g, Real gamma, Real cfl) {
     return ordered_bits_to_double_host(result_bits);
 }
 
+template <typename Real>
+void muscl_reconstruct_x_gpu(GpuGrid<Real, EulerNVars>& g,
+                             Vec<Real, EulerNVars>* qL,
+                             Vec<Real, EulerNVars>* qR) {
+    const dim3 threads(16, 16);
+    const dim3 blocks((g.nx() + threads.x - 1) / threads.x,
+                      (g.ny() + threads.y - 1) / threads.y);
+    muscl_reconstruct_x_kernel<Real><<<blocks, threads>>>(
+        g.data(), g.nx(), g.ny(), qL, qR);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename Real>
+void muscl_reconstruct_y_gpu(GpuGrid<Real, EulerNVars>& g,
+                             Vec<Real, EulerNVars>* q_bottom,
+                             Vec<Real, EulerNVars>* q_top) {
+    const dim3 threads(16, 16);
+    const dim3 blocks((g.nx() + threads.x - 1) / threads.x,
+                      (g.ny() + threads.y - 1) / threads.y);
+    muscl_reconstruct_y_kernel<Real><<<blocks, threads>>>(
+        g.data(), g.nx(), g.ny(), q_bottom, q_top);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
 template void apply_outflow_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 template void apply_outflow_bc_gpu<double>(
@@ -347,5 +408,19 @@ template TimeReal compute_dt_gpu<float>(
     GpuGrid<float, EulerNVars>& g, float gamma, float cfl);
 template TimeReal compute_dt_gpu<double>(
     GpuGrid<double, EulerNVars>& g, double gamma, double cfl);
+
+template void muscl_reconstruct_x_gpu<float>(
+    GpuGrid<float, EulerNVars>& g,
+    Vec<float, EulerNVars>* qL, Vec<float, EulerNVars>* qR);
+template void muscl_reconstruct_x_gpu<double>(
+    GpuGrid<double, EulerNVars>& g,
+    Vec<double, EulerNVars>* qL, Vec<double, EulerNVars>* qR);
+
+template void muscl_reconstruct_y_gpu<float>(
+    GpuGrid<float, EulerNVars>& g,
+    Vec<float, EulerNVars>* q_bottom, Vec<float, EulerNVars>* q_top);
+template void muscl_reconstruct_y_gpu<double>(
+    GpuGrid<double, EulerNVars>& g,
+    Vec<double, EulerNVars>* q_bottom, Vec<double, EulerNVars>* q_top);
 
 } // namespace hrsc
