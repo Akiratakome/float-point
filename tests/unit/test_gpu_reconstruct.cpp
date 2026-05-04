@@ -53,22 +53,41 @@ void fill_constant(Grid2D<Real, EulerNVars>& grid) {
     }
 }
 
-// Fill with a strong shock-like jump halfway across the X (or Y) axis,
-// distinct values per variable so any var-mixing bug shows up.
+// Fill with a 2D tent (peak in the middle) PLUS an isolated diagonal jump.
+// Designed to exercise ALL three branches of the minbee limiter on BOTH
+// axes (X and Y see non-trivial slopes):
+//   - On either side of the peak, backward and forward differences have the
+//     same sign with different magnitudes -> exercises the |a|<|b| branch.
+//   - At the peak (apex of the tent), adjacent differences have opposite
+//     signs -> exercises the sign-flip branch (a*b <= 0 -> returns 0).
+//   - At the diagonal jump, one of the differences is large while the other
+//     remains small but same-sign -> further exercises |a|<|b| with a
+//     dominant forward/backward step.
+// Per-variable additive offset prevents trivial structure across variables.
 template <typename Real>
-void fill_shock_x(Grid2D<Real, EulerNVars>& grid) {
-    const Real left[EulerNVars]  = {Real(1.0), Real(0.5), Real(-0.25), Real(2.5)};
-    const Real right[EulerNVars] = {Real(0.125), Real(-0.1), Real(0.05), Real(0.25)};
+void fill_tent_jump_2d(Grid2D<Real, EulerNVars>& grid) {
     const int ng = Grid2D<Real, EulerNVars>::ng;
     const int nx_total = grid.nx + 2 * ng;
     const int ny_total = grid.ny + 2 * ng;
-    const int half = grid.nx / 2;
+    const int hx = grid.nx / 2;
+    const int hy = grid.ny / 2;
+    const int half = (grid.nx + grid.ny) / 2;
     for (int j = 0; j < ny_total; ++j) {
         for (int i = 0; i < nx_total; ++i) {
             const int ic = i - ng;
-            const Real* state = (ic < half) ? left : right;
+            const int jc = j - ng;
             for (int v = 0; v < EulerNVars; ++v) {
-                grid.data[(j * nx_total + i) * EulerNVars + v] = state[v];
+                // Tent in x: rises to peak at i=hx, falls after. Same in y.
+                const Real tent_x = static_cast<Real>(
+                    (ic <= hx) ? ic : (2 * hx - ic));
+                const Real tent_y = static_cast<Real>(
+                    (jc <= hy) ? jc : (2 * hy - jc));
+                const Real ramp = tent_x * Real(1.5) + tent_y * Real(0.7);
+                const Real jump =
+                    (ic + jc >= half) ? Real(1000) : Real(0);
+                const Real var_offset = static_cast<Real>(v) * Real(0.25);
+                grid.data[(j * nx_total + i) * EulerNVars + v] =
+                    ramp + jump + var_offset;
             }
         }
     }
@@ -200,18 +219,20 @@ TEST_CASE("GPU MUSCL reconstruction is bit-exact for constant data",
     }
 }
 
-// Case 2: 16x16 with a strong shock-like jump halfway across.
+// Case 2: 16x16 smooth 2D ramp plus an isolated diagonal jump. Exercises
+// both the |a|<|b| selection and the sign-flip (→0) branches of minbee on
+// BOTH axes (slopes are non-trivial in x and y).
 TEST_CASE("GPU MUSCL reconstruction is bit-exact across a strong jump",
           "[gpu][reconstruct]") {
     {
         auto host = make_grid<double>(16, 16);
-        fill_shock_x(host);
+        fill_tent_jump_2d(host);
         require_gpu_reconstruct_x_matches_cpu<double>(host);
         require_gpu_reconstruct_y_matches_cpu<double>(host);
     }
     {
         auto host = make_grid<float>(16, 16);
-        fill_shock_x(host);
+        fill_tent_jump_2d(host);
         require_gpu_reconstruct_x_matches_cpu<float>(host);
         require_gpu_reconstruct_y_matches_cpu<float>(host);
     }

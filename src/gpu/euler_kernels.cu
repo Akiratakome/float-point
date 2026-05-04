@@ -12,6 +12,11 @@ namespace hrsc {
 
 namespace {
 
+// Block dim shared by both MUSCL reconstruction launchers (X and Y).
+// Using plain int constants because CUDA's `dim3` ctor is not constexpr.
+static constexpr int kReconstructBlockX = 16;
+static constexpr int kReconstructBlockY = 16;
+
 template <typename Real>
 __device__ int grid_index(int i, int j, int var, int nx) {
     constexpr int ng = GridView<Real, EulerNVars>::ng;
@@ -230,9 +235,19 @@ __global__ void muscl_reconstruct_x_kernel(const Real* data, int nx, int ny,
     const int j = blockIdx.y * blockDim.y + threadIdx.y;
     if (i >= nx || j >= ny) return;
 
-    ConstGridView<Real, EulerNVars> gv{data, nx, ny, Real(0), Real(0)};
     Vec<Real, EulerNVars> q_left{}, q_right{};
-    muscl_reconstruct_x<Real>(gv, i, j, q_left, q_right);
+    for (int v = 0; v < EulerNVars; ++v) {
+        const Real u_im1 = data[grid_index<Real>(i - 1, j, v, nx)];
+        const Real u_i   = data[grid_index<Real>(i,     j, v, nx)];
+        const Real u_ip1 = data[grid_index<Real>(i + 1, j, v, nx)];
+
+        const Real backward = u_i - u_im1;
+        const Real forward  = u_ip1 - u_i;
+        const Real slope    = minbee<Real>(backward, forward);
+
+        q_left[v]  = u_i - Real(0.5) * slope;
+        q_right[v] = u_i + Real(0.5) * slope;
+    }
 
     const int idx = j * nx + i;
     qL[idx] = q_left;
@@ -247,9 +262,19 @@ __global__ void muscl_reconstruct_y_kernel(const Real* data, int nx, int ny,
     const int j = blockIdx.y * blockDim.y + threadIdx.y;
     if (i >= nx || j >= ny) return;
 
-    ConstGridView<Real, EulerNVars> gv{data, nx, ny, Real(0), Real(0)};
     Vec<Real, EulerNVars> qB{}, qT{};
-    muscl_reconstruct_y<Real>(gv, i, j, qB, qT);
+    for (int v = 0; v < EulerNVars; ++v) {
+        const Real u_jm1 = data[grid_index<Real>(i, j - 1, v, nx)];
+        const Real u_j   = data[grid_index<Real>(i, j,     v, nx)];
+        const Real u_jp1 = data[grid_index<Real>(i, j + 1, v, nx)];
+
+        const Real backward = u_j - u_jm1;
+        const Real forward  = u_jp1 - u_j;
+        const Real slope    = minbee<Real>(backward, forward);
+
+        qB[v] = u_j - Real(0.5) * slope;
+        qT[v] = u_j + Real(0.5) * slope;
+    }
 
     const int idx = j * nx + i;
     q_bottom[idx] = qB;
@@ -367,7 +392,7 @@ template <typename Real>
 void muscl_reconstruct_x_gpu(GpuGrid<Real, EulerNVars>& g,
                              Vec<Real, EulerNVars>* qL,
                              Vec<Real, EulerNVars>* qR) {
-    const dim3 threads(16, 16);
+    const dim3 threads(kReconstructBlockX, kReconstructBlockY);
     const dim3 blocks((g.nx() + threads.x - 1) / threads.x,
                       (g.ny() + threads.y - 1) / threads.y);
     muscl_reconstruct_x_kernel<Real><<<blocks, threads>>>(
@@ -380,7 +405,7 @@ template <typename Real>
 void muscl_reconstruct_y_gpu(GpuGrid<Real, EulerNVars>& g,
                              Vec<Real, EulerNVars>* q_bottom,
                              Vec<Real, EulerNVars>* q_top) {
-    const dim3 threads(16, 16);
+    const dim3 threads(kReconstructBlockX, kReconstructBlockY);
     const dim3 blocks((g.nx() + threads.x - 1) / threads.x,
                       (g.ny() + threads.y - 1) / threads.y);
     muscl_reconstruct_y_kernel<Real><<<blocks, threads>>>(
