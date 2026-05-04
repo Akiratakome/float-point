@@ -93,7 +93,47 @@ void EulerSolver<Real>::x_sweep(TimeReal dt)
     int nx = gv.nx;
     int ny = gv.ny;
     int n_interfaces = nx + 1;
+#ifdef HRSC_ENABLE_PROFILING
+    std::vector<std::vector<Vec<Real, EulerNVars>>> fluxes(
+        ny, std::vector<Vec<Real, EulerNVars>>(n_interfaces));
 
+    {
+        ScopedTimer __prof_flux("flux", m_prof_);
+        #pragma omp parallel for schedule(static)
+        for (int j = 0; j < ny; ++j) {
+            auto& flux = fluxes[j];
+
+            for (int k = 0; k < n_interfaces; ++k) {
+                int iL = k - 1;
+                int iR = k;
+
+                Vec<Real, EulerNVars> qL_left{}, qL_right{};
+                Vec<Real, EulerNVars> qR_left{}, qR_right{};
+
+                muscl_hancock_x(gv, iL, j, dt_real, m_gamma, qL_left, qL_right);
+                muscl_hancock_x(gv, iR, j, dt_real, m_gamma, qR_left, qR_right);
+
+                flux[k] = (m_flux == FluxScheme::Rusanov)
+                    ? rusanov_flux(qL_right, qR_left, m_gamma)
+                    : hllc_flux(qL_right, qR_left, m_gamma);
+            }
+        }
+    }
+
+    {
+        ScopedTimer __prof_update("update", m_prof_);
+        #pragma omp parallel for schedule(static)
+        for (int j = 0; j < ny; ++j) {
+            const auto& flux = fluxes[j];
+            Real dtdx = dt_real / gv.dx;
+            for (int i = 0; i < nx; ++i) {
+                for (int v = 0; v < EulerNVars; ++v) {
+                    gv(i, j, v) -= dtdx * (flux[i + 1][v] - flux[i][v]);
+                }
+            }
+        }
+    }
+#else
     #pragma omp parallel for schedule(static)
     for (int j = 0; j < ny; ++j) {
         std::vector<Vec<Real, EulerNVars>> flux(n_interfaces);
@@ -120,6 +160,7 @@ void EulerSolver<Real>::x_sweep(TimeReal dt)
             }
         }
     }
+#endif
 }
 
 // Y-direction sweep: compute y-interface fluxes and update conserved variables.
@@ -136,7 +177,51 @@ void EulerSolver<Real>::y_sweep(TimeReal dt)
     int nx = gv.nx;
     int ny = gv.ny;
     int n_interfaces = ny + 1;
+#ifdef HRSC_ENABLE_PROFILING
+    std::vector<std::vector<Vec<Real, EulerNVars>>> fluxes(
+        nx, std::vector<Vec<Real, EulerNVars>>(n_interfaces));
 
+    {
+        ScopedTimer __prof_flux("flux", m_prof_);
+        #pragma omp parallel for schedule(static)
+        for (int i = 0; i < nx; ++i) {
+            auto& flux = fluxes[i];
+
+            for (int k = 0; k < n_interfaces; ++k) {
+                int jB = k - 1;  // cell below interface
+                int jT = k;      // cell above interface
+
+                Vec<Real, EulerNVars> qB_bot{}, qB_top{};
+                Vec<Real, EulerNVars> qT_bot{}, qT_top{};
+
+                muscl_hancock_y(gv, i, jB, dt_real, m_gamma, qB_bot, qB_top);
+                muscl_hancock_y(gv, i, jT, dt_real, m_gamma, qT_bot, qT_top);
+
+                // Rotate -> flux -> rotate back
+                auto rotL = swap_momentum(qB_top);
+                auto rotR = swap_momentum(qT_bot);
+                auto f_iface = (m_flux == FluxScheme::Rusanov)
+                    ? rusanov_flux(rotL, rotR, m_gamma)
+                    : hllc_flux(rotL, rotR, m_gamma);
+                flux[k] = swap_momentum(f_iface);
+            }
+        }
+    }
+
+    {
+        ScopedTimer __prof_update("update", m_prof_);
+        #pragma omp parallel for schedule(static)
+        for (int i = 0; i < nx; ++i) {
+            const auto& flux = fluxes[i];
+            Real dtdy = dt_real / gv.dy;
+            for (int j = 0; j < ny; ++j) {
+                for (int v = 0; v < EulerNVars; ++v) {
+                    gv(i, j, v) -= dtdy * (flux[j + 1][v] - flux[j][v]);
+                }
+            }
+        }
+    }
+#else
     #pragma omp parallel for schedule(static)
     for (int i = 0; i < nx; ++i) {
         std::vector<Vec<Real, EulerNVars>> flux(n_interfaces);
@@ -167,6 +252,7 @@ void EulerSolver<Real>::y_sweep(TimeReal dt)
             }
         }
     }
+#endif
 }
 
 // Compute stable time step: dt = CFL * min(dx/Sx, dy/Sy)
