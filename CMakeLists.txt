@@ -153,6 +153,14 @@ if(ENABLE_CUDA)
         src/gpu/euler_gpu_solver.cu
         src/gpu/euler_kernels.cu
         PROPERTIES LANGUAGE CUDA)
+    # Disable nvcc's implicit FMA contraction in the GPU kernel TU so that
+    # the GPU Hancock predictor (T12) and downstream multiply-add patterns
+    # produce bit-exact results vs. the host CPU oracle under MSVC's default
+    # /fp:precise (which itself does not emit FMA on x64). Confined to this
+    # one file to avoid global build-flag perturbations.
+    set_source_files_properties(
+        src/gpu/euler_kernels.cu
+        PROPERTIES COMPILE_OPTIONS "--fmad=false")
     set_target_properties(hrsc_euler PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")

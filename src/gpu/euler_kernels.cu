@@ -2,6 +2,7 @@
 
 #include "gpu/euler_kernels.cuh"
 
+#include "euler/euler_flux.hpp"
 #include "euler/muscl.hpp"
 #include "gpu/cuda_utils.cuh"
 
@@ -282,6 +283,89 @@ __global__ void muscl_reconstruct_y_kernel(const Real* data, int nx, int ny,
 }
 
 template <typename Real>
+__global__ void hancock_predict_x_kernel(const Real* data, int nx, int ny,
+                                          Real dt, Real dx, Real gamma,
+                                          Vec<Real, EulerNVars>* qL,
+                                          Vec<Real, EulerNVars>* qR) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nx || j >= ny) return;
+
+    // Step 1: MUSCL reconstruction (same expression tree as CPU oracle).
+    Vec<Real, EulerNVars> q_left{}, q_right{};
+    for (int v = 0; v < EulerNVars; ++v) {
+        const Real u_im1 = data[grid_index<Real>(i - 1, j, v, nx)];
+        const Real u_i   = data[grid_index<Real>(i,     j, v, nx)];
+        const Real u_ip1 = data[grid_index<Real>(i + 1, j, v, nx)];
+
+        const Real backward = u_i - u_im1;
+        const Real forward  = u_ip1 - u_i;
+        const Real slope    = minbee<Real>(backward, forward);
+
+        q_left[v]  = u_i - Real(0.5) * slope;
+        q_right[v] = u_i + Real(0.5) * slope;
+    }
+
+    // Step 2: physical fluxes at both faces.
+    Vec<Real, EulerNVars> fL = euler_flux_x<Real>(q_left,  gamma);
+    Vec<Real, EulerNVars> fR = euler_flux_x<Real>(q_right, gamma);
+
+    // Step 3: half-step evolution. Match the CPU oracle's expression tree:
+    //   half_dtdx = 0.5 * dt / dx;
+    //   df = fL - fR;
+    //   q += df * half_dtdx;
+    const Real half_dtdx = Real(0.5) * dt / dx;
+    const Vec<Real, EulerNVars> df = fL - fR;
+
+    q_left  += df * half_dtdx;
+    q_right += df * half_dtdx;
+
+    const int idx = j * nx + i;
+    qL[idx] = q_left;
+    qR[idx] = q_right;
+}
+
+template <typename Real>
+__global__ void hancock_predict_y_kernel(const Real* data, int nx, int ny,
+                                          Real dt, Real dy, Real gamma,
+                                          Vec<Real, EulerNVars>* q_bottom,
+                                          Vec<Real, EulerNVars>* q_top) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nx || j >= ny) return;
+
+    // Step 1: MUSCL reconstruction (Y-axis).
+    Vec<Real, EulerNVars> qB{}, qT{};
+    for (int v = 0; v < EulerNVars; ++v) {
+        const Real u_jm1 = data[grid_index<Real>(i, j - 1, v, nx)];
+        const Real u_j   = data[grid_index<Real>(i, j,     v, nx)];
+        const Real u_jp1 = data[grid_index<Real>(i, j + 1, v, nx)];
+
+        const Real backward = u_j - u_jm1;
+        const Real forward  = u_jp1 - u_j;
+        const Real slope    = minbee<Real>(backward, forward);
+
+        qB[v] = u_j - Real(0.5) * slope;
+        qT[v] = u_j + Real(0.5) * slope;
+    }
+
+    // Step 2: physical y-fluxes at both faces.
+    Vec<Real, EulerNVars> gB = euler_flux_y<Real>(qB, gamma);
+    Vec<Real, EulerNVars> gT = euler_flux_y<Real>(qT, gamma);
+
+    // Step 3: half-step evolution using dy.
+    const Real half_dtdy = Real(0.5) * dt / dy;
+    const Vec<Real, EulerNVars> dg = gB - gT;
+
+    qB += dg * half_dtdy;
+    qT += dg * half_dtdy;
+
+    const int idx = j * nx + i;
+    q_bottom[idx] = qB;
+    q_top[idx]    = qT;
+}
+
+template <typename Real>
 __global__ void reflective_y_kernel(Real* data, int nx, int ny) {
     constexpr int ng = GridView<Real, EulerNVars>::ng;
     const int col = blockIdx.x * blockDim.x + threadIdx.x;
@@ -414,6 +498,34 @@ void muscl_reconstruct_y_gpu(GpuGrid<Real, EulerNVars>& g,
     HRSC_CUDA_CHECK(cudaDeviceSynchronize());
 }
 
+template <typename Real>
+void hancock_predict_x_gpu(GpuGrid<Real, EulerNVars>& g,
+                           Real dt, Real gamma,
+                           Vec<Real, EulerNVars>* qL,
+                           Vec<Real, EulerNVars>* qR) {
+    const dim3 threads(kReconstructBlockX, kReconstructBlockY);
+    const dim3 blocks((g.nx() + threads.x - 1) / threads.x,
+                      (g.ny() + threads.y - 1) / threads.y);
+    hancock_predict_x_kernel<Real><<<blocks, threads>>>(
+        g.data(), g.nx(), g.ny(), dt, g.dx(), gamma, qL, qR);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename Real>
+void hancock_predict_y_gpu(GpuGrid<Real, EulerNVars>& g,
+                           Real dt, Real gamma,
+                           Vec<Real, EulerNVars>* q_bottom,
+                           Vec<Real, EulerNVars>* q_top) {
+    const dim3 threads(kReconstructBlockX, kReconstructBlockY);
+    const dim3 blocks((g.nx() + threads.x - 1) / threads.x,
+                      (g.ny() + threads.y - 1) / threads.y);
+    hancock_predict_y_kernel<Real><<<blocks, threads>>>(
+        g.data(), g.nx(), g.ny(), dt, g.dy(), gamma, q_bottom, q_top);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
 template void apply_outflow_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 template void apply_outflow_bc_gpu<double>(
@@ -446,6 +558,20 @@ template void muscl_reconstruct_y_gpu<float>(
     Vec<float, EulerNVars>* q_bottom, Vec<float, EulerNVars>* q_top);
 template void muscl_reconstruct_y_gpu<double>(
     GpuGrid<double, EulerNVars>& g,
+    Vec<double, EulerNVars>* q_bottom, Vec<double, EulerNVars>* q_top);
+
+template void hancock_predict_x_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, float dt, float gamma,
+    Vec<float, EulerNVars>* qL, Vec<float, EulerNVars>* qR);
+template void hancock_predict_x_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, double dt, double gamma,
+    Vec<double, EulerNVars>* qL, Vec<double, EulerNVars>* qR);
+
+template void hancock_predict_y_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, float dt, float gamma,
+    Vec<float, EulerNVars>* q_bottom, Vec<float, EulerNVars>* q_top);
+template void hancock_predict_y_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, double dt, double gamma,
     Vec<double, EulerNVars>* q_bottom, Vec<double, EulerNVars>* q_top);
 
 } // namespace hrsc

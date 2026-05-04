@@ -55,6 +55,21 @@ void muscl_reconstruct_y_gpu(GpuGrid<Real, EulerNVars>& g,
                              Vec<Real, EulerNVars>* q_bottom,
                              Vec<Real, EulerNVars>* q_top);
 
+// MUSCL-Hancock predictor: per-cell qL/qR (X) and q_bottom/q_top (Y)
+// after slope-reconstruction + half-step flux update. Bit-exact w.r.t. the
+// CPU oracle in src/euler/hancock.hpp.
+template <typename Real>
+void hancock_predict_x_gpu(GpuGrid<Real, EulerNVars>& g,
+                           Real dt, Real gamma,
+                           Vec<Real, EulerNVars>* qL,
+                           Vec<Real, EulerNVars>* qR);
+
+template <typename Real>
+void hancock_predict_y_gpu(GpuGrid<Real, EulerNVars>& g,
+                           Real dt, Real gamma,
+                           Vec<Real, EulerNVars>* q_bottom,
+                           Vec<Real, EulerNVars>* q_top);
+
 extern template void apply_outflow_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 extern template void apply_outflow_bc_gpu<double>(
@@ -87,6 +102,20 @@ extern template void muscl_reconstruct_y_gpu<float>(
     Vec<float, EulerNVars>* q_bottom, Vec<float, EulerNVars>* q_top);
 extern template void muscl_reconstruct_y_gpu<double>(
     GpuGrid<double, EulerNVars>& g,
+    Vec<double, EulerNVars>* q_bottom, Vec<double, EulerNVars>* q_top);
+
+extern template void hancock_predict_x_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, float dt, float gamma,
+    Vec<float, EulerNVars>* qL, Vec<float, EulerNVars>* qR);
+extern template void hancock_predict_x_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, double dt, double gamma,
+    Vec<double, EulerNVars>* qL, Vec<double, EulerNVars>* qR);
+
+extern template void hancock_predict_y_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, float dt, float gamma,
+    Vec<float, EulerNVars>* q_bottom, Vec<float, EulerNVars>* q_top);
+extern template void hancock_predict_y_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, double dt, double gamma,
     Vec<double, EulerNVars>* q_bottom, Vec<double, EulerNVars>* q_top);
 #endif
 
