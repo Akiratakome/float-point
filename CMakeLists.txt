@@ -129,6 +129,8 @@ if(ENABLE_CUDA)
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
     set_target_properties(hrsc PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
+        CUDA_RESOLVE_DEVICE_SYMBOLS ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
 
     # Day-4 GPU data path: the .cpp half is picked up by the existing

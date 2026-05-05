@@ -9,6 +9,10 @@
 #include "lw_tests.hpp"
 #include "shock_bubble_tests.hpp"
 
+#ifdef HRSC_HAS_CUDA
+#include "gpu/euler_gpu_solver.hpp"
+#endif
+
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -345,7 +349,118 @@ static void run_normal(const Config& cfg) {
     }
 }
 
-int main(int argc, char* argv[]) {
+#ifdef HRSC_HAS_CUDA
+// GPU equivalent of run_normal: builds the IC into a Grid2D, hands it to
+// EulerGpuSolver, runs to completion, downloads, and shares the existing
+// CPU IO path. Mirrors run_normal's cfg keys 1:1; bit-exact CPU output is
+// validated by the e2e and sweep regression tests, not here.
+static void run_normal_gpu(const Config& cfg) {
+    std::string test = cfg.get_string("test");
+    int    nx    = cfg.get_int("nx", 200);
+    int    ny    = cfg.get_int("ny", 1);
+    double xmin  = cfg.get_double("xmin", 0.0);
+    double xmax  = cfg.get_double("xmax", 1.0);
+    double ymin  = cfg.get_double("ymin", 0.0);
+    double ymax  = cfg.get_double("ymax", 0.0);
+    if (ny > 1 && ymax <= ymin) {
+        throw std::runtime_error(
+            "ymax must be > ymin when ny > 1 (got ymin=" + std::to_string(ymin) +
+            ", ymax=" + std::to_string(ymax) + ")");
+    }
+    Real   gamma = static_cast<Real>(cfg.get_double("gamma", 1.4));
+    Real   cfl   = static_cast<Real>(cfg.get_double("cfl", 0.8));
+    double t_end = cfg.get_double("t_end", 0.25);
+    int    out_prec = cfg.get_int("output_precision", 17);
+    if (out_prec < 1 || out_prec > 17) {
+        throw std::runtime_error(
+            "output_precision must be in [1, 17] (got " + std::to_string(out_prec) + ")");
+    }
+    FluxScheme flux = parse_flux(cfg);
+    if (flux == FluxScheme::HLLC) {
+        throw std::runtime_error(
+            "device=gpu does not yet support solver=hllc (T20 wires HLLC GPU)");
+    }
+    auto [bc_x, bc_y] = parse_boundary(cfg);
+    std::string output_format = cfg.get_string("output_format", "table");
+    std::string output_file = cfg.get_string("output_file", "");
+
+    double dx = (xmax - xmin) / nx;
+    double dy = (ny > 1) ? (ymax - ymin) / ny : dx;
+
+    // Build the IC into a host-side Grid2D, then move it into the GPU solver.
+    Grid2D<Real, EulerNVars> ic(nx, ny);
+    ic.dx = static_cast<Real>(dx);
+    ic.dy = static_cast<Real>(dy);
+    setup_ic(ic.view(), test, gamma);
+
+    EulerGpuSolver<Real> solver(std::move(ic),
+                                static_cast<Real>(xmin),
+                                static_cast<Real>(ymin),
+                                gamma, cfl, t_end,
+                                flux, bc_x, bc_y);
+
+    Timer total;
+    total.start();
+    double run_s = solver.run();
+    total.stop();
+    std::cerr << "[timing] total_s=" << total.elapsed_seconds()
+              << " gpu_run_s=" << run_s << "\n";
+    std::cerr << "Finished: " << solver.step_count() << " steps, t = "
+              << static_cast<double>(solver.current_time()) << "\n";
+
+    Grid2D<Real, EulerNVars> final_grid = solver.download_host_grid();
+    GridView<Real, EulerNVars> gv = final_grid.view();
+
+    if (output_format == "binary") {
+        if (output_file.empty()) {
+            throw std::runtime_error(
+                "output_file must be set when output_format=binary");
+        }
+        write_binary<Real, EulerNVars>(
+            output_file, gv, nx, ny,
+            static_cast<Real>(dx), static_cast<Real>(dy),
+            static_cast<Real>(solver.current_time()));
+        return;
+    }
+    if (output_format != "table") {
+        throw std::runtime_error(
+            "Unknown output_format: " + output_format + " (expected table|binary)");
+    }
+
+    std::cout << std::setprecision(out_prec);
+    if (ny > 1) {
+        for (int j = 0; j < ny; ++j) {
+            double y = ymin + (j + 0.5) * dy;
+            for (int i = 0; i < nx; ++i) {
+                double x = xmin + (i + 0.5) * dx;
+                Vec<Real, EulerNVars> cons;
+                for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, j, v);
+                Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
+                std::cout << x << "\t" << y << "\t"
+                          << static_cast<double>(prim[PRHO]) << "\t"
+                          << static_cast<double>(prim[VX])   << "\t"
+                          << static_cast<double>(prim[VY])   << "\t"
+                          << static_cast<double>(prim[PRES]) << "\n";
+            }
+            std::cout << "\n";
+        }
+    } else {
+        for (int i = 0; i < nx; ++i) {
+            double x = xmin + (i + 0.5) * dx;
+            Vec<Real, EulerNVars> cons;
+            for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, 0, v);
+            Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
+            std::cout << x << "\t"
+                      << static_cast<double>(prim[PRHO]) << "\t"
+                      << static_cast<double>(prim[VX])   << "\t"
+                      << static_cast<double>(prim[VY])   << "\t"
+                      << static_cast<double>(prim[PRES]) << "\n";
+        }
+    }
+}
+#endif // HRSC_HAS_CUDA
+
+int main(int argc, char* argv[]) try {
     if (argc < 2) {
         std::cerr << "Usage: hrsc <config_file>\n";
         return 1;
@@ -361,8 +476,15 @@ int main(int argc, char* argv[]) {
 #ifndef HRSC_HAS_CUDA
         throw std::runtime_error("device=gpu requires building with -DENABLE_CUDA=ON");
 #else
-        // T17 wires this to EulerGpuSolver. For now: bail loudly.
-        throw std::runtime_error("device=gpu dispatch not yet implemented (Week 6 D5)");
+        if (mode == "convergence") {
+            // Convergence sweep on GPU is out of scope for Week 6; the GPU
+            // path is for the time-stepping smoke matrix and regression
+            // gate. Convergence stays CPU-only until a later week.
+            throw std::runtime_error(
+                "device=gpu does not support mode=convergence yet");
+        }
+        run_normal_gpu(cfg);
+        return 0;
 #endif
     }
 
@@ -373,4 +495,7 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
+} catch (const std::exception& e) {
+    std::cerr << "[error] " << e.what() << "\n";
+    return 2;
 }
