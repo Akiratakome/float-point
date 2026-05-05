@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from pathlib import Path
 import sys
@@ -16,6 +17,17 @@ from io_helper import cons_to_prim, read_binary
 from phase_error_metrics import compute_phase_metrics_from_primitive
 
 TESTS_1D = ("sod", "toro2", "toro3", "toro4", "toro5", "stationary_contact")
+DEVICE_COLUMNS = [
+    "pair_a",
+    "pair_b",
+    "precision",
+    "l1_a_minus_b",
+    "linf_a_minus_b",
+    "philip_ratio",
+    "ulp_max",
+    "gate_passed",
+    "notes",
+]
 
 
 def _parse_convergence_table(path: Path) -> list[dict[str, float]]:
@@ -60,6 +72,206 @@ def _safe_ratio(num: float, den: float) -> float:
 
 def _l1_norm_diff(a: np.ndarray, b: np.ndarray, dx: float) -> float:
     return float(np.sum(np.abs(a - b)) * dx)
+
+
+def _precision_dtype(precision: str) -> np.dtype:
+    if precision == "double":
+        return np.dtype(np.float64)
+    if precision == "float":
+        return np.dtype(np.float32)
+    raise ValueError(f"Unsupported precision={precision!r}; expected 'float' or 'double'")
+
+
+def _display_device_path(path: Path) -> str:
+    return str(path)
+
+
+def _is_stationary_contact_pair(cpu_path: Path, gpu_path: Path) -> bool:
+    text = " ".join(
+        part.lower()
+        for path in (cpu_path, gpu_path)
+        for part in (*path.parts, path.stem)
+    )
+    return "stationary_contact" in text or "stationary-contact" in text
+
+
+def _report_device_pair(
+    cpu_path: Path,
+    gpu_path: Path,
+    precision: str,
+    reference_path: Path | None = None,
+    gate_ulp: float | None = None,
+) -> dict[str, object]:
+    cpu_header, cpu_cons = read_binary(cpu_path)
+    gpu_header, gpu_cons = read_binary(gpu_path)
+    if (cpu_header.nx, cpu_header.ny, cpu_header.nvars) != (
+        gpu_header.nx,
+        gpu_header.ny,
+        gpu_header.nvars,
+    ):
+        raise ValueError(
+            f"Grid shape mismatch: {cpu_path} is "
+            f"{cpu_header.nx}x{cpu_header.ny}x{cpu_header.nvars}, "
+            f"{gpu_path} is {gpu_header.nx}x{gpu_header.ny}x{gpu_header.nvars}"
+        )
+
+    dtype = _precision_dtype(precision)
+    cpu = cpu_cons.astype(np.float64, copy=False)
+    gpu = gpu_cons.astype(np.float64, copy=False)
+    abs_diff = np.abs(cpu - gpu)
+    l1 = float(np.mean(abs_diff))
+    linf = float(np.max(abs_diff)) if abs_diff.size else 0.0
+    linf_a = float(np.max(np.abs(cpu))) if cpu.size else 0.0
+    eps = float(np.finfo(dtype).eps)
+    ulp_max = _safe_ratio(linf, eps * linf_a)
+
+    notes: list[str] = []
+    if gate_ulp is None:
+        gate_ulp = 4.0 if _is_stationary_contact_pair(cpu_path, gpu_path) else 16.0
+    if gate_ulp != 16.0:
+        notes.append(f"gate_ulp={gate_ulp:g}")
+
+    if reference_path is not None and str(reference_path).lower() == "exact":
+        cpu_minus_ref_l1: float | None = None
+        notes.append("reference_exact_not_available")
+    elif reference_path is not None:
+        ref_header, ref_cons = read_binary(reference_path)
+        if (ref_header.nx, ref_header.ny, ref_header.nvars) != (
+            cpu_header.nx,
+            cpu_header.ny,
+            cpu_header.nvars,
+        ):
+            raise ValueError(
+                f"Reference shape mismatch: {reference_path} is "
+                f"{ref_header.nx}x{ref_header.ny}x{ref_header.nvars}, "
+                f"{cpu_path} is {cpu_header.nx}x{cpu_header.ny}x{cpu_header.nvars}"
+            )
+        ref = ref_cons.astype(np.float64, copy=False)
+        cpu_minus_ref_l1 = float(np.mean(np.abs(cpu - ref)))
+    else:
+        cpu_minus_ref_l1 = None
+        notes.append("no_reference")
+
+    return {
+        "pair_a": _display_device_path(cpu_path),
+        "pair_b": _display_device_path(gpu_path),
+        "precision": precision,
+        "l1_a_minus_b": l1,
+        "linf_a_minus_b": linf,
+        "philip_ratio": (
+            _safe_ratio(l1, cpu_minus_ref_l1)
+            if cpu_minus_ref_l1 is not None
+            else None
+        ),
+        "ulp_max": ulp_max,
+        "gate_passed": bool(ulp_max <= gate_ulp),
+        "notes": ";".join(notes) if notes else "ok",
+    }
+
+
+def _device_pair_label(path: Path) -> str:
+    parent = path.parent.name.lower()
+    stem = path.stem.lower()
+    return parent if ("cpu" in parent or "gpu" in parent) else stem
+
+
+def _device_pair_key(path: Path) -> str:
+    key = _device_pair_label(path)
+    for token in ("cpu", "gpu"):
+        key = key.replace(token, "")
+    return key.replace("__", "_").strip("_-. ")
+
+
+def _pair_device_inputs(inputs: list[Path]) -> list[tuple[Path, Path]]:
+    cpu_paths = [p for p in inputs if "cpu" in _device_pair_label(p)]
+    gpu_paths = [p for p in inputs if "gpu" in _device_pair_label(p)]
+    if not cpu_paths and not gpu_paths and len(inputs) == 2:
+        return [(inputs[0], inputs[1])]
+    if len(cpu_paths) == 1 and len(gpu_paths) == 1:
+        return [(cpu_paths[0], gpu_paths[0])]
+    pairs: list[tuple[Path, Path]] = []
+    remaining_gpu = {_device_pair_key(p): p for p in gpu_paths}
+    for cpu_path in cpu_paths:
+        key = _device_pair_key(cpu_path)
+        gpu_path = remaining_gpu.pop(key, None)
+        if gpu_path is not None:
+            pairs.append((cpu_path, gpu_path))
+    if len(pairs) != min(len(cpu_paths), len(gpu_paths)):
+        raise ValueError(
+            "Could not pair all device inputs by cpu/gpu filename tokens; "
+            "use one CPU/GPU pair or names with matching stems"
+        )
+    return pairs
+
+
+def _summary_path(prefix: Path, suffix: str) -> Path:
+    if prefix.suffix:
+        return prefix.with_suffix(suffix)
+    return Path(str(prefix) + suffix)
+
+
+def _write_device_outputs(output_prefix: Path, rows: list[dict[str, object]]) -> dict[str, object]:
+    csv_path = _summary_path(output_prefix, ".csv")
+    json_path = _summary_path(output_prefix, ".json")
+    md_path = _summary_path(output_prefix, ".md")
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=DEVICE_COLUMNS)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({
+                key: ("n/a" if row.get(key) is None else row.get(key))
+                for key in DEVICE_COLUMNS
+            })
+
+    summary = {
+        "mode": "device",
+        "rows": rows,
+        "outputs": {
+            "csv": str(csv_path),
+            "json": str(json_path),
+            "markdown": str(md_path),
+        },
+    }
+    _write_text(json_path, json.dumps(summary, indent=2) + "\n")
+
+    md_lines = [
+        "# CPU vs GPU Device Regression",
+        "",
+        "| pair_a | pair_b | precision | l1_a_minus_b | linf_a_minus_b | philip_ratio | ulp_max | gate_passed | notes |",
+        "|---|---|---|---:|---:|---:|---:|---|---|",
+    ]
+    for row in rows:
+        philip = row["philip_ratio"]
+        philip_text = (
+            f"{float(philip):.6e}"
+            if isinstance(philip, (int, float))
+            else "n/a"
+        )
+        md_lines.append(
+            f"| {row['pair_a']} | {row['pair_b']} | {row['precision']} | "
+            f"{float(row['l1_a_minus_b']):.6e} | {float(row['linf_a_minus_b']):.6e} | "
+            f"{philip_text} | {float(row['ulp_max']):.6e} | "
+            f"{row['gate_passed']} | {row['notes']} |"
+        )
+    _write_text(md_path, "\n".join(md_lines) + "\n")
+    return summary
+
+
+def _report_device(
+    inputs: list[Path],
+    output_prefix: Path,
+    precision: str,
+    reference_path: Path | None = None,
+) -> dict[str, object]:
+    pairs = _pair_device_inputs(inputs)
+    if not pairs:
+        raise ValueError("No CPU/GPU device pairs found")
+    rows = [
+        _report_device_pair(cpu_path, gpu_path, precision, reference_path)
+        for cpu_path, gpu_path in pairs
+    ]
+    return _write_device_outputs(output_prefix, rows)
 
 
 def _read_grid_primitive(path: Path, gamma: float) -> tuple[float, np.ndarray, np.ndarray, np.ndarray]:
@@ -292,8 +504,14 @@ def _report_2d(input_dir: Path, gamma: float, smooth_sigma: float, allow_ssim_fa
 
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Float-vs-double regression summary generator.")
-    p.add_argument("--mode", required=True, choices=("1d", "2d"))
-    p.add_argument("--input", required=True, type=Path, help="Input directory")
+    p.add_argument("--mode", required=True, choices=("1d", "2d", "fp", "device"))
+    p.add_argument("--input", type=Path, help="Input directory for legacy 1d/2d reports")
+    p.add_argument("--inputs", nargs="+", type=Path, help="Input binaries for fp/device reports")
+    p.add_argument("--cpu", nargs="+", type=Path, help="CPU binary path(s) for device mode")
+    p.add_argument("--gpu", nargs="+", type=Path, help="GPU binary path(s) for device mode")
+    p.add_argument("--precision", choices=("float", "double"), default="double")
+    p.add_argument("--reference", type=Path, help="Optional exact/reference binary")
+    p.add_argument("--output", type=Path, help="Output prefix for summary.{csv,json,md}")
     p.add_argument("--gamma", type=float, default=1.4)
     p.add_argument("--smooth-sigma", type=float, default=0.5)
     p.add_argument(
@@ -312,9 +530,31 @@ def main() -> None:
         allow_ssim_fallback = False
     elif args.allow_ssim_fallback:
         allow_ssim_fallback = True
-    if args.mode == "1d":
+    if args.mode == "device":
+        if args.cpu or args.gpu:
+            cpu_paths = args.cpu or []
+            gpu_paths = args.gpu or []
+            if len(cpu_paths) != len(gpu_paths):
+                raise ValueError("--cpu and --gpu must provide the same number of paths")
+            inputs = [p for pair in zip(cpu_paths, gpu_paths) for p in pair]
+        else:
+            inputs = args.inputs or []
+        if not inputs:
+            raise ValueError("--mode device requires --inputs or --cpu/--gpu")
+        if args.output is None:
+            raise ValueError("--mode device requires --output")
+        summary = _report_device(inputs, args.output, args.precision, args.reference)
+    elif args.mode == "fp":
+        if args.input is None:
+            raise ValueError("--mode fp is a compatibility alias and requires --input")
+        summary = _report_1d(args.input)
+    elif args.mode == "1d":
+        if args.input is None:
+            raise ValueError("--mode 1d requires --input")
         summary = _report_1d(args.input)
     else:
+        if args.input is None:
+            raise ValueError("--mode 2d requires --input")
         summary = _report_2d(args.input, args.gamma, args.smooth_sigma, allow_ssim_fallback)
     print(json.dumps(summary, indent=2))
 
