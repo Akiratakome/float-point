@@ -9,7 +9,6 @@
 #include "core/eos.hpp"
 #include "core/grid.hpp"
 #include "core/vec.hpp"
-#include "euler/euler_solver.hpp"   // FluxScheme
 
 #ifdef HRSC_HAS_CUDA
 #include "gpu/gpu_grid.cuh"
@@ -18,6 +17,8 @@
 #include <cstddef>
 
 namespace hrsc {
+
+enum class FluxScheme;
 
 #ifdef __CUDACC__
 template <typename T>
@@ -86,6 +87,22 @@ void rusanov_flux_y_gpu(int nx, int ny, Real gamma,
                         const Vec<Real, EulerNVars>* qB_face,
                         const Vec<Real, EulerNVars>* qT_face,
                         Vec<Real, EulerNVars>* flux_y);
+
+// HLLC flux on per-face left/right input buffers.
+// X: qL_face / qR_face / flux_x sized (nx+1) * ny.
+// Y: qB_face / qT_face / flux_y sized nx * (ny+1) (rotation handled inside).
+// Bit-exact w.r.t. CPU oracle in src/euler/hllc.hpp.
+template <typename Real>
+void hllc_flux_x_gpu(int nx, int ny, Real gamma,
+                     const Vec<Real, EulerNVars>* qL_face,
+                     const Vec<Real, EulerNVars>* qR_face,
+                     Vec<Real, EulerNVars>* flux_x);
+
+template <typename Real>
+void hllc_flux_y_gpu(int nx, int ny, Real gamma,
+                     const Vec<Real, EulerNVars>* qB_face,
+                     const Vec<Real, EulerNVars>* qT_face,
+                     Vec<Real, EulerNVars>* flux_y);
 
 // Per-axis sweep: per-face Hancock + flux (Rusanov in T15; HLLC in T20) +
 // conservative update. Allocates transient face buffers internally.
@@ -179,6 +196,28 @@ extern template void rusanov_flux_y_gpu<float>(
     const Vec<float, EulerNVars>* qT_face,
     Vec<float, EulerNVars>* flux_y);
 extern template void rusanov_flux_y_gpu<double>(
+    int nx, int ny, double gamma,
+    const Vec<double, EulerNVars>* qB_face,
+    const Vec<double, EulerNVars>* qT_face,
+    Vec<double, EulerNVars>* flux_y);
+
+extern template void hllc_flux_x_gpu<float>(
+    int nx, int ny, float gamma,
+    const Vec<float, EulerNVars>* qL_face,
+    const Vec<float, EulerNVars>* qR_face,
+    Vec<float, EulerNVars>* flux_x);
+extern template void hllc_flux_x_gpu<double>(
+    int nx, int ny, double gamma,
+    const Vec<double, EulerNVars>* qL_face,
+    const Vec<double, EulerNVars>* qR_face,
+    Vec<double, EulerNVars>* flux_x);
+
+extern template void hllc_flux_y_gpu<float>(
+    int nx, int ny, float gamma,
+    const Vec<float, EulerNVars>* qB_face,
+    const Vec<float, EulerNVars>* qT_face,
+    Vec<float, EulerNVars>* flux_y);
+extern template void hllc_flux_y_gpu<double>(
     int nx, int ny, double gamma,
     const Vec<double, EulerNVars>* qB_face,
     const Vec<double, EulerNVars>* qT_face,

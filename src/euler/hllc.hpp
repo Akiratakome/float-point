@@ -10,6 +10,16 @@
 
 namespace hrsc {
 
+template <typename Real>
+HD_FUNC Real hllc_min(Real a, Real b) {
+    return (b < a) ? b : a;
+}
+
+template <typename Real>
+HD_FUNC Real hllc_max(Real a, Real b) {
+    return (a < b) ? b : a;
+}
+
 // HLLC approximate Riemann solver (Toro 2009, Chapter 10).
 // Takes left/right conserved states, returns intercell flux.
 // Wave speed estimates: Davis (simplest, robust).
@@ -32,8 +42,8 @@ HD_FUNC Vec<Real, EulerNVars> hllc_flux(
     Real aR   = sound_speed(rhoR, pR, gamma);
 
     // --- Wave speed estimates (Davis) ---
-    Real SL = std::min(uL - aL, uR - aR);
-    Real SR = std::max(uL + aL, uR + aR);
+    Real SL = hllc_min(uL - aL, uR - aR);
+    Real SR = hllc_max(uL + aL, uR + aR);
 
     // --- Contact wave speed S* ---
     Real S_star = (pR - pL

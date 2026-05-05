@@ -3,6 +3,8 @@
 #include "gpu/euler_kernels.cuh"
 
 #include "euler/euler_flux.hpp"
+#include "euler/hllc.hpp"
+#include "euler/euler_solver.hpp"
 #include "euler/muscl.hpp"
 #include "euler/rusanov.hpp"
 #include "gpu/cuda_utils.cuh"
@@ -478,6 +480,41 @@ __global__ void rusanov_flux_y_kernel(
     flux_y[idx] = swap_momentum<Real>(rotated);
 }
 
+// HLLC flux on every X-face. The Riemann algebra stays in
+// src/euler/hllc.hpp; this kernel is only the per-face CUDA wrapper.
+template <typename Real>
+__global__ void hllc_flux_x_kernel(
+    const Vec<Real, EulerNVars>* qL_face,
+    const Vec<Real, EulerNVars>* qR_face,
+    int nx, int ny, Real gamma,
+    Vec<Real, EulerNVars>* flux_x) {
+    const int k = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (k > nx || j >= ny) return;
+    const int idx = j * (nx + 1) + k;
+
+    flux_x[idx] = hllc_flux<Real>(qL_face[idx], qR_face[idx], gamma);
+}
+
+// HLLC flux on every Y-face. Mirrors the CPU y_sweep rotation strategy:
+// rotate input momenta into an X-normal Riemann problem, solve HLLC, rotate
+// the flux back.
+template <typename Real>
+__global__ void hllc_flux_y_kernel(
+    const Vec<Real, EulerNVars>* qB_face,
+    const Vec<Real, EulerNVars>* qT_face,
+    int nx, int ny, Real gamma,
+    Vec<Real, EulerNVars>* flux_y) {
+    const int k = blockIdx.x * blockDim.x + threadIdx.x;
+    const int i = blockIdx.y * blockDim.y + threadIdx.y;
+    if (k > ny || i >= nx) return;
+    const int idx = i * (ny + 1) + k;
+
+    const Vec<Real, EulerNVars> qL = swap_momentum<Real>(qB_face[idx]);
+    const Vec<Real, EulerNVars> qR = swap_momentum<Real>(qT_face[idx]);
+    flux_y[idx] = swap_momentum<Real>(hllc_flux<Real>(qL, qR, gamma));
+}
+
 // Per-cell Hancock helper for X-axis: minmod reconstruct + half-step flux
 // evolution at cell (i, j). Inlined into the per-face kernel below; matches
 // the algebra in src/euler/hancock.hpp::muscl_hancock_x line-for-line.
@@ -786,6 +823,34 @@ void rusanov_flux_y_gpu(int nx, int ny, Real gamma,
 }
 
 template <typename Real>
+void hllc_flux_x_gpu(int nx, int ny, Real gamma,
+                     const Vec<Real, EulerNVars>* qL_face,
+                     const Vec<Real, EulerNVars>* qR_face,
+                     Vec<Real, EulerNVars>* flux_x) {
+    const dim3 threads(kReconstructBlockX, kReconstructBlockY);
+    const dim3 blocks(((nx + 1) + threads.x - 1) / threads.x,
+                      (ny + threads.y - 1) / threads.y);
+    hllc_flux_x_kernel<Real><<<blocks, threads>>>(
+        qL_face, qR_face, nx, ny, gamma, flux_x);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename Real>
+void hllc_flux_y_gpu(int nx, int ny, Real gamma,
+                     const Vec<Real, EulerNVars>* qB_face,
+                     const Vec<Real, EulerNVars>* qT_face,
+                     Vec<Real, EulerNVars>* flux_y) {
+    const dim3 threads(kReconstructBlockX, kReconstructBlockY);
+    const dim3 blocks(((ny + 1) + threads.x - 1) / threads.x,
+                      (nx + threads.y - 1) / threads.y);
+    hllc_flux_y_kernel<Real><<<blocks, threads>>>(
+        qB_face, qT_face, nx, ny, gamma, flux_y);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename Real>
 void apply_update_x_gpu(GpuGrid<Real, EulerNVars>& g,
                         const Vec<Real, EulerNVars>* flux_x,
                         Real dt) {
@@ -840,15 +905,17 @@ void sweep_x_gpu(GpuGrid<Real, EulerNVars>& g, Real dt, Real gamma,
         HRSC_CUDA_CHECK(cudaDeviceSynchronize());
     }
 
-    // Flux per face. T20 will swap in HLLC behind FluxScheme.
     if (flux_scheme == FluxScheme::Rusanov) {
         rusanov_flux_x_gpu<Real>(nx, ny, gamma,
                                  qL_face.data(), qR_face.data(),
                                  flux_face.data());
+    } else if (flux_scheme == FluxScheme::HLLC) {
+        hllc_flux_x_gpu<Real>(nx, ny, gamma,
+                              qL_face.data(), qR_face.data(),
+                              flux_face.data());
     } else {
-        // HLLC GPU is T20; for now sweep_x_gpu only supports Rusanov.
         throw std::runtime_error(
-            "sweep_x_gpu: HLLC FluxScheme not yet wired (Week 6 T20)");
+            "sweep_x_gpu: unknown FluxScheme");
     }
 
     // Conservative update: U -= (dt/dx) * (flux[k+1] - flux[k]).
@@ -882,9 +949,13 @@ void sweep_y_gpu(GpuGrid<Real, EulerNVars>& g, Real dt, Real gamma,
         rusanov_flux_y_gpu<Real>(nx, ny, gamma,
                                  qB_face.data(), qT_face.data(),
                                  flux_face.data());
+    } else if (flux_scheme == FluxScheme::HLLC) {
+        hllc_flux_y_gpu<Real>(nx, ny, gamma,
+                              qB_face.data(), qT_face.data(),
+                              flux_face.data());
     } else {
         throw std::runtime_error(
-            "sweep_y_gpu: HLLC FluxScheme not yet wired (Week 6 T20)");
+            "sweep_y_gpu: unknown FluxScheme");
     }
 
     apply_update_y_gpu<Real>(g, flux_face.data(), dt);
@@ -955,6 +1026,28 @@ template void rusanov_flux_y_gpu<float>(
     const Vec<float, EulerNVars>* qT_face,
     Vec<float, EulerNVars>* flux_y);
 template void rusanov_flux_y_gpu<double>(
+    int nx, int ny, double gamma,
+    const Vec<double, EulerNVars>* qB_face,
+    const Vec<double, EulerNVars>* qT_face,
+    Vec<double, EulerNVars>* flux_y);
+
+template void hllc_flux_x_gpu<float>(
+    int nx, int ny, float gamma,
+    const Vec<float, EulerNVars>* qL_face,
+    const Vec<float, EulerNVars>* qR_face,
+    Vec<float, EulerNVars>* flux_x);
+template void hllc_flux_x_gpu<double>(
+    int nx, int ny, double gamma,
+    const Vec<double, EulerNVars>* qL_face,
+    const Vec<double, EulerNVars>* qR_face,
+    Vec<double, EulerNVars>* flux_x);
+
+template void hllc_flux_y_gpu<float>(
+    int nx, int ny, float gamma,
+    const Vec<float, EulerNVars>* qB_face,
+    const Vec<float, EulerNVars>* qT_face,
+    Vec<float, EulerNVars>* flux_y);
+template void hllc_flux_y_gpu<double>(
     int nx, int ny, double gamma,
     const Vec<double, EulerNVars>* qB_face,
     const Vec<double, EulerNVars>* qT_face,
