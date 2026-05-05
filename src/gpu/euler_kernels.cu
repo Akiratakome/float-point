@@ -390,6 +390,46 @@ __global__ void reflective_y_kernel(Real* data, int nx, int ny) {
     }
 }
 
+// Conservative update along X: U[i,j] -= dtdx * (flux_x[i+1,j] - flux_x[i,j]).
+// flux_x is a per-row contiguous buffer of size (nx+1) * ny; linear index for
+// interface k of row j is j*(nx+1) + k. Expression order matches the CPU
+// oracle in src/euler/euler_solver.cpp::x_sweep update block.
+template <typename Real>
+__global__ void apply_update_x_kernel(Real* data, int nx, int ny,
+                                      const Vec<Real, EulerNVars>* flux_x,
+                                      Real dtdx) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nx || j >= ny) return;
+
+    const int row_base = j * (nx + 1);
+    const Vec<Real, EulerNVars> f_prev = flux_x[row_base + i];
+    const Vec<Real, EulerNVars> f_next = flux_x[row_base + i + 1];
+    for (int v = 0; v < EulerNVars; ++v) {
+        data[grid_index<Real>(i, j, v, nx)] -= dtdx * (f_next[v] - f_prev[v]);
+    }
+}
+
+// Conservative update along Y: U[i,j] -= dtdy * (flux_y[i,j+1] - flux_y[i,j]).
+// flux_y is a per-column contiguous buffer of size nx * (ny+1); linear index
+// for interface k of column i is i*(ny+1) + k. Matches the CPU oracle in
+// src/euler/euler_solver.cpp::y_sweep update block.
+template <typename Real>
+__global__ void apply_update_y_kernel(Real* data, int nx, int ny,
+                                      const Vec<Real, EulerNVars>* flux_y,
+                                      Real dtdy) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nx || j >= ny) return;
+
+    const int col_base = i * (ny + 1);
+    const Vec<Real, EulerNVars> f_prev = flux_y[col_base + j];
+    const Vec<Real, EulerNVars> f_next = flux_y[col_base + j + 1];
+    for (int v = 0; v < EulerNVars; ++v) {
+        data[grid_index<Real>(i, j, v, nx)] -= dtdy * (f_next[v] - f_prev[v]);
+    }
+}
+
 } // namespace
 
 template <typename Real>
@@ -526,6 +566,34 @@ void hancock_predict_y_gpu(GpuGrid<Real, EulerNVars>& g,
     HRSC_CUDA_CHECK(cudaDeviceSynchronize());
 }
 
+template <typename Real>
+void apply_update_x_gpu(GpuGrid<Real, EulerNVars>& g,
+                        const Vec<Real, EulerNVars>* flux_x,
+                        Real dt) {
+    const Real dtdx = dt / g.dx();
+    const dim3 threads(kReconstructBlockX, kReconstructBlockY);
+    const dim3 blocks((g.nx() + threads.x - 1) / threads.x,
+                      (g.ny() + threads.y - 1) / threads.y);
+    apply_update_x_kernel<Real><<<blocks, threads>>>(
+        g.data(), g.nx(), g.ny(), flux_x, dtdx);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename Real>
+void apply_update_y_gpu(GpuGrid<Real, EulerNVars>& g,
+                        const Vec<Real, EulerNVars>* flux_y,
+                        Real dt) {
+    const Real dtdy = dt / g.dy();
+    const dim3 threads(kReconstructBlockX, kReconstructBlockY);
+    const dim3 blocks((g.nx() + threads.x - 1) / threads.x,
+                      (g.ny() + threads.y - 1) / threads.y);
+    apply_update_y_kernel<Real><<<blocks, threads>>>(
+        g.data(), g.nx(), g.ny(), flux_y, dtdy);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
 template void apply_outflow_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 template void apply_outflow_bc_gpu<double>(
@@ -573,5 +641,19 @@ template void hancock_predict_y_gpu<float>(
 template void hancock_predict_y_gpu<double>(
     GpuGrid<double, EulerNVars>& g, double dt, double gamma,
     Vec<double, EulerNVars>* q_bottom, Vec<double, EulerNVars>* q_top);
+
+template void apply_update_x_gpu<float>(
+    GpuGrid<float, EulerNVars>& g,
+    const Vec<float, EulerNVars>* flux_x, float dt);
+template void apply_update_x_gpu<double>(
+    GpuGrid<double, EulerNVars>& g,
+    const Vec<double, EulerNVars>* flux_x, double dt);
+
+template void apply_update_y_gpu<float>(
+    GpuGrid<float, EulerNVars>& g,
+    const Vec<float, EulerNVars>* flux_y, float dt);
+template void apply_update_y_gpu<double>(
+    GpuGrid<double, EulerNVars>& g,
+    const Vec<double, EulerNVars>* flux_y, double dt);
 
 } // namespace hrsc

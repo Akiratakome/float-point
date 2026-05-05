@@ -70,6 +70,20 @@ void hancock_predict_y_gpu(GpuGrid<Real, EulerNVars>& g,
                            Vec<Real, EulerNVars>* q_bottom,
                            Vec<Real, EulerNVars>* q_top);
 
+// Conservative update along an axis: U[i,j] -= (dt/dx) * (flux[k+1] - flux[k]).
+// flux_x is shaped (nx+1) * ny (per-row, contiguous); flux_y is nx * (ny+1)
+// (per-column, contiguous). Bit-exact w.r.t. the CPU oracle in
+// src/euler/euler_solver.cpp (x_sweep / y_sweep update blocks).
+template <typename Real>
+void apply_update_x_gpu(GpuGrid<Real, EulerNVars>& g,
+                        const Vec<Real, EulerNVars>* flux_x,
+                        Real dt);
+
+template <typename Real>
+void apply_update_y_gpu(GpuGrid<Real, EulerNVars>& g,
+                        const Vec<Real, EulerNVars>* flux_y,
+                        Real dt);
+
 extern template void apply_outflow_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 extern template void apply_outflow_bc_gpu<double>(
@@ -117,6 +131,20 @@ extern template void hancock_predict_y_gpu<float>(
 extern template void hancock_predict_y_gpu<double>(
     GpuGrid<double, EulerNVars>& g, double dt, double gamma,
     Vec<double, EulerNVars>* q_bottom, Vec<double, EulerNVars>* q_top);
+
+extern template void apply_update_x_gpu<float>(
+    GpuGrid<float, EulerNVars>& g,
+    const Vec<float, EulerNVars>* flux_x, float dt);
+extern template void apply_update_x_gpu<double>(
+    GpuGrid<double, EulerNVars>& g,
+    const Vec<double, EulerNVars>* flux_x, double dt);
+
+extern template void apply_update_y_gpu<float>(
+    GpuGrid<float, EulerNVars>& g,
+    const Vec<float, EulerNVars>* flux_y, float dt);
+extern template void apply_update_y_gpu<double>(
+    GpuGrid<double, EulerNVars>& g,
+    const Vec<double, EulerNVars>* flux_y, double dt);
 #endif
 
 } // namespace hrsc
