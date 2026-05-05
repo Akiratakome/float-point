@@ -9,6 +9,7 @@
 
 #include <cstring>
 #include <limits>
+#include <stdexcept>
 
 namespace hrsc {
 
@@ -477,6 +478,109 @@ __global__ void rusanov_flux_y_kernel(
     flux_y[idx] = swap_momentum<Real>(rotated);
 }
 
+// Per-cell Hancock helper for X-axis: minmod reconstruct + half-step flux
+// evolution at cell (i, j). Inlined into the per-face kernel below; matches
+// the algebra in src/euler/hancock.hpp::muscl_hancock_x line-for-line.
+template <typename Real>
+__device__ __forceinline__ void hancock_cell_x(
+    const Real* data, int i, int j, int nx,
+    Real dt, Real dx, Real gamma,
+    Vec<Real, EulerNVars>& qL,
+    Vec<Real, EulerNVars>& qR) {
+    for (int v = 0; v < EulerNVars; ++v) {
+        const Real u_im1 = data[grid_index<Real>(i - 1, j, v, nx)];
+        const Real u_i   = data[grid_index<Real>(i,     j, v, nx)];
+        const Real u_ip1 = data[grid_index<Real>(i + 1, j, v, nx)];
+        const Real backward = u_i - u_im1;
+        const Real forward  = u_ip1 - u_i;
+        const Real slope    = minbee<Real>(backward, forward);
+        qL[v] = u_i - Real(0.5) * slope;
+        qR[v] = u_i + Real(0.5) * slope;
+    }
+    const Vec<Real, EulerNVars> fL = euler_flux_x<Real>(qL, gamma);
+    const Vec<Real, EulerNVars> fR = euler_flux_x<Real>(qR, gamma);
+    const Real half_dtdx = Real(0.5) * dt / dx;
+    for (int v = 0; v < EulerNVars; ++v) {
+        const Real df = fL[v] - fR[v];
+        qL[v] += df * half_dtdx;
+        qR[v] += df * half_dtdx;
+    }
+}
+
+// Per-cell Hancock helper for Y-axis (no momentum rotation here — rotation
+// is applied later by rusanov_flux_y_kernel). Mirrors hancock.hpp.
+template <typename Real>
+__device__ __forceinline__ void hancock_cell_y(
+    const Real* data, int i, int j, int nx,
+    Real dt, Real dy, Real gamma,
+    Vec<Real, EulerNVars>& qB,
+    Vec<Real, EulerNVars>& qT) {
+    for (int v = 0; v < EulerNVars; ++v) {
+        const Real u_jm1 = data[grid_index<Real>(i, j - 1, v, nx)];
+        const Real u_j   = data[grid_index<Real>(i, j,     v, nx)];
+        const Real u_jp1 = data[grid_index<Real>(i, j + 1, v, nx)];
+        const Real backward = u_j - u_jm1;
+        const Real forward  = u_jp1 - u_j;
+        const Real slope    = minbee<Real>(backward, forward);
+        qB[v] = u_j - Real(0.5) * slope;
+        qT[v] = u_j + Real(0.5) * slope;
+    }
+    const Vec<Real, EulerNVars> gB = euler_flux_y<Real>(qB, gamma);
+    const Vec<Real, EulerNVars> gT = euler_flux_y<Real>(qT, gamma);
+    const Real half_dtdy = Real(0.5) * dt / dy;
+    for (int v = 0; v < EulerNVars; ++v) {
+        const Real dg = gB[v] - gT[v];
+        qB[v] += dg * half_dtdy;
+        qT[v] += dg * half_dtdy;
+    }
+}
+
+// Per-face Hancock kernel for X-axis: for each face k in row j, run Hancock
+// on cells k-1 and k and write face-state buffers. Mirrors the inner loop
+// in src/euler/euler_solver.cpp::x_sweep flux block (duplicates Hancock per
+// cell across faces but keeps a single kernel launch).
+template <typename Real>
+__global__ void hancock_face_x_kernel(
+    const Real* data, int nx, int ny,
+    Real dt, Real dx, Real gamma,
+    Vec<Real, EulerNVars>* qL_face,
+    Vec<Real, EulerNVars>* qR_face) {
+    const int k = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (k > nx || j >= ny) return;
+
+    Vec<Real, EulerNVars> qL_left{}, qL_right{};
+    Vec<Real, EulerNVars> qR_left{}, qR_right{};
+    hancock_cell_x<Real>(data, k - 1, j, nx, dt, dx, gamma, qL_left, qL_right);
+    hancock_cell_x<Real>(data, k,     j, nx, dt, dx, gamma, qR_left, qR_right);
+
+    const int idx = j * (nx + 1) + k;
+    qL_face[idx] = qL_right;
+    qR_face[idx] = qR_left;
+}
+
+// Per-face Hancock kernel for Y-axis. No momentum rotation here; rotation
+// is applied later by rusanov_flux_y_kernel.
+template <typename Real>
+__global__ void hancock_face_y_kernel(
+    const Real* data, int nx, int ny,
+    Real dt, Real dy, Real gamma,
+    Vec<Real, EulerNVars>* qB_face,
+    Vec<Real, EulerNVars>* qT_face) {
+    const int k = blockIdx.x * blockDim.x + threadIdx.x;
+    const int i = blockIdx.y * blockDim.y + threadIdx.y;
+    if (k > ny || i >= nx) return;
+
+    Vec<Real, EulerNVars> qB_below{}, qT_below{};
+    Vec<Real, EulerNVars> qB_above{}, qT_above{};
+    hancock_cell_y<Real>(data, i, k - 1, nx, dt, dy, gamma, qB_below, qT_below);
+    hancock_cell_y<Real>(data, i, k,     nx, dt, dy, gamma, qB_above, qT_above);
+
+    const int idx = i * (ny + 1) + k;
+    qB_face[idx] = qT_below;  // top state of cell k-1 (below the face)
+    qT_face[idx] = qB_above;  // bottom state of cell k (above the face)
+}
+
 // Conservative update along X: U[i,j] -= dtdx * (flux_x[i+1,j] - flux_x[i,j]).
 // flux_x is a per-row contiguous buffer of size (nx+1) * ny; linear index for
 // interface k of row j is j*(nx+1) + k. Expression order matches the CPU
@@ -709,6 +813,83 @@ void apply_update_y_gpu(GpuGrid<Real, EulerNVars>& g,
     HRSC_CUDA_CHECK(cudaDeviceSynchronize());
 }
 
+// Bundle: per-face Hancock + Rusanov flux + conservative update along X.
+// Allocates transient face/flux buffers internally. Mirrors the CPU x_sweep
+// in src/euler/euler_solver.cpp (BC is the caller's responsibility).
+template <typename Real>
+void sweep_x_gpu(GpuGrid<Real, EulerNVars>& g, Real dt, Real gamma,
+                 FluxScheme flux_scheme) {
+    const int nx = g.nx();
+    const int ny = g.ny();
+    const std::size_t nface =
+        static_cast<std::size_t>(nx + 1) * static_cast<std::size_t>(ny);
+
+    DeviceArray<Vec<Real, EulerNVars>> qL_face(nface);
+    DeviceArray<Vec<Real, EulerNVars>> qR_face(nface);
+    DeviceArray<Vec<Real, EulerNVars>> flux_face(nface);
+
+    // Hancock per face.
+    {
+        const dim3 threads(kReconstructBlockX, kReconstructBlockY);
+        const dim3 blocks(((nx + 1) + threads.x - 1) / threads.x,
+                          (ny + threads.y - 1) / threads.y);
+        hancock_face_x_kernel<Real><<<blocks, threads>>>(
+            g.data(), nx, ny, dt, g.dx(), gamma,
+            qL_face.data(), qR_face.data());
+        HRSC_CUDA_CHECK(cudaGetLastError());
+        HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+    }
+
+    // Flux per face. T20 will swap in HLLC behind FluxScheme.
+    if (flux_scheme == FluxScheme::Rusanov) {
+        rusanov_flux_x_gpu<Real>(nx, ny, gamma,
+                                 qL_face.data(), qR_face.data(),
+                                 flux_face.data());
+    } else {
+        // HLLC GPU is T20; for now sweep_x_gpu only supports Rusanov.
+        throw std::runtime_error(
+            "sweep_x_gpu: HLLC FluxScheme not yet wired (Week 6 T20)");
+    }
+
+    // Conservative update: U -= (dt/dx) * (flux[k+1] - flux[k]).
+    apply_update_x_gpu<Real>(g, flux_face.data(), dt);
+}
+
+template <typename Real>
+void sweep_y_gpu(GpuGrid<Real, EulerNVars>& g, Real dt, Real gamma,
+                 FluxScheme flux_scheme) {
+    const int nx = g.nx();
+    const int ny = g.ny();
+    const std::size_t nface =
+        static_cast<std::size_t>(nx) * static_cast<std::size_t>(ny + 1);
+
+    DeviceArray<Vec<Real, EulerNVars>> qB_face(nface);
+    DeviceArray<Vec<Real, EulerNVars>> qT_face(nface);
+    DeviceArray<Vec<Real, EulerNVars>> flux_face(nface);
+
+    {
+        const dim3 threads(kReconstructBlockX, kReconstructBlockY);
+        const dim3 blocks(((ny + 1) + threads.x - 1) / threads.x,
+                          (nx + threads.y - 1) / threads.y);
+        hancock_face_y_kernel<Real><<<blocks, threads>>>(
+            g.data(), nx, ny, dt, g.dy(), gamma,
+            qB_face.data(), qT_face.data());
+        HRSC_CUDA_CHECK(cudaGetLastError());
+        HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+    }
+
+    if (flux_scheme == FluxScheme::Rusanov) {
+        rusanov_flux_y_gpu<Real>(nx, ny, gamma,
+                                 qB_face.data(), qT_face.data(),
+                                 flux_face.data());
+    } else {
+        throw std::runtime_error(
+            "sweep_y_gpu: HLLC FluxScheme not yet wired (Week 6 T20)");
+    }
+
+    apply_update_y_gpu<Real>(g, flux_face.data(), dt);
+}
+
 template void apply_outflow_bc_gpu<float>(
     GpuGrid<float, EulerNVars>& g, Axis axis);
 template void apply_outflow_bc_gpu<double>(
@@ -792,5 +973,15 @@ template void apply_update_y_gpu<float>(
 template void apply_update_y_gpu<double>(
     GpuGrid<double, EulerNVars>& g,
     const Vec<double, EulerNVars>* flux_y, double dt);
+
+template void sweep_x_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, float dt, float gamma, FluxScheme flux);
+template void sweep_x_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, double dt, double gamma, FluxScheme flux);
+
+template void sweep_y_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, float dt, float gamma, FluxScheme flux);
+template void sweep_y_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, double dt, double gamma, FluxScheme flux);
 
 } // namespace hrsc

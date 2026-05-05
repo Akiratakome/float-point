@@ -9,6 +9,7 @@
 #include "core/eos.hpp"
 #include "core/grid.hpp"
 #include "core/vec.hpp"
+#include "euler/euler_solver.hpp"   // FluxScheme
 
 #ifdef HRSC_HAS_CUDA
 #include "gpu/gpu_grid.cuh"
@@ -85,6 +86,19 @@ void rusanov_flux_y_gpu(int nx, int ny, Real gamma,
                         const Vec<Real, EulerNVars>* qB_face,
                         const Vec<Real, EulerNVars>* qT_face,
                         Vec<Real, EulerNVars>* flux_y);
+
+// Per-axis sweep: per-face Hancock + flux (Rusanov in T15; HLLC in T20) +
+// conservative update. Allocates transient face buffers internally.
+// Caller is responsible for applying boundary conditions before each sweep.
+// Bit-exact w.r.t. CPU sweep in src/euler/euler_solver.cpp under
+// --fmad=false (set on this TU).
+template <typename Real>
+void sweep_x_gpu(GpuGrid<Real, EulerNVars>& g, Real dt, Real gamma,
+                 FluxScheme flux);
+
+template <typename Real>
+void sweep_y_gpu(GpuGrid<Real, EulerNVars>& g, Real dt, Real gamma,
+                 FluxScheme flux);
 
 // Conservative update along an axis: U[i,j] -= (dt/dx) * (flux[k+1] - flux[k]).
 // flux_x is shaped (nx+1) * ny (per-row, contiguous); flux_y is nx * (ny+1)
@@ -183,6 +197,16 @@ extern template void apply_update_y_gpu<float>(
 extern template void apply_update_y_gpu<double>(
     GpuGrid<double, EulerNVars>& g,
     const Vec<double, EulerNVars>* flux_y, double dt);
+
+extern template void sweep_x_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, float dt, float gamma, FluxScheme flux);
+extern template void sweep_x_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, double dt, double gamma, FluxScheme flux);
+
+extern template void sweep_y_gpu<float>(
+    GpuGrid<float, EulerNVars>& g, float dt, float gamma, FluxScheme flux);
+extern template void sweep_y_gpu<double>(
+    GpuGrid<double, EulerNVars>& g, double dt, double gamma, FluxScheme flux);
 #endif
 
 } // namespace hrsc
