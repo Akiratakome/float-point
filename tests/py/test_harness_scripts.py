@@ -118,6 +118,39 @@ def test_run_matrix_writes_metadata_and_preserves_cfg(tmp_path: Path) -> None:
     assert metadata["git_commit"] == "abc123"
 
 
+def test_run_matrix_applies_extra_cfg_overrides(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    cfg = tmp_path / "case.cfg"
+    cfg.write_text(
+        "test = sod\n"
+        "solver = hllc\n"
+        "output_format = table\n",
+        encoding="utf-8",
+    )
+    raw_run = {
+        "name": "sod-gpu",
+        "binary": "build-cuda-double-strict/hrsc",
+        "config": str(cfg),
+        "extra_cfg": {
+            "device": "gpu",
+            "solver": "rusanov",
+            "output_format": "binary",
+        },
+        "output_file": "grid.bin",
+    }
+
+    run = run_matrix.normalise_run(raw_run, output_root=tmp_path / "out")
+    generated_cfg = run_matrix.materialise_run_config(run)
+    text = generated_cfg.read_text(encoding="utf-8")
+
+    assert "device = gpu\n" in text
+    assert "solver = rusanov\n" in text
+    assert "output_format = binary\n" in text
+    assert "output_file = " + str(run.raw_output) in text
+    assert cfg.read_text(encoding="utf-8").endswith("output_format = table\n")
+
+
 def test_aggregate_metrics_combines_summary_jsons(tmp_path: Path) -> None:
     from scripts import aggregate_metrics
 

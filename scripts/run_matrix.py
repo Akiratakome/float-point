@@ -24,6 +24,7 @@ class MatrixRun:
     precision: str | None = None
     build: str | None = None
     raw_output: Path | None = None
+    extra_cfg: dict[str, str] | None = None
 
 
 def _require_field(raw: dict[str, Any], field: str) -> Any:
@@ -39,6 +40,9 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
     name = str(raw["name"])
     run_dir = output_root / "runs" / name
     raw_output = raw.get("output_file")
+    raw_extra_cfg = raw.get("extra_cfg", {})
+    if not isinstance(raw_extra_cfg, dict):
+        raise ValueError(f"run '{name}' field 'extra_cfg' must be an object")
     return MatrixRun(
         name=name,
         binary=Path(str(raw["binary"])),
@@ -47,6 +51,7 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
         precision=raw.get("precision"),
         build=raw.get("build"),
         raw_output=(run_dir / str(raw_output)) if raw_output else None,
+        extra_cfg={str(key): str(value) for key, value in raw_extra_cfg.items()},
     )
 
 
@@ -75,10 +80,13 @@ def materialise_run_config(run: MatrixRun) -> Path:
     run.run_dir.mkdir(parents=True, exist_ok=True)
     target = run.run_dir / "config.cfg"
     shutil.copy2(run.source_config, target)
-    if run.raw_output is not None:
+    if run.extra_cfg or run.raw_output is not None:
         text = target.read_text(encoding="utf-8")
-        text = _replace_or_append_cfg_line(text, "output_format", "binary")
-        text = _replace_or_append_cfg_line(text, "output_file", str(run.raw_output))
+        for key, value in (run.extra_cfg or {}).items():
+            text = _replace_or_append_cfg_line(text, key, value)
+        if run.raw_output is not None:
+            text = _replace_or_append_cfg_line(text, "output_format", "binary")
+            text = _replace_or_append_cfg_line(text, "output_file", str(run.raw_output))
         target.write_text(text, encoding="utf-8")
     return target
 
@@ -132,6 +140,7 @@ def build_metadata(
         "precision": run.precision,
         "build": run.build,
         "raw_output": str(run.raw_output) if run.raw_output else None,
+        "extra_cfg": run.extra_cfg or {},
         "command": command,
         "returncode": returncode,
     }
