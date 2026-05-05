@@ -59,6 +59,33 @@ template <typename Real> inline constexpr Real LW3_Q4_VX  = Real(0.0);
 template <typename Real> inline constexpr Real LW3_Q4_VY  = Real(1.206);
 template <typename Real> inline constexpr Real LW3_Q4_P   = Real(0.3);
 
+// ─── Config 4 (Table 4.3 of Liska & Wendroff 2003) ────────────────────────────
+// Two shocks + two contacts. t_end = 0.25, gamma = 1.4.
+
+// Q1: x > 0.5, y > 0.5
+template <typename Real> inline constexpr Real LW4_Q1_RHO = Real(1.1);
+template <typename Real> inline constexpr Real LW4_Q1_VX  = Real(0.0);
+template <typename Real> inline constexpr Real LW4_Q1_VY  = Real(0.0);
+template <typename Real> inline constexpr Real LW4_Q1_P   = Real(1.1);
+
+// Q2: x < 0.5, y > 0.5
+template <typename Real> inline constexpr Real LW4_Q2_RHO = Real(0.5065);
+template <typename Real> inline constexpr Real LW4_Q2_VX  = Real(0.8939);
+template <typename Real> inline constexpr Real LW4_Q2_VY  = Real(0.0);
+template <typename Real> inline constexpr Real LW4_Q2_P   = Real(0.35);
+
+// Q3: x < 0.5, y < 0.5
+template <typename Real> inline constexpr Real LW4_Q3_RHO = Real(1.1);
+template <typename Real> inline constexpr Real LW4_Q3_VX  = Real(0.8939);
+template <typename Real> inline constexpr Real LW4_Q3_VY  = Real(0.8939);
+template <typename Real> inline constexpr Real LW4_Q3_P   = Real(1.1);
+
+// Q4: x > 0.5, y < 0.5
+template <typename Real> inline constexpr Real LW4_Q4_RHO = Real(0.5065);
+template <typename Real> inline constexpr Real LW4_Q4_VX  = Real(0.0);
+template <typename Real> inline constexpr Real LW4_Q4_VY  = Real(0.8939);
+template <typename Real> inline constexpr Real LW4_Q4_P   = Real(0.35);
+
 // ─── Config 6 (Table 4.3 of Liska & Wendroff 2003) ────────────────────────────
 // Four contact discontinuities, no shocks. t_end = 0.3, gamma = 1.4.
 
@@ -113,6 +140,35 @@ void setup_liska_wendroff_config3(GridView<Real, EulerNVars> gv, Real gamma) {
             } else {
                 // Q4: x > xs, y <= ys
                 prim = {LW3_Q4_RHO<Real>, LW3_Q4_VX<Real>, LW3_Q4_VY<Real>, LW3_Q4_P<Real>};
+            }
+
+            Vec<Real, EulerNVars> cons = prim_to_cons(prim, gamma);
+            for (int v = 0; v < EulerNVars; ++v) {
+                gv(i, j, v) = cons[v];
+            }
+        }
+    }
+}
+
+template <typename Real>
+void setup_liska_wendroff_config4(GridView<Real, EulerNVars> gv, Real gamma) {
+    const Real xs = LW_XSPLIT<Real>;
+    const Real ys = LW_YSPLIT<Real>;
+
+    for (int j = 0; j < gv.ny; ++j) {
+        Real y = (Real(j) + Real(0.5)) * gv.dy;
+        for (int i = 0; i < gv.nx; ++i) {
+            Real x = (Real(i) + Real(0.5)) * gv.dx;
+
+            Vec<Real, EulerNVars> prim;
+            if (x > xs && y > ys) {
+                prim = {LW4_Q1_RHO<Real>, LW4_Q1_VX<Real>, LW4_Q1_VY<Real>, LW4_Q1_P<Real>};
+            } else if (x <= xs && y > ys) {
+                prim = {LW4_Q2_RHO<Real>, LW4_Q2_VX<Real>, LW4_Q2_VY<Real>, LW4_Q2_P<Real>};
+            } else if (x <= xs && y <= ys) {
+                prim = {LW4_Q3_RHO<Real>, LW4_Q3_VX<Real>, LW4_Q3_VY<Real>, LW4_Q3_P<Real>};
+            } else {
+                prim = {LW4_Q4_RHO<Real>, LW4_Q4_VX<Real>, LW4_Q4_VY<Real>, LW4_Q4_P<Real>};
             }
 
             Vec<Real, EulerNVars> cons = prim_to_cons(prim, gamma);

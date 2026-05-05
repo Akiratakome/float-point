@@ -48,6 +48,8 @@ static void setup_ic(GridView<Real, EulerNVars> gv, const std::string& test, Rea
         setup_stationary_contact(gv, gamma);
     } else if (test == "lw_config3") {
         setup_liska_wendroff_config3(gv, gamma);
+    } else if (test == "lw_config4") {
+        setup_liska_wendroff_config4(gv, gamma);  // Week 6 D5
     } else if (test == "lw_config6") {
         setup_liska_wendroff_config6(gv, gamma);  // implemented Week 5
     } else if (test == "shock_bubble") {
