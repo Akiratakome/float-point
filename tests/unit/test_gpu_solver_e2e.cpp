@@ -1,8 +1,9 @@
 // tests/unit/test_gpu_solver_e2e.cpp
 //
-// End-to-end bit-exact regression tests for EulerGpuSolver: build a CPU
-// solver and a GPU solver from the same IC, run identical steps on both,
-// and require the post-step grids to be byte-identical (memcmp).
+// End-to-end regression tests for EulerGpuSolver: build a CPU solver and a
+// GPU solver from the same IC, run identical steps on both, and compare the
+// post-step grids. Single-step cases are byte-identical; multi-step cases use
+// the scaled Linf gate from docs/week6/week6-design.md §4.5.
 // Cases:
 //   1. Sod 1D, 1 step
 //   2. Sod 1D, 10 steps
@@ -45,6 +46,9 @@ bool grid_byte_equal(const Grid2D<Real, EulerNVars>& a,
 template <typename Real>
 double interior_linf_ulp_ratio(const Grid2D<Real, EulerNVars>& a,
                                const Grid2D<Real, EulerNVars>& b) {
+    if (a.nx != b.nx || a.ny != b.ny || a.data.size() != b.data.size()) {
+        return std::numeric_limits<double>::infinity();
+    }
     constexpr int ng = Grid2D<Real, EulerNVars>::ng;
     double linf_diff = 0.0;
     double linf_ref = 0.0;
@@ -60,7 +64,8 @@ double interior_linf_ulp_ratio(const Grid2D<Real, EulerNVars>& a,
                     return std::numeric_limits<double>::infinity();
                 }
                 const double da = std::abs(static_cast<double>(av));
-                const double dd = std::abs(static_cast<double>(av - bv));
+                const double dd =
+                    std::abs(static_cast<double>(av) - static_cast<double>(bv));
                 if (da > linf_ref) linf_ref = da;
                 if (dd > linf_diff) linf_diff = dd;
             }
