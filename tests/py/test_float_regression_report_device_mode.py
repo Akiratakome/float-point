@@ -189,3 +189,28 @@ def test_device_mode_stationary_contact_uses_four_ulp_gate(tmp_path: Path) -> No
     assert row["ulp_max"] > 4.0
     assert row["gate_passed"] is False
     assert "gate_ulp=4" in row["notes"]
+
+
+def test_device_mode_infers_precision_per_pair_from_binary_headers(tmp_path: Path) -> None:
+    cpu_double = _conserved_payload(8, np.dtype(np.float64))
+    gpu_double = cpu_double.copy()
+    cpu_float = _conserved_payload(8, np.dtype(np.float32))
+    gpu_float = cpu_float.copy()
+    paths = [
+        tmp_path / "runs" / "sod-cpu-strict-d" / "sod.bin",
+        tmp_path / "runs" / "sod-gpu-strict-d" / "sod.bin",
+        tmp_path / "runs" / "sod-cpu-strict-f" / "sod.bin",
+        tmp_path / "runs" / "sod-gpu-strict-f" / "sod.bin",
+    ]
+    for path, payload in zip(paths, (cpu_double, gpu_double, cpu_float, gpu_float)):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _write_binary(path, payload)
+
+    rows = frr._report_device(
+        paths,
+        tmp_path / "summary",
+        precision=None,
+        reference_path=None,
+    )["rows"]
+
+    assert [row["precision"] for row in rows] == ["double", "float"]

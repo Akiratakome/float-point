@@ -82,6 +82,14 @@ def _precision_dtype(precision: str) -> np.dtype:
     raise ValueError(f"Unsupported precision={precision!r}; expected 'float' or 'double'")
 
 
+def _precision_from_tag(precision_tag: int) -> str:
+    if precision_tag == 8:
+        return "double"
+    if precision_tag == 4:
+        return "float"
+    raise ValueError(f"Unsupported precision_tag={precision_tag}")
+
+
 def _display_device_path(path: Path) -> str:
     return str(path)
 
@@ -98,7 +106,7 @@ def _is_stationary_contact_pair(cpu_path: Path, gpu_path: Path) -> bool:
 def _report_device_pair(
     cpu_path: Path,
     gpu_path: Path,
-    precision: str,
+    precision: str | None,
     reference_path: Path | None = None,
     gate_ulp: float | None = None,
 ) -> dict[str, object]:
@@ -114,7 +122,13 @@ def _report_device_pair(
             f"{cpu_header.nx}x{cpu_header.ny}x{cpu_header.nvars}, "
             f"{gpu_path} is {gpu_header.nx}x{gpu_header.ny}x{gpu_header.nvars}"
         )
+    if cpu_header.precision_tag != gpu_header.precision_tag:
+        raise ValueError(
+            f"Precision mismatch: {cpu_path} tag={cpu_header.precision_tag}, "
+            f"{gpu_path} tag={gpu_header.precision_tag}"
+        )
 
+    precision = precision or _precision_from_tag(cpu_header.precision_tag)
     dtype = _precision_dtype(precision)
     cpu = cpu_cons.astype(np.float64, copy=False)
     gpu = gpu_cons.astype(np.float64, copy=False)
@@ -261,7 +275,7 @@ def _write_device_outputs(output_prefix: Path, rows: list[dict[str, object]]) ->
 def _report_device(
     inputs: list[Path],
     output_prefix: Path,
-    precision: str,
+    precision: str | None,
     reference_path: Path | None = None,
 ) -> dict[str, object]:
     pairs = _pair_device_inputs(inputs)
@@ -509,7 +523,7 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--inputs", nargs="+", type=Path, help="Input binaries for fp/device reports")
     p.add_argument("--cpu", nargs="+", type=Path, help="CPU binary path(s) for device mode")
     p.add_argument("--gpu", nargs="+", type=Path, help="GPU binary path(s) for device mode")
-    p.add_argument("--precision", choices=("float", "double"), default="double")
+    p.add_argument("--precision", choices=("float", "double"), default=None)
     p.add_argument("--reference", type=Path, help="Optional exact/reference binary")
     p.add_argument("--output", type=Path, help="Output prefix for summary.{csv,json,md}")
     p.add_argument("--gamma", type=float, default=1.4)
