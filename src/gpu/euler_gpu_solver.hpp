@@ -52,6 +52,7 @@ private:
     Real         m_gamma, m_cfl;
     TimeReal     m_t_end;
     TimeReal     m_time;
+    TimeReal     m_kahan_c;  // Kahan compensated summation correction (mirrors CPU)
     int          m_step;
     FluxScheme   m_flux;
     BoundaryType m_bc_x, m_bc_y;
