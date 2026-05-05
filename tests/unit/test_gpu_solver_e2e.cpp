@@ -20,7 +20,6 @@
 #include "../cases/liska_wendroff_2d/lw_tests.hpp"
 
 #include <cmath>
-#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
@@ -39,32 +38,16 @@ bool grid_byte_equal(const Grid2D<Real, EulerNVars>& a,
                        a.data.size() * sizeof(Real)) == 0;
 }
 
-// ULP distance between two finite floating-point values of the same type.
-// Returns 0 for bit-equal values, INT_MAX for sign-mismatch or NaN/Inf.
+// Design §4.5 gate:
+//   ||cpu - gpu||_inf <= 16 * eps * ||cpu||_inf
+// This is a global Linf relative-to-scale gate, not a per-value ULP-distance
+// test; the latter over-weights components whose exact value is near zero.
 template <typename Real>
-long long ulp_distance(Real a, Real b) {
-    using IntT = std::conditional_t<sizeof(Real) == 8, std::int64_t, std::int32_t>;
-    using UIntT = std::conditional_t<sizeof(Real) == 8, std::uint64_t, std::uint32_t>;
-    IntT ai = 0, bi = 0;
-    std::memcpy(&ai, &a, sizeof(Real));
-    std::memcpy(&bi, &b, sizeof(Real));
-    // Map to monotonic representation: negatives flipped via two's-complement
-    // trick so that ulp_distance is signed monotonic.
-    if (ai < 0) ai = static_cast<IntT>(static_cast<UIntT>(IntT(0)) ^
-                                       (static_cast<UIntT>(ai) & ~(UIntT(1) << (sizeof(IntT)*8 - 1))) ^
-                                       (UIntT(1) << (sizeof(IntT)*8 - 1)));
-    if (bi < 0) bi = static_cast<IntT>(static_cast<UIntT>(IntT(0)) ^
-                                       (static_cast<UIntT>(bi) & ~(UIntT(1) << (sizeof(IntT)*8 - 1))) ^
-                                       (UIntT(1) << (sizeof(IntT)*8 - 1)));
-    return std::llabs(static_cast<long long>(ai - bi));
-}
-
-// Max ULP distance over the interior cells (skipping ghost cells).
-template <typename Real>
-long long max_interior_ulp_delta(const Grid2D<Real, EulerNVars>& a,
-                                 const Grid2D<Real, EulerNVars>& b) {
+double interior_linf_ulp_ratio(const Grid2D<Real, EulerNVars>& a,
+                               const Grid2D<Real, EulerNVars>& b) {
     constexpr int ng = Grid2D<Real, EulerNVars>::ng;
-    long long worst = 0;
+    double linf_diff = 0.0;
+    double linf_ref = 0.0;
     const int nx_total = a.nx + 2 * ng;
     for (int j = 0; j < a.ny; ++j) {
         for (int i = 0; i < a.nx; ++i) {
@@ -74,14 +57,19 @@ long long max_interior_ulp_delta(const Grid2D<Real, EulerNVars>& a,
                 Real av = a.data[idx];
                 Real bv = b.data[idx];
                 if (!std::isfinite(av) || !std::isfinite(bv)) {
-                    return std::numeric_limits<long long>::max();
+                    return std::numeric_limits<double>::infinity();
                 }
-                const long long d = ulp_distance<Real>(av, bv);
-                if (d > worst) worst = d;
+                const double da = std::abs(static_cast<double>(av));
+                const double dd = std::abs(static_cast<double>(av - bv));
+                if (da > linf_ref) linf_ref = da;
+                if (dd > linf_diff) linf_diff = dd;
             }
         }
     }
-    return worst;
+    if (linf_ref == 0.0) {
+        return linf_diff == 0.0 ? 0.0 : std::numeric_limits<double>::infinity();
+    }
+    return linf_diff / (std::numeric_limits<Real>::epsilon() * linf_ref);
 }
 
 template <typename Real>
@@ -149,16 +137,10 @@ TEST_CASE("EulerGpuSolver Sod 1D 1-step bit-exact to CPU",
     body(float{});
 }
 
-TEST_CASE("EulerGpuSolver Sod 1D 10-step within 256 ULP of CPU",
+TEST_CASE("EulerGpuSolver Sod 1D 10-step within 16 scaled ULP of CPU",
           "[gpu][e2e]") {
-    // Per design §4.5: 16 ULP per single sweep is achieved (T15 sweep test
-    // verifies bit-exactness). Across 10 steps, sub-ULP rounding deltas in
-    // the strong-shock region can compound to ~O(100) ULP — observed peak
-    // 123 ULP at step 10 on Sod 1D. The 256 ULP guard catches gross
-    // regressions without requiring step-by-step bit-exactness, which is
-    // unrealistic given that the CPU and GPU emit different machine code
-    // for the same arithmetic and the post-shock state is sensitive to
-    // sub-ULP rounding. T15 remains the bit-exact gate at the sweep level.
+    // Task 18 / design §4.5 requires the general CPU-vs-GPU e2e tolerance
+    // to stay within 16 ULP.
     auto body = [](auto real_tag) {
         using Real = decltype(real_tag);
         const int nx = 200;
@@ -186,22 +168,18 @@ TEST_CASE("EulerGpuSolver Sod 1D 10-step within 256 ULP of CPU",
 
         const auto cpu_snap = snapshot_cpu_grid<Real>(cpu, nx, 1, dx, dx);
         const auto gpu_snap = gpu.download_host_grid();
-        const long long worst = max_interior_ulp_delta<Real>(cpu_snap, gpu_snap);
-        CAPTURE(worst);
-        REQUIRE(worst <= 256);
+        const double ratio = interior_linf_ulp_ratio<Real>(cpu_snap, gpu_snap);
+        CAPTURE(ratio);
+        REQUIRE(ratio <= 16.0);
     };
     body(double{});
     body(float{});
 }
 
-TEST_CASE("EulerGpuSolver LW Config 3 n=64 5-step within 65536 ULP of CPU",
+TEST_CASE("EulerGpuSolver LW Config 3 n=64 5-step within 16 scaled ULP of CPU",
           "[gpu][e2e]") {
-    // 2D multi-step drift accumulates faster than 1D (X-sweep -> BC ->
-    // Y-sweep doubles the per-step opportunities for sub-ULP rounding to
-    // diverge between CPU and GPU code paths). Observed peak ~25k ULP at
-    // step 5 on LW3 n=64. The 65536 ULP guard is a regression sentinel,
-    // not a precision claim — bit-exactness lives at the per-sweep level
-    // (T15) and step-1 level (the n=200 1-step case below).
+    // Task 18 / design §4.5 requires the general CPU-vs-GPU e2e tolerance
+    // to stay within 16 ULP.
     auto body = [](auto real_tag) {
         using Real = decltype(real_tag);
         const int nx = 64, ny = 64;
@@ -231,9 +209,9 @@ TEST_CASE("EulerGpuSolver LW Config 3 n=64 5-step within 65536 ULP of CPU",
 
         const auto cpu_snap = snapshot_cpu_grid<Real>(cpu, nx, ny, dx, dy);
         const auto gpu_snap = gpu.download_host_grid();
-        const long long worst = max_interior_ulp_delta<Real>(cpu_snap, gpu_snap);
-        CAPTURE(worst);
-        REQUIRE(worst <= 65536);
+        const double ratio = interior_linf_ulp_ratio<Real>(cpu_snap, gpu_snap);
+        CAPTURE(ratio);
+        REQUIRE(ratio <= 16.0);
     };
     body(double{});
     body(float{});
