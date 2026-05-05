@@ -4,6 +4,7 @@
 
 #include "euler/euler_flux.hpp"
 #include "euler/muscl.hpp"
+#include "euler/rusanov.hpp"
 #include "gpu/cuda_utils.cuh"
 
 #include <cstring>
@@ -390,6 +391,92 @@ __global__ void reflective_y_kernel(Real* data, int nx, int ny) {
     }
 }
 
+// Rusanov (Local Lax-Friedrichs) flux on every X-face. Input buffers qL_face
+// and qR_face are sized (nx+1) * ny (linear index j*(nx+1) + k). Output
+// flux_x has the same shape. Calls rusanov_flux from src/euler/rusanov.hpp
+// (HD_FUNC) per face — no swap_momentum since we're on X-interfaces.
+// Inlined Rusanov body: nvcc miscompiles `std::max<Real>` from <algorithm>
+// in __global__ context (returns 0 silently), so we expand the algebra here
+// using a ternary that matches std::max's behavior on equality (returns
+// second arg). All other steps reuse the HD_FUNC primitives directly so the
+// expression tree matches the CPU oracle in src/euler/rusanov.hpp.
+template <typename Real>
+__global__ void rusanov_flux_x_kernel(
+    const Vec<Real, EulerNVars>* qL_face,
+    const Vec<Real, EulerNVars>* qR_face,
+    int nx, int ny, Real gamma,
+    Vec<Real, EulerNVars>* flux_x) {
+    const int k = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (k > nx || j >= ny) return;
+    const int idx = j * (nx + 1) + k;
+
+    const Vec<Real, EulerNVars> qL = qL_face[idx];
+    const Vec<Real, EulerNVars> qR = qR_face[idx];
+    const Real rhoL = qL[RHO];
+    const Real uL   = qL[RHOU] / rhoL;
+    const Real pL_  = pressure<Real>(qL, gamma);
+    const Real aL   = sound_speed<Real>(rhoL, pL_, gamma);
+    const Real rhoR = qR[RHO];
+    const Real uR   = qR[RHOU] / rhoR;
+    const Real pR_  = pressure<Real>(qR, gamma);
+    const Real aR   = sound_speed<Real>(rhoR, pR_, gamma);
+    const Real absL = std::abs(uL) + aL;
+    const Real absR = std::abs(uR) + aR;
+    // std::max(absL, absR): returns absR when absL == absR (second arg).
+    const Real S_max = (absL < absR) ? absR : absL;
+
+    const Vec<Real, EulerNVars> FL = euler_flux_x<Real>(qL, gamma);
+    const Vec<Real, EulerNVars> FR = euler_flux_x<Real>(qR, gamma);
+    Vec<Real, EulerNVars> result{};
+    for (int v = 0; v < EulerNVars; ++v) {
+        result[v] = (FL[v] + FR[v]) * Real(0.5)
+                  - (qR[v] - qL[v]) * (Real(0.5) * S_max);
+    }
+    flux_x[idx] = result;
+}
+
+// Rusanov flux on every Y-face. Buffers qB_face and qT_face are nx * (ny+1)
+// (linear index i*(ny+1) + k). Output flux_y has the same shape. Mirrors
+// the CPU rotation strategy: swap_momentum on inputs, swap_momentum on
+// output — matching src/euler/euler_solver.cpp::y_sweep flux construction.
+template <typename Real>
+__global__ void rusanov_flux_y_kernel(
+    const Vec<Real, EulerNVars>* qB_face,
+    const Vec<Real, EulerNVars>* qT_face,
+    int nx, int ny, Real gamma,
+    Vec<Real, EulerNVars>* flux_y) {
+    const int k = blockIdx.x * blockDim.x + threadIdx.x;
+    const int i = blockIdx.y * blockDim.y + threadIdx.y;
+    if (k > ny || i >= nx) return;
+    const int idx = i * (ny + 1) + k;
+
+    // Rotate momentum: y-interface treats RHOV as normal velocity. Mirror
+    // src/euler/euler_solver.cpp::y_sweep flux construction.
+    const Vec<Real, EulerNVars> qL = swap_momentum<Real>(qB_face[idx]);
+    const Vec<Real, EulerNVars> qR = swap_momentum<Real>(qT_face[idx]);
+    const Real rhoL = qL[RHO];
+    const Real uL   = qL[RHOU] / rhoL;
+    const Real pL_  = pressure<Real>(qL, gamma);
+    const Real aL   = sound_speed<Real>(rhoL, pL_, gamma);
+    const Real rhoR = qR[RHO];
+    const Real uR   = qR[RHOU] / rhoR;
+    const Real pR_  = pressure<Real>(qR, gamma);
+    const Real aR   = sound_speed<Real>(rhoR, pR_, gamma);
+    const Real absL = std::abs(uL) + aL;
+    const Real absR = std::abs(uR) + aR;
+    const Real S_max = (absL < absR) ? absR : absL;
+
+    const Vec<Real, EulerNVars> FL = euler_flux_x<Real>(qL, gamma);
+    const Vec<Real, EulerNVars> FR = euler_flux_x<Real>(qR, gamma);
+    Vec<Real, EulerNVars> rotated{};
+    for (int v = 0; v < EulerNVars; ++v) {
+        rotated[v] = (FL[v] + FR[v]) * Real(0.5)
+                   - (qR[v] - qL[v]) * (Real(0.5) * S_max);
+    }
+    flux_y[idx] = swap_momentum<Real>(rotated);
+}
+
 // Conservative update along X: U[i,j] -= dtdx * (flux_x[i+1,j] - flux_x[i,j]).
 // flux_x is a per-row contiguous buffer of size (nx+1) * ny; linear index for
 // interface k of row j is j*(nx+1) + k. Expression order matches the CPU
@@ -567,6 +654,34 @@ void hancock_predict_y_gpu(GpuGrid<Real, EulerNVars>& g,
 }
 
 template <typename Real>
+void rusanov_flux_x_gpu(int nx, int ny, Real gamma,
+                        const Vec<Real, EulerNVars>* qL_face,
+                        const Vec<Real, EulerNVars>* qR_face,
+                        Vec<Real, EulerNVars>* flux_x) {
+    const dim3 threads(kReconstructBlockX, kReconstructBlockY);
+    const dim3 blocks(((nx + 1) + threads.x - 1) / threads.x,
+                      (ny + threads.y - 1) / threads.y);
+    rusanov_flux_x_kernel<Real><<<blocks, threads>>>(
+        qL_face, qR_face, nx, ny, gamma, flux_x);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename Real>
+void rusanov_flux_y_gpu(int nx, int ny, Real gamma,
+                        const Vec<Real, EulerNVars>* qB_face,
+                        const Vec<Real, EulerNVars>* qT_face,
+                        Vec<Real, EulerNVars>* flux_y) {
+    const dim3 threads(kReconstructBlockX, kReconstructBlockY);
+    const dim3 blocks(((ny + 1) + threads.x - 1) / threads.x,
+                      (nx + threads.y - 1) / threads.y);
+    rusanov_flux_y_kernel<Real><<<blocks, threads>>>(
+        qB_face, qT_face, nx, ny, gamma, flux_y);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename Real>
 void apply_update_x_gpu(GpuGrid<Real, EulerNVars>& g,
                         const Vec<Real, EulerNVars>* flux_x,
                         Real dt) {
@@ -641,6 +756,28 @@ template void hancock_predict_y_gpu<float>(
 template void hancock_predict_y_gpu<double>(
     GpuGrid<double, EulerNVars>& g, double dt, double gamma,
     Vec<double, EulerNVars>* q_bottom, Vec<double, EulerNVars>* q_top);
+
+template void rusanov_flux_x_gpu<float>(
+    int nx, int ny, float gamma,
+    const Vec<float, EulerNVars>* qL_face,
+    const Vec<float, EulerNVars>* qR_face,
+    Vec<float, EulerNVars>* flux_x);
+template void rusanov_flux_x_gpu<double>(
+    int nx, int ny, double gamma,
+    const Vec<double, EulerNVars>* qL_face,
+    const Vec<double, EulerNVars>* qR_face,
+    Vec<double, EulerNVars>* flux_x);
+
+template void rusanov_flux_y_gpu<float>(
+    int nx, int ny, float gamma,
+    const Vec<float, EulerNVars>* qB_face,
+    const Vec<float, EulerNVars>* qT_face,
+    Vec<float, EulerNVars>* flux_y);
+template void rusanov_flux_y_gpu<double>(
+    int nx, int ny, double gamma,
+    const Vec<double, EulerNVars>* qB_face,
+    const Vec<double, EulerNVars>* qT_face,
+    Vec<double, EulerNVars>* flux_y);
 
 template void apply_update_x_gpu<float>(
     GpuGrid<float, EulerNVars>& g,

@@ -70,6 +70,22 @@ void hancock_predict_y_gpu(GpuGrid<Real, EulerNVars>& g,
                            Vec<Real, EulerNVars>* q_bottom,
                            Vec<Real, EulerNVars>* q_top);
 
+// Rusanov (LLF) flux on per-face left/right input buffers.
+// X: qL_face / qR_face / flux_x sized (nx+1) * ny.
+// Y: qB_face / qT_face / flux_y sized nx * (ny+1) (rotation handled inside).
+// Bit-exact w.r.t. CPU oracle in src/euler/rusanov.hpp.
+template <typename Real>
+void rusanov_flux_x_gpu(int nx, int ny, Real gamma,
+                        const Vec<Real, EulerNVars>* qL_face,
+                        const Vec<Real, EulerNVars>* qR_face,
+                        Vec<Real, EulerNVars>* flux_x);
+
+template <typename Real>
+void rusanov_flux_y_gpu(int nx, int ny, Real gamma,
+                        const Vec<Real, EulerNVars>* qB_face,
+                        const Vec<Real, EulerNVars>* qT_face,
+                        Vec<Real, EulerNVars>* flux_y);
+
 // Conservative update along an axis: U[i,j] -= (dt/dx) * (flux[k+1] - flux[k]).
 // flux_x is shaped (nx+1) * ny (per-row, contiguous); flux_y is nx * (ny+1)
 // (per-column, contiguous). Bit-exact w.r.t. the CPU oracle in
@@ -131,6 +147,28 @@ extern template void hancock_predict_y_gpu<float>(
 extern template void hancock_predict_y_gpu<double>(
     GpuGrid<double, EulerNVars>& g, double dt, double gamma,
     Vec<double, EulerNVars>* q_bottom, Vec<double, EulerNVars>* q_top);
+
+extern template void rusanov_flux_x_gpu<float>(
+    int nx, int ny, float gamma,
+    const Vec<float, EulerNVars>* qL_face,
+    const Vec<float, EulerNVars>* qR_face,
+    Vec<float, EulerNVars>* flux_x);
+extern template void rusanov_flux_x_gpu<double>(
+    int nx, int ny, double gamma,
+    const Vec<double, EulerNVars>* qL_face,
+    const Vec<double, EulerNVars>* qR_face,
+    Vec<double, EulerNVars>* flux_x);
+
+extern template void rusanov_flux_y_gpu<float>(
+    int nx, int ny, float gamma,
+    const Vec<float, EulerNVars>* qB_face,
+    const Vec<float, EulerNVars>* qT_face,
+    Vec<float, EulerNVars>* flux_y);
+extern template void rusanov_flux_y_gpu<double>(
+    int nx, int ny, double gamma,
+    const Vec<double, EulerNVars>* qB_face,
+    const Vec<double, EulerNVars>* qT_face,
+    Vec<double, EulerNVars>* flux_y);
 
 extern template void apply_update_x_gpu<float>(
     GpuGrid<float, EulerNVars>& g,
