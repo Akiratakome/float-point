@@ -16,3 +16,7 @@
 - Included precision labels: p24-real-float, p53. Each non-p53 row must come from an MCA ensemble, not a single deterministic float run.
 - For the headline ρ row, `s_worst_q05` is accuracy-limited rather than reliability-limited, so p24 and p53 share the same `s_worst_q05` and regime. The precision effect is still visible in `σ_FP_L1`: p24-real-float raises HLLC ρ noise from `5.216e-11` to `2.956e-02`, and Rusanov ρ noise from `2.278e-11` to `8.199e-03`.
 - Athena execution details and image-reading notes are archived in `docs/experiment_logs/week4_a4_p24_real_float_execution_summary.md` and `docs/experiment_logs/week4_a4_p24_real_float_readme.md`. Generated p24 heatmaps live under `experiments/week4/figures/a4_float_p24/`.
+
+## Terminology update (2026-05-07)
+
+The "regime" column above is retained for traceability. Report 1 and all Week 7+ outputs use the wording "precision-adequacy margin" instead of "round-off limited" - see `docs/experiment_logs/week7_supervisor_response.md`. The numerical criterion (`s_worst_q05 - s_req(N) < 0`) is unchanged; only the label is clarified.
