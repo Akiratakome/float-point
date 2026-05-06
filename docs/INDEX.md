@@ -5,7 +5,7 @@
 **Project**: Effect of Floating-Point Precision and Hardware on HRSC Schemes (MSc, 20 weeks)
 **Reports**: Report 1 due 2026-05-29 (Week 10) · Report 2 due 2026-08-07 (Week 20)
 **Repo root**: `c:/Users/tangy/Desktop/floatpoint`
-**Default branch**: `main` · **Active dev branch**: `week4-implementation`
+**Default branch**: `main` · **Active branch**: `main`
 
 ---
 
@@ -67,15 +67,18 @@ src/
 ├── euler/          # euler_solver.{hpp,cpp} (split for explicit instantiation)
 │                   # hllc.hpp, rusanov.hpp, muscl.hpp, hancock.hpp,
 │                   # euler_flux.hpp, exact_riemann.hpp
+├── gpu/            # opt-in CUDA Euler path: euler_gpu_solver.{hpp,cu},
+│                   # euler_kernels.{cuh,cu}, gpu_grid/cuda utilities
 ├── utils/          # io.hpp (binary reader/writer; auto-creates parent dir),
 │                   # config.hpp (key=value parser)
 └── main.cpp        # cfg-driven entry; selects test, solver, BCs, precision
                     # via HRSC_REAL macro from cmake/PrecisionConfig.cmake
 
 tests/
-├── unit/           # Catch2 (115 cases / 3660 assertions)
+├── unit/           # Catch2 CPU default suite (128 cases / 11925 assertions)
 │                   # test_boundary.cpp (10 cases / 572 assertions covers
 │                   # outflow/periodic/reflective × 1D/2D/dispatcher/MHD-shape)
+│                   # Week 6 adds opt-in [gpu] coverage when ENABLE_CUDA=ON
 ├── cases/
 │   ├── toro_1d/    # sod, toro2-5, stationary_contact (+ rusanov twins)
 │   │               # convergence_*.cfg drive resolutions = 50,100,200,400,800
@@ -92,9 +95,11 @@ tests/
 |---|---|---|
 | `build-double/` | double | Phase B canonical, baseline reference for Phase C |
 | `build-float/` | float | Phase B canonical, float regression candidate |
+| `build-cuda-*-strict/` | double/float | Week 6 opt-in CUDA strict-IEEE verification |
 | `build-vfc-p53/` | double | Verificarlo MCA p=53 (auto-recreated by `scripts/verificarlo/verificarlo_run.sh`) |
 
-All build dirs are `.gitignore`'d. Build via:
+All build dirs are `.gitignore`'d and can be deleted/recreated. Keep only the
+build directories needed for the current verification task. Build via:
 ```bash
 cmake -B build-double -G Ninja -DFLOAT_PRECISION=double -DCMAKE_BUILD_TYPE=Release -DENABLE_OPENMP=ON
 cmake --build build-double
@@ -168,4 +173,4 @@ When a structured reorganization or multi-step task is in progress, three files 
 
 ---
 
-*Last updated: 2026-05-06 (added Week 6 live links, verification recipe, CSC environment probe, and closeout summary).*
+*Last updated: 2026-05-07 (desktop workspace on `main`; clarified Week 6 GPU path and build-cache policy).*
