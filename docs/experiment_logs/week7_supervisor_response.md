@@ -12,6 +12,41 @@ For Report 1, describe this first as a precision-adequacy margin before calling 
 
 No code or output-format change is required for this terminology clarification. Future outputs may add an explicit `precision_margin` column if needed, but the existing `regime` column should remain unchanged for traceability.
 
+## Why Rusanov can look cleaner
+
+Rusanov is more diffusive than HLLC. Extra dissipation smooths sharp gradients
+and reduces local amplification of round-off noise near shocks and contacts.
+The plausible mechanism is not more accurate physics; it damps high-frequency
+structure before EOS pressure calculation and reconstruction stages can amplify
+small perturbations.
+
+This is an interpretation of measured data, not a solver recommendation: HLLC
+remains sharper and generally more accurate in these validation tests.
+
+Supporting rho-only derived check for LW Config 3 at 200^2, computed from:
+
+- `experiments/week4/metrics/a4_snr_with_float.csv`
+- `experiments/week4/metrics/a4_losos_with_float.csv`
+- `experiments/week4/metrics/s_req_lw_config3_200.csv`
+
+| Precision | sigma_FP_L1 HLLC | sigma_FP_L1 Rusanov | sigma ratio HLLC/Rusanov | truncation penalty Rusanov/HLLC | s_worst_q05 HLLC | s_worst_q05 Rusanov | digit delta Rusanov-HLLC |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| p53 | 5.216e-11 | 2.278e-11 | 2.29 | 1.51 | 1.542 | 1.230 | -0.312 |
+| p24-real-float | 2.956e-02 | 8.199e-03 | 3.60 | 1.51 | 1.542 | 1.230 | -0.312 |
+
+The truncation penalty uses the rho `mu_trunc_l1` ratio from
+`s_req_lw_config3_200.csv`; the same ratio is obtained from `E_trunc` because
+both values share the same reference normalization. A copy of this derived
+calculation is saved in `experiments/week7/rusanov_noise/summary.csv`.
+
+| Evidence | Interpretation |
+|---|---|
+| Rusanov has larger deterministic truncation error than HLLC: rho `mu_trunc_l1` is 418.0 vs 277.3, a 1.51x penalty. | Cleaner noise is bought by diffusivity, not by a more accurate physical solution. |
+| Rusanov has lower `sigma_FP_L1` in the LW3 rho rows: 2.278e-11 vs 5.216e-11 at p53, and 8.199e-03 vs 2.956e-02 at p24-real-float. | Round-off variance is damped by the smoother numerical state. |
+| C2 shows pressure and other variables are most sensitive near discontinuities; on Sod, Rusanov is about 0.2 significant digits cleaner than HLLC. | EOS subtraction remains a likely amplification point, and smoothing discontinuities can reduce the measured variance before EOS and reconstruction effects grow. |
+| Stationary-contact `u` in C2 is degenerate/noise-floor: the sign of the real-vs-double gap flips between HLLC and Rusanov and should not be overread. | The cleaner-Rusanov statement should be based on non-degenerate rho/p and Sod-style flow, not near-zero relative metrics. |
+| Rusanov fails or degrades where excessive diffusion is harmful, including the earlier near-vacuum Toro 2 failure and smeared stationary-contact density. | Noise reduction is not general superiority; it is a trade-off against sharp contact and shock resolution. |
+
 ## Task 5 - Full Pareto Example For Philip
 
 Generated artefacts:
