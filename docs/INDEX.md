@@ -37,7 +37,7 @@
 | 3 | [week3-plan.md](week3/week3-plan.md) | [week3-summary.md](week3/week3-summary.md) | [week3/archive/](week3/archive/) |
 | 4 | [week4-plan.md](week4/week4-plan.md) | [week4-summary.md](week4/week4-summary.md) | [week4/archive/](week4/archive/) |
 | 5 | [week5-plan.md](week5/week5-plan.md) | [week5-summary.md](week5/week5-summary.md) | [week5/archive/](week5/archive/) |
-| 6 | (pending) | (pending) | (none) |
+| 6 | [week6-plan.md](week6/week6-plan.md) | [week6-summary.md](week6/week6-summary.md) | (none) |
 
 Week 4 also keeps:
 - [week4-verification.md](week4/week4-verification.md) — manual verification checklist (Phase B/C reproduction recipe)
@@ -50,6 +50,11 @@ Week 5 pre-start bridge:
 
 Week 6 pre-start bridge:
 - [week5_to_week6_bridge.md](week6/week5_to_week6_bridge.md) — Week 5 → Week 6 handoff (delivered work, reusable interfaces, Week 6 GPU plan)
+
+Week 6 deliverables:
+- [week6-design.md](week6/week6-design.md) — GPU Euler + CSC migration design
+- [week6-verification.md](week6/week6-verification.md) — Phase A-E reproduction recipe
+- [csc_gpu_environment.md](week6/csc_gpu_environment.md) — CSC GPU environment probe
 
 ---
 
@@ -163,4 +168,4 @@ When a structured reorganization or multi-step task is in progress, three files 
 
 ---
 
-*Last updated: 2026-05-02 (added Week 5 → Week 6 bridge; consolidated supervisor artefacts under `emails/`; archived week5 implementation plan; removed deprecated c2 alias).*
+*Last updated: 2026-05-06 (added Week 6 live links, verification recipe, CSC environment probe, and closeout summary).*

@@ -380,10 +380,6 @@ static void run_normal_gpu(const Config& cfg) {
             "output_precision must be in [1, 17] (got " + std::to_string(out_prec) + ")");
     }
     FluxScheme flux = parse_flux(cfg);
-    if (flux == FluxScheme::HLLC) {
-        throw std::runtime_error(
-            "device=gpu does not yet support solver=hllc (T20 wires HLLC GPU)");
-    }
     auto [bc_x, bc_y] = parse_boundary(cfg);
     std::string output_format = cfg.get_string("output_format", "table");
     std::string output_file = cfg.get_string("output_file", "");
