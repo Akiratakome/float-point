@@ -1,70 +1,121 @@
 # Week 6 Summary
 
-**Calendar:** 2026-05-04 to 2026-05-10  
-**Branch:** `week5-implementation`  
-**Closeout checked:** 2026-05-06
+**Calendar:** 2026-05-04 to 2026-05-10
+**Development branch:** `week5-implementation`
+**Integrated to main:** `ba118da` (`merge: week4/week5 implementation into main`)
+**Final checked:** 2026-05-06
 
-Week 6 landed the opt-in CUDA Euler path, strict-IEEE CPU/CUDA build helpers,
-GPU kernel/unit coverage, local CPU-vs-GPU regression summaries, CSC replay
-scripts, and the Week 6 verification recipe. The default CPU path remains the
-compatibility baseline: `device` defaults to `cpu`, `ENABLE_CUDA` defaults to
-OFF, `STRICT_IEEE` defaults to OFF, and profiling is behind
-`HRSC_ENABLE_PROFILING`.
+Week 6 completed the CUDA Euler solver bring-up and CSC smoke replay while
+preserving the CPU compatibility baseline. New CUDA, strict-IEEE, and profiling
+paths are opt-in:
+
+- `device` defaults to `cpu`.
+- `ENABLE_CUDA` defaults to `OFF`.
+- `STRICT_IEEE` defaults to `OFF`.
+- `HRSC_ENABLE_PROFILING` defaults to `OFF`.
+
+The harness shape remains `config -> build -> run -> measure -> aggregate ->
+plot`. Large Week 6 run grids were cleaned after summaries were generated; no
+Week 6 `.bin` files are tracked.
 
 ## Acceptance Gates
 
 | Gate | Status | Evidence |
 |---|---|---|
-| G1. CPU-strict + CUDA builds clean | Pass locally | `build-cpu-strict-{double,float}` and `build-cuda-{double,float}-strict` exist; rebuilds complete locally. |
-| G2. Unit tests green | Pass locally | CUDA strict `[gpu]` tests pass for double and float; CPU strict non-GPU test binaries run locally. |
-| G3. Local smoke/regression green | Pass | `experiments/week6/regression/summary.md`: 4/4 CPU-vs-GPU pairs `gate_passed=True`, `ulp_max=0`. |
-| G4. CSC smoke | Pass | `experiments/week6/csc_smoke/summary.{md,json,csv}`, `matrix_summary.json`, SLURM log `10414.{out,err}`, and 4 run metadata/config/stderr sets are present; no `.bin` grids are committed. |
-| G5. cfg-default byte identity | Pass | `docs/week6/week6-verification.md` records identical default CPU stdout md5s across Week 6 changes. |
-| G6. Timer phase split | Pass | Profiling build emits `[timing] phase=bc/cfl/flux/sweep/update ...`; phase probes are gated by `HRSC_ENABLE_PROFILING`. |
-| G7. LW Config 4 / 12 landed | Pass | `tests/unit/test_lw_config4.cpp`, `tests/unit/test_lw_config12.cpp`, and cfgs at n200/n400. |
-| G8. Documentation closed | Pass | This summary, verification recipe, CSC environment probe, CSC artefacts, and INDEX links are present. |
+| G1. CPU-strict + CUDA builds clean | Pass | Local strict CPU/CUDA builds were exercised; CSC strict CUDA builds ran through `scripts/cluster/build_gpu_csc.sh`. |
+| G2. Unit tests green | Pass | CPU double/float default tests, CUDA double/float `[gpu]` tests, and profiling tests pass. |
+| G3. Local CPU-vs-GPU smoke/regression | Pass | `experiments/week6/regression/summary.md`: 4/4 pairs `gate_passed=True`, all `ulp_max=0`. |
+| G4. CSC smoke | Pass | `experiments/week6/csc_smoke/summary.{md,json,csv}`, `matrix_summary.json`, `slurm_logs/10414.{out,err}`, and 4 generated run cfg/metadata/stderr sets. |
+| G5. Default CPU byte identity | Pass | Default Sod stdout MD5 remains `FD58E1A9398178E54E5B761AE9D87959`. |
+| G6. Timer phase split | Pass | Profiling build emits `[timing] total_s=...` plus `phase=bc/cfl/flux/sweep/update`. |
+| G7. LW Config 4 / 12 | Pass | `config4_n{200,400}.cfg`, `config12_n{200,400}.cfg`, IC dispatch, and unit tests are present. |
+| G8. Documentation closed | Pass | `week6-plan.md`, `week6-design.md`, `week6-verification.md`, `csc_gpu_environment.md`, this summary, CSC artefacts, and `docs/INDEX.md` links are present. |
 
-## Deliverables
+## Delivered
 
-| Area | Evidence |
+| Area | Files / Artefacts |
 |---|---|
-| Device dispatch | `src/main.cpp`, `tests/unit/test_dispatch_device_key.cpp` |
-| CUDA solver orchestration | `src/gpu/euler_gpu_solver.hpp`, `src/gpu/euler_gpu_solver.cu` |
+| GPU dispatch | `src/main.cpp`, `tests/unit/test_dispatch_device_key.cpp` |
+| GPU solver orchestration | `src/gpu/euler_gpu_solver.hpp`, `src/gpu/euler_gpu_solver.cu` |
 | CUDA kernels | `src/gpu/euler_kernels.cuh`, `src/gpu/euler_kernels.cu` |
-| Strict build matrix | `cmake/CompilerFlags.cmake`, `scripts/build_all.sh` |
-| GPU unit tests | `tests/unit/test_gpu_*.cpp`, `tests/unit/gpu_layout_kernel.cu` |
+| GPU data structures | `src/gpu/cuda_utils.cuh`, `src/gpu/gpu_grid.cuh` |
+| Strict-IEEE build path | `cmake/CompilerFlags.cmake`, `cmake/CUDASetup.cmake`, `scripts/build_all.sh` |
+| GPU unit coverage | `tests/unit/test_gpu_*.cpp`, `tests/unit/gpu_layout_kernel.cu`, `tests/unit/gpu_roundtrip_kernel.cu` |
 | Device regression report | `scripts/regression/float_regression_report.py`, `tests/py/test_float_regression_report_device_mode.py` |
-| Local regression artefacts | `experiments/week6/regression/summary.{md,json,csv}` |
-| CSC replay artefacts | `docs/week6/csc_gpu_environment.md`, `scripts/cluster/build_gpu_csc.sh`, `scripts/cluster/run_gpu_smoke.slurm`, `experiments/week6/csc_smoke/summary.{md,json,csv}`, `matrix_summary.json`, `slurm_logs/10414.{out,err}`, run metadata/config/stderr |
-| Verification docs | `docs/week6/week6-verification.md` |
+| Local regression summaries | `experiments/week6/regression/summary.{md,json,csv}` |
+| CSC smoke artefacts | `experiments/week6/csc_smoke/summary.{md,json,csv}`, `matrix_summary.json`, `slurm_logs/10414.{out,err}`, run cfg/metadata/stderr |
+| New 2D cases | `tests/cases/liska_wendroff_2d/config4_*`, `config12_*`, `tests/unit/test_lw_config4.cpp`, `tests/unit/test_lw_config12.cpp` |
+| Profiling phase output | `src/utils/timer.hpp`, `src/main.cpp`, `tests/unit/test_profiling_phases.cpp` |
 
-## Commit Inventory
+## Verification Record
 
-| Task range | Commits |
-|---|---|
-| T1-T4 | `45e9eb5`, `66213a2`, `d7e3d4c`, `77db97e` |
-| T5-T8 | `e445c50`, `19c0767`, `3aa4530`, `ed8b076` |
-| T9-T10 | `b9668b6`, `e446169` |
-| T11-T12 | `669146f`, `8cb615d`, `5b94ab0` |
-| T13-T19 | `e976ff8`, `039d6f9`, `6a9af9b`, `d6f0e6a`, `02ff6ea`, `26bcd04`, `0b0ccf6`, `958a1c9`, `c24df58`, `09dc956`, `6071854` |
-| T20-T23 | `2f0d662`, `ab102d0`, `6018079`, `2ba72dd`, `d0d4121` |
-| T26-T29 | `b87909c`, `6dacaa3`, CSC artefacts imported from CSC commit `1938ac3` |
-| Closeout review | Fixes after review remove the stale HLLC GPU CLI guard, add this summary/INDEX update, import CSC artefacts, harden device regression gates, and emit profiling phase timing lines. |
+Final verification on integrated `main`:
 
-## Review Notes
+```text
+cmake -B build-final-double -G Ninja -DFLOAT_PRECISION=double -DCMAKE_BUILD_TYPE=Release -DENABLE_OPENMP=OFF
+cmake --build build-final-double --target unit_tests hrsc
+.\build-final-double\unit_tests.exe -r compact
+Passed all 128 test cases with 11925 assertions.
 
-- Local device regression summary shows exact CPU-vs-GPU agreement for Sod and
-  LW Config 3 in float and double.
-- The HLLC GPU kernels and unit tests exist. A stale `main.cpp` guard blocking
-  `device=gpu` with `solver=hllc` was removed during closeout review so cfg
-  dispatch matches the available kernel path.
-- CSC smoke now has 4/4 runs with `returncode=0` in `matrix_summary.json` and
-  4/4 rows passing in `summary.md`; only scalar summaries, generated cfgs,
-  metadata, stderr, and SLURM logs are kept.
+cmake -B build-final-float -G Ninja -DFLOAT_PRECISION=float -DCMAKE_BUILD_TYPE=Release -DENABLE_OPENMP=OFF
+cmake --build build-final-float --target unit_tests hrsc
+.\build-final-float\unit_tests.exe -r compact
+Passed all 128 test cases with 11925 assertions.
+
+python -m pytest tests/py -q
+53 passed, 4 skipped
+
+.\build-cuda-double-strict\unit_tests.exe "[gpu]" -r compact
+Passed all 43 test cases with 63741 assertions.
+
+.\build-cuda-float-strict\unit_tests.exe "[gpu]" -r compact
+Passed all 38 test cases with 63729 assertions.
+```
+
+Default CPU compatibility check:
+
+```text
+.\build-final-double\hrsc.exe tests/cases/toro_1d/sod.cfg
+stdout MD5: FD58E1A9398178E54E5B761AE9D87959
+stderr: [timing] total_s=...
+stderr: Finished: 137 steps, t = 0.25
+```
+
+CSC smoke evidence:
+
+```text
+lw3-gpu-csc-d  returncode=0
+lw3-gpu-csc-f  returncode=0
+sod-gpu-csc-d  returncode=0
+sod-gpu-csc-f  returncode=0
+```
+
+Both local and CSC device-regression summaries report `ulp_max=0` for Sod and
+LW Config 3 in double and float.
+
+## Compatibility Notes
+
+- The default solver/cfg path remains CPU and non-CUDA.
+- Existing output formats are unchanged for normal runs. Timing remains on
+  stderr; profiling phase detail appears only in profiling-enabled builds.
+- `scripts/run_matrix.py` continues to copy source cfgs and writes generated
+  per-run cfgs/metadata rather than editing source cfgs in place.
+- Week 6 run-directory `.bin` payloads are transient. Summaries, generated cfgs,
+  metadata, stderr, and SLURM logs are the retained artefacts.
+
+## CSC Environment Notes
+
+- Real GPU partition observed: `csc-mphil-gpu`.
+- Do not use the stale plan default `ampere`.
+- Non-interactive CSC SSH did not consistently expose `module` or `nvcc`.
+  `scripts/cluster/build_gpu_csc.sh` therefore probes `/lsc/opt/cuda-12.9` and
+  accepts `HRSC_CUDA_HOME` / `HRSC_CUDA_ARCH` overrides.
 
 ## Carry-Forward
 
-- Extend the Week 7 experiment matrix to fast-math and HLLC-vs-Rusanov GPU
-  comparisons.
-- Keep large `.bin` grids transient; commit summaries, metadata, and figures
-  only when they are deliverable artefacts.
+- Week 7 should extend the experiment matrix to fast-math and HLLC-vs-Rusanov
+  GPU comparisons.
+- HLLC `<=` vs `<` GPU systematic study remains part of the Week 7/Report 1
+  matrix.
+- Keep future large grids transient unless explicitly promoted to reference
+  data needed to reproduce a metric.
