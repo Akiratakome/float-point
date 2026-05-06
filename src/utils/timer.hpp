@@ -19,6 +19,7 @@
 
 #ifdef HRSC_ENABLE_PROFILING
 #include <map>
+#include <ostream>
 #include <string>
 #include <string_view>
 #endif
@@ -82,6 +83,13 @@ private:
     ProfilingRegistry& reg_;
     std::chrono::steady_clock::time_point t0_;
 };
+
+inline void write_profiling_timings(std::ostream& out,
+                                    const ProfilingRegistry& reg) {
+    for (const auto& [phase, seconds] : reg.snapshot()) {
+        out << "[timing] phase=" << phase << " seconds=" << seconds << "\n";
+    }
+}
 
 #endif // HRSC_ENABLE_PROFILING
 

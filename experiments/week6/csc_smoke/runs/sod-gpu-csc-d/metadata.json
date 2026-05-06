@@ -1,0 +1,22 @@
+{
+  "experiment": "week6-csc-gpu-smoke",
+  "name": "sod-gpu-csc-d",
+  "timestamp_utc": "2026-05-06T15:12:09.266340+00:00",
+  "git_commit": "4f8b76dd59f1484de9c8c40aa40bb5e4baa6e0c7",
+  "binary": "build-cuda-double-strict/hrsc",
+  "source_config": "tests/cases/toro_1d/sod.cfg",
+  "run_config": "experiments/week6/csc_smoke/runs/sod-gpu-csc-d/config.cfg",
+  "precision": "double",
+  "build": "cuda-strict-double-csc",
+  "raw_output": "experiments/week6/csc_smoke/runs/sod-gpu-csc-d/sod.bin",
+  "command": [
+    "build-cuda-double-strict/hrsc",
+    "experiments/week6/csc_smoke/runs/sod-gpu-csc-d/config.cfg"
+  ],
+  "returncode": 0,
+  "timing": {
+    "total_s": 0.0112043
+  },
+  "stdout": "experiments/week6/csc_smoke/runs/sod-gpu-csc-d/stdout.txt",
+  "stderr": "experiments/week6/csc_smoke/runs/sod-gpu-csc-d/stderr.txt"
+}

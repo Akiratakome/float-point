@@ -103,15 +103,7 @@ def _is_stationary_contact_pair(cpu_path: Path, gpu_path: Path) -> bool:
     return "stationary_contact" in text or "stationary-contact" in text
 
 
-def _report_device_pair(
-    cpu_path: Path,
-    gpu_path: Path,
-    precision: str | None,
-    reference_path: Path | None = None,
-    gate_ulp: float | None = None,
-) -> dict[str, object]:
-    cpu_header, cpu_cons = read_binary(cpu_path)
-    gpu_header, gpu_cons = read_binary(gpu_path)
+def _validate_device_headers(cpu_path: Path, cpu_header, gpu_path: Path, gpu_header) -> None:
     if (cpu_header.nx, cpu_header.ny, cpu_header.nvars) != (
         gpu_header.nx,
         gpu_header.ny,
@@ -127,8 +119,34 @@ def _report_device_pair(
             f"Precision mismatch: {cpu_path} tag={cpu_header.precision_tag}, "
             f"{gpu_path} tag={gpu_header.precision_tag}"
         )
+    for field in ("dx", "dy", "t"):
+        cpu_value = float(getattr(cpu_header, field))
+        gpu_value = float(getattr(gpu_header, field))
+        if not np.isclose(cpu_value, gpu_value, rtol=0.0, atol=1e-15):
+            raise ValueError(
+                f"Header mismatch for {field}: {cpu_path} has {cpu_value}, "
+                f"{gpu_path} has {gpu_value}"
+            )
 
-    precision = precision or _precision_from_tag(cpu_header.precision_tag)
+
+def _report_device_pair(
+    cpu_path: Path,
+    gpu_path: Path,
+    precision: str | None,
+    reference_path: Path | None = None,
+    gate_ulp: float | None = None,
+) -> dict[str, object]:
+    cpu_header, cpu_cons = read_binary(cpu_path)
+    gpu_header, gpu_cons = read_binary(gpu_path)
+    _validate_device_headers(cpu_path, cpu_header, gpu_path, gpu_header)
+
+    header_precision = _precision_from_tag(cpu_header.precision_tag)
+    if precision is not None and precision != header_precision:
+        raise ValueError(
+            f"precision={precision!r} does not match binary header "
+            f"precision={header_precision!r} for {cpu_path}"
+        )
+    precision = header_precision
     dtype = _precision_dtype(precision)
     cpu = cpu_cons.astype(np.float64, copy=False)
     gpu = gpu_cons.astype(np.float64, copy=False)
@@ -272,13 +290,12 @@ def _write_device_outputs(output_prefix: Path, rows: list[dict[str, object]]) ->
     return summary
 
 
-def _report_device(
-    inputs: list[Path],
+def _report_device_pairs(
+    pairs: list[tuple[Path, Path]],
     output_prefix: Path,
     precision: str | None,
     reference_path: Path | None = None,
 ) -> dict[str, object]:
-    pairs = _pair_device_inputs(inputs)
     if not pairs:
         raise ValueError("No CPU/GPU device pairs found")
     rows = [
@@ -286,6 +303,16 @@ def _report_device(
         for cpu_path, gpu_path in pairs
     ]
     return _write_device_outputs(output_prefix, rows)
+
+
+def _report_device(
+    inputs: list[Path],
+    output_prefix: Path,
+    precision: str | None,
+    reference_path: Path | None = None,
+) -> dict[str, object]:
+    pairs = _pair_device_inputs(inputs)
+    return _report_device_pairs(pairs, output_prefix, precision, reference_path)
 
 
 def _read_grid_primitive(path: Path, gamma: float) -> tuple[float, np.ndarray, np.ndarray, np.ndarray]:
@@ -550,14 +577,21 @@ def main() -> None:
             gpu_paths = args.gpu or []
             if len(cpu_paths) != len(gpu_paths):
                 raise ValueError("--cpu and --gpu must provide the same number of paths")
-            inputs = [p for pair in zip(cpu_paths, gpu_paths) for p in pair]
+            if args.output is None:
+                raise ValueError("--mode device requires --output")
+            summary = _report_device_pairs(
+                list(zip(cpu_paths, gpu_paths)),
+                args.output,
+                args.precision,
+                args.reference,
+            )
         else:
             inputs = args.inputs or []
-        if not inputs:
-            raise ValueError("--mode device requires --inputs or --cpu/--gpu")
-        if args.output is None:
-            raise ValueError("--mode device requires --output")
-        summary = _report_device(inputs, args.output, args.precision, args.reference)
+            if not inputs:
+                raise ValueError("--mode device requires --inputs or --cpu/--gpu")
+            if args.output is None:
+                raise ValueError("--mode device requires --output")
+            summary = _report_device(inputs, args.output, args.precision, args.reference)
     elif args.mode == "fp":
         if args.input is None:
             raise ValueError("--mode fp is a compatibility alias and requires --input")

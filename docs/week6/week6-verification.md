@@ -164,9 +164,15 @@ Expected:
 - CSC-vs-WSL `ulp_max` is recorded for all 4 pairs. A non-zero CSC-vs-WSL
   value is a research data point, not an automatic failure.
 
-Known caveat: `csc_run_pending` until the branch is pushed and replayed on CSC,
-or until the queued SLURM job completes. If still pending at closeout, schedule
-Week 7 D1 replay with the exact Phase D workflow above.
+Observed artefacts now committed under `experiments/week6/csc_smoke/`:
+
+- `matrix_summary.json`: 4 CSC GPU runs, all `returncode=0`.
+- `summary.{md,json,csv}`: Sod double/float and LW3 double/float all pass with
+  `ulp_max=0`.
+- `slurm_logs/10414.out` and `10414.err`.
+- Four run directories containing generated `config.cfg`, `metadata.json`, and
+  `stderr.txt`.
+- No `.bin` payloads are committed; large grids remain transient.
 
 ---
 
@@ -225,11 +231,12 @@ cmake --build build-prof
 HRSC_ENABLE_PROFILING=ON ./build-prof/hrsc tests/cases/toro_1d/sod.cfg 2>&1 | grep timing
 ```
 
-Expected: timing output includes 5 phase lines or fields for:
+Expected: timing output includes the total line plus phase lines or fields for:
 
 - `bc`
 - `cfl`
 - `flux`
+- `sweep`
 - `update`
 - `total`
 

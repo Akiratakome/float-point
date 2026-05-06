@@ -2,25 +2,53 @@
   "experiment": "week6-csc-gpu-smoke",
   "output_root": "experiments/week6/csc_smoke",
   "runs": [
-    {"name": "sod-gpu-csc-d", "binary": "build-cuda-double-strict/hrsc",
-     "config": "tests/cases/toro_1d/sod.cfg",
-     "precision": "double",
-     "extra_cfg": {"device": "gpu", "output_format": "binary"},
-     "build": "cuda-strict-double-csc", "output_file": "sod.bin"},
-    {"name": "sod-gpu-csc-f", "binary": "build-cuda-float-strict/hrsc",
-     "config": "tests/cases/toro_1d/sod.cfg",
-     "precision": "float",
-     "extra_cfg": {"device": "gpu", "output_format": "binary"},
-     "build": "cuda-strict-float-csc", "output_file": "sod.bin"},
-    {"name": "lw3-gpu-csc-d", "binary": "build-cuda-double-strict/hrsc",
-     "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
-     "precision": "double",
-     "extra_cfg": {"device": "gpu", "output_format": "binary"},
-     "build": "cuda-strict-double-csc", "output_file": "lw3.bin"},
-    {"name": "lw3-gpu-csc-f", "binary": "build-cuda-float-strict/hrsc",
-     "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
-     "precision": "float",
-     "extra_cfg": {"device": "gpu", "output_format": "binary"},
-     "build": "cuda-strict-float-csc", "output_file": "lw3.bin"}
+    {
+      "name": "sod-gpu-csc-d",
+      "binary": "build-cuda-double-strict/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "double",
+      "build": "cuda-strict-double-csc",
+      "extra_cfg": {
+        "device": "gpu",
+        "output_format": "binary"
+      },
+      "output_file": "sod.bin"
+    },
+    {
+      "name": "sod-gpu-csc-f",
+      "binary": "build-cuda-float-strict/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "float",
+      "build": "cuda-strict-float-csc",
+      "extra_cfg": {
+        "device": "gpu",
+        "output_format": "binary"
+      },
+      "output_file": "sod.bin"
+    },
+    {
+      "name": "lw3-gpu-csc-d",
+      "binary": "build-cuda-double-strict/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cuda-strict-double-csc",
+      "extra_cfg": {
+        "device": "gpu",
+        "output_format": "binary"
+      },
+      "output_file": "lw3.bin"
+    },
+    {
+      "name": "lw3-gpu-csc-f",
+      "binary": "build-cuda-float-strict/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "float",
+      "build": "cuda-strict-float-csc",
+      "extra_cfg": {
+        "device": "gpu",
+        "output_format": "binary"
+      },
+      "output_file": "lw3.bin"
+    }
   ]
 }

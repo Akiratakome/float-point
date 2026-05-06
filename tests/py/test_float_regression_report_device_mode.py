@@ -30,7 +30,13 @@ DEVICE_COLUMNS = [
 ]
 
 
-def _write_binary(path: Path, cons: np.ndarray, dx: float = 1.0, dy: float = 1.0) -> None:
+def _write_binary(
+    path: Path,
+    cons: np.ndarray,
+    dx: float = 1.0,
+    dy: float = 1.0,
+    t: float = 0.0,
+) -> None:
     ny, nx, nvars = cons.shape
     header = struct.pack(
         "<4siiiiddd20s",
@@ -39,7 +45,7 @@ def _write_binary(path: Path, cons: np.ndarray, dx: float = 1.0, dy: float = 1.0
         ny,
         nvars,
         cons.dtype.itemsize,
-        0.0,
+        t,
         dx,
         dy,
         b"\x00" * 20,
@@ -214,3 +220,58 @@ def test_device_mode_infers_precision_per_pair_from_binary_headers(tmp_path: Pat
     )["rows"]
 
     assert [row["precision"] for row in rows] == ["double", "float"]
+
+
+def test_device_mode_rejects_precision_override_that_disagrees_with_header(
+    tmp_path: Path,
+) -> None:
+    cpu = _conserved_payload(8, np.dtype(np.float64))
+    gpu = cpu.copy()
+    cpu_path = tmp_path / "case_cpu.bin"
+    gpu_path = tmp_path / "case_gpu.bin"
+    _write_binary(cpu_path, cpu)
+    _write_binary(gpu_path, gpu)
+
+    with pytest.raises(ValueError, match="precision.*does not match binary header"):
+        frr._report_device_pair(cpu_path, gpu_path, precision="float")
+
+
+def test_device_mode_explicit_cpu_gpu_lists_pair_by_order_with_neutral_names(
+    tmp_path: Path,
+) -> None:
+    cpu_a = _conserved_payload(8, np.dtype(np.float64))
+    gpu_a = cpu_a.copy()
+    cpu_b = _conserved_payload(8, np.dtype(np.float32))
+    gpu_b = cpu_b.copy()
+    cpu_paths = [tmp_path / "a" / "grid.bin", tmp_path / "b" / "grid.bin"]
+    gpu_paths = [tmp_path / "c" / "grid.bin", tmp_path / "d" / "grid.bin"]
+    for path, payload in zip(cpu_paths + gpu_paths, (cpu_a, cpu_b, gpu_a, gpu_b)):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _write_binary(path, payload)
+
+    rows = frr._report_device_pairs(
+        list(zip(cpu_paths, gpu_paths)),
+        tmp_path / "summary",
+        precision=None,
+        reference_path=None,
+    )["rows"]
+
+    assert [row["pair_a"] for row in rows] == [str(p) for p in cpu_paths]
+    assert [row["pair_b"] for row in rows] == [str(p) for p in gpu_paths]
+    assert [row["precision"] for row in rows] == ["double", "float"]
+
+
+def test_device_mode_rejects_geometry_or_time_mismatch(tmp_path: Path) -> None:
+    cpu = _conserved_payload(8, np.dtype(np.float64))
+    gpu = cpu.copy()
+    cpu_path = tmp_path / "case_cpu.bin"
+    gpu_path = tmp_path / "case_gpu.bin"
+    _write_binary(cpu_path, cpu, dx=0.5, dy=1.0, t=0.25)
+    _write_binary(gpu_path, gpu, dx=0.25, dy=1.0, t=0.25)
+
+    with pytest.raises(ValueError, match="Header mismatch"):
+        frr._report_device_pair(cpu_path, gpu_path, precision=None)
+
+    _write_binary(gpu_path, gpu, dx=0.5, dy=1.0, t=0.5)
+    with pytest.raises(ValueError, match="Header mismatch"):
+        frr._report_device_pair(cpu_path, gpu_path, precision=None)

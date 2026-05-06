@@ -5,6 +5,8 @@
 #include "euler/euler_solver.hpp"
 #include "toro_tests.hpp"
 
+#include <sstream>
+
 using namespace hrsc;
 
 TEST_CASE("EulerSolver profiling records CPU step phases", "[profiling]") {
@@ -22,6 +24,19 @@ TEST_CASE("EulerSolver profiling records CPU step phases", "[profiling]") {
     REQUIRE(phases.count("cfl") == 1);
     REQUIRE(phases.count("flux") == 1);
     REQUIRE(phases.count("update") == 1);
+}
+
+TEST_CASE("ProfilingRegistry writes phase timing lines", "[profiling]") {
+    ProfilingRegistry reg;
+    reg.add("bc", 0.1);
+    reg.add("flux", 0.2);
+
+    std::ostringstream out;
+    write_profiling_timings(out, reg);
+
+    const std::string text = out.str();
+    REQUIRE(text.find("[timing] phase=bc seconds=") != std::string::npos);
+    REQUIRE(text.find("[timing] phase=flux seconds=") != std::string::npos);
 }
 
 #endif // HRSC_ENABLE_PROFILING

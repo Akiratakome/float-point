@@ -164,6 +164,9 @@ static void run_convergence(const Config& cfg) {
         total.stop();
         std::cerr << "[timing] total_s=" << total.elapsed_seconds()
                   << " nx=" << nx << "\n";
+#ifdef HRSC_ENABLE_PROFILING
+        write_profiling_timings(std::cerr, solver.profiling());
+#endif
 
         // Numerical solution is cast to double for comparison with the
         // double-precision exact reference (consistent error norms across
@@ -264,6 +267,9 @@ static void run_normal(const Config& cfg) {
         solver.run(progress_interval_s);
         total.stop();
         std::cerr << "[timing] total_s=" << total.elapsed_seconds() << "\n";
+#ifdef HRSC_ENABLE_PROFILING
+        write_profiling_timings(std::cerr, solver.profiling());
+#endif
 
         std::cerr << "Finished: " << solver.step_count() << " steps, t = "
                   << solver.time() << "\n";
@@ -318,6 +324,9 @@ static void run_normal(const Config& cfg) {
     solver.run(progress_interval_s);
     total.stop();
     std::cerr << "[timing] total_s=" << total.elapsed_seconds() << "\n";
+#ifdef HRSC_ENABLE_PROFILING
+    write_profiling_timings(std::cerr, solver.profiling());
+#endif
 
     std::cerr << "Finished: " << solver.step_count() << " steps, t = "
               << static_cast<double>(solver.time()) << "\n";
