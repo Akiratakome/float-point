@@ -1,0 +1,5 @@
+solver,precision_label,sigma_fp_l1,s_worst_q05,s_req,precision_margin,regime
+hllc,p53,5.216e-11,1.54217102099,3.13044877797,-1.588278,precision-adequacy deficit
+hllc,p24-real-float,0.0295552208489,1.54216757349,3.13044877797,-1.588281,precision-adequacy deficit
+rusanov,p53,2.278e-11,1.23019118308,2.95226423406,-1.722073,precision-adequacy deficit
+rusanov,p24-real-float,0.00819945711674,1.23018618905,2.95226423406,-1.722078,precision-adequacy deficit
