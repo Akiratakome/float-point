@@ -1,0 +1,5 @@
+case,pair_a,pair_b,precision,l1_a_minus_b,linf_a_minus_b,philip_ratio,ulp_max,gate_threshold_ulp,gate_passed,notes
+sod-csc-d,cpu,gpu,double,0.0,0.0,,0.0,16.0,True,
+sod-csc-f,cpu,gpu,float,0.0,0.0,,0.0,16.0,True,
+lw3-csc-d,cpu,gpu,double,0.0,0.0,,0.0,16.0,True,
+lw3-csc-f,cpu,gpu,float,0.0,0.0,,0.0,16.0,True,

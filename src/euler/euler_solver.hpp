@@ -5,126 +5,103 @@
 #include "core/grid.hpp"
 #include "core/eos.hpp"
 #include "core/boundary.hpp"
+#include "euler/euler_flux.hpp"
 #include "euler/hancock.hpp"
 #include "euler/hllc.hpp"
+#include "euler/rusanov.hpp"
 
+#ifdef HRSC_ENABLE_PROFILING
+#include "utils/timer.hpp"
+#endif
+
+#include <array>
 #include <vector>
 #include <cmath>
 #include <algorithm>
 #include <limits>
+#include <chrono>
+#include <cstdio>
 
 namespace hrsc {
 
+enum class FluxScheme { HLLC, Rusanov };
+
+namespace detail {
+    // ETA estimator becomes unreliable when the simulation has barely begun
+    // (t / t_end too small): print "0.0s" rather than a meaningless huge number.
+    constexpr double kProgressEtaMinFrac = 1e-12;
+    // Wall-clock granularity floor for the per-tick rate estimate; below this
+    // the steps/s computation underflows or produces nonsense due to clock noise.
+    constexpr double kProgressMinIntervalSeconds = 1e-9;
+}
+
+// EulerSolver class: declaration only. Long method bodies (ctor, sweeps,
+// compute_dt, step, run) live in euler_solver.cpp with explicit instantiation
+// for float and double at the bottom. Free function templates such as
+// hllc_flux/rusanov_flux/muscl_hancock_* remain header-only because unit tests
+// instantiate them directly and small inline functions are kept in the header
+// for future GPU kernel reuse.
 template <typename Real>
 class EulerSolver {
-    Grid2D<Real, 4> m_grid;
+    Grid2D<Real, EulerNVars> m_grid;
+    Real m_xmin;
+    Real m_ymin;
     Real m_gamma;
     Real m_cfl;
-    Real m_t_end;
-    Real m_time;
+    // Time accumulator is TimeReal=double regardless of Real -- see
+    // src/core/types.hpp for the rationale (avoids float32 clock stall
+    // for long evolutions, decouples state precision from clock precision).
+    TimeReal m_t_end;
+    TimeReal m_time;
+    TimeReal m_kahan_c;  // Kahan compensated-summation running correction
     int  m_step;
+    FluxScheme m_flux;
+    BoundaryType m_bc_x;
+    BoundaryType m_bc_y;
+
+    void apply_boundary_conditions();
+    void x_sweep(TimeReal dt);
+    void y_sweep(TimeReal dt);
+
+#ifdef HRSC_ENABLE_PROFILING
+public:
+    ProfilingRegistry& profiling() { return m_prof_; }
+    const ProfilingRegistry& profiling() const { return m_prof_; }
+private:
+    mutable ProfilingRegistry m_prof_;
+#endif
 
 public:
-    EulerSolver(int nx, Real dx, Real gamma, Real cfl, Real t_end)
-        : m_grid(nx, 1),
-          m_gamma(gamma),
-          m_cfl(cfl),
-          m_t_end(t_end),
-          m_time(Real(0)),
-          m_step(0)
-    {
-        m_grid.dx = dx;
-        m_grid.dy = dx;  // dummy for 1D
-    }
+    // 2D constructor
+    EulerSolver(int nx, int ny, Real dx, Real dy,
+                Real xmin, Real ymin,
+                Real gamma, Real cfl, TimeReal t_end,
+                FluxScheme flux = FluxScheme::HLLC,
+                BoundaryType bc_x = BoundaryType::Outflow,
+                BoundaryType bc_y = BoundaryType::Outflow);
 
-    GridView<Real, 4> grid_view() {
+    // 1D convenience constructor
+    EulerSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, TimeReal t_end,
+                FluxScheme flux = FluxScheme::HLLC,
+                BoundaryType bc_x = BoundaryType::Outflow,
+                BoundaryType bc_y = BoundaryType::Outflow);
+
+    GridView<Real, EulerNVars> grid_view() {
         return m_grid.view();
     }
 
-    Real time() const { return m_time; }
-    int  step_count() const { return m_step; }
+    TimeReal time()       const { return m_time; }
+    int      step_count() const { return m_step; }
+    Real     xmin()       const { return m_xmin; }
+    Real     ymin()       const { return m_ymin; }
 
-    // Compute stable time step from CFL condition.
-    // dt = CFL * dx / max_all(|u| + a)
-    Real compute_dt() const {
-        auto gv = m_grid.view();
-        int nx = gv.nx;
-        Real max_speed = std::numeric_limits<Real>::min();
+    TimeReal compute_dt() const;
+    void step();
+    void run();
 
-        for (int i = 0; i < nx; ++i) {
-            Vec<Real, 4> cons;
-            for (int v = 0; v < 4; ++v) cons[v] = gv(i, 0, v);
-
-            Real rho = cons[RHO];
-            Real u   = cons[RHOU] / rho;
-            Real p   = pressure(cons, m_gamma);
-            Real a   = sound_speed(rho, p, m_gamma);
-
-            max_speed = std::max(max_speed, std::abs(u) + a);
-        }
-
-        Real dt = m_cfl * gv.dx / max_speed;
-
-        // Clip to reach t_end exactly
-        if (m_time + dt > m_t_end) {
-            dt = m_t_end - m_time;
-        }
-
-        return dt;
-    }
-
-    // Execute one time step (x-sweep only, 1D).
-    void step() {
-        auto gv = m_grid.view();
-        int nx = gv.nx;
-
-        // 1. Apply boundary conditions
-        apply_outflow_bc(gv);
-
-        // 2. Compute dt
-        Real dt = compute_dt();
-        if (dt <= Real(0)) return;
-
-        // 3. Compute interface fluxes
-        //    Interface k is between cell k-1 and cell k.
-        //    We need nx+1 interfaces: k = 0 (left of cell 0) to k = nx (right of cell nx-1).
-        int n_interfaces = nx + 1;
-        std::vector<Vec<Real, 4>> flux(n_interfaces);
-
-        for (int k = 0; k < n_interfaces; ++k) {
-            // Interface k is between cell (k-1) and cell k.
-            int iL = k - 1;  // cell to the left of interface
-            int iR = k;      // cell to the right of interface
-
-            Vec<Real, 4> qL_left{}, qL_right{};
-            Vec<Real, 4> qR_left{}, qR_right{};
-
-            muscl_hancock_x(gv, iL, 0, dt, m_gamma, qL_left, qL_right);
-            muscl_hancock_x(gv, iR, 0, dt, m_gamma, qR_left, qR_right);
-
-            // At interface k: use right face of left cell, left face of right cell
-            flux[k] = hllc_flux(qL_right, qR_left, m_gamma);
-        }
-
-        // 4. Conservative update: U_i -= (dt/dx) * (flux[i+1] - flux[i])
-        Real dtdx = dt / gv.dx;
-        for (int i = 0; i < nx; ++i) {
-            for (int v = 0; v < 4; ++v) {
-                gv(i, 0, v) -= dtdx * (flux[i + 1][v] - flux[i][v]);
-            }
-        }
-
-        // 5. Advance time
-        m_time += dt;
-        m_step++;
-    }
-
-    // Run until t >= t_end.
-    void run() {
-        while (m_time < m_t_end) {
-            step();
-        }
-    }
+    // Run with a wall-clock-throttled progress line on stderr.
+    // progress_interval_s <= 0 disables printing (equivalent to run()).
+    void run(double progress_interval_s);
 };
 
 } // namespace hrsc

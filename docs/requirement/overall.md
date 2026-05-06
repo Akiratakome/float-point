@@ -24,88 +24,85 @@ All computational kernels are **templated on `Real`** (float, double, optionally
   1. X-sweep and Y-sweep: regular flux updates (hyperbolic transport of psi included in fluxes, but **no multi-dimensional source terms**)
   2. **Separate multi-dimensional source term step** after both sweeps: compute div(B) = ∂Bx/∂x + ∂By/∂y over the full 2D grid, then integrate the source `∂ψ/∂t = -c_h² div(B) - (c_h/c_p)ψ`. This avoids diagonal divergence accumulation from splitting the inherently multi-dimensional divergence operator into 1D sweeps.
 
+### Cross-cutting numerical-analysis methods
+
+Beyond the deterministic FVM solver, the project relies on a set of stochastic / instrumented FP-analysis tools as **core methodology** (not optional extensions):
+
+- **Verificarlo MCA (Monte-Carlo Arithmetic)** — perturbs every FP op at chosen virtual precision *p*. Used to (i) establish noise floors per test (`p=53` baseline), (ii) act as a virtual-precision surrogate for `float` (`p=24`) when comparing against real `float`, (iii) drive 2D large-grid statistical batches (200²×30 SLURM array on CSC).
+- **Verificarlo `vfc_precexp` (mixed-precision exploration)** — per-call minimum-precision search; informs which routines tolerate `float` vs require `double`. Feeds Report 2 mixed-precision argument.
+- **Verificarlo unstable-branch detection** — flags conditional branches whose taken-side is FP-rounding-sensitive (e.g. HLLC `S* == 0` selection, `<= vs <` choice).
+- **FMA instrumentation** (`--inst-fma`) — quantifies the contribution of fused-multiply-add single-rounding to result drift.
+- **SNR / LoSoS / s_req(N) / Pareto metrics** — quantitative answer to «how many significant digits does the simulation actually deliver, and at what cost?». `s_req(N)` anchors precision to truncation-error level; Pareto plots trade σ_FP against worst-cell error.
+
+Implication: Verificarlo is treated as a *Tier-1 cross-cutting method* (originally Tier 3 in the Week-1 plan), used continuously from Week 3 onward, not deferred to Week 17.
+
 ### Directory & File Structure
 
 ```
 CMakeLists.txt                          # Root build config
 cmake/
   CompilerFlags.cmake                   # -O2/-O3/-Ofast, -ffast-math, --use_fast_math
-  CUDASetup.cmake                      # CUDA arch detection
-  PrecisionConfig.cmake                # float/double/quad selection
+  CUDASetup.cmake                       # CUDA arch detection (planned Week 5–6)
+  PrecisionConfig.cmake                 # FLOAT_PRECISION = float | double | quad
 
 src/
-  main.cpp                             # Entry: parse config, select solver, run, output
+  main.cpp                              # cfg-driven entry; selects test, solver, BCs, precision
 
-  common/
-    types.hpp                          # HD_FUNC macro, Constants<Real>
-    vec.hpp                            # Vec<Real,N> fixed-size array with arithmetic ops
-    grid.hpp                           # Grid2D<Real,NVars>: cells, ghost cells, data storage
-    boundary.hpp                       # BCs: periodic, reflective, outflow
-    eos.hpp                            # Ideal gas: pressure, sound speed, cons<->prim
-    io.hpp                             # Binary output (header + raw data), numpy-compatible
-    timer.hpp                          # Wall-clock timing utility
-    error_norms.hpp                    # L1, L2, Linf norm computation + div(B) monitoring (mean/max |∇·B|)
-    config.hpp                         # key=value config file parser
+  core/
+    types.hpp                           # HD_FUNC macro, Constants<Real>, TimeReal=double
+    vec.hpp                             # Vec<Real,N> with arithmetic operators
+    grid.hpp                            # Grid2D<Real,NVars>: cells, ghost cells, data storage
+    boundary.hpp                        # BCs: outflow / periodic / reflective, per-axis dispatch
+    eos.hpp                             # Ideal gas: pressure, sound speed, cons<->prim
+
+  utils/
+    io.hpp                              # Binary writer (auto-creates parent dir) + reader
+    config.hpp                          # key=value config file parser
+    error_norms.hpp                     # L1 / L2 / Linf helpers used by tests + scripts
+    timer.hpp                           # Wall-clock timing utility (planned Week 5)
 
   euler/
-    euler_state.hpp                    # Conserved variable indexing (rho, rho*u, rho*v, E)
-    euler_flux.hpp                     # Physical flux F(U), G(U) for x,y directions
-    hllc.hpp                           # HLLC Riemann solver (with configurable <= vs <)
-    muscl.hpp                          # MUSCL reconstruction (minmod, van Leer, MC limiters)
-    hancock.hpp                        # Hancock half-step predictor
-    euler_solver.hpp/.cpp              # EulerSolver<Real>: full 2D update with dim. splitting
+    euler_state.hpp                     # Conserved variable indexing
+    euler_flux.hpp                      # F(U), G(U) for x,y directions
+    hllc.hpp                            # HLLC Riemann solver (configurable <= vs <)
+    rusanov.hpp                         # Rusanov solver (default since Week 4)
+    muscl.hpp                           # MUSCL reconstruction (minmod, van Leer, MC)
+    hancock.hpp                         # Hancock half-step predictor
+    exact_riemann.hpp                   # Exact 1D Euler Riemann solver (reference)
+    euler_solver.{hpp,cpp}              # EulerSolver<Real> (split for explicit instantiation)
 
-  mhd/
-    mhd_state.hpp                      # 9-component state (rho, rho*v, B, E, psi)
-    mhd_flux.hpp                       # MHD flux with magnetic pressure/tension
-    hll.hpp                            # HLL solver (2-wave, simpler fallback)
-    hlld.hpp                           # HLLD solver (5-wave, Miyoshi & Kusano 2005)
-    glm.hpp                            # GLM div-cleaning: psi flux terms + multi-dim source step + psi BCs
-    mhd_muscl.hpp                      # MUSCL reconstruction for 9 MHD variables
-    mhd_hancock.hpp                    # Hancock predictor for MHD
-    mhd_solver.hpp/.cpp                # MHDSolver<Real>: full 2D MHD update
+  mhd/                                  # (planned Week 12+)
+    mhd_state.hpp / mhd_flux.hpp / hll.hpp / hlld.hpp / glm.hpp
+    mhd_muscl.hpp / mhd_hancock.hpp / mhd_solver.{hpp,cpp}
 
-  gpu/
-    cuda_utils.cuh                     # CUDA_CHECK macro, DeviceArray wrapper
-    gpu_grid.cuh                       # Device mirror of Grid2D, host<->device transfers
-    euler_kernels.cuh                  # CUDA kernels: reconstruct, predict, HLLC, update
-    euler_gpu_solver.cu                # EulerGPUSolver<Real>: kernel orchestration
-    mhd_kernels.cuh                    # CUDA kernels for MHD
-    mhd_gpu_solver.cu                  # MHDGPUSolver<Real>: MHD kernel orchestration
+  gpu/                                  # (stub directory; bring-up Week 5–6)
+    cuda_utils.cuh / gpu_grid.cuh / euler_kernels.cuh / euler_gpu_solver.cu
+    mhd_kernels.cuh / mhd_gpu_solver.cu
 
-  tests/
-    toro_1d/
-      toro_tests.hpp                   # IC for Toro tests 1-5 (Sod, Lax, 123, blast)
-      toro_exact.hpp                   # Exact Riemann solver for reference solutions
-      sod.cfg, lax.cfg, test123.cfg, blast.cfg
-    liska_wendroff_2d/
-      lw_tests.hpp                     # IC for 2D Riemann problems (configs 3,4,6,12)
-      config3.cfg, config4.cfg, config6.cfg, config12.cfg
-    shock_bubble/
-      shock_bubble.hpp, shock_bubble.cfg
-    orszag_tang/
-      orszag_tang.hpp, orszag_tang.cfg
-    kelvin_helmholtz/
-      kh.hpp, kh.cfg
+tests/                                  # (top-level, NOT under src/)
+  unit/                                 # Catch2: 115 cases / 3660 assertions
+    test_boundary.cpp                   # 10 cases / 572 assertions, outflow/periodic/reflective × 1D/2D
+    ... (other unit tests)
+  cases/
+    toro_1d/                            # sod, toro2, toro3, toro4, toro5, stationary_contact (+ rusanov twins)
+                                        # convergence_*.cfg drive resolutions = 50,100,200,400,800
+    liska_wendroff_2d/                  # config3_n200.cfg, config3_n400.cfg, config3_ref800.cfg
+                                        # config4 / config6 / shock_bubble (planned Week 5)
+  py/                                   # pytest: ssim_scalar, snr_*, losos_*, s_req_*, divergence_marker
 
-analysis/
-  compare.py                           # Load binary, compute norms (iterative, deletes grid files)
-  plot_1d.py                           # 1D profiles vs exact solution
-  plot_2d.py                           # 2D pseudocolor & schlieren plots
-  convergence.py                       # Grid convergence (log-log error vs N)
-  precision_comparison.py              # float vs double norm tables (LaTeX-ready)
-  roundoff_vs_truncation.py            # Separate round-off from truncation error (core analysis)
-  cfl_sensitivity.py                   # CFL number effect on error accumulation
-  temporal_divergence.py               # log(error) vs time + Lyapunov exponent fitting
-  divb_evolution.py                    # MHD: mean/max |∇·B| vs time for float vs double
-  run_matrix.py                        # Run full parameter matrix (iterative batch processing)
-  ml_error_predictor.py                # [If time permits] ML error norm prediction
-  requirements.txt                     # numpy, matplotlib, pandas, scipy
+scripts/                                # Replaces the original `analysis/` directory
+  build_all.sh                          # Multi-variant build matrix driver (planned Week 7)
+  regression/                           # float_regression_{1d,2d}.sh, float_regression_report.py
+  metrics/                              # ssim_scalar.py, snr_metric.py, losos_metric.py, s_req_metric.py,
+                                        #   phase_error_metrics.py, downsample_2d.py
+  verificarlo/                          # verificarlo_run.sh, noise_floor_run.sh, compute_noise_floor.py
+  figures/                              # plot_real_vs_vprec.py, pareto_plot.py, plot_divergence_marker.py,
+                                        #   tradeoff_summary_table.py
+  cluster/                              # SLURM submission helpers for CSC
 
-scripts/
-  build_all.sh                         # Build all precision x opt x cuda variants
-  run_experiments.sh                   # Run full test matrix
-  submit_gpu.sh, submit_cpu.sh         # Cluster job submission (SLURM/PBS)
+experiments/                            # Output artefacts (gitignored beyond the index pointers)
+  week4/{float_regression,figures,2d_vfc_cluster}/
+  verificarlo/{runs_p53_mca*, runs_compare_p24_mca_real_vs_double*}/
 ```
 
 ### Build System (CMake)
@@ -153,16 +150,19 @@ if (SL <= Real(0) && Real(0) <= S_star)
 
 ### Report 1 (Euler Validation)
 
-| Test Case | Grid | t_end | Type |
-|---|---|---|---|
-| Sod (Toro 1) | 200x1 | 0.25 | 1D shock tube |
-| Lax (Toro 2) | 200x1 | 0.15 | 1D stronger shock |
-| 123 Problem (Toro 3) | 200x1 | 0.15 | 1D two rarefactions |
-| Blast Wave (Toro 4) | 200x1 | 0.035 | 1D strong blasts |
-| Stationary Contact | 200x1 | 0.5 | 1D: p_L=p_R, u=0, rho differs → S_M=0 exactly. **Targeted test for `<=` vs `<` and ±0.0 FP edge cases** |
-| Liska-Wendroff Config 3 | 400x400 | 0.3 | 2D four-shock |
-| Liska-Wendroff Config 6 | 400x400 | 0.3 | 2D different pattern |
-| Shock-Bubble | 400x200 | varies | 2D complex interaction |
+| Test Case | cfg | Grid | t_end | Type |
+|---|---|---|---|---|
+| sod (Toro 1) | `tests/cases/toro_1d/sod.cfg` | 200×1 | 0.25 | 1D shock tube |
+| toro2 (Lax) | `toro2.cfg` | 200×1 | 0.15 | 1D stronger shock |
+| toro3 (123 problem) | `toro3.cfg` | 200×1 | 0.15 | 1D two rarefactions |
+| toro4 (blast) | `toro4.cfg` | 200×1 | 0.035 | 1D strong shocks |
+| toro5 | `toro5.cfg` | 200×1 | 0.012 | 1D shock-contact-shock |
+| stationary_contact | `stationary_contact.cfg` | 200×1 | 0.5 | 1D: p_L=p_R, u=0, ρ_L≠ρ_R → S_M=0 (targeted `<=` vs `<` test) |
+| Liska-Wendroff Config 3 | `liska_wendroff_2d/config3_n200.cfg` | 200×200 / 400×400 | 0.3 | 2D four-shock |
+| Liska-Wendroff Config 6 | (planned Week 5) | 400×400 | 0.3 | 2D different pattern |
+| Shock-Bubble | (planned Week 5) | 400×200 | varies | 2D complex interaction |
+
+> **Solver default**: `solver = rusanov` is the default since Week 4 (supervisor Phase A1). HLLC is enabled per-cfg via `solver = hllc`; `*_rusanov.cfg` and HLLC twins exist for several Toro cases for direct A/B comparison.
 
 Each run in: {float, double} x {O2, Ofast} x {CPU, GPU} = 8 configs minimum.
 
@@ -222,6 +222,8 @@ Report 1 要求 (each 20%):
 
 **Writing:** Begin reading literature (Toro 2009, Goldberg floating-point paper, Bard & Dorelli 2014)
 
+> **Actually delivered (as of 2026-04-29)**: Core infrastructure landed; `src/common/` split into `src/core/` + `src/utils/` for clearer FP-vs-utility boundaries — see [week1-summary.md](../week1/week1-summary.md).
+
 ---
 
 #### Week 2 (03/30 - 04/05): 1D Euler Solver Core
@@ -238,6 +240,8 @@ Report 1 要求 (each 20%):
 - `tests/toro_1d/sod.cfg`
 
 **Milestone:** Sod shock tube (含激波，超音速) produces correct density/pressure/velocity profiles
+
+> **Actually delivered (as of 2026-04-29)**: Sod 1D end-to-end correct; HLLC + Rusanov both available (Rusanov added as fallback solver) — see [week2-summary.md](../week2/week2-summary.md).
 
 ---
 
@@ -261,6 +265,8 @@ Report 1 要求 (each 20%):
 
 **Milestone:** All 4 Toro tests pass validation. >=3 tests contain supersonic waves (shocks).
 
+> **Actually delivered (as of 2026-04-29)**: All Toro 1D tests pass against exact Riemann solution. Verificarlo MCA brought online (`p=53` noise floor). Supervisor Week-3 feedback added a parallel work-line — SLIC branch + `vfc_precexp` / unstable-branch detection / FMA instrumentation — folded into Cross-cutting numerical-analysis methods (§Architecture). See [week3-summary.md](../week3/week3-summary.md).
+
 ---
 
 #### Week 4 (04/13 - 04/19): Float/Double Templating + 2D Extension
@@ -273,24 +279,27 @@ Report 1 要求 (each 20%):
 
 **Milestone:** 1D tests run in both float and double. 2D solver framework compiles.
 
+> **Actually delivered (as of 2026-04-29)**: Three phases delivered — Phase A (A1 Rusanov default, A2 divergence-marker tool, A3 2D Verificarlo cluster runs at 200²×30, A4 SNR / LoSoS / s_req(N) / Pareto metrics), Phase B (PrecisionConfig, EulerSolver split for explicit instantiation, per-axis BC dispatch with periodic+reflective, Catch2 115 cases / 3660 assertions), Phase C (C1 1D + 2D float regression, C2 real-float vs VPREC p24 comparison). See [week4-summary.md](../week4/week4-summary.md).
+
 ---
 
 #### Week 5 (04/20 - 04/26): 2D Euler Tests + GPU Development Start
 
-**Code (2D tests — only 2 configs needed initially, can add more later):**
-- `tests/liska_wendroff_2d/lw_tests.hpp` — IC for configs 3 and 6 (supersonic shocks ✓, satisfies 1D+2D requirement with Toro tests)
-- `tests/shock_bubble/shock_bubble.hpp` — shock-bubble IC (supersonic shock ✓)
-- Config files for 2D tests
-- `common/timer.hpp` — wall-clock timing (records every run for performance analysis)
+**Code (2D tests + closing Phase 1 infra gaps):**
+- Replace the Config-6 stub in `tests/cases/liska_wendroff_2d/lw_tests.hpp` (`setup_liska_wendroff_config6` currently throws) with a real IC + add `config6_n200.cfg` / `config6_n400.cfg`.
+- `tests/cases/shock_bubble/` — new IC header + cfg for shock-bubble interaction (supersonic shock ✓, satisfies 1D+2D requirement with Toro tests).
+- `src/utils/timer.hpp` — wall-clock timer (records every run for performance analysis).
 
-**Code (GPU — start early to reduce Week 6 risk):**
-- Add `#pragma omp parallel for` to sweep loops in euler_solver
-- `gpu/cuda_utils.cuh` — CUDA error checking, DeviceArray wrapper
-- `gpu/gpu_grid.cuh` — device mirror of Grid2D, host<->device transfers
-- Begin `gpu/euler_kernels.cuh` — first kernels (conservative update, boundary conditions)
+**Code (GPU bring-up — skeleton only):**
+- OpenMP `#pragma omp parallel for` already wired into sweep loops + CFL reduction (delivered Week 4 — no action needed here).
+- `src/gpu/cuda_utils.cuh` — CUDA error-check macro, DeviceArray wrapper.
+- `src/gpu/gpu_grid.cuh` — device mirror of Grid2D, host↔device transfers.
+- `src/gpu/euler_kernels.cuh` — first kernels (conservative update, BC). Compilable empty implementations are acceptable; full kernels are Week 6.
+
+**Risk note:** Full GPU Euler solver is deferred to Weeks 6–7. If Week 5 progress is tight, shock-bubble may slip to Week 6 — Config 6 + GPU skeleton are the non-deferrable items because they unblock 2D test coverage and the Week-6 kernel work.
 
 **Analysis:**
-- `analysis/plot_2d.py` — 2D density pseudocolor, schlieren plots
+- `scripts/figures/plot_2d.py` (or equivalent in `scripts/figures/`) — 2D density pseudocolor, schlieren plots. Note: phase-error heatmaps + SSIM already provided by `scripts/metrics/phase_error_metrics.py` from Week 4.
 
 **Milestone:** 2D CPU results match published figures. GPU infrastructure compiles on local machine.
 
@@ -309,6 +318,8 @@ Report 1 要求 (each 20%):
 
 **Milestone:** GPU Euler solver matches CPU to machine epsilon. Runs on CSC cluster GPU nodes.
 
+> **Carry-over from Week 5**: complete remaining 2D Euler tests if not finished. Extend the Phase-C float-regression pipeline to GPU outputs once kernels land — same `summary.{md,json}` schema, same SSIM / L1 / phase metrics; CPU-vs-GPU same-precision diff must be ≤ ULP-level.
+
 ---
 
 #### Week 7 (05/04 - 05/10): Experiments + Data Collection for Report 1
@@ -323,6 +334,7 @@ Report 1 要求 (each 20%):
 - L1/L2/Linf error norms for each configuration
 - Grid convergence: N = 50, 100, 200, 400, 800
 - Generate all plots: 1D profiles, 2D pseudocolor, difference maps, convergence curves
+- Reuse the Week-4-established Verificarlo + SNR / LoSoS / s_req(N) / Pareto pipeline for the full Euler matrix. Performance timing (via `src/utils/timer.hpp`) recorded per run; build matrix automated via `scripts/build_all.sh`. CPU-vs-GPU same-precision diff is enforced as a regression gate.
 
 **Milestone:** All experimental data for Report 1 collected and analyzed.
 
@@ -578,39 +590,44 @@ This week focuses on **understanding and explaining** the errors, not just measu
 | 4 | Blast Wave | Two strong shocks (very high Ma) | 1D ✓ |
 | 5 | Stationary Contact | No waves (contact only, S_M=0 edge case) | 1D ✗ |
 | 6 | Liska-Wendroff Config 3 | Four interacting shocks | 2D ✓ |
-| 7 | Liska-Wendroff Config 6 | Shock interactions | 2D ✓ |
+| 7 | Liska-Wendroff Config 6 | 4 contact discontinuities (no shocks) | 2D ✗ |
 | 8 | Shock-Bubble | Planar shock hitting bubble | 2D ✓ |
 
-**Total with supersonic waves: 6 out of 8 tests ✓** (far exceeds minimum of 4). Tests 3 and 5 serve different purposes: 123 tests near-vacuum handling, stationary contact tests `<=` vs `<` at S_M=0.
+**Total with supersonic waves: 5 out of 8 tests ✓** (far exceeds minimum of 4). Tests 3 and 5 serve different purposes: 123 tests near-vacuum handling, stationary contact tests `<=` vs `<` at S_M=0.
+
+**Config 6 note:** This project uses Liska & Wendroff 2003 literal numbering. Config 6 is a four-contact-discontinuity test with no shocks; it is used as the 2D contact-resolution analogue of the 1D `stationary_contact` test, not as a supersonic test.
 
 ---
 
 ## Appendix: Secondary & Optional Items (Week 17 if time permits)
 
-### Tier 1 — Secondary experiments (highest value, lowest effort)
+### Tier 1 — Core methods (already adopted in Weeks 3–4)
 
-| Item | Effort | Insight | Notes |
-|---|---|---|---|
-| **FMA control** (`-ffp-contract`, `--fmad`) | Low (CMake flag) | Explains specific compiler effect on FP associativity | Add to CompilerFlags.cmake |
-| **CFL sensitivity** (0.2, 0.4, 0.6, 0.8) | Low (re-run existing tests) | Separates time integration error from flux error | `cfl_sensitivity.py` |
-| **Limiter sensitivity** (minmod, van Leer, MC) | Low (already in code) | Does reconstruction amplify round-off? | Compare float-double norms across limiters |
+| Item | Status | Notes |
+|---|---|---|
+| Verificarlo MCA (`p=53` noise floor, `p=24` float-surrogate, 2D batch) | adopted | See `scripts/verificarlo/`, `experiments/verificarlo/runs_p53_mca*` |
+| SNR / LoSoS / s_req(N) / Pareto metrics | adopted | See `scripts/metrics/` + `scripts/figures/pareto_plot.py` |
+| FMA control (`-ffp-contract`, `--fmad`, `--inst-fma`) | adopted | C2 `_fma` variant runs already exist |
+| `vfc_precexp` (mixed-precision exploration) | planned (carry-over from Week-3 supervisor ask) | Schedule: Week 14 once MHD lands, or earlier if MHD slips |
+| Verificarlo unstable-branch detection | planned (carry-over from Week-3 supervisor ask) | Schedule: alongside `vfc_precexp` |
 
-### Tier 2 — Additional experiments (medium value)
+### Tier 2 — Incremental experiments (do if time permits)
 
-| Item | Effort | Insight | Notes |
-|---|---|---|---|
-| **OpenMP thread count** (1, 2, 4, 8) | Low | Non-deterministic reduction ordering | Addresses "thread/process scheduling" in brief |
-| **-mtune / vectorisation** | Low (CMake flag) | CPU microarchitecture effects | |
-| **Quad precision** (1D CPU only) | Medium (Boost) | Ground truth reference | |
-| **MPI non-determinism demo** | Medium | Standalone MPI_Reduce script showing LSB variance across process counts. Provides empirical evidence for "reproducibility" section and justifies MPI omission from main code | |
+| Item | Notes |
+|---|---|
+| CFL sensitivity (0.2, 0.4, 0.6, 0.8) | Time integration vs flux error separation |
+| Limiter sensitivity (minmod, van Leer, MC) | Reconstruction round-off amplification |
+| OpenMP thread count (1, 2, 4, 8) | Reduction-ordering non-determinism |
+| `-mtune` / vectorisation options | CPU microarchitecture effects |
+| Quad precision (1D CPU only) | Ground-truth reference; do not attempt 2D / GPU |
+| MPI non-determinism demo | Standalone `MPI_Reduce` script for Report 2 reproducibility section |
 
-### Tier 3 — Advanced tools and ML (lowest priority)
+### Tier 3 — Advanced / exploratory (lowest priority)
 
-| Item | Effort | Insight | Notes |
-|---|---|---|---|
-| **Verificarlo** (stochastic arithmetic) | High (special compiler) | Complements round-off analysis | `/lsc/opt/verificarlo-2.4.0`, clang++-18 |
-| **RAPTOR** (mixed precision) | High (special compiler) | Which variables tolerate lower precision | `/lsc/opt/raptor`, clang++-20 |
-| **ML error predictor** | Medium | Predictive model from sweep data | `ml_error_predictor.py`, scikit-learn |
+| Item | Notes |
+|---|---|
+| RAPTOR (mixed precision, special compiler) | `/lsc/opt/raptor`, clang++-20 |
+| ML error predictor | scikit-learn; only if Tier-1+2 complete |
 
 ### If none completed:
 

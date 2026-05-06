@@ -1,0 +1,54 @@
+{
+  "mode": "device",
+  "rows": [
+    {
+      "pair_a": "experiments\\week6\\regression\\runs\\sod-cpu-strict-d\\sod.bin",
+      "pair_b": "experiments\\week6\\regression\\runs\\sod-gpu-strict-d\\sod.bin",
+      "precision": "double",
+      "l1_a_minus_b": 0.0,
+      "linf_a_minus_b": 0.0,
+      "philip_ratio": null,
+      "ulp_max": 0.0,
+      "gate_passed": true,
+      "notes": "reference_exact_not_available"
+    },
+    {
+      "pair_a": "experiments\\week6\\regression\\runs\\sod-cpu-strict-f\\sod.bin",
+      "pair_b": "experiments\\week6\\regression\\runs\\sod-gpu-strict-f\\sod.bin",
+      "precision": "float",
+      "l1_a_minus_b": 0.0,
+      "linf_a_minus_b": 0.0,
+      "philip_ratio": null,
+      "ulp_max": 0.0,
+      "gate_passed": true,
+      "notes": "reference_exact_not_available"
+    },
+    {
+      "pair_a": "experiments\\week6\\regression\\runs\\lw3-cpu-strict-d\\lw3.bin",
+      "pair_b": "experiments\\week6\\regression\\runs\\lw3-gpu-strict-d\\lw3.bin",
+      "precision": "double",
+      "l1_a_minus_b": 0.0,
+      "linf_a_minus_b": 0.0,
+      "philip_ratio": null,
+      "ulp_max": 0.0,
+      "gate_passed": true,
+      "notes": "reference_exact_not_available"
+    },
+    {
+      "pair_a": "experiments\\week6\\regression\\runs\\lw3-cpu-strict-f\\lw3.bin",
+      "pair_b": "experiments\\week6\\regression\\runs\\lw3-gpu-strict-f\\lw3.bin",
+      "precision": "float",
+      "l1_a_minus_b": 0.0,
+      "linf_a_minus_b": 0.0,
+      "philip_ratio": null,
+      "ulp_max": 0.0,
+      "gate_passed": true,
+      "notes": "reference_exact_not_available"
+    }
+  ],
+  "outputs": {
+    "csv": "experiments\\week6\\regression\\summary.csv",
+    "json": "experiments\\week6\\regression\\summary.json",
+    "markdown": "experiments\\week6\\regression\\summary.md"
+  }
+}

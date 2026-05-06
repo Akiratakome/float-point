@@ -1,0 +1,22 @@
+{
+  "experiment": "week6-csc-gpu-smoke",
+  "name": "lw3-gpu-csc-f",
+  "timestamp_utc": "2026-05-06T15:12:09.969508+00:00",
+  "git_commit": "4f8b76dd59f1484de9c8c40aa40bb5e4baa6e0c7",
+  "binary": "build-cuda-float-strict/hrsc",
+  "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+  "run_config": "experiments/week6/csc_smoke/runs/lw3-gpu-csc-f/config.cfg",
+  "precision": "float",
+  "build": "cuda-strict-float-csc",
+  "raw_output": "experiments/week6/csc_smoke/runs/lw3-gpu-csc-f/lw3.bin",
+  "command": [
+    "build-cuda-float-strict/hrsc",
+    "experiments/week6/csc_smoke/runs/lw3-gpu-csc-f/config.cfg"
+  ],
+  "returncode": 0,
+  "timing": {
+    "total_s": 0.0731129
+  },
+  "stdout": "experiments/week6/csc_smoke/runs/lw3-gpu-csc-f/stdout.txt",
+  "stderr": "experiments/week6/csc_smoke/runs/lw3-gpu-csc-f/stderr.txt"
+}

@@ -3,10 +3,15 @@
 #include "euler/muscl.hpp"
 #include "euler/hancock.hpp"
 #include "euler/hllc.hpp"
+#include "euler/rusanov.hpp"
 #include "euler/euler_solver.hpp"
+#include "euler/exact_riemann.hpp"
 #include "core/grid.hpp"
 #include "core/boundary.hpp"
 #include "toro_tests.hpp"
+#include "utils/error_norms.hpp"
+#include "utils/io.hpp"
+#include "utils/config.hpp"
 
 using namespace hrsc;
 
@@ -14,8 +19,8 @@ using namespace hrsc;
 
 TEST_CASE("euler_flux_x: stationary gas returns {0, p, 0, 0}", "[flux]") {
     // rho=1, u=0, v=0, p=1 → cons = {1, 0, 0, 2.5}
-    Vec<double, 4> cons = {1.0, 0.0, 0.0, 2.5};
-    Vec<double, 4> f = euler_flux_x(cons, 1.4);
+    Vec<double, EulerNVars> cons = {1.0, 0.0, 0.0, 2.5};
+    Vec<double, EulerNVars> f = euler_flux_x(cons, 1.4);
 
     REQUIRE(f[0] == Approx(0.0).margin(1e-15));  // rho*u = 0
     REQUIRE(f[1] == Approx(1.0).epsilon(1e-12));  // rho*u^2 + p = p = 1
@@ -27,8 +32,8 @@ TEST_CASE("euler_flux_x: uniform rightward flow", "[flux]") {
     // rho=2, u=3, v=1, p=4, gamma=1.4
     // cons: rho=2, rho*u=6, rho*v=2, E = p/(gamma-1) + 0.5*rho*(u^2+v^2)
     //     = 4/0.4 + 0.5*2*(9+1) = 10 + 10 = 20
-    Vec<double, 4> cons = {2.0, 6.0, 2.0, 20.0};
-    Vec<double, 4> f = euler_flux_x(cons, 1.4);
+    Vec<double, EulerNVars> cons = {2.0, 6.0, 2.0, 20.0};
+    Vec<double, EulerNVars> f = euler_flux_x(cons, 1.4);
 
     // F = {rho*u, rho*u^2+p, rho*u*v, u*(E+p)}
     //   = {6, 2*9+4, 6*1, 3*(20+4)} = {6, 22, 6, 72}
@@ -38,29 +43,113 @@ TEST_CASE("euler_flux_x: uniform rightward flow", "[flux]") {
     REQUIRE(f[3] == Approx(72.0).epsilon(1e-12));
 }
 
-// --- minmod tests ---
+// --- euler_flux_y tests ---
 
-TEST_CASE("minmod: same sign values", "[muscl]") {
-    REQUIRE(minmod(2.0, 3.0) == Approx(2.0));
-    REQUIRE(minmod(3.0, 2.0) == Approx(2.0));
-    REQUIRE(minmod(-2.0, -3.0) == Approx(-2.0));
+TEST_CASE("euler_flux_y: stationary gas returns {0, 0, p, 0}", "[flux]") {
+    Vec<double, EulerNVars> cons = {1.0, 0.0, 0.0, 2.5};
+    Vec<double, EulerNVars> g = euler_flux_y(cons, 1.4);
+
+    REQUIRE(g[0] == Approx(0.0).margin(1e-15));
+    REQUIRE(g[1] == Approx(0.0).margin(1e-15));
+    REQUIRE(g[2] == Approx(1.0).epsilon(1e-12));  // p = 1
+    REQUIRE(g[3] == Approx(0.0).margin(1e-15));
 }
 
-TEST_CASE("minmod: opposite signs returns zero", "[muscl]") {
-    REQUIRE(minmod(2.0, -1.0) == Approx(0.0));
-    REQUIRE(minmod(-2.0, 1.0) == Approx(0.0));
+TEST_CASE("euler_flux_y: uniform upward flow", "[flux]") {
+    // rho=2, u=1, v=3, p=4, gamma=1.4
+    // cons: rho=2, rho*u=2, rho*v=6, E = 4/0.4 + 0.5*2*(1+9) = 10+10=20
+    Vec<double, EulerNVars> cons = {2.0, 2.0, 6.0, 20.0};
+    Vec<double, EulerNVars> g = euler_flux_y(cons, 1.4);
+
+    // G = {rho*v, rho*u*v, rho*v^2+p, v*(E+p)}
+    //   = {6, 2*1*3, 2*9+4, 3*(20+4)} = {6, 6, 22, 72}
+    REQUIRE(g[0] == Approx(6.0).epsilon(1e-12));
+    REQUIRE(g[1] == Approx(6.0).epsilon(1e-12));
+    REQUIRE(g[2] == Approx(22.0).epsilon(1e-12));
+    REQUIRE(g[3] == Approx(72.0).epsilon(1e-12));
 }
 
-TEST_CASE("minmod: one zero returns zero", "[muscl]") {
-    REQUIRE(minmod(0.0, 3.0) == Approx(0.0));
-    REQUIRE(minmod(3.0, 0.0) == Approx(0.0));
+TEST_CASE("swap_momentum: swaps RHOU and RHOV", "[flux]") {
+    Vec<double, EulerNVars> q = {1.0, 2.0, 3.0, 4.0};
+    Vec<double, EulerNVars> s = swap_momentum(q);
+    REQUIRE(s[RHO]  == Approx(1.0));
+    REQUIRE(s[RHOU] == Approx(3.0));  // was RHOV
+    REQUIRE(s[RHOV] == Approx(2.0));  // was RHOU
+    REQUIRE(s[EN]   == Approx(4.0));
+}
+
+// --- minbee tests ---
+
+TEST_CASE("minbee: same sign values", "[limiter]") {
+    REQUIRE(minbee(2.0, 3.0) == Approx(2.0));
+    REQUIRE(minbee(3.0, 2.0) == Approx(2.0));
+    REQUIRE(minbee(-2.0, -3.0) == Approx(-2.0));
+}
+
+TEST_CASE("minbee: opposite signs returns zero", "[limiter]") {
+    REQUIRE(minbee(2.0, -1.0) == Approx(0.0));
+    REQUIRE(minbee(-2.0, 1.0) == Approx(0.0));
+}
+
+TEST_CASE("minbee: one zero returns zero", "[limiter]") {
+    REQUIRE(minbee(0.0, 3.0) == Approx(0.0));
+    REQUIRE(minbee(3.0, 0.0) == Approx(0.0));
+}
+
+// --- vanleer tests ---
+
+TEST_CASE("vanleer: same sign values", "[limiter]") {
+    REQUIRE(vanleer(2.0, 3.0) == Approx(2.4));       // 2*2*3/(2+3) = 2.4
+    REQUIRE(vanleer(-2.0, -3.0) == Approx(-2.4));
+}
+
+TEST_CASE("vanleer: opposite signs returns zero", "[limiter]") {
+    REQUIRE(vanleer(2.0, -1.0) == Approx(0.0));
+}
+
+TEST_CASE("vanleer: equal values recover gradient", "[limiter]") {
+    REQUIRE(vanleer(1.5, 1.5) == Approx(1.5));       // 2*1.5*1.5/(1.5+1.5) = 1.5
+    REQUIRE(vanleer(-0.7, -0.7) == Approx(-0.7));
+}
+
+// --- superbee tests ---
+
+TEST_CASE("superbee: same sign values", "[limiter]") {
+    // superbee(2,3) = max(min(2, 6), min(4, 3)) = max(2, 3) = 3
+    REQUIRE(superbee(2.0, 3.0) == Approx(3.0));
+    REQUIRE(superbee(-2.0, -3.0) == Approx(-3.0));
+}
+
+TEST_CASE("superbee: opposite signs returns zero", "[limiter]") {
+    REQUIRE(superbee(2.0, -1.0) == Approx(0.0));
+}
+
+TEST_CASE("superbee: returns larger slope than minbee", "[limiter]") {
+    double a = 1.0, b = 2.0;
+    REQUIRE(std::abs(superbee(a, b)) >= std::abs(minbee(a, b)));
+}
+
+// --- vanalbada tests ---
+
+TEST_CASE("vanalbada: same sign values", "[limiter]") {
+    // vanalbada(2,3) = 2*3*(2+3)/(4+9) = 30/13 ≈ 2.3077
+    REQUIRE(vanalbada(2.0, 3.0) == Approx(30.0 / 13.0).epsilon(1e-12));
+}
+
+TEST_CASE("vanalbada: opposite signs returns zero", "[limiter]") {
+    REQUIRE(vanalbada(2.0, -1.0) == Approx(0.0));
+}
+
+TEST_CASE("vanalbada: equal values recover gradient", "[limiter]") {
+    // vanalbada(a,a) = a*a*(2a)/(2a^2) = a
+    REQUIRE(vanalbada(1.5, 1.5) == Approx(1.5));
 }
 
 // --- muscl_reconstruct_x tests ---
 
 TEST_CASE("muscl_reconstruct_x: uniform field gives no reconstruction", "[muscl]") {
     // 10-cell 1D grid, uniform rho=1, u=0, v=0, p=1 → cons={1,0,0,2.5}
-    Grid2D<double, 4> grid(10, 1);
+    Grid2D<double, EulerNVars> grid(10, 1);
     grid.dx = 0.1;
     grid.dy = 0.1;
     auto gv = grid.view();
@@ -72,12 +161,12 @@ TEST_CASE("muscl_reconstruct_x: uniform field gives no reconstruction", "[muscl]
         gv(i, 0, EN)   = 2.5;
     }
 
-    Vec<double, 4> qL{}, qR{};
+    Vec<double, EulerNVars> qL{}, qR{};
     muscl_reconstruct_x(grid.view(), 5, 0, qL, qR);
 
     // Uniform field: left face == right face == cell value
-    for (int v = 0; v < 4; ++v) {
-        Vec<double, 4> cell = {1.0, 0.0, 0.0, 2.5};
+    for (int v = 0; v < EulerNVars; ++v) {
+        Vec<double, EulerNVars> cell = {1.0, 0.0, 0.0, 2.5};
         REQUIRE(qL[v] == Approx(cell[v]).margin(1e-15));
         REQUIRE(qR[v] == Approx(cell[v]).margin(1e-15));
     }
@@ -86,7 +175,7 @@ TEST_CASE("muscl_reconstruct_x: uniform field gives no reconstruction", "[muscl]
 TEST_CASE("muscl_reconstruct_x: linear field recovers exact gradient", "[muscl]") {
     // 10-cell 1D grid, rho varies linearly: rho_i = 1 + 0.1*i
     // All other variables uniform
-    Grid2D<double, 4> grid(10, 1);
+    Grid2D<double, EulerNVars> grid(10, 1);
     grid.dx = 0.1;
     grid.dy = 0.1;
     auto gv = grid.view();
@@ -98,12 +187,12 @@ TEST_CASE("muscl_reconstruct_x: linear field recovers exact gradient", "[muscl]"
         gv(i, 0, EN)   = 2.5;
     }
 
-    Vec<double, 4> qL{}, qR{};
+    Vec<double, EulerNVars> qL{}, qR{};
     muscl_reconstruct_x(grid.view(), 5, 0, qL, qR);
 
     // Cell 5 center value: rho = 1.5
     // backward diff: rho_5 - rho_4 = 0.1, forward diff: rho_6 - rho_5 = 0.1
-    // minmod(0.1, 0.1) = 0.1
+    // minbee(0.1, 0.1) = 0.1
     // qL (left face) = 1.5 - 0.5 * 0.1 = 1.45
     // qR (right face) = 1.5 + 0.5 * 0.1 = 1.55
     REQUIRE(qL[RHO] == Approx(1.45).epsilon(1e-12));
@@ -112,7 +201,7 @@ TEST_CASE("muscl_reconstruct_x: linear field recovers exact gradient", "[muscl]"
 
 TEST_CASE("muscl_reconstruct_x: discontinuity triggers limiter", "[muscl]") {
     // 10-cell grid: cells 0-4 have rho=1, cells 5-9 have rho=2
-    Grid2D<double, 4> grid(10, 1);
+    Grid2D<double, EulerNVars> grid(10, 1);
     grid.dx = 0.1;
     grid.dy = 0.1;
     auto gv = grid.view();
@@ -125,23 +214,45 @@ TEST_CASE("muscl_reconstruct_x: discontinuity triggers limiter", "[muscl]") {
         gv(i, 0, EN)   = 2.5;
     }
 
-    // Cell 4: backward = 1-1=0, forward = 2-1=1 → minmod(0,1)=0
-    Vec<double, 4> qL4{}, qR4{};
+    // Cell 4: backward = 1-1=0, forward = 2-1=1 → minbee(0,1)=0
+    Vec<double, EulerNVars> qL4{}, qR4{};
     muscl_reconstruct_x(grid.view(), 4, 0, qL4, qR4);
     REQUIRE(qL4[RHO] == Approx(1.0).epsilon(1e-12));
     REQUIRE(qR4[RHO] == Approx(1.0).epsilon(1e-12));
 
-    // Cell 5: backward = 2-1=1, forward = 2-2=0 → minmod(1,0)=0
-    Vec<double, 4> qL5{}, qR5{};
+    // Cell 5: backward = 2-1=1, forward = 2-2=0 → minbee(1,0)=0
+    Vec<double, EulerNVars> qL5{}, qR5{};
     muscl_reconstruct_x(grid.view(), 5, 0, qL5, qR5);
     REQUIRE(qL5[RHO] == Approx(2.0).epsilon(1e-12));
     REQUIRE(qR5[RHO] == Approx(2.0).epsilon(1e-12));
 }
 
+TEST_CASE("muscl_reconstruct_x: van Leer on linear field", "[muscl]") {
+    Grid2D<double, EulerNVars> grid(10, 1);
+    grid.dx = 0.1;
+    grid.dy = 0.1;
+    auto gv = grid.view();
+
+    for (int i = -2; i < 12; ++i) {
+        gv(i, 0, RHO)  = 1.0 + 0.1 * i;
+        gv(i, 0, RHOU) = 0.0;
+        gv(i, 0, RHOV) = 0.0;
+        gv(i, 0, EN)   = 2.5;
+    }
+
+    Vec<double, EulerNVars> qL{}, qR{};
+    muscl_reconstruct_x(grid.view(), 5, 0, qL, qR, VanLeerLimiter{});
+
+    // Cell 5: rho=1.5, backward=forward=0.1
+    // vanleer(0.1, 0.1) = 0.1 (exact gradient recovery)
+    REQUIRE(qL[RHO] == Approx(1.45).epsilon(1e-12));
+    REQUIRE(qR[RHO] == Approx(1.55).epsilon(1e-12));
+}
+
 // --- muscl_hancock_x tests ---
 
 TEST_CASE("muscl_hancock_x: uniform field unchanged after half-step", "[hancock]") {
-    Grid2D<double, 4> grid(10, 1);
+    Grid2D<double, EulerNVars> grid(10, 1);
     grid.dx = 0.1;
     grid.dy = 0.1;
     auto gv = grid.view();
@@ -154,7 +265,7 @@ TEST_CASE("muscl_hancock_x: uniform field unchanged after half-step", "[hancock]
         gv(i, 0, EN)   = 2.5;
     }
 
-    Vec<double, 4> qL{}, qR{};
+    Vec<double, EulerNVars> qL{}, qR{};
     muscl_hancock_x(grid.view(), 5, 0, 0.001, 1.4, qL, qR);
 
     // Uniform → slope=0 → q_left=q_right=cell value → F(qL)=F(qR) → no evolution
@@ -170,7 +281,7 @@ TEST_CASE("muscl_hancock_x: uniform field unchanged after half-step", "[hancock]
 }
 
 TEST_CASE("muscl_hancock_x: linear density field evolves symmetrically", "[hancock]") {
-    Grid2D<double, 4> grid(10, 1);
+    Grid2D<double, EulerNVars> grid(10, 1);
     grid.dx = 0.1;
     grid.dy = 0.1;
     auto gv = grid.view();
@@ -185,7 +296,7 @@ TEST_CASE("muscl_hancock_x: linear density field evolves symmetrically", "[hanco
         gv(i, 0, EN)   = E;
     }
 
-    Vec<double, 4> qL{}, qR{};
+    Vec<double, EulerNVars> qL{}, qR{};
     muscl_hancock_x(grid.view(), 5, 0, 0.001, 1.4, qL, qR);
 
     // With u=0, E is constant (p/(gamma-1)), pressure is constant.
@@ -196,26 +307,102 @@ TEST_CASE("muscl_hancock_x: linear density field evolves symmetrically", "[hanco
     REQUIRE(qR[RHO] == Approx(1.55).epsilon(1e-10));
 }
 
+// --- muscl_reconstruct_y tests ---
+
+TEST_CASE("muscl_reconstruct_y: uniform field gives no reconstruction", "[muscl]") {
+    Grid2D<double, EulerNVars> grid(5, 10);
+    grid.dx = 0.1;
+    grid.dy = 0.1;
+    auto gv = grid.view();
+
+    for (int j = -2; j < 12; ++j)
+        for (int i = -2; i < 7; ++i) {
+            gv(i, j, RHO)  = 1.0;
+            gv(i, j, RHOU) = 0.0;
+            gv(i, j, RHOV) = 0.0;
+            gv(i, j, EN)   = 2.5;
+        }
+
+    Vec<double, EulerNVars> qB{}, qT{};
+    muscl_reconstruct_y(grid.view(), 2, 5, qB, qT);
+
+    REQUIRE(qB[RHO] == Approx(1.0).epsilon(1e-12));
+    REQUIRE(qT[RHO] == Approx(1.0).epsilon(1e-12));
+}
+
+TEST_CASE("muscl_reconstruct_y: linear field in j-direction", "[muscl]") {
+    Grid2D<double, EulerNVars> grid(5, 10);
+    grid.dx = 0.1;
+    grid.dy = 0.1;
+    auto gv = grid.view();
+
+    for (int j = -2; j < 12; ++j)
+        for (int i = -2; i < 7; ++i) {
+            gv(i, j, RHO)  = 1.0 + 0.1 * j;
+            gv(i, j, RHOU) = 0.0;
+            gv(i, j, RHOV) = 0.0;
+            gv(i, j, EN)   = 2.5;
+        }
+
+    Vec<double, EulerNVars> qB{}, qT{};
+    muscl_reconstruct_y(grid.view(), 2, 5, qB, qT);
+
+    // Cell (2,5): rho=1.5, backward=forward=0.1
+    // minbee(0.1, 0.1) = 0.1
+    REQUIRE(qB[RHO] == Approx(1.45).epsilon(1e-12));
+    REQUIRE(qT[RHO] == Approx(1.55).epsilon(1e-12));
+}
+
+// --- muscl_hancock_y tests ---
+
+TEST_CASE("muscl_hancock_y: uniform field unchanged after half-step", "[hancock]") {
+    Grid2D<double, EulerNVars> grid(5, 10);
+    grid.dx = 0.1;
+    grid.dy = 0.1;
+    auto gv = grid.view();
+
+    for (int j = -2; j < 12; ++j)
+        for (int i = -2; i < 7; ++i) {
+            gv(i, j, RHO)  = 1.0;
+            gv(i, j, RHOU) = 0.0;
+            gv(i, j, RHOV) = 0.0;
+            gv(i, j, EN)   = 2.5;
+        }
+
+    Vec<double, EulerNVars> qB{}, qT{};
+    muscl_hancock_y(grid.view(), 2, 5, 0.001, 1.4, qB, qT);
+
+    REQUIRE(qB[RHO]  == Approx(1.0).epsilon(1e-12));
+    REQUIRE(qB[RHOU] == Approx(0.0).margin(1e-15));
+    REQUIRE(qB[RHOV] == Approx(0.0).margin(1e-15));
+    REQUIRE(qB[EN]   == Approx(2.5).epsilon(1e-12));
+
+    REQUIRE(qT[RHO]  == Approx(1.0).epsilon(1e-12));
+    REQUIRE(qT[RHOU] == Approx(0.0).margin(1e-15));
+    REQUIRE(qT[RHOV] == Approx(0.0).margin(1e-15));
+    REQUIRE(qT[EN]   == Approx(2.5).epsilon(1e-12));
+}
+
 // --- hllc_flux tests ---
 
 TEST_CASE("hllc_flux: identical states returns physical flux", "[hllc]") {
     // If qL == qR, any Riemann solver must return F(q)
-    Vec<double, 4> cons = {1.0, 0.0, 0.0, 2.5}; // rho=1, u=0, v=0, p=1
-    Vec<double, 4> f_hllc = hllc_flux(cons, cons, 1.4);
-    Vec<double, 4> f_phys = euler_flux_x(cons, 1.4);
+    Vec<double, EulerNVars> cons = {1.0, 0.0, 0.0, 2.5}; // rho=1, u=0, v=0, p=1
+    Vec<double, EulerNVars> f_hllc = hllc_flux(cons, cons, 1.4);
+    Vec<double, EulerNVars> f_phys = euler_flux_x(cons, 1.4);
 
-    for (int v = 0; v < 4; ++v) {
+    for (int v = 0; v < EulerNVars; ++v) {
         REQUIRE(f_hllc[v] == Approx(f_phys[v]).margin(1e-14));
     }
 }
 
 TEST_CASE("hllc_flux: identical states with nonzero velocity", "[hllc]") {
     // rho=2, u=3, v=1, p=4 → cons = {2, 6, 2, 20}
-    Vec<double, 4> cons = {2.0, 6.0, 2.0, 20.0};
-    Vec<double, 4> f_hllc = hllc_flux(cons, cons, 1.4);
-    Vec<double, 4> f_phys = euler_flux_x(cons, 1.4);
+    Vec<double, EulerNVars> cons = {2.0, 6.0, 2.0, 20.0};
+    Vec<double, EulerNVars> f_hllc = hllc_flux(cons, cons, 1.4);
+    Vec<double, EulerNVars> f_phys = euler_flux_x(cons, 1.4);
 
-    for (int v = 0; v < 4; ++v) {
+    for (int v = 0; v < EulerNVars; ++v) {
         REQUIRE(f_hllc[v] == Approx(f_phys[v]).margin(1e-12));
     }
 }
@@ -223,9 +410,9 @@ TEST_CASE("hllc_flux: identical states with nonzero velocity", "[hllc]") {
 TEST_CASE("hllc_flux: Sod interface gives reasonable flux", "[hllc]") {
     // Left: rho=1, u=0, v=0, p=1 → cons={1, 0, 0, 2.5}
     // Right: rho=0.125, u=0, v=0, p=0.1 → cons={0.125, 0, 0, 0.25}
-    Vec<double, 4> qL = {1.0, 0.0, 0.0, 2.5};
-    Vec<double, 4> qR = {0.125, 0.0, 0.0, 0.25};
-    Vec<double, 4> f = hllc_flux(qL, qR, 1.4);
+    Vec<double, EulerNVars> qL = {1.0, 0.0, 0.0, 2.5};
+    Vec<double, EulerNVars> qR = {0.125, 0.0, 0.0, 0.25};
+    Vec<double, EulerNVars> f = hllc_flux(qL, qR, 1.4);
 
     // The Sod shock tube has a right-going shock and contact.
     // At the interface, there should be a positive mass flux (flow goes right).
@@ -241,12 +428,12 @@ TEST_CASE("hllc_flux: symmetry test", "[hllc]") {
     // Symmetric states: qL = (rho=2, u=1, v=0.5, p=3), qR = (rho=2, u=-1, v=0.5, p=3)
     // By symmetry: mass flux should be zero, momentum flux = 2*p_star region
     double gamma = 1.4;
-    Vec<double, 4> primL = {2.0, 1.0, 0.5, 3.0};
-    Vec<double, 4> primR = {2.0, -1.0, 0.5, 3.0};
-    Vec<double, 4> qL = prim_to_cons(primL, gamma);
-    Vec<double, 4> qR = prim_to_cons(primR, gamma);
+    Vec<double, EulerNVars> primL = {2.0, 1.0, 0.5, 3.0};
+    Vec<double, EulerNVars> primR = {2.0, -1.0, 0.5, 3.0};
+    Vec<double, EulerNVars> qL = prim_to_cons(primL, gamma);
+    Vec<double, EulerNVars> qR = prim_to_cons(primR, gamma);
 
-    Vec<double, 4> f = hllc_flux(qL, qR, gamma);
+    Vec<double, EulerNVars> f = hllc_flux(qL, qR, gamma);
 
     // Mass flux = 0 by symmetry (u=-u)
     REQUIRE(f[RHO] == Approx(0.0).margin(1e-12));
@@ -255,10 +442,56 @@ TEST_CASE("hllc_flux: symmetry test", "[hllc]") {
 }
 #endif
 
+// --- rusanov_flux tests ---
+
+TEST_CASE("rusanov_flux: identical states returns physical flux", "[rusanov]") {
+    Vec<double, EulerNVars> cons = {1.0, 0.0, 0.0, 2.5};
+    Vec<double, EulerNVars> f_rus = rusanov_flux(cons, cons, 1.4);
+    Vec<double, EulerNVars> f_phys = euler_flux_x(cons, 1.4);
+
+    for (int v = 0; v < EulerNVars; ++v) {
+        REQUIRE(f_rus[v] == Approx(f_phys[v]).margin(1e-14));
+    }
+}
+
+TEST_CASE("rusanov_flux: identical states with nonzero velocity", "[rusanov]") {
+    Vec<double, EulerNVars> cons = {2.0, 6.0, 2.0, 20.0};
+    Vec<double, EulerNVars> f_rus = rusanov_flux(cons, cons, 1.4);
+    Vec<double, EulerNVars> f_phys = euler_flux_x(cons, 1.4);
+
+    for (int v = 0; v < EulerNVars; ++v) {
+        REQUIRE(f_rus[v] == Approx(f_phys[v]).margin(1e-12));
+    }
+}
+
+TEST_CASE("rusanov_flux: Sod interface gives reasonable flux", "[rusanov]") {
+    Vec<double, EulerNVars> qL = {1.0, 0.0, 0.0, 2.5};
+    Vec<double, EulerNVars> qR = {0.125, 0.0, 0.0, 0.25};
+    Vec<double, EulerNVars> f = rusanov_flux(qL, qR, 1.4);
+
+    REQUIRE(f[RHO] > 0.0);
+    REQUIRE(f[RHOU] > 0.0);
+}
+
+TEST_CASE("rusanov_flux: symmetry test", "[rusanov]") {
+    double gamma = 1.4;
+    Vec<double, EulerNVars> primL = {2.0, 1.0, 0.5, 3.0};
+    Vec<double, EulerNVars> primR = {2.0, -1.0, 0.5, 3.0};
+    Vec<double, EulerNVars> qL = prim_to_cons(primL, gamma);
+    Vec<double, EulerNVars> qR = prim_to_cons(primR, gamma);
+
+    Vec<double, EulerNVars> f = rusanov_flux(qL, qR, gamma);
+
+    // Mass flux = 0 by symmetry (no branching, always holds)
+    REQUIRE(f[RHO] == Approx(0.0).margin(1e-12));
+    // Energy flux = 0 by symmetry
+    REQUIRE(f[EN] == Approx(0.0).margin(1e-12));
+}
+
 // --- Sod IC test ---
 
 TEST_CASE("setup_sod: left and right states set correctly", "[sod]") {
-    Grid2D<double, 4> grid(200, 1);
+    Grid2D<double, EulerNVars> grid(200, 1);
     grid.dx = 1.0 / 200;
     grid.dy = 1.0;
     auto gv = grid.view();
@@ -285,7 +518,7 @@ TEST_CASE("setup_sod: left and right states set correctly", "[sod]") {
 TEST_CASE("EulerSolver: Sod density stays in physical range", "[solver]") {
     int nx = 200;
     double dx = 1.0 / nx;
-    EulerSolver<double> solver(nx, dx, 1.4, 0.8, 0.25);
+    EulerSolver<double> solver(nx, dx, 0.0, 1.4, 0.8, 0.25);
 
     setup_sod(solver.grid_view(), 1.4);
     solver.run();
@@ -301,7 +534,7 @@ TEST_CASE("EulerSolver: Sod density stays in physical range", "[solver]") {
 TEST_CASE("EulerSolver: Sod mass is conserved", "[solver]") {
     int nx = 200;
     double dx = 1.0 / nx;
-    EulerSolver<double> solver(nx, dx, 1.4, 0.8, 0.25);
+    EulerSolver<double> solver(nx, dx, 0.0, 1.4, 0.8, 0.25);
 
     setup_sod(solver.grid_view(), 1.4);
 
@@ -333,7 +566,7 @@ TEST_CASE("EulerSolver: Sod mass is conserved", "[solver]") {
 TEST_CASE("EulerSolver: Sod shock position is approximately correct", "[solver]") {
     int nx = 200;
     double dx = 1.0 / nx;
-    EulerSolver<double> solver(nx, dx, 1.4, 0.8, 0.25);
+    EulerSolver<double> solver(nx, dx, 0.0, 1.4, 0.8, 0.25);
 
     setup_sod(solver.grid_view(), 1.4);
     solver.run();
@@ -353,4 +586,333 @@ TEST_CASE("EulerSolver: Sod shock position is approximately correct", "[solver]"
     double shock_x = (shock_cell + 0.5) * dx;
     REQUIRE(shock_x > 0.75);
     REQUIRE(shock_x < 0.95);
+}
+
+// --- exact_riemann_solve tests ---
+
+TEST_CASE("exact_riemann_solve: Sod p_star and u_star", "[exact]") {
+    double gamma = 1.4;
+    double p_star = 0.0, u_star = 0.0;
+
+    exact_riemann_solve(gamma,
+        1.0, 0.0, 1.0,      // rhoL, uL, pL
+        0.125, 0.0, 0.1,    // rhoR, uR, pR
+        p_star, u_star);
+
+    REQUIRE(p_star == Approx(0.30313).epsilon(1e-4));
+    REQUIRE(u_star == Approx(0.92745).epsilon(1e-4));
+}
+
+TEST_CASE("exact_riemann_solve: Toro Test 2 (123 problem)", "[exact]") {
+    double gamma = 1.4;
+    double p_star = 0.0, u_star = 0.0;
+    exact_riemann_solve(gamma,
+        1.0, -2.0, 0.4,
+        1.0,  2.0, 0.4,
+        p_star, u_star);
+    REQUIRE(p_star == Approx(0.00189).epsilon(1e-2));
+    REQUIRE(u_star == Approx(0.0).margin(1e-6));
+}
+
+TEST_CASE("exact_riemann_solve: Toro Test 3 (blast wave)", "[exact]") {
+    double gamma = 1.4;
+    double p_star = 0.0, u_star = 0.0;
+    exact_riemann_solve(gamma,
+        1.0, 0.0, 1000.0,
+        1.0, 0.0, 0.01,
+        p_star, u_star);
+    REQUIRE(p_star == Approx(460.894).epsilon(1e-3));
+    REQUIRE(u_star == Approx(19.5975).epsilon(1e-3));
+}
+
+TEST_CASE("exact_riemann_solve: Toro Test 4 (Lax)", "[exact]") {
+    double gamma = 1.4;
+    double p_star = 0.0, u_star = 0.0;
+    exact_riemann_solve(gamma,
+        0.445, 0.698, 3.528,
+        0.5,   0.0,   0.571,
+        p_star, u_star);
+    // Converged exact values for Lax IC (Toro Table 4.1)
+    REQUIRE(p_star == Approx(2.46610).epsilon(1e-4));
+    REQUIRE(u_star == Approx(1.52872).epsilon(1e-4));
+}
+
+TEST_CASE("exact_riemann_solve: vacuum check", "[exact]") {
+    double gamma = 1.4;
+    double p_star = -1.0, u_star = -1.0;
+    // Two flows diverging fast enough to generate vacuum
+    exact_riemann_solve(gamma,
+        1.0, -100.0, 0.4,
+        1.0,  100.0, 0.4,
+        p_star, u_star);
+    REQUIRE(p_star == Approx(0.0).margin(1e-12));
+    REQUIRE(u_star == Approx(0.0).margin(1e-6));
+}
+
+TEST_CASE("exact_riemann_sample: Sod at multiple points", "[exact]") {
+    double gamma = 1.4;
+    double rho, u, p;
+
+    // Left of all waves: x/t = -1.5 → undisturbed left state
+    // (left rarefaction head is at SHL = uL - aL = -sqrt(1.4) ≈ -1.183, so -1.5 is left of it)
+    exact_riemann_sample(gamma, -1.5,
+        1.0, 0.0, 1.0,  0.125, 0.0, 0.1,
+        rho, u, p);
+    REQUIRE(rho == Approx(1.0).epsilon(1e-6));
+    REQUIRE(u   == Approx(0.0).margin(1e-10));
+    REQUIRE(p   == Approx(1.0).epsilon(1e-6));
+
+    // Right of all waves: x/t = 2.0 → undisturbed right state
+    exact_riemann_sample(gamma, 2.0,
+        1.0, 0.0, 1.0,  0.125, 0.0, 0.1,
+        rho, u, p);
+    REQUIRE(rho == Approx(0.125).epsilon(1e-6));
+    REQUIRE(u   == Approx(0.0).margin(1e-10));
+    REQUIRE(p   == Approx(0.1).epsilon(1e-6));
+
+    // At the contact: x/t ≈ u_star = 0.92745, rho should be left-star or right-star
+    exact_riemann_sample(gamma, 0.5,
+        1.0, 0.0, 1.0,  0.125, 0.0, 0.1,
+        rho, u, p);
+    REQUIRE(rho > 0.1);
+    REQUIRE(rho < 1.0);
+    REQUIRE(p == Approx(0.30313).epsilon(1e-3));
+    REQUIRE(u == Approx(0.92745).epsilon(1e-3));
+}
+
+// --- error_norms tests ---
+
+TEST_CASE("compute_error: zero error for identical arrays", "[norms]") {
+    double a[] = {1.0, 2.0, 3.0};
+    double b[] = {1.0, 2.0, 3.0};
+    auto err = hrsc::compute_error(a, b, 3, 1.0);
+    REQUIRE(err.L1   == Approx(0.0).margin(1e-15));
+    REQUIRE(err.L2   == Approx(0.0).margin(1e-15));
+    REQUIRE(err.Linf == Approx(0.0).margin(1e-15));
+}
+
+TEST_CASE("compute_error: known error values", "[norms]") {
+    double num[]   = {1.0, 2.0, 3.0};
+    double exact[] = {1.1, 2.2, 3.3};
+    // |diff| = {0.1, 0.2, 0.3}, dV = 0.5
+    auto err = hrsc::compute_error(num, exact, 3, 0.5);
+    // L1 = (0.1 + 0.2 + 0.3) * 0.5 = 0.3
+    REQUIRE(err.L1 == Approx(0.3).epsilon(1e-12));
+    // L2 = sqrt((0.01 + 0.04 + 0.09) * 0.5) = sqrt(0.07)
+    REQUIRE(err.L2 == Approx(std::sqrt(0.07)).epsilon(1e-12));
+    // Linf = 0.3
+    REQUIRE(err.Linf == Approx(0.3).epsilon(1e-12));
+}
+
+TEST_CASE("compute_error: norm inequality L1 <= sqrt(n*dV)*L2", "[norms]") {
+    double num[]   = {1.0, 3.0, 5.0, 7.0};
+    double exact[] = {1.1, 2.5, 5.3, 6.8};
+    double dV = 0.25;
+    auto err = hrsc::compute_error(num, exact, 4, dV);
+    REQUIRE(err.L1 <= std::sqrt(4.0 * dV) * err.L2 + 1e-12);
+}
+
+TEST_CASE("binary IO: write and read back match", "[io]") {
+    // Create a small 4x3 grid with known values
+    Grid2D<double, EulerNVars> grid(4, 3);
+    grid.dx = 0.25;
+    grid.dy = 0.5;
+    auto gv = grid.view();
+
+    for (int j = 0; j < 3; ++j)
+        for (int i = 0; i < 4; ++i)
+            for (int v = 0; v < EulerNVars; ++v)
+                gv(i, j, v) = 100.0 * j + 10.0 * i + v + 0.1;
+
+    std::string fname = "test_io_roundtrip.hrsc";
+    write_binary<double, EulerNVars>(fname, grid.view(), 4, 3, 0.25, 0.5, 1.234);
+
+    // Read header
+    int nx2, ny2, nvars2, prec2;
+    double time2, dx2, dy2;
+    read_binary_header(fname, nx2, ny2, nvars2, prec2, time2, dx2, dy2);
+    REQUIRE(nx2 == 4);
+    REQUIRE(ny2 == 3);
+    REQUIRE(nvars2 == 4);
+    REQUIRE(prec2 == 8);  // sizeof(double)
+    REQUIRE(time2 == Approx(1.234));
+    REQUIRE(dx2 == Approx(0.25));
+    REQUIRE(dy2 == Approx(0.5));
+
+    // Read data
+    Grid2D<double, EulerNVars> grid2(4, 3);
+    grid2.dx = dx2;
+    grid2.dy = dy2;
+    read_binary_data<double, EulerNVars>(fname, grid2.view(), 4, 3);
+
+    auto gv2 = grid2.view();
+    for (int j = 0; j < 3; ++j)
+        for (int i = 0; i < 4; ++i)
+            for (int v = 0; v < EulerNVars; ++v)
+                REQUIRE(gv2(i, j, v) == Approx(gv(i, j, v)).margin(1e-15));
+
+    std::remove(fname.c_str());
+}
+
+TEST_CASE("binary IO: file size is correct", "[io]") {
+    Grid2D<double, EulerNVars> grid(10, 5);
+    grid.dx = 0.1;
+    grid.dy = 0.2;
+    auto gv = grid.view();
+    for (int j = 0; j < 5; ++j)
+        for (int i = 0; i < 10; ++i)
+            for (int v = 0; v < EulerNVars; ++v)
+                gv(i, j, v) = 1.0;
+
+    std::string fname = "test_io_size.hrsc";
+    write_binary<double, EulerNVars>(fname, grid.view(), 10, 5, 0.1, 0.2, 0.0);
+
+    FILE* fp = std::fopen(fname.c_str(), "rb");
+    std::fseek(fp, 0, SEEK_END);
+    long size = std::ftell(fp);
+    std::fclose(fp);
+
+    // 64 header + 10 * 5 * 4 * 8 bytes = 64 + 1600 = 1664
+    REQUIRE(size == 1664);
+    std::remove(fname.c_str());
+}
+
+// --- Config::get_int_list tests ---
+
+TEST_CASE("Config::get_int_list parses comma-separated values", "[config]") {
+    std::istringstream ss("resolutions = 50,100,200,400,800\n");
+    Config cfg(ss);
+    auto list = cfg.get_int_list("resolutions");
+    REQUIRE(list.size() == 5);
+    REQUIRE(list[0] == 50);
+    REQUIRE(list[1] == 100);
+    REQUIRE(list[2] == 200);
+    REQUIRE(list[3] == 400);
+    REQUIRE(list[4] == 800);
+}
+
+TEST_CASE("Config::get_int_list handles spaces", "[config]") {
+    std::istringstream ss("vals = 10 , 20 , 30\n");
+    Config cfg(ss);
+    auto list = cfg.get_int_list("vals");
+    REQUIRE(list.size() == 3);
+    REQUIRE(list[0] == 10);
+    REQUIRE(list[1] == 20);
+    REQUIRE(list[2] == 30);
+}
+
+// --- Stationary contact discontinuity tests ---
+
+TEST_CASE("Stationary contact IC", "[stationary_contact]") {
+    using Real = double;
+    Real gamma = 1.4;
+    Grid2D<Real, EulerNVars> grid(200, 1);
+    grid.dx = 1.0 / 200;
+    grid.dy = grid.dx;
+    auto gv = grid.view();
+
+    setup_stationary_contact(gv, gamma);
+
+    // Cell at i=50 (left side): rho=1, p=1
+    Vec<Real, EulerNVars> cons_L;
+    for (int v = 0; v < EulerNVars; ++v) cons_L[v] = gv(50, 0, v);
+    auto prim_L = cons_to_prim(cons_L, gamma);
+    REQUIRE(prim_L[PRHO] == Approx(1.0));
+    REQUIRE(prim_L[PRES] == Approx(1.0));
+    REQUIRE(prim_L[VX]   == Approx(0.0).margin(1e-15));
+
+    // Cell at i=150 (right side): rho=0.5, p=1
+    Vec<Real, EulerNVars> cons_R;
+    for (int v = 0; v < EulerNVars; ++v) cons_R[v] = gv(150, 0, v);
+    auto prim_R = cons_to_prim(cons_R, gamma);
+    REQUIRE(prim_R[PRHO] == Approx(0.5));
+    REQUIRE(prim_R[PRES] == Approx(1.0));
+    REQUIRE(prim_R[VX]   == Approx(0.0).margin(1e-15));
+}
+
+TEST_CASE("Stationary contact: pressure stays uniform", "[stationary_contact]") {
+    using Real = double;
+    Real gamma = 1.4;
+    int nx = 200;
+    Real dx = 1.0 / nx;
+    EulerSolver<Real> solver(nx, dx, 0.0, gamma, 0.8, 0.5);
+    setup_stationary_contact(solver.grid_view(), gamma);
+
+    solver.run();
+
+    auto gv = solver.grid_view();
+    for (int i = 0; i < nx; ++i) {
+        Vec<Real, EulerNVars> cons;
+        for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, 0, v);
+        Real p = pressure(cons, gamma);
+        // Pressure should stay ~1.0 everywhere (no spurious waves)
+        REQUIRE(p == Approx(1.0).epsilon(0.05));
+    }
+}
+
+TEST_CASE("EulerSolver 2D: uniform field no evolution", "[solver]") {
+    int nx = 20, ny = 20;
+    double dx = 0.05, dy = 0.05;
+    EulerSolver<double> solver(nx, ny, dx, dy, 0.0, 0.0, 1.4, 0.8, 0.01);
+
+    auto gv = solver.grid_view();
+    // Uniform state: rho=1, u=0, v=0, p=1 → cons={1, 0, 0, 2.5}
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            gv(i, j, RHO)  = 1.0;
+            gv(i, j, RHOU) = 0.0;
+            gv(i, j, RHOV) = 0.0;
+            gv(i, j, EN)   = 2.5;
+        }
+
+    solver.run();
+
+    auto gv2 = solver.grid_view();
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            REQUIRE(gv2(i, j, RHO)  == Approx(1.0).epsilon(1e-12));
+            REQUIRE(gv2(i, j, RHOU) == Approx(0.0).margin(1e-12));
+            REQUIRE(gv2(i, j, RHOV) == Approx(0.0).margin(1e-12));
+            REQUIRE(gv2(i, j, EN)   == Approx(2.5).epsilon(1e-12));
+        }
+}
+
+TEST_CASE("EulerSolver 2D: Sod along x matches 1D", "[solver]") {
+    double gamma = 1.4;
+    int nx = 100;
+    double dx = 1.0 / nx;
+
+    // 1D reference
+    EulerSolver<double> solver1d(nx, dx, 0.0, gamma, 0.8, 0.25);
+    setup_sod(solver1d.grid_view(), gamma);
+    solver1d.run();
+
+    // 2D: 4 rows, same Sod IC replicated in each row
+    int ny = 4;
+    EulerSolver<double> solver2d(nx, ny, dx, dx, 0.0, 0.0, gamma, 0.8, 0.25);
+    auto gv2d = solver2d.grid_view();
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            double x = (i + 0.5) * dx;
+            Vec<double, EulerNVars> prim;
+            if (x < 0.5) {
+                prim = {1.0, 0.0, 0.0, 1.0};
+            } else {
+                prim = {0.125, 0.0, 0.0, 0.1};
+            }
+            Vec<double, EulerNVars> cons = prim_to_cons(prim, gamma);
+            for (int v = 0; v < 4; ++v)
+                gv2d(i, j, v) = cons[v];
+        }
+    solver2d.run();
+
+    // Compare row 0 of 2D with 1D solution.
+    // With v=0 throughout, max_Sy = a <= |u|+a = max_Sx, so the 2D CFL
+    // constraint is dominated by x and the dt sequences match the 1D run.
+    auto gv1d = solver1d.grid_view();
+    auto gv2d_final = solver2d.grid_view();
+    for (int i = 0; i < nx; ++i) {
+        REQUIRE(gv2d_final(i, 0, RHO) == Approx(gv1d(i, 0, RHO)).epsilon(0.01));
+        REQUIRE(gv2d_final(i, 0, EN)  == Approx(gv1d(i, 0, EN)).epsilon(0.01));
+    }
 }

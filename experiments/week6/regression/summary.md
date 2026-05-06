@@ -1,0 +1,8 @@
+# CPU vs GPU Device Regression
+
+| pair_a | pair_b | precision | l1_a_minus_b | linf_a_minus_b | philip_ratio | ulp_max | gate_passed | notes |
+|---|---|---|---:|---:|---:|---:|---|---|
+| experiments\week6\regression\runs\sod-cpu-strict-d\sod.bin | experiments\week6\regression\runs\sod-gpu-strict-d\sod.bin | double | 0.000000e+00 | 0.000000e+00 | n/a | 0.000000e+00 | True | reference_exact_not_available |
+| experiments\week6\regression\runs\sod-cpu-strict-f\sod.bin | experiments\week6\regression\runs\sod-gpu-strict-f\sod.bin | float | 0.000000e+00 | 0.000000e+00 | n/a | 0.000000e+00 | True | reference_exact_not_available |
+| experiments\week6\regression\runs\lw3-cpu-strict-d\lw3.bin | experiments\week6\regression\runs\lw3-gpu-strict-d\lw3.bin | double | 0.000000e+00 | 0.000000e+00 | n/a | 0.000000e+00 | True | reference_exact_not_available |
+| experiments\week6\regression\runs\lw3-cpu-strict-f\lw3.bin | experiments\week6\regression\runs\lw3-gpu-strict-f\lw3.bin | float | 0.000000e+00 | 0.000000e+00 | n/a | 0.000000e+00 | True | reference_exact_not_available |
