@@ -22,6 +22,8 @@
 #include <cmath>
 #include <algorithm>
 #include <cstdlib>
+#include <filesystem>
+#include <sstream>
 
 #ifndef HRSC_REAL
 #define HRSC_REAL double   // fallback if built without PrecisionConfig
@@ -123,6 +125,80 @@ static std::pair<BoundaryType, BoundaryType> parse_boundary(const Config& cfg) {
     };
     return { bc_from_string(pick(bcx, bc, "outflow")),
              bc_from_string(pick(bcy, bc, "outflow")) };
+}
+
+static std::vector<double> parse_output_times(const Config& cfg) {
+    std::string raw = cfg.get_string("output_times", "");
+    if (raw.empty()) return {};
+
+    std::vector<double> result;
+    std::istringstream iss(raw);
+    std::string token;
+    while (std::getline(iss, token, ',')) {
+        auto start = token.find_first_not_of(" \t\r\n");
+        auto end = token.find_last_not_of(" \t\r\n");
+        if (start == std::string::npos) continue;
+        std::string trimmed = token.substr(start, end - start + 1);
+        try {
+            double value = std::stod(trimmed);
+            if (!std::isfinite(value) || value < 0.0) {
+                throw std::runtime_error(
+                    "output_times values must be finite and non-negative: " + trimmed);
+            }
+            result.push_back(value);
+        } catch (const std::invalid_argument&) {
+            throw std::runtime_error(
+                "Failed to parse output_times value as double: " + trimmed);
+        } catch (const std::out_of_range&) {
+            throw std::runtime_error(
+                "Failed to parse output_times value as double (out of range): " + trimmed);
+        }
+    }
+
+    std::sort(result.begin(), result.end());
+    result.erase(std::unique(result.begin(), result.end()), result.end());
+    return result;
+}
+
+static std::string checkpoint_output_file(const std::string& output_file,
+                                          std::size_t index) {
+    std::filesystem::path path(output_file);
+    std::ostringstream name;
+    name << path.stem().string()
+         << "_t" << std::setw(4) << std::setfill('0') << index
+         << path.extension().string();
+    std::filesystem::path out = path.has_parent_path()
+        ? path.parent_path() / name.str()
+        : std::filesystem::path(name.str());
+    return out.string();
+}
+
+static void run_with_binary_checkpoints(EulerSolver<Real>& solver,
+                                        int nx, int ny,
+                                        Real dx, Real dy,
+                                        double t_end,
+                                        const std::string& output_file,
+                                        const std::vector<double>& output_times) {
+    std::size_t next_output = 0;
+    auto write_due_checkpoint = [&]() {
+        const double t = static_cast<double>(solver.time());
+        while (next_output < output_times.size() &&
+               t + 1e-14 >= output_times[next_output]) {
+            const std::string checkpoint =
+                checkpoint_output_file(output_file, next_output);
+            write_binary<Real, EulerNVars>(
+                checkpoint, solver.grid_view(),
+                nx, ny, dx, dy,
+                static_cast<Real>(solver.time()));
+            ++next_output;
+        }
+    };
+
+    write_due_checkpoint();
+    while (static_cast<double>(solver.time()) < t_end) {
+        solver.step();
+        write_due_checkpoint();
+    }
 }
 
 static void run_convergence(const Config& cfg) {
@@ -247,6 +323,14 @@ static void run_normal(const Config& cfg) {
     auto [bc_x, bc_y] = parse_boundary(cfg);
     std::string output_format = cfg.get_string("output_format", "table");
     std::string output_file = cfg.get_string("output_file", "");
+    std::vector<double> output_times = parse_output_times(cfg);
+    if (!output_times.empty() && output_format != "binary") {
+        throw std::runtime_error("output_times requires output_format=binary");
+    }
+    if (!output_times.empty() && output_file.empty()) {
+        throw std::runtime_error(
+            "output_file must be set when output_times is present");
+    }
     // Wall-clock throttled progress on stderr (<=0 disables; default off
     // preserves legacy bit-identical behaviour for existing cfgs).
     double progress_interval_s = cfg.get_double("progress_interval_s", 0.0);
@@ -264,7 +348,14 @@ static void run_normal(const Config& cfg) {
         setup_ic(solver.grid_view(), test, gamma);
         Timer total;
         total.start();
-        solver.run(progress_interval_s);
+        if (output_times.empty()) {
+            solver.run(progress_interval_s);
+        } else {
+            run_with_binary_checkpoints(
+                solver, nx, ny,
+                static_cast<Real>(dx), static_cast<Real>(dy),
+                t_end, output_file, output_times);
+        }
         total.stop();
         std::cerr << "[timing] total_s=" << total.elapsed_seconds() << "\n";
 #ifdef HRSC_ENABLE_PROFILING
@@ -321,7 +412,14 @@ static void run_normal(const Config& cfg) {
     setup_ic(solver.grid_view(), test, gamma);
     Timer total;
     total.start();
-    solver.run(progress_interval_s);
+    if (output_times.empty()) {
+        solver.run(progress_interval_s);
+    } else {
+        run_with_binary_checkpoints(
+            solver, nx, 1,
+            static_cast<Real>(dx), static_cast<Real>(dx),
+            t_end, output_file, output_times);
+    }
     total.stop();
     std::cerr << "[timing] total_s=" << total.elapsed_seconds() << "\n";
 #ifdef HRSC_ENABLE_PROFILING
@@ -392,6 +490,10 @@ static void run_normal_gpu(const Config& cfg) {
     auto [bc_x, bc_y] = parse_boundary(cfg);
     std::string output_format = cfg.get_string("output_format", "table");
     std::string output_file = cfg.get_string("output_file", "");
+    if (!parse_output_times(cfg).empty()) {
+        throw std::runtime_error(
+            "output_times is not supported for device=gpu; use multiple final-time runs");
+    }
 
     double dx = (xmax - xmin) / nx;
     double dy = (ny > 1) ? (ymax - ymin) / ny : dx;

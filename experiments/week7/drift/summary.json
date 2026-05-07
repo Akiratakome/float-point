@@ -1,0 +1,184 @@
+{
+  "pairs": [
+    {
+      "case": "sod",
+      "pair": "hllc_vs_rusanov_cpu_strict_smoke",
+      "variable": "rho",
+      "times": [
+        0.016903085094570332,
+        0.028302352413219555,
+        0.03
+      ],
+      "l1": [
+        0.002954545454545454,
+        0.0047478847489807775,
+        0.004134993473282812
+      ],
+      "linf": [
+        0.05909090909090908,
+        0.07245275273041415,
+        0.058095142016529266
+      ],
+      "lambda_l1": 31.460236216516428,
+      "lambda_linf": 5.6720518668968545,
+      "fit_l1": {
+        "lambda": 31.460236216516428,
+        "slope": 31.460236216516428,
+        "intercept": -6.342905632081452,
+        "n_fit": 3,
+        "skipped": 0,
+        "fit_window": null,
+        "times_used": [
+          0.016903085094570332,
+          0.028302352413219555,
+          0.03
+        ]
+      },
+      "fit_linf": {
+        "lambda": 5.6720518668968545,
+        "slope": 5.6720518668968545,
+        "intercept": -2.90858039331321,
+        "n_fit": 3,
+        "skipped": 0,
+        "fit_window": null,
+        "times_used": [
+          0.016903085094570332,
+          0.028302352413219555,
+          0.03
+        ]
+      },
+      "fit_window": null,
+      "notes": [
+        "Smoke pair validates CPU output_times and drift aggregation; full branch/fast-math/hardware axes should be expanded with build-matrix and CUDA artefacts."
+      ],
+      "samples": [
+        {
+          "path_a": "experiments\\week7\\drift\\runs\\sod_hllc_cpu_strict\\grid_t0000.bin",
+          "path_b": "experiments\\week7\\drift\\runs\\sod_rusanov_cpu_strict\\grid_t0000.bin",
+          "time": 0.016903085094570332,
+          "time_a": 0.016903085094570332,
+          "time_b": 0.016903085094570332,
+          "variable": "rho",
+          "l1": 0.002954545454545454,
+          "linf": 0.05909090909090908,
+          "n_cells": 40,
+          "n_finite": 40
+        },
+        {
+          "path_a": "experiments\\week7\\drift\\runs\\sod_hllc_cpu_strict\\grid_t0001.bin",
+          "path_b": "experiments\\week7\\drift\\runs\\sod_rusanov_cpu_strict\\grid_t0001.bin",
+          "time": 0.028302352413219555,
+          "time_a": 0.028219501299204832,
+          "time_b": 0.028302352413219555,
+          "variable": "rho",
+          "l1": 0.0047478847489807775,
+          "linf": 0.07245275273041415,
+          "n_cells": 40,
+          "n_finite": 40
+        },
+        {
+          "path_a": "experiments\\week7\\drift\\runs\\sod_hllc_cpu_strict\\grid.bin",
+          "path_b": "experiments\\week7\\drift\\runs\\sod_rusanov_cpu_strict\\grid.bin",
+          "time": 0.03,
+          "time_a": 0.03,
+          "time_b": 0.03,
+          "variable": "rho",
+          "l1": 0.004134993473282812,
+          "linf": 0.058095142016529266,
+          "n_cells": 40,
+          "n_finite": 40
+        }
+      ]
+    },
+    {
+      "case": "lw3",
+      "pair": "hllc_vs_rusanov_cpu_strict_smoke",
+      "variable": "rho",
+      "times": [
+        0.014921646560077417,
+        0.02237702436598464,
+        0.03
+      ],
+      "l1": [
+        0.014026765747134611,
+        0.012469799554491458,
+        0.012296334827289458
+      ],
+      "linf": [
+        0.2868360214990773,
+        0.2260840608716992,
+        0.18411946002888335
+      ],
+      "lambda_l1": -8.706300495502884,
+      "lambda_linf": -29.39223940123749,
+      "fit_l1": {
+        "lambda": -8.706300495502884,
+        "slope": -8.706300495502884,
+        "intercept": -4.154588373220787,
+        "n_fit": 3,
+        "skipped": 0,
+        "fit_window": null,
+        "times_used": [
+          0.014921646560077417,
+          0.02237702436598464,
+          0.03
+        ]
+      },
+      "fit_linf": {
+        "lambda": -29.39223940123749,
+        "slope": -29.39223940123749,
+        "intercept": -0.8166016079273662,
+        "n_fit": 3,
+        "skipped": 0,
+        "fit_window": null,
+        "times_used": [
+          0.014921646560077417,
+          0.02237702436598464,
+          0.03
+        ]
+      },
+      "fit_window": null,
+      "notes": [
+        "2D output_times smoke at reduced resolution; intended LW3 axes include CPU/GPU, branch rule, optimisation, fast-math, and extended t_end=1.0 fitting windows."
+      ],
+      "samples": [
+        {
+          "path_a": "experiments\\week7\\drift\\runs\\lw3_hllc_cpu_strict\\grid_t0000.bin",
+          "path_b": "experiments\\week7\\drift\\runs\\lw3_rusanov_cpu_strict\\grid_t0000.bin",
+          "time": 0.014921646560077417,
+          "time_a": 0.014911779986638018,
+          "time_b": 0.014921646560077417,
+          "variable": "rho",
+          "l1": 0.014026765747134611,
+          "linf": 0.2868360214990773,
+          "n_cells": 1024,
+          "n_finite": 1024
+        },
+        {
+          "path_a": "experiments\\week7\\drift\\runs\\lw3_hllc_cpu_strict\\grid_t0001.bin",
+          "path_b": "experiments\\week7\\drift\\runs\\lw3_rusanov_cpu_strict\\grid_t0001.bin",
+          "time": 0.02237702436598464,
+          "time_a": 0.02236539432458171,
+          "time_b": 0.02237702436598464,
+          "variable": "rho",
+          "l1": 0.012469799554491458,
+          "linf": 0.2260840608716992,
+          "n_cells": 1024,
+          "n_finite": 1024
+        },
+        {
+          "path_a": "experiments\\week7\\drift\\runs\\lw3_hllc_cpu_strict\\grid.bin",
+          "path_b": "experiments\\week7\\drift\\runs\\lw3_rusanov_cpu_strict\\grid.bin",
+          "time": 0.03,
+          "time_a": 0.03,
+          "time_b": 0.03,
+          "variable": "rho",
+          "l1": 0.012296334827289458,
+          "linf": 0.18411946002888335,
+          "n_cells": 1024,
+          "n_finite": 1024
+        }
+      ]
+    }
+  ]
+}

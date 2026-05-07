@@ -1,0 +1,113 @@
+{
+  "experiment": "week7-drift-smoke",
+  "output_root": "experiments/week7/drift",
+  "metadata": {
+    "purpose": "Conservative local smoke matrix for the Task 3 drift time-series pipeline.",
+    "checkpoint_key": "output_times",
+    "notes": [
+      "Each run uses scripts/run_matrix.py generated cfg overrides; source cfgs are not edited.",
+      "CPU output_times support writes grid_t0000.bin, grid_t0001.bin, ... plus final grid.bin.",
+      "GPU time series are documented as future multiple-final-time runs until a GPU checkpoint callback is added.",
+      "Full intended axes: hardware CPU/GPU, HLLC branch rule <=/<, FMA contraction, optimisation O2/O3/Ofast, fast-math, solver variant, and extended-time chaotic/Lyapunov-like windows.",
+      "This smoke matrix intentionally depends only on build-double/hrsc so it can dry-run or run locally without CUDA or build-matrix artefacts."
+    ]
+  },
+  "runs": [
+    {
+      "name": "sod_hllc_cpu_strict",
+      "binary": "build-double/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "double",
+      "build": "cpu-double-local-ieee",
+      "output_file": "grid.bin",
+      "extra_cfg": {
+        "nx": "40",
+        "t_end": "0.03",
+        "output_times": "0.01,0.02"
+      }
+    },
+    {
+      "name": "sod_rusanov_cpu_strict",
+      "binary": "build-double/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "double",
+      "build": "cpu-double-local-ieee",
+      "output_file": "grid.bin",
+      "extra_cfg": {
+        "nx": "40",
+        "solver": "rusanov",
+        "t_end": "0.03",
+        "output_times": "0.01,0.02"
+      }
+    },
+    {
+      "name": "lw3_hllc_cpu_strict",
+      "binary": "build-double/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cpu-double-local-ieee",
+      "output_file": "grid.bin",
+      "extra_cfg": {
+        "nx": "32",
+        "ny": "32",
+        "t_end": "0.03",
+        "output_times": "0.01,0.02"
+      }
+    },
+    {
+      "name": "lw3_rusanov_cpu_strict",
+      "binary": "build-double/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cpu-double-local-ieee",
+      "output_file": "grid.bin",
+      "extra_cfg": {
+        "nx": "32",
+        "ny": "32",
+        "solver": "rusanov",
+        "t_end": "0.03",
+        "output_times": "0.01,0.02"
+      }
+    }
+  ],
+  "drift_pairs": [
+    {
+      "case": "sod",
+      "pair": "hllc_vs_rusanov_cpu_strict_smoke",
+      "axis": "solver_variant_smoke",
+      "variable": "rho",
+      "a": [
+        "experiments/week7/drift/runs/sod_hllc_cpu_strict/grid_t0000.bin",
+        "experiments/week7/drift/runs/sod_hllc_cpu_strict/grid_t0001.bin",
+        "experiments/week7/drift/runs/sod_hllc_cpu_strict/grid.bin"
+      ],
+      "b": [
+        "experiments/week7/drift/runs/sod_rusanov_cpu_strict/grid_t0000.bin",
+        "experiments/week7/drift/runs/sod_rusanov_cpu_strict/grid_t0001.bin",
+        "experiments/week7/drift/runs/sod_rusanov_cpu_strict/grid.bin"
+      ],
+      "notes": [
+        "Smoke pair validates CPU output_times and drift aggregation; full branch/fast-math/hardware axes should be expanded with build-matrix and CUDA artefacts."
+      ]
+    },
+    {
+      "case": "lw3",
+      "pair": "hllc_vs_rusanov_cpu_strict_smoke",
+      "axis": "solver_variant_smoke",
+      "variable": "rho",
+      "a": [
+        "experiments/week7/drift/runs/lw3_hllc_cpu_strict/grid_t0000.bin",
+        "experiments/week7/drift/runs/lw3_hllc_cpu_strict/grid_t0001.bin",
+        "experiments/week7/drift/runs/lw3_hllc_cpu_strict/grid.bin"
+      ],
+      "b": [
+        "experiments/week7/drift/runs/lw3_rusanov_cpu_strict/grid_t0000.bin",
+        "experiments/week7/drift/runs/lw3_rusanov_cpu_strict/grid_t0001.bin",
+        "experiments/week7/drift/runs/lw3_rusanov_cpu_strict/grid.bin"
+      ],
+      "notes": [
+        "2D output_times smoke at reduced resolution; intended LW3 axes include CPU/GPU, branch rule, optimisation, fast-math, and extended t_end=1.0 fitting windows."
+      ]
+    }
+  ]
+}
