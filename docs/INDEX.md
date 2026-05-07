@@ -38,6 +38,7 @@
 | 4 | [week4-plan.md](week4/week4-plan.md) | [week4-summary.md](week4/week4-summary.md) | [week4/archive/](week4/archive/) |
 | 5 | [week5-plan.md](week5/week5-plan.md) | [week5-summary.md](week5/week5-summary.md) | [week5/archive/](week5/archive/) |
 | 6 | [week6-plan.md](week6/week6-plan.md) | [week6-summary.md](week6/week6-summary.md) | (none) |
+| 7 | [week7-plan.md](week7/week7-plan.md) | summary pending | (none) |
 
 Week 4 also keeps:
 - [week4-verification.md](week4/week4-verification.md) — manual verification checklist (Phase B/C reproduction recipe)
@@ -55,6 +56,10 @@ Week 6 deliverables:
 - [week6-design.md](week6/week6-design.md) — GPU Euler + CSC migration design
 - [week6-verification.md](week6/week6-verification.md) — Phase A-E reproduction recipe
 - [csc_gpu_environment.md](week6/csc_gpu_environment.md) — CSC GPU environment probe
+
+Week 7 deliverables:
+- [week7-plan.md](week7/week7-plan.md) — operational plan for supervisor-response evidence collection
+- [week7_supervisor_response.md](experiment_logs/week7_supervisor_response.md) — supervisor-response evidence log; Week 7 summary pending
 
 ---
 
