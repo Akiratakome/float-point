@@ -22,11 +22,14 @@ degenerate. When the ratio denominator is zero, `gate_status` should be
 excluded/degenerate regardless of variable.
 
 Per-cell relative significant-digit and LoSoS reliability metrics use a
-separate noise-floor policy. Cells or variables with
-`|mean| <= max(abs_floor, rel_floor * field_scale)` are diagnostic only, not
-pass/fail evidence. Suggested defaults are `abs_floor=1e-14` for double-like
-p53 and `abs_floor=1e-6` for p24/float, unless an experiment-specific floor is
-recorded.
+separate noise-floor policy. Define `field_scale` as the domain max absolute
+mean of that variable over non-ghost cells for the run, or 1.0 if that max is
+zero or nonfinite. Define `rel_floor=1e-12` unless an experiment-specific
+value is recorded. A cell is near-zero when
+`abs(mean_cell) <= max(abs_floor, rel_floor * field_scale)`. Near-zero cells
+or variables are diagnostic only, not pass/fail evidence. Suggested
+`abs_floor` defaults are `1e-14` for double-like p53 and `1e-6` for p24/float,
+unless an experiment-specific floor is recorded.
 
 Density is positive and is therefore generally the least degenerate variable.
 However, the stationary-contact exact-density denominator can still be zero in
