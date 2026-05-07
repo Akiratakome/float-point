@@ -12,6 +12,18 @@ For Report 1, describe this first as a precision-adequacy margin before calling 
 
 No code or output-format change is required for this terminology clarification. Future outputs may add an explicit `precision_margin` column if needed, but the existing `regime` column should remain unchanged for traceability.
 
+## Degenerate denominators
+
+Pass/fail tables exclude variables whose denominator is zero or whose mean is
+close enough to zero that the relative metric is dominated by cancellation.
+Those cases are still reported as sensitivity tests. For stationary contact,
+density is the primary pass/fail variable because it is positive and physically
+meaningful; velocity relative significant-digit metrics are diagnostic only.
+
+Future JSON summaries may add explicit `excluded_reason` fields for these
+cases if that becomes useful. Existing Markdown columns should remain stable;
+any new columns should be appended at the end.
+
 ## Why Rusanov can look cleaner
 
 Rusanov is more diffusive than HLLC. Extra dissipation smooths sharp gradients
