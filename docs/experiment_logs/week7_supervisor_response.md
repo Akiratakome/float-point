@@ -14,11 +14,26 @@ No code or output-format change is required for this terminology clarification. 
 
 ## Degenerate denominators
 
-Pass/fail tables exclude variables whose denominator is zero or whose mean is
-close enough to zero that the relative metric is dominated by cancellation.
-Those cases are still reported as sensitivity tests. For stationary contact,
-density is the primary pass/fail variable because it is positive and physically
-meaningful; velocity relative significant-digit metrics are diagnostic only.
+Ratio pass/fail metrics such as Philip `fmd/d_err` exclude any row whose
+denominator is zero or too small to support a meaningful ratio. If a script
+needs a default tolerance, use a scale-aware guard such as
+`denominator <= max(1e-300, 1e-12 * reference_scale)`; otherwise mark the row
+degenerate. When the ratio denominator is zero, `gate_status` should be
+excluded/degenerate regardless of variable.
+
+Per-cell relative significant-digit and LoSoS reliability metrics use a
+separate noise-floor policy. Cells or variables with
+`|mean| <= max(abs_floor, rel_floor * field_scale)` are diagnostic only, not
+pass/fail evidence. Suggested defaults are `abs_floor=1e-14` for double-like
+p53 and `abs_floor=1e-6` for p24/float, unless an experiment-specific floor is
+recorded.
+
+Density is positive and is therefore generally the least degenerate variable.
+However, the stationary-contact exact-density denominator can still be zero in
+the Philip metric, so stationary-contact density should be reported as an
+absolute or sensitivity diagnostic rather than ratio pass/fail evidence in
+that case. Velocity relative significant-digit metrics remain diagnostic when
+their mean is near the noise floor.
 
 Future JSON summaries may add explicit `excluded_reason` fields for these
 cases if that becomes useful. Existing Markdown columns should remain stable;
