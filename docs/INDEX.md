@@ -21,6 +21,7 @@
 | What's planned this week | per-week `weekN-plan.md` (see §2) |
 | Supervisor correspondence + feedback artefacts | [emails/](emails/) — meeting scripts, replies, decision/comparison artefacts, supervisor-driven plans (named `weekN_<topic>_YYYY-MM-DD.md`) |
 | Raw experiment data logs (deliverable artefacts) | [experiment_logs/](experiment_logs/) (named `weekN_<phase>_<topic>.md`) |
+| Report 1 evidence map (which artefact lives where) | [experiment_logs/report1_evidence_index.md](experiment_logs/report1_evidence_index.md) |
 | Manual reproduction recipe (build → tests → regression) | [week4/week4-verification.md](week4/week4-verification.md) |
 | How Week N's state evolved from Week N-1 | `weekN/weekN-1_to_weekN_bridge.md` (kept at the target week) |
 
