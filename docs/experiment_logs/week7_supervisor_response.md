@@ -77,6 +77,50 @@ calculation is saved in `experiments/week7/rusanov_noise/summary.csv`.
 | Stationary-contact `u` in C2 is degenerate/noise-floor: the sign of the real-vs-double gap flips between HLLC and Rusanov and should not be overread. | The cleaner-Rusanov statement should be based on non-degenerate rho/p and Sod-style flow, not near-zero relative metrics. |
 | Rusanov fails or degrades where excessive diffusion is harmful, including the earlier near-vacuum Toro 2 failure and smeared stationary-contact density. | Noise reduction is not general superiority; it is a trade-off against sharp contact and shock resolution. |
 
+## Task 4 - Precision Metrics Inform Drift Results
+
+The Week 7 drift artefact is a synchronized final-state smoke, not a fitted
+time-series result. Each reported pair has one matched final time, so the
+growth rate is listed as `not fitted`; no lambda value should be inferred
+until synchronized multi-time checkpoints or multiple exact-final-time samples
+are available.
+
+Precision-adequacy metrics answer a different question from the drift smoke.
+The drift L1 value says whether two outputs differ at the measured time. The
+precision-adequacy margin and `sigma_FP_L1` say whether that difference is
+important relative to the truncation target, and whether the emitted FP noise
+is plausible as a controlling error source. The degenerate denominator policy
+still applies: Philip ratios are excluded when the reference denominator is
+zero or unavailable, so CPU/GPU strict rows with no exact reference should not
+be turned into pass/fail ratio evidence.
+
+| case | pair | precision/build delta | L1 drift at final time | fitted lambda | sigma_FP_L1 or Philip ratio | interpretation |
+|---|---|---|---:|---|---|---|
+| sod | CPU strict vs GPU strict | double | 0.000000e+00 | not fitted | Philip ratio n/a; exact reference unavailable | Week 6 strict device path is bitwise identical for this smoke row, so the GPU path is not yet evidence for reproducibility divergence. |
+| sod | CPU strict vs GPU strict | float | 0.000000e+00 | not fitted | Philip ratio n/a; exact reference unavailable | Same conclusion at p24/float: strict CPU/GPU execution has zero measured final-state drift in the available Week 6 artefact. |
+| lw3 | CPU strict vs GPU strict | double | 0.000000e+00 | not fitted | Philip ratio n/a; exact reference unavailable | The 2D strict device smoke is also zero drift, so larger future drift should be sought first in branch rules, compiler flags, fast-math, or longer synchronized windows. |
+| lw3 | CPU strict vs GPU strict | float | 0.000000e+00 | not fitted | Philip ratio n/a; exact reference unavailable | Float strict CPU/GPU agreement keeps the Week 6 GPU path out of the current reproducibility-divergence source list. |
+| sod | HLLC vs Rusanov CPU strict smoke | solver branch delta | 4.134993e-03 | not fitted | no Week 4 1D precision-adequacy summary present in this worktree | This is a scheme-difference smoke, not a hardware drift claim; the single synchronized final time checks the pipeline but cannot support growth-rate interpretation. |
+| lw3 | HLLC vs Rusanov CPU strict smoke | solver branch delta | 1.229633e-02 | not fitted | p53 sigma_FP_L1 HLLC 5.216e-11, Rusanov 2.278e-11; precision-adequacy margins -1.588 and -1.722 | The solver difference is much larger than p53 emitted FP noise. The negative precision-adequacy margins explain that the delivered significant digits sit below the truncation-anchored target, while Rusanov's cleaner noise is bought with a 1.51x truncation penalty. |
+| lw3 | HLLC vs Rusanov CPU strict smoke | solver branch delta with p24-real-float adequacy context | 1.229633e-02 | not fitted | p24-real-float sigma_FP_L1 HLLC 2.956e-02, Rusanov 8.199e-03; sigma ratio 3.60 | At p24-real-float, emitted FP noise is comparable to or larger than the smoke drift scale, so precision adequacy is material to interpretation rather than a cosmetic nonzero-difference report. |
+
+The CPU/GPU strict pair has zero, or at most ULP-level, drift in the Week 6
+strict smoke rows and therefore is not yet the source of reproducibility
+divergence. The Week 7 Task 3 pipeline now rejects mismatched checkpoint times,
+so it is ready for synchronized multi-time runs where compiler flags,
+branch-rule changes, fast-math, and longer GPU/CPU windows can be tested
+without mixing unequal physical times.
+
+The important distinction for Report 1 is that precision-adequacy and Pareto
+metrics explain whether observed drift matters relative to the truncation
+target, not merely whether it is nonzero. A nonzero drift can be expected when
+the solver branch changes from HLLC to Rusanov; a precision-adequacy deficit
+then says that the available significant digits are below the
+truncation-anchored demand. Conversely, the current strict CPU/GPU smoke rows
+show no final-state drift, so they should be reported as reproducibility
+evidence for the strict GPU path rather than as evidence of a hidden GPU
+divergence mechanism.
+
 ## Task 5 - Full Pareto Example For Philip
 
 Generated artefacts:
