@@ -77,17 +77,14 @@
       "axis": "solver_variant_smoke",
       "variable": "rho",
       "a": [
-        "experiments/week7/drift/runs/sod_hllc_cpu_strict/grid_t0000.bin",
-        "experiments/week7/drift/runs/sod_hllc_cpu_strict/grid_t0001.bin",
         "experiments/week7/drift/runs/sod_hllc_cpu_strict/grid.bin"
       ],
       "b": [
-        "experiments/week7/drift/runs/sod_rusanov_cpu_strict/grid_t0000.bin",
-        "experiments/week7/drift/runs/sod_rusanov_cpu_strict/grid_t0001.bin",
         "experiments/week7/drift/runs/sod_rusanov_cpu_strict/grid.bin"
       ],
       "notes": [
-        "Smoke pair validates CPU output_times and drift aggregation; full branch/fast-math/hardware axes should be expanded with build-matrix and CUDA artefacts."
+        "Final-state smoke only; lambda is n/a until synchronized checkpoints or multiple exact-final-time runs are available.",
+        "Full branch/fast-math/hardware axes should be expanded with build-matrix and CUDA artefacts."
       ]
     },
     {
@@ -96,17 +93,14 @@
       "axis": "solver_variant_smoke",
       "variable": "rho",
       "a": [
-        "experiments/week7/drift/runs/lw3_hllc_cpu_strict/grid_t0000.bin",
-        "experiments/week7/drift/runs/lw3_hllc_cpu_strict/grid_t0001.bin",
         "experiments/week7/drift/runs/lw3_hllc_cpu_strict/grid.bin"
       ],
       "b": [
-        "experiments/week7/drift/runs/lw3_rusanov_cpu_strict/grid_t0000.bin",
-        "experiments/week7/drift/runs/lw3_rusanov_cpu_strict/grid_t0001.bin",
         "experiments/week7/drift/runs/lw3_rusanov_cpu_strict/grid.bin"
       ],
       "notes": [
-        "2D output_times smoke at reduced resolution; intended LW3 axes include CPU/GPU, branch rule, optimisation, fast-math, and extended t_end=1.0 fitting windows."
+        "Final-state smoke only; lambda is n/a until synchronized checkpoints or multiple exact-final-time runs are available.",
+        "2D smoke at reduced resolution; intended LW3 axes include CPU/GPU, branch rule, optimisation, fast-math, and extended t_end=1.0 fitting windows."
       ]
     }
   ]

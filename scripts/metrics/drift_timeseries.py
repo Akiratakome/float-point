@@ -99,11 +99,27 @@ def _selected_variable_array(cons: np.ndarray, variable: str | int, gamma: float
     return name, cons[..., idx]
 
 
+def _compatible(a: float, b: float, tolerance: float) -> bool:
+    return abs(a - b) <= tolerance * max(1.0, abs(a), abs(b))
+
+
+def _raise_header_mismatch(
+    field: str,
+    path_a: str | Path,
+    value_a: Any,
+    path_b: str | Path,
+    value_b: Any,
+) -> None:
+    raise ValueError(f"{field} mismatch: {path_a} has {value_a}, {path_b} has {value_b}")
+
+
 def compute_l1_linf_pair(
     path_a: str | Path,
     path_b: str | Path,
     variable: str | int = "rho",
     gamma: float = 1.4,
+    time_tolerance: float = 1e-12,
+    spatial_tolerance: float = 1e-12,
 ) -> dict[str, Any]:
     """Compute mean absolute and max absolute drift for one HRSC binary pair."""
     header_a, data_a = read_binary(path_a)
@@ -111,7 +127,13 @@ def compute_l1_linf_pair(
     shape_a = (header_a.nx, header_a.ny, header_a.nvars)
     shape_b = (header_b.nx, header_b.ny, header_b.nvars)
     if shape_a != shape_b:
-        raise ValueError(f"grid shape mismatch: {shape_a} vs {shape_b}")
+        _raise_header_mismatch("grid shape", path_a, shape_a, path_b, shape_b)
+    if not _compatible(header_a.dx, header_b.dx, spatial_tolerance):
+        _raise_header_mismatch("dx", path_a, header_a.dx, path_b, header_b.dx)
+    if not _compatible(header_a.dy, header_b.dy, spatial_tolerance):
+        _raise_header_mismatch("dy", path_a, header_a.dy, path_b, header_b.dy)
+    if not _compatible(header_a.t, header_b.t, time_tolerance):
+        _raise_header_mismatch("time", path_a, header_a.t, path_b, header_b.t)
 
     name_a, arr_a = _selected_variable_array(data_a.astype(np.float64), variable, gamma)
     name_b, arr_b = _selected_variable_array(data_b.astype(np.float64), variable, gamma)
@@ -128,7 +150,7 @@ def compute_l1_linf_pair(
     return {
         "path_a": str(path_a),
         "path_b": str(path_b),
-        "time": float(max(header_a.t, header_b.t)),
+        "time": float(0.5 * (header_a.t + header_b.t)),
         "time_a": float(header_a.t),
         "time_b": float(header_b.t),
         "variable": name_a,
@@ -154,7 +176,12 @@ def _pair_entries(spec: dict[str, Any]) -> list[dict[str, Any]]:
     return [dict(entry) for entry in entries]
 
 
-def analyse_pair(entry: dict[str, Any], fit_window: Sequence[float] | None = None) -> dict[str, Any]:
+def analyse_pair(
+    entry: dict[str, Any],
+    fit_window: Sequence[float] | None = None,
+    time_tolerance: float = 1e-12,
+    spatial_tolerance: float = 1e-12,
+) -> dict[str, Any]:
     variable = entry.get("variable", "rho")
     paths_a = _coerce_paths(entry.get("a", []))
     paths_b = _coerce_paths(entry.get("b", []))
@@ -164,7 +191,14 @@ def analyse_pair(entry: dict[str, Any], fit_window: Sequence[float] | None = Non
         raise ValueError(f"pair {entry.get('pair', '<unnamed>')} contains no binary paths")
 
     rows = [
-        compute_l1_linf_pair(path_a, path_b, variable=variable, gamma=float(entry.get("gamma", 1.4)))
+        compute_l1_linf_pair(
+            path_a,
+            path_b,
+            variable=variable,
+            gamma=float(entry.get("gamma", 1.4)),
+            time_tolerance=float(entry.get("time_tolerance", time_tolerance)),
+            spatial_tolerance=float(entry.get("spatial_tolerance", spatial_tolerance)),
+        )
         for path_a, path_b in zip(paths_a, paths_b)
     ]
     rows.sort(key=lambda row: row["time"])
@@ -229,7 +263,7 @@ def _write_outputs(records: list[dict[str, Any]], output_prefix: Path) -> None:
         final_l1 = record["l1"][-1] if n else math.nan
         final_linf = record["linf"][-1] if n else math.nan
         lambda_l1 = record["lambda_l1"]
-        lambda_text = "" if lambda_l1 is None else f"{lambda_l1:.6g}"
+        lambda_text = "n/a" if lambda_l1 is None else f"{lambda_l1:.6g}"
         notes = "; ".join(str(note) for note in record["notes"])
         lines.append(
             f"| {record['case']} | {record['pair']} | {record['variable']} | {n} | "
@@ -253,6 +287,12 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--matrix", type=Path, help="run_matrix JSON containing drift_pairs")
     parser.add_argument("--output", type=Path, required=True, help="Output prefix for summary.{json,csv,md}")
     parser.add_argument("--fit-window", type=_parse_fit_window, default=None, help="Fit window as t_min,t_max")
+    parser.add_argument(
+        "--time-tolerance",
+        type=float,
+        default=1e-12,
+        help="Relative/absolute tolerance for paired binary header times",
+    )
     parser.add_argument("--case", default="", help="Case label for explicit --a/--b mode")
     parser.add_argument("--pair", default="explicit_pair", help="Pair label for explicit --a/--b mode")
     parser.add_argument("--variable", default="rho", help="Variable name or conserved index")
@@ -278,7 +318,10 @@ def main(argv: Sequence[str] | None = None) -> None:
     else:
         raise SystemExit("Provide --pairs or both --a and --b")
 
-    records = [analyse_pair(entry, fit_window=args.fit_window) for entry in entries]
+    records = [
+        analyse_pair(entry, fit_window=args.fit_window, time_tolerance=args.time_tolerance)
+        for entry in entries
+    ]
     _write_outputs(records, args.output)
 
 
