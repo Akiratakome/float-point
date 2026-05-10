@@ -1,0 +1,8 @@
+row_type,name,precision,build,nx,ny,t_end,total_s,integral_min,integral_max,pair_label,left,right,l1,linf,ulp_max,philip_ratio
+run,sod-cpu-double-o2-ieee-leq,double,cpu-double-O2-ieee-leq,200,1,0.25,0.0542764,0.0,1.3750000000000002,,,,,,,
+run,sod-cpu-float-o2-ieee-leq,float,cpu-float-O2-ieee-leq,200,1,0.25,0.0944699,0.0,1.3750000825151776,,,,,,,
+run,stationary-contact-cpu-double-o2-ieee-leq,double,cpu-double-O2-ieee-leq,200,1,0.5,0.0142144,0.0,2.5000000000000004,,,,,,,
+run,lw3-cpu-double-o2-ieee-leq,double,cpu-double-O2-ieee-leq,200,200,0.3,0.194991,0.1341063034931487,2.255677266652683,,,,,,,
+run,lw3-cpu-float-o2-ieee-leq,float,cpu-float-O2-ieee-leq,200,200,0.30000001192092896,0.506345,0.13410624774639815,2.2556772166709322,,,,,,,
+pair,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,sod-cpu-o2-ieee-leq,sod-cpu-double-o2-ieee-leq,sod-cpu-float-o2-ieee-leq,8.74334022292795e-08,1.0648650374811552e-06,n/a,n/a
+pair,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,n/a,lw3-cpu-o2-ieee-leq,lw3-cpu-double-o2-ieee-leq,lw3-cpu-float-o2-ieee-leq,2.5848734947278716e-07,1.3173012651357396e-05,n/a,n/a

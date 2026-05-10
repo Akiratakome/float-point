@@ -1,0 +1,54 @@
+{
+  "experiment": "week7-report1-smoke",
+  "output_root": "experiments/week7/report1_smoke",
+  "metadata": {
+    "purpose": "Small Report 1 smoke matrix before full validation runs.",
+    "notes": [
+      "Source cfgs are copied by scripts/run_matrix.py and are not edited in place.",
+      "Use binary output for metrics and plots.",
+      "GPU rows live in Task 7 (LW3), Task 9 (HLLC preflight), and Task 11 (1600 reference candidate); 1D smoke is CPU-only."
+    ]
+  },
+  "runs": [
+    {
+      "name": "sod-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "sod-cpu-float-o2-ieee-leq",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "stationary-contact-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "lw3-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "lw3-cpu-float-o2-ieee-leq",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    }
+  ]
+}

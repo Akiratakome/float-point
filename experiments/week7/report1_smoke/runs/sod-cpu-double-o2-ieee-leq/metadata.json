@@ -1,0 +1,23 @@
+{
+  "experiment": "week7-report1-smoke",
+  "name": "sod-cpu-double-o2-ieee-leq",
+  "timestamp_utc": "2026-05-10T15:10:18.041112+00:00",
+  "git_commit": "28897e1a6a7b042ba0ce3bfd5a21c26b715d4ce3",
+  "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+  "source_config": "tests/cases/toro_1d/sod.cfg",
+  "run_config": "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/config.cfg",
+  "precision": "double",
+  "build": "cpu-double-O2-ieee-leq",
+  "raw_output": "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/grid.bin",
+  "extra_cfg": {},
+  "command": [
+    "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+    "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/config.cfg"
+  ],
+  "returncode": 0,
+  "timing": {
+    "total_s": 0.0542764
+  },
+  "stdout": "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/stdout.txt",
+  "stderr": "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/stderr.txt"
+}

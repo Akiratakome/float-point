@@ -1,0 +1,140 @@
+{
+  "mode": "matrix_summary",
+  "matrix_summary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_smoke\\matrix_summary.json",
+  "run_count": 5,
+  "pair_count": 2,
+  "pair_by": "precision",
+  "runs": [
+    {
+      "name": "sod-cpu-double-o2-ieee-leq",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_smoke\\runs\\sod-cpu-double-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/grid.bin",
+      "total_s": 0.0542764,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.25,
+      "integrals": {
+        "rho": 0.5624999999999999,
+        "rhou": 0.225,
+        "rhov": 0.0,
+        "E": 1.3750000000000002
+      },
+      "integral_min": 0.0,
+      "integral_max": 1.3750000000000002
+    },
+    {
+      "name": "sod-cpu-float-o2-ieee-leq",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_smoke\\runs\\sod-cpu-float-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_smoke/runs/sod-cpu-float-o2-ieee-leq/grid.bin",
+      "total_s": 0.0944699,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.25,
+      "integrals": {
+        "rho": 0.5624999846704305,
+        "rhou": 0.22500000496671765,
+        "rhov": 0.0,
+        "E": 1.3750000825151776
+      },
+      "integral_min": 0.0,
+      "integral_max": 1.3750000825151776
+    },
+    {
+      "name": "stationary-contact-cpu-double-o2-ieee-leq",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_smoke\\runs\\stationary-contact-cpu-double-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_smoke/runs/stationary-contact-cpu-double-o2-ieee-leq/grid.bin",
+      "total_s": 0.0142144,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.5,
+      "integrals": {
+        "rho": 0.75,
+        "rhou": 0.0,
+        "rhov": 0.0,
+        "E": 2.5000000000000004
+      },
+      "integral_min": 0.0,
+      "integral_max": 2.5000000000000004
+    },
+    {
+      "name": "lw3-cpu-double-o2-ieee-leq",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_smoke\\runs\\lw3-cpu-double-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_smoke/runs/lw3-cpu-double-o2-ieee-leq/grid.bin",
+      "total_s": 0.194991,
+      "nx": 200,
+      "ny": 200,
+      "t_end": 0.3,
+      "integrals": {
+        "rho": 0.9362286351199705,
+        "rhou": 0.13410706322975477,
+        "rhov": 0.1341063034931487,
+        "E": 2.255677266652683
+      },
+      "integral_min": 0.1341063034931487,
+      "integral_max": 2.255677266652683
+    },
+    {
+      "name": "lw3-cpu-float-o2-ieee-leq",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_smoke\\runs\\lw3-cpu-float-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_smoke/runs/lw3-cpu-float-o2-ieee-leq/grid.bin",
+      "total_s": 0.506345,
+      "nx": 200,
+      "ny": 200,
+      "t_end": 0.30000001192092896,
+      "integrals": {
+        "rho": 0.9362285376427962,
+        "rhou": 0.13410700780599802,
+        "rhov": 0.13410624774639815,
+        "E": 2.2556772166709322
+      },
+      "integral_min": 0.13410624774639815,
+      "integral_max": 2.2556772166709322
+    }
+  ],
+  "pairs": [
+    {
+      "pair_label": "sod-cpu-o2-ieee-leq",
+      "left": "sod-cpu-double-o2-ieee-leq",
+      "right": "sod-cpu-float-o2-ieee-leq",
+      "left_precision": "double",
+      "right_precision": "float",
+      "l1": 8.74334022292795e-08,
+      "linf": 1.0648650374811552e-06,
+      "ulp_max": null,
+      "reference_l1": null,
+      "philip_ratio": null
+    },
+    {
+      "pair_label": "lw3-cpu-o2-ieee-leq",
+      "left": "lw3-cpu-double-o2-ieee-leq",
+      "right": "lw3-cpu-float-o2-ieee-leq",
+      "left_precision": "double",
+      "right_precision": "float",
+      "l1": 2.5848734947278716e-07,
+      "linf": 1.3173012651357396e-05,
+      "ulp_max": null,
+      "reference_l1": null,
+      "philip_ratio": null
+    }
+  ],
+  "outputs": {
+    "csv": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_smoke\\summary.csv",
+    "json": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_smoke\\summary.json",
+    "markdown": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_smoke\\summary.md"
+  }
+}
