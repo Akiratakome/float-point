@@ -1,0 +1,28 @@
+{
+  "experiment": "week7-reference-1600",
+  "name": "lw3-n1600-gpu-double-strict",
+  "timestamp_utc": "2026-05-10T20:06:29.258129+00:00",
+  "git_commit": "030db9d91903925440bfc954b1147c703474645a",
+  "binary": "build-cuda-double-strict/hrsc",
+  "source_config": "tests/cases/liska_wendroff_2d/config3_n1600.cfg",
+  "run_config": "experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/config.cfg",
+  "precision": "double",
+  "build": "cuda-double-strict",
+  "raw_output": "experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/reference_1600.bin",
+  "extra_cfg": {
+    "device": "gpu",
+    "nx": "1600",
+    "ny": "1600",
+    "progress_interval_s": "30"
+  },
+  "command": [
+    "build-cuda-double-strict/hrsc",
+    "experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/config.cfg"
+  ],
+  "returncode": 0,
+  "timing": {
+    "total_s": 14.1705
+  },
+  "stdout": "experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/stdout.txt",
+  "stderr": "experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/stderr.txt"
+}

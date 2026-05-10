@@ -1,0 +1,2 @@
+[timing] total_s=14.1705 gpu_run_s=14.1705
+Finished: 2316 steps, t = 0.3

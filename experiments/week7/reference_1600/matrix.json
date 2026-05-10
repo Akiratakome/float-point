@@ -1,0 +1,30 @@
+{
+  "experiment": "week7-reference-1600",
+  "output_root": "experiments/week7/reference_1600",
+  "metadata": {
+    "purpose": "Supervisor-requested 1600x1600 GPU double high-resolution reference candidate for Report 1.",
+    "policy": [
+      "Primary row is GPU double STRICT_IEEE (CSC RTX 5090). Task 9's HLLC strict preflight must be cited when interpreting this as reference-base evidence.",
+      "Do not claim CPU-equivalent proof unless a matching 1600x1600 CPU strict run is produced.",
+      "Do not commit reference_1600.bin by default."
+    ],
+    "case": "Liska-Wendroff 2D Config 3, HLLC, outflow, t_end=0.3, cfl=0.5",
+    "resolution": "1600x1600"
+  },
+  "runs": [
+    {
+      "name": "lw3-n1600-gpu-double-strict",
+      "binary": "build-cuda-double-strict/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n1600.cfg",
+      "precision": "double",
+      "build": "cuda-double-strict",
+      "output_file": "reference_1600.bin",
+      "extra_cfg": {
+        "device": "gpu",
+        "nx": "1600",
+        "ny": "1600",
+        "progress_interval_s": "30"
+      }
+    }
+  ]
+}
