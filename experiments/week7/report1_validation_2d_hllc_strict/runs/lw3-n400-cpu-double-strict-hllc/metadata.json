@@ -1,0 +1,26 @@
+{
+  "experiment": "week7-report1-validation-2d-hllc-strict",
+  "name": "lw3-n400-cpu-double-strict-hllc",
+  "timestamp_utc": "2026-05-10T16:30:34.679648+00:00",
+  "git_commit": "37b11a5f01ced356ffada44fdfab1a6575e32fc3",
+  "binary": "build-cpu-strict-double/hrsc",
+  "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+  "run_config": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/config.cfg",
+  "precision": "double",
+  "build": "cpu-strict-double",
+  "raw_output": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/grid.bin",
+  "extra_cfg": {
+    "device": "cpu",
+    "solver": "hllc"
+  },
+  "command": [
+    "build-cpu-strict-double/hrsc",
+    "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/config.cfg"
+  ],
+  "returncode": 0,
+  "timing": {
+    "total_s": 0.502733
+  },
+  "stdout": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/stdout.txt",
+  "stderr": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/stderr.txt"
+}

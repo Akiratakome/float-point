@@ -1,0 +1,50 @@
+{
+  "experiment": "week7-report1-validation-2d-hllc-strict",
+  "output_root": "experiments/week7/report1_validation_2d_hllc_strict",
+  "metadata": {
+    "purpose": "HLLC strict CPU-to-GPU preflight gate before the 1600x1600 GPU HLLC reference candidate.",
+    "gate_for": "experiments/week7/reference_1600/matrix.json",
+    "notes": [
+      "Week 6 bit-identical LW3 smoke evidence used a Rusanov row; this gate checks the HLLC path used by the 1600 reference candidate.",
+      "Run on WSL or CSC where both build-cpu-strict-double/hrsc and build-cuda-double-strict/hrsc exist."
+    ]
+  },
+  "runs": [
+    {
+      "name": "lw3-n200-cpu-double-strict-hllc",
+      "binary": "build-cpu-strict-double/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cpu-strict-double",
+      "output_file": "grid.bin",
+      "extra_cfg": { "device": "cpu", "solver": "hllc" }
+    },
+    {
+      "name": "lw3-n200-gpu-double-strict-hllc",
+      "binary": "build-cuda-double-strict/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cuda-strict-double",
+      "output_file": "grid.bin",
+      "extra_cfg": { "device": "gpu", "solver": "hllc" }
+    },
+    {
+      "name": "lw3-n400-cpu-double-strict-hllc",
+      "binary": "build-cpu-strict-double/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "precision": "double",
+      "build": "cpu-strict-double",
+      "output_file": "grid.bin",
+      "extra_cfg": { "device": "cpu", "solver": "hllc" }
+    },
+    {
+      "name": "lw3-n400-gpu-double-strict-hllc",
+      "binary": "build-cuda-double-strict/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "precision": "double",
+      "build": "cuda-strict-double",
+      "output_file": "grid.bin",
+      "extra_cfg": { "device": "gpu", "solver": "hllc" }
+    }
+  ]
+}

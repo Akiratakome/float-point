@@ -1,0 +1,32 @@
+{
+  "mode": "device",
+  "rows": [
+    {
+      "pair_a": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-cpu-double-strict-hllc/grid.bin",
+      "pair_b": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-gpu-double-strict-hllc/grid.bin",
+      "precision": "double",
+      "l1_a_minus_b": 0.0,
+      "linf_a_minus_b": 0.0,
+      "philip_ratio": null,
+      "ulp_max": 0.0,
+      "gate_passed": true,
+      "notes": "no_reference"
+    },
+    {
+      "pair_a": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/grid.bin",
+      "pair_b": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-gpu-double-strict-hllc/grid.bin",
+      "precision": "double",
+      "l1_a_minus_b": 0.0,
+      "linf_a_minus_b": 0.0,
+      "philip_ratio": null,
+      "ulp_max": 0.0,
+      "gate_passed": true,
+      "notes": "no_reference"
+    }
+  ],
+  "outputs": {
+    "csv": "experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.csv",
+    "json": "experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.json",
+    "markdown": "experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.md"
+  }
+}
