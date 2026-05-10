@@ -1,0 +1,1165 @@
+{
+  "summary_count": 7,
+  "summaries": [
+    {
+      "source": "experiments/week7/report1_smoke/matrix_summary.json",
+      "payload": {
+        "experiment": "week7-report1-smoke",
+        "output_root": "experiments/week7/report1_smoke",
+        "run_count": 5,
+        "runs": [
+          {
+            "experiment": "week7-report1-smoke",
+            "name": "sod-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:10:18.041112+00:00",
+            "git_commit": "28897e1a6a7b042ba0ce3bfd5a21c26b715d4ce3",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/sod.cfg",
+            "run_config": "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0542764
+            },
+            "stdout": "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_smoke/runs/sod-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-smoke",
+            "name": "sod-cpu-float-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:10:18.268726+00:00",
+            "git_commit": "28897e1a6a7b042ba0ce3bfd5a21c26b715d4ce3",
+            "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/sod.cfg",
+            "run_config": "experiments/week7/report1_smoke/runs/sod-cpu-float-o2-ieee-leq/config.cfg",
+            "precision": "float",
+            "build": "cpu-float-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_smoke/runs/sod-cpu-float-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_smoke/runs/sod-cpu-float-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0944699
+            },
+            "stdout": "experiments/week7/report1_smoke/runs/sod-cpu-float-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_smoke/runs/sod-cpu-float-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-smoke",
+            "name": "stationary-contact-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:10:18.397468+00:00",
+            "git_commit": "28897e1a6a7b042ba0ce3bfd5a21c26b715d4ce3",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+            "run_config": "experiments/week7/report1_smoke/runs/stationary-contact-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_smoke/runs/stationary-contact-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_smoke/runs/stationary-contact-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0142144
+            },
+            "stdout": "experiments/week7/report1_smoke/runs/stationary-contact-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_smoke/runs/stationary-contact-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-smoke",
+            "name": "lw3-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:10:18.780336+00:00",
+            "git_commit": "28897e1a6a7b042ba0ce3bfd5a21c26b715d4ce3",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_smoke/runs/lw3-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_smoke/runs/lw3-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_smoke/runs/lw3-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.194991
+            },
+            "stdout": "experiments/week7/report1_smoke/runs/lw3-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_smoke/runs/lw3-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-smoke",
+            "name": "lw3-cpu-float-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:10:19.476401+00:00",
+            "git_commit": "28897e1a6a7b042ba0ce3bfd5a21c26b715d4ce3",
+            "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_smoke/runs/lw3-cpu-float-o2-ieee-leq/config.cfg",
+            "precision": "float",
+            "build": "cpu-float-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_smoke/runs/lw3-cpu-float-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_smoke/runs/lw3-cpu-float-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.506345
+            },
+            "stdout": "experiments/week7/report1_smoke/runs/lw3-cpu-float-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_smoke/runs/lw3-cpu-float-o2-ieee-leq/stderr.txt"
+          }
+        ]
+      }
+    },
+    {
+      "source": "experiments/week7/report1_validation_1d/matrix_summary.json",
+      "payload": {
+        "experiment": "week7-report1-validation-1d",
+        "output_root": "experiments/week7/report1_validation_1d",
+        "run_count": 12,
+        "runs": [
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "sod-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:02.778829+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/sod.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.155529
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "sod-cpu-float-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:03.055529+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/sod.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/config.cfg",
+            "precision": "float",
+            "build": "cpu-float-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.131871
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "toro2-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:03.261879+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/toro2.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.058057
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "toro2-cpu-float-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:03.498979+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/toro2.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/config.cfg",
+            "precision": "float",
+            "build": "cpu-float-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0965965
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "toro3-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:03.825139+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/toro3.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.187864
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "toro3-cpu-float-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:04.270752+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/toro3.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/config.cfg",
+            "precision": "float",
+            "build": "cpu-float-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.303768
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "toro4-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:04.441343+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/toro4.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0242395
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "toro4-cpu-float-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:04.648670+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/toro4.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/config.cfg",
+            "precision": "float",
+            "build": "cpu-float-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0564136
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "toro5-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:04.911474+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/toro5.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.102329
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "toro5-cpu-float-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:05.129014+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/toro5.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/config.cfg",
+            "precision": "float",
+            "build": "cpu-float-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0716027
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "stationary-contact-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:05.487788+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.178126
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-1d",
+            "name": "stationary-contact-cpu-float-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T15:12:05.724343+00:00",
+            "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+            "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+            "run_config": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/config.cfg",
+            "precision": "float",
+            "build": "cpu-float-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0690124
+            },
+            "stdout": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/stderr.txt"
+          }
+        ]
+      }
+    },
+    {
+      "source": "experiments/week7/report1_validation_2d/matrix_summary.json",
+      "payload": {
+        "experiment": "week7-report1-validation-2d",
+        "output_root": "experiments/week7/report1_validation_2d",
+        "run_count": 4,
+        "runs": [
+          {
+            "experiment": "week7-report1-validation-2d",
+            "name": "lw3-n200-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T16:05:09.336126+00:00",
+            "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.554935
+            },
+            "stdout": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-2d",
+            "name": "lw3-n400-cpu-double-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T16:05:14.142840+00:00",
+            "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+            "run_config": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-double-o2-ieee-leq/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-double-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-double-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 4.72927
+            },
+            "stdout": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-double-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-double-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-2d",
+            "name": "lw3-n200-cpu-float-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T16:05:14.782183+00:00",
+            "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+            "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-float-o2-ieee-leq/config.cfg",
+            "precision": "float",
+            "build": "cpu-float-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-float-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-float-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.539925
+            },
+            "stdout": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-float-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-float-o2-ieee-leq/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-2d",
+            "name": "lw3-n400-cpu-float-o2-ieee-leq",
+            "timestamp_utc": "2026-05-10T16:05:18.889352+00:00",
+            "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+            "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+            "run_config": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-float-o2-ieee-leq/config.cfg",
+            "precision": "float",
+            "build": "cpu-float-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-float-o2-ieee-leq/grid.bin",
+            "extra_cfg": {},
+            "command": [
+              "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-float-o2-ieee-leq/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 4.06098
+            },
+            "stdout": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-float-o2-ieee-leq/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-float-o2-ieee-leq/stderr.txt"
+          }
+        ]
+      }
+    },
+    {
+      "source": "experiments/week7/report1_validation_2d_gpu/matrix_summary.json",
+      "payload": {
+        "experiment": "week7-report1-validation-2d-gpu",
+        "output_root": "experiments/week7/report1_validation_2d_gpu",
+        "run_count": 4,
+        "runs": [
+          {
+            "experiment": "week7-report1-validation-2d-gpu",
+            "name": "lw3-n200-gpu-double-strict",
+            "timestamp_utc": "2026-05-10T16:06:37.009660+00:00",
+            "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+            "binary": "build-cuda-double-strict/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/config.cfg",
+            "precision": "double",
+            "build": "cuda-double-strict",
+            "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/grid.bin",
+            "extra_cfg": {
+              "device": "gpu"
+            },
+            "command": [
+              "build-cuda-double-strict/hrsc",
+              "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.184288
+            },
+            "stdout": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-2d-gpu",
+            "name": "lw3-n400-gpu-double-strict",
+            "timestamp_utc": "2026-05-10T16:06:37.952714+00:00",
+            "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+            "binary": "build-cuda-double-strict/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+            "run_config": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/config.cfg",
+            "precision": "double",
+            "build": "cuda-double-strict",
+            "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/grid.bin",
+            "extra_cfg": {
+              "device": "gpu"
+            },
+            "command": [
+              "build-cuda-double-strict/hrsc",
+              "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.540408
+            },
+            "stdout": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-2d-gpu",
+            "name": "lw3-n200-gpu-float-strict",
+            "timestamp_utc": "2026-05-10T16:06:38.352485+00:00",
+            "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+            "binary": "build-cuda-float-strict/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/config.cfg",
+            "precision": "float",
+            "build": "cuda-float-strict",
+            "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/grid.bin",
+            "extra_cfg": {
+              "device": "gpu"
+            },
+            "command": [
+              "build-cuda-float-strict/hrsc",
+              "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0740718
+            },
+            "stdout": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-2d-gpu",
+            "name": "lw3-n400-gpu-float-strict",
+            "timestamp_utc": "2026-05-10T16:06:39.008363+00:00",
+            "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+            "binary": "build-cuda-float-strict/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+            "run_config": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/config.cfg",
+            "precision": "float",
+            "build": "cuda-float-strict",
+            "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/grid.bin",
+            "extra_cfg": {
+              "device": "gpu"
+            },
+            "command": [
+              "build-cuda-float-strict/hrsc",
+              "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.3533
+            },
+            "stdout": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/stderr.txt"
+          }
+        ]
+      }
+    },
+    {
+      "source": "experiments/week7/report1_validation_2d_hllc_strict/matrix_summary.json",
+      "payload": {
+        "experiment": "week7-report1-validation-2d-hllc-strict",
+        "output_root": "experiments/week7/report1_validation_2d_hllc_strict",
+        "run_count": 4,
+        "runs": [
+          {
+            "experiment": "week7-report1-validation-2d-hllc-strict",
+            "name": "lw3-n200-cpu-double-strict-hllc",
+            "timestamp_utc": "2026-05-10T16:30:32.793719+00:00",
+            "git_commit": "37b11a5f01ced356ffada44fdfab1a6575e32fc3",
+            "binary": "build-cpu-strict-double/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-cpu-double-strict-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-strict-double",
+            "raw_output": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-cpu-double-strict-hllc/grid.bin",
+            "extra_cfg": {
+              "device": "cpu",
+              "solver": "hllc"
+            },
+            "command": [
+              "build-cpu-strict-double/hrsc",
+              "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-cpu-double-strict-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0999088
+            },
+            "stdout": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-cpu-double-strict-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-cpu-double-strict-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-2d-hllc-strict",
+            "name": "lw3-n200-gpu-double-strict-hllc",
+            "timestamp_utc": "2026-05-10T16:30:33.972865+00:00",
+            "git_commit": "37b11a5f01ced356ffada44fdfab1a6575e32fc3",
+            "binary": "build-cuda-double-strict/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-gpu-double-strict-hllc/config.cfg",
+            "precision": "double",
+            "build": "cuda-strict-double",
+            "raw_output": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-gpu-double-strict-hllc/grid.bin",
+            "extra_cfg": {
+              "device": "gpu",
+              "solver": "hllc"
+            },
+            "command": [
+              "build-cuda-double-strict/hrsc",
+              "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-gpu-double-strict-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.179579
+            },
+            "stdout": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-gpu-double-strict-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n200-gpu-double-strict-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-2d-hllc-strict",
+            "name": "lw3-n400-cpu-double-strict-hllc",
+            "timestamp_utc": "2026-05-10T16:30:34.679648+00:00",
+            "git_commit": "37b11a5f01ced356ffada44fdfab1a6575e32fc3",
+            "binary": "build-cpu-strict-double/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+            "run_config": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-strict-double",
+            "raw_output": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/grid.bin",
+            "extra_cfg": {
+              "device": "cpu",
+              "solver": "hllc"
+            },
+            "command": [
+              "build-cpu-strict-double/hrsc",
+              "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.502733
+            },
+            "stdout": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-cpu-double-strict-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-validation-2d-hllc-strict",
+            "name": "lw3-n400-gpu-double-strict-hllc",
+            "timestamp_utc": "2026-05-10T16:30:35.566978+00:00",
+            "git_commit": "37b11a5f01ced356ffada44fdfab1a6575e32fc3",
+            "binary": "build-cuda-double-strict/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+            "run_config": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-gpu-double-strict-hllc/config.cfg",
+            "precision": "double",
+            "build": "cuda-strict-double",
+            "raw_output": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-gpu-double-strict-hllc/grid.bin",
+            "extra_cfg": {
+              "device": "gpu",
+              "solver": "hllc"
+            },
+            "command": [
+              "build-cuda-double-strict/hrsc",
+              "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-gpu-double-strict-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.538026
+            },
+            "stdout": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-gpu-double-strict-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_validation_2d_hllc_strict/runs/lw3-n400-gpu-double-strict-hllc/stderr.txt"
+          }
+        ]
+      }
+    },
+    {
+      "source": "experiments/week7/report1_variation/matrix_summary.json",
+      "payload": {
+        "experiment": "week7-report1-variation",
+        "output_root": "experiments/week7/report1_variation",
+        "run_count": 15,
+        "runs": [
+          {
+            "experiment": "week7-report1-variation",
+            "name": "sod-cpu-double-O2-ieee-leq-hllc",
+            "timestamp_utc": "2026-05-10T16:20:34.067073+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/sod.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.00986804
+            },
+            "stdout": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "sod-cpu-double-O3-ieee-leq-hllc",
+            "timestamp_utc": "2026-05-10T16:20:34.212898+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/sod.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O3-ieee-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+              "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.00938632
+            },
+            "stdout": "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "sod-cpu-double-Ofast-fastmath-leq-hllc",
+            "timestamp_utc": "2026-05-10T16:20:34.297893+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/sod.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/sod-cpu-double-Ofast-fastmath-leq-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-Ofast-fastmath-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-Ofast-fastmath-leq-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc",
+              "experiments/week7/report1_variation/runs/sod-cpu-double-Ofast-fastmath-leq-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.00919854
+            },
+            "stdout": "experiments/week7/report1_variation/runs/sod-cpu-double-Ofast-fastmath-leq-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/sod-cpu-double-Ofast-fastmath-leq-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "sod-cpu-double-O2-ieee-strict-hllc",
+            "timestamp_utc": "2026-05-10T16:20:34.412866+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O2-ieee-strict/hrsc",
+            "source_config": "tests/cases/toro_1d/sod.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-strict-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-strict",
+            "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-strict-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-strict/hrsc",
+              "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-strict-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.00986589
+            },
+            "stdout": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-strict-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-strict-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "sod-cpu-double-O2-ieee-leq-rusanov",
+            "timestamp_utc": "2026-05-10T16:20:34.553230+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/sod.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-rusanov/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-rusanov/grid.bin",
+            "extra_cfg": {
+              "solver": "rusanov"
+            },
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-rusanov/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0087228
+            },
+            "stdout": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-rusanov/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-rusanov/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "stationary_contact-cpu-double-O2-ieee-leq-hllc",
+            "timestamp_utc": "2026-05-10T16:20:34.719863+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0125849
+            },
+            "stdout": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "stationary_contact-cpu-double-O3-ieee-leq-hllc",
+            "timestamp_utc": "2026-05-10T16:20:34.980457+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O3-ieee-leq-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O3-ieee-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O3-ieee-leq-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+              "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O3-ieee-leq-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0124147
+            },
+            "stdout": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O3-ieee-leq-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O3-ieee-leq-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "stationary_contact-cpu-double-Ofast-fastmath-leq-hllc",
+            "timestamp_utc": "2026-05-10T16:20:35.049513+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-Ofast-fastmath-leq-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-Ofast-fastmath-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-Ofast-fastmath-leq-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc",
+              "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-Ofast-fastmath-leq-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0101064
+            },
+            "stdout": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-Ofast-fastmath-leq-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-Ofast-fastmath-leq-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "stationary_contact-cpu-double-O2-ieee-strict-hllc",
+            "timestamp_utc": "2026-05-10T16:20:35.081674+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O2-ieee-strict/hrsc",
+            "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-strict-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-strict",
+            "raw_output": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-strict-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-strict/hrsc",
+              "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-strict-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.00993962
+            },
+            "stdout": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-strict-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-strict-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "stationary_contact-cpu-double-O2-ieee-leq-rusanov",
+            "timestamp_utc": "2026-05-10T16:20:35.122073+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-rusanov/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-rusanov/grid.bin",
+            "extra_cfg": {
+              "solver": "rusanov"
+            },
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-rusanov/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.0145659
+            },
+            "stdout": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-rusanov/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-rusanov/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "lw3-n200-cpu-double-O2-ieee-leq-hllc",
+            "timestamp_utc": "2026-05-10T16:20:35.769401+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.615973
+            },
+            "stdout": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "lw3-n200-cpu-double-O3-ieee-leq-hllc",
+            "timestamp_utc": "2026-05-10T16:20:36.344309+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O3-ieee-leq-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O3-ieee-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O3-ieee-leq-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+              "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O3-ieee-leq-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.511775
+            },
+            "stdout": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O3-ieee-leq-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O3-ieee-leq-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "lw3-n200-cpu-double-Ofast-fastmath-leq-hllc",
+            "timestamp_utc": "2026-05-10T16:20:36.954674+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-Ofast-fastmath-leq-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-Ofast-fastmath-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-Ofast-fastmath-leq-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc",
+              "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-Ofast-fastmath-leq-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.532344
+            },
+            "stdout": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-Ofast-fastmath-leq-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-Ofast-fastmath-leq-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "lw3-n200-cpu-double-O2-ieee-strict-hllc",
+            "timestamp_utc": "2026-05-10T16:20:37.715285+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O2-ieee-strict/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-strict-hllc/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-strict",
+            "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-strict-hllc/grid.bin",
+            "extra_cfg": {
+              "solver": "hllc"
+            },
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-strict/hrsc",
+              "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-strict-hllc/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.672099
+            },
+            "stdout": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-strict-hllc/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-strict-hllc/stderr.txt"
+          },
+          {
+            "experiment": "week7-report1-variation",
+            "name": "lw3-n200-cpu-double-O2-ieee-leq-rusanov",
+            "timestamp_utc": "2026-05-10T16:20:38.215101+00:00",
+            "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+            "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+            "run_config": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-rusanov/config.cfg",
+            "precision": "double",
+            "build": "cpu-double-O2-ieee-leq",
+            "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-rusanov/grid.bin",
+            "extra_cfg": {
+              "solver": "rusanov"
+            },
+            "command": [
+              "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+              "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-rusanov/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 0.465201
+            },
+            "stdout": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-rusanov/stdout.txt",
+            "stderr": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-rusanov/stderr.txt"
+          }
+        ]
+      }
+    },
+    {
+      "source": "experiments/week7/reference_1600/matrix_summary.json",
+      "payload": {
+        "experiment": "week7-reference-1600",
+        "output_root": "experiments/week7/reference_1600",
+        "run_count": 1,
+        "runs": [
+          {
+            "experiment": "week7-reference-1600",
+            "name": "lw3-n1600-gpu-double-strict",
+            "timestamp_utc": "2026-05-10T20:06:29.258129+00:00",
+            "git_commit": "030db9d91903925440bfc954b1147c703474645a",
+            "binary": "build-cuda-double-strict/hrsc",
+            "source_config": "tests/cases/liska_wendroff_2d/config3_n1600.cfg",
+            "run_config": "experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/config.cfg",
+            "precision": "double",
+            "build": "cuda-double-strict",
+            "raw_output": "experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/reference_1600.bin",
+            "extra_cfg": {
+              "device": "gpu",
+              "nx": "1600",
+              "ny": "1600",
+              "progress_interval_s": "30"
+            },
+            "command": [
+              "build-cuda-double-strict/hrsc",
+              "experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/config.cfg"
+            ],
+            "returncode": 0,
+            "timing": {
+              "total_s": 14.1705
+            },
+            "stdout": "experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/stdout.txt",
+            "stderr": "experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/stderr.txt"
+          }
+        ]
+      }
+    }
+  ]
+}

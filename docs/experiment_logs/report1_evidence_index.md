@@ -19,6 +19,13 @@ Purpose: map Week-7 and supporting artefacts to the Report 1 narrative. This is 
 | Cross-cutting: precision-adequacy / Pareto / drift evidence | Precision-to-drift interpretation table | `docs/experiment_logs/week7_supervisor_response.md` | new / ready | Task 4 |
 | Cross-cutting: precision-adequacy / Pareto / drift evidence | Drift time-series/final smoke summaries | `experiments/week7/drift/summary.md`; `experiments/week7/drift/summary.csv`; `experiments/week7/drift/summary.json` | new / final-state smoke; time-series fit not yet available | Task 3 |
 | Cross-cutting: precision-adequacy / Pareto / drift evidence | A4 tradeoff table and terminology note | `docs/experiment_logs/week4_a4_lw_config3_200_tradeoff_table.md` | ready / append note present | Task 2 |
+| Section 4 Validation: 1D Toro, 2D LW3, CPU vs GPU, float vs double, convergence / Cross-cutting: precision-adequacy | 1D precision-axis validation summary | `experiments/week7/report1_validation_1d/summary.md` | new / ready | Task 12 |
+| Section 4 Validation: 1D Toro, 2D LW3, CPU vs GPU, float vs double, convergence | 2D CPU precision-axis validation summary | `experiments/week7/report1_validation_2d/summary.md` | new / ready | Task 12 |
+| Section 4 Validation: 1D Toro, 2D LW3, CPU vs GPU, float vs double, convergence | 2D GPU precision-axis validation summary | `experiments/week7/report1_validation_2d_gpu/summary.md` | new / ready | Task 12 |
+| Section 4 Validation: 1D Toro, 2D LW3, CPU vs GPU, float vs double, convergence | HLLC strict CPU-to-GPU preflight | `experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.md` | new / ready | Task 12 |
+| Section 2 Mathematical theory: schemes, HLLC vs Rusanov, variation points `<=`/`<` / Cross-cutting: implementation sensitivity | Compiler and implementation-axis variation summary | `experiments/week7/report1_variation/summary.md` | new / ready | Task 12 |
+| Section 4 Validation: 1D Toro, 2D LW3, CPU vs GPU, float vs double, convergence | 1600^2 GPU reference candidate summary | `experiments/week7/reference_1600/summary.md` | new / ready | Task 12 |
+| Section 3 Code description: precision templating, harness, GPU bring-up | Week 7 Report 1 aggregate evidence routing | `experiments/week7/report1_aggregate/summary.md` | new / ready | Task 12 |
 
 ## Gaps
 
