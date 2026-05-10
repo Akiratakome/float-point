@@ -1,0 +1,134 @@
+{
+  "mode": "matrix_summary",
+  "matrix_summary": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_validation_2d_gpu/matrix_summary.json",
+  "run_count": 4,
+  "pair_count": 2,
+  "pair_by": "precision",
+  "runs": [
+    {
+      "name": "lw3-n200-gpu-double-strict",
+      "precision": "double",
+      "build": "cuda-double-strict",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/metadata.json",
+      "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/grid.bin",
+      "total_s": 0.184288,
+      "nx": 200,
+      "ny": 200,
+      "t_end": 0.3,
+      "integrals": {
+        "rho": 0.9362286351199705,
+        "rhou": 0.13410706322975477,
+        "rhov": 0.1341063034931487,
+        "E": 2.255677266652683
+      },
+      "integral_min": 0.1341063034931487,
+      "integral_max": 2.255677266652683
+    },
+    {
+      "name": "lw3-n400-gpu-double-strict",
+      "precision": "double",
+      "build": "cuda-double-strict",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/metadata.json",
+      "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/grid.bin",
+      "total_s": 0.540408,
+      "nx": 400,
+      "ny": 400,
+      "t_end": 0.3,
+      "integrals": {
+        "rho": 0.9362286351200001,
+        "rhou": 0.13414946831049623,
+        "rhov": 0.13414936629842453,
+        "E": 2.2556396971843986
+      },
+      "integral_min": 0.13414936629842453,
+      "integral_max": 2.2556396971843986
+    },
+    {
+      "name": "lw3-n200-gpu-float-strict",
+      "precision": "float",
+      "build": "cuda-float-strict",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/metadata.json",
+      "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/grid.bin",
+      "total_s": 0.0740718,
+      "nx": 200,
+      "ny": 200,
+      "t_end": 0.30000001192092896,
+      "integrals": {
+        "rho": 0.9362285376427962,
+        "rhou": 0.13410700780599802,
+        "rhov": 0.13410624774639818,
+        "E": 2.2556772166709322
+      },
+      "integral_min": 0.13410624774639818,
+      "integral_max": 2.2556772166709322
+    },
+    {
+      "name": "lw3-n400-gpu-float-strict",
+      "precision": "float",
+      "build": "cuda-float-strict",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/metadata.json",
+      "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/grid.bin",
+      "total_s": 0.3533,
+      "nx": 400,
+      "ny": 400,
+      "t_end": 0.30000001192092896,
+      "integrals": {
+        "rho": 0.9362285031367376,
+        "rhou": 0.13414942462712323,
+        "rhov": 0.13414932168324303,
+        "E": 2.2556396808192987
+      },
+      "integral_min": 0.13414932168324303,
+      "integral_max": 2.2556396808192987
+    }
+  ],
+  "pairs": [
+    {
+      "pair_label": "lw3-n200-gpu-strict",
+      "left": "lw3-n200-gpu-double-strict",
+      "right": "lw3-n200-gpu-float-strict",
+      "left_precision": "double",
+      "right_precision": "float",
+      "l1": 2.584873494727871e-07,
+      "linf": 1.3173012651357396e-05,
+      "ulp_max": null,
+      "reference_l1": null,
+      "philip_ratio": null,
+      "phase_metrics": {
+        "L1_rho": 3.5220178138436544e-07,
+        "ssim_rho": NaN,
+        "delta_x_shock": 1.7196483401149543e-06,
+        "delta_y_shock": 2.1562244924000495e-06,
+        "ssim_fallback_used": true
+      }
+    },
+    {
+      "pair_label": "lw3-n400-gpu-strict",
+      "left": "lw3-n400-gpu-double-strict",
+      "right": "lw3-n400-gpu-float-strict",
+      "left_precision": "double",
+      "right_precision": "float",
+      "l1": 3.2431394345597137e-07,
+      "linf": 2.4505230087790153e-05,
+      "ulp_max": null,
+      "reference_l1": null,
+      "philip_ratio": null,
+      "phase_metrics": {
+        "L1_rho": 4.581458721393589e-07,
+        "ssim_rho": NaN,
+        "delta_x_shock": 9.003138498997476e-06,
+        "delta_y_shock": 7.272384173473423e-06,
+        "ssim_fallback_used": true
+      }
+    }
+  ],
+  "outputs": {
+    "csv": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_validation_2d_gpu/summary.csv",
+    "json": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_validation_2d_gpu/summary.json",
+    "markdown": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_validation_2d_gpu/summary.md"
+  }
+}

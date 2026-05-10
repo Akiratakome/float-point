@@ -1,0 +1,46 @@
+{
+  "experiment": "week7-report1-validation-2d",
+  "output_root": "experiments/week7/report1_validation_2d",
+  "metadata": {
+    "purpose": "LW3 200/400 CPU float/double validation rows for Report 1.",
+    "notes": [
+      "Use existing source cfgs under tests/cases/liska_wendroff_2d.",
+      "Do not edit source cfgs in place.",
+      "This matrix is separate from the GPU matrix because run_matrix.py writes matrix_summary.json to output_root."
+    ]
+  },
+  "runs": [
+    {
+      "name": "lw3-n200-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "lw3-n400-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "lw3-n200-cpu-float-o2-ieee-leq",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "lw3-n400-cpu-float-o2-ieee-leq",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    }
+  ]
+}

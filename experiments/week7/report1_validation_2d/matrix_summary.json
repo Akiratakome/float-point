@@ -1,0 +1,99 @@
+{
+  "experiment": "week7-report1-validation-2d",
+  "output_root": "experiments/week7/report1_validation_2d",
+  "run_count": 4,
+  "runs": [
+    {
+      "experiment": "week7-report1-validation-2d",
+      "name": "lw3-n200-cpu-double-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T16:05:09.336126+00:00",
+      "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "run_config": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-double-o2-ieee-leq/config.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-double-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-double-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.554935
+      },
+      "stdout": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-double-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-double-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-2d",
+      "name": "lw3-n400-cpu-double-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T16:05:14.142840+00:00",
+      "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "run_config": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-double-o2-ieee-leq/config.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-double-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-double-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 4.72927
+      },
+      "stdout": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-double-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-double-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-2d",
+      "name": "lw3-n200-cpu-float-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T16:05:14.782183+00:00",
+      "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "run_config": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-float-o2-ieee-leq/config.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-float-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-float-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.539925
+      },
+      "stdout": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-float-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_2d/runs/lw3-n200-cpu-float-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-2d",
+      "name": "lw3-n400-cpu-float-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T16:05:18.889352+00:00",
+      "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "run_config": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-float-o2-ieee-leq/config.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-float-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-float-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 4.06098
+      },
+      "stdout": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-float-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_2d/runs/lw3-n400-cpu-float-o2-ieee-leq/stderr.txt"
+    }
+  ]
+}

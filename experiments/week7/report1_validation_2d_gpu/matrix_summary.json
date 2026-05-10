@@ -1,0 +1,107 @@
+{
+  "experiment": "week7-report1-validation-2d-gpu",
+  "output_root": "experiments/week7/report1_validation_2d_gpu",
+  "run_count": 4,
+  "runs": [
+    {
+      "experiment": "week7-report1-validation-2d-gpu",
+      "name": "lw3-n200-gpu-double-strict",
+      "timestamp_utc": "2026-05-10T16:06:37.009660+00:00",
+      "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+      "binary": "build-cuda-double-strict/hrsc",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "run_config": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/config.cfg",
+      "precision": "double",
+      "build": "cuda-double-strict",
+      "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/grid.bin",
+      "extra_cfg": {
+        "device": "gpu"
+      },
+      "command": [
+        "build-cuda-double-strict/hrsc",
+        "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.184288
+      },
+      "stdout": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-double-strict/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-2d-gpu",
+      "name": "lw3-n400-gpu-double-strict",
+      "timestamp_utc": "2026-05-10T16:06:37.952714+00:00",
+      "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+      "binary": "build-cuda-double-strict/hrsc",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "run_config": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/config.cfg",
+      "precision": "double",
+      "build": "cuda-double-strict",
+      "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/grid.bin",
+      "extra_cfg": {
+        "device": "gpu"
+      },
+      "command": [
+        "build-cuda-double-strict/hrsc",
+        "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.540408
+      },
+      "stdout": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-2d-gpu",
+      "name": "lw3-n200-gpu-float-strict",
+      "timestamp_utc": "2026-05-10T16:06:38.352485+00:00",
+      "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+      "binary": "build-cuda-float-strict/hrsc",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "run_config": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/config.cfg",
+      "precision": "float",
+      "build": "cuda-float-strict",
+      "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/grid.bin",
+      "extra_cfg": {
+        "device": "gpu"
+      },
+      "command": [
+        "build-cuda-float-strict/hrsc",
+        "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.0740718
+      },
+      "stdout": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n200-gpu-float-strict/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-2d-gpu",
+      "name": "lw3-n400-gpu-float-strict",
+      "timestamp_utc": "2026-05-10T16:06:39.008363+00:00",
+      "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+      "binary": "build-cuda-float-strict/hrsc",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "run_config": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/config.cfg",
+      "precision": "float",
+      "build": "cuda-float-strict",
+      "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/grid.bin",
+      "extra_cfg": {
+        "device": "gpu"
+      },
+      "command": [
+        "build-cuda-float-strict/hrsc",
+        "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.3533
+      },
+      "stdout": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-float-strict/stderr.txt"
+    }
+  ]
+}

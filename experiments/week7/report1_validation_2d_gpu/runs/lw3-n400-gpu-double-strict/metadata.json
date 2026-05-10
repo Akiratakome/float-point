@@ -1,0 +1,25 @@
+{
+  "experiment": "week7-report1-validation-2d-gpu",
+  "name": "lw3-n400-gpu-double-strict",
+  "timestamp_utc": "2026-05-10T16:06:37.952714+00:00",
+  "git_commit": "03ce4120a808086f73a7cb92f3e908fc2d205404",
+  "binary": "build-cuda-double-strict/hrsc",
+  "source_config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+  "run_config": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/config.cfg",
+  "precision": "double",
+  "build": "cuda-double-strict",
+  "raw_output": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/grid.bin",
+  "extra_cfg": {
+    "device": "gpu"
+  },
+  "command": [
+    "build-cuda-double-strict/hrsc",
+    "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/config.cfg"
+  ],
+  "returncode": 0,
+  "timing": {
+    "total_s": 0.540408
+  },
+  "stdout": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/stdout.txt",
+  "stderr": "experiments/week7/report1_validation_2d_gpu/runs/lw3-n400-gpu-double-strict/stderr.txt"
+}

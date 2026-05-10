@@ -1,0 +1,49 @@
+{
+  "experiment": "week7-report1-validation-2d-gpu",
+  "output_root": "experiments/week7/report1_validation_2d_gpu",
+  "metadata": {
+    "purpose": "LW3 200/400 GPU float/double validation rows on CSC strict-IEEE builds.",
+    "notes": [
+      "This matrix is separate from the CPU matrix because run_matrix.py writes matrix_summary.json to output_root.",
+      "This matrix measures GPU float-vs-double validation rows. It does not compare CPU and GPU outputs; Task 9 handles the HLLC strict CPU\u2194GPU preflight."
+    ]
+  },
+  "runs": [
+    {
+      "name": "lw3-n200-gpu-double-strict",
+      "binary": "build-cuda-double-strict/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cuda-double-strict",
+      "output_file": "grid.bin",
+      "extra_cfg": { "device": "gpu" }
+    },
+    {
+      "name": "lw3-n400-gpu-double-strict",
+      "binary": "build-cuda-double-strict/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "precision": "double",
+      "build": "cuda-double-strict",
+      "output_file": "grid.bin",
+      "extra_cfg": { "device": "gpu" }
+    },
+    {
+      "name": "lw3-n200-gpu-float-strict",
+      "binary": "build-cuda-float-strict/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "float",
+      "build": "cuda-float-strict",
+      "output_file": "grid.bin",
+      "extra_cfg": { "device": "gpu" }
+    },
+    {
+      "name": "lw3-n400-gpu-float-strict",
+      "binary": "build-cuda-float-strict/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n400.cfg",
+      "precision": "float",
+      "build": "cuda-float-strict",
+      "output_file": "grid.bin",
+      "extra_cfg": { "device": "gpu" }
+    }
+  ]
+}
