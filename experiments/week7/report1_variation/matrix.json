@@ -1,0 +1,149 @@
+{
+  "experiment": "week7-report1-variation",
+  "output_root": "experiments/week7/report1_variation",
+  "metadata": {
+    "purpose": "Focused compiler and implementation variation evidence for Report 1.",
+    "notes": [
+      "Rows isolate O2/O3, O2/Ofast-fastmath, HLLC <=/<, and HLLC/Rusanov axes.",
+      "Source cfgs are copied by scripts/run_matrix.py and are not edited in place.",
+      "Rusanov rows use extra_cfg.solver rather than *_rusanov.cfg twins."
+    ]
+  },
+  "runs": [
+    {
+      "name": "sod-cpu-double-O2-ieee-leq-hllc",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "sod-cpu-double-O3-ieee-leq-hllc",
+      "binary": "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "double",
+      "build": "cpu-double-O3-ieee-leq",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "sod-cpu-double-Ofast-fastmath-leq-hllc",
+      "binary": "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "double",
+      "build": "cpu-double-Ofast-fastmath-leq",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "sod-cpu-double-O2-ieee-strict-hllc",
+      "binary": "build-matrix/cpu-double-O2-ieee-strict/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-strict",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "sod-cpu-double-O2-ieee-leq-rusanov",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "extra_cfg": { "solver": "rusanov" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "stationary_contact-cpu-double-O2-ieee-leq-hllc",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "stationary_contact-cpu-double-O3-ieee-leq-hllc",
+      "binary": "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "precision": "double",
+      "build": "cpu-double-O3-ieee-leq",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "stationary_contact-cpu-double-Ofast-fastmath-leq-hllc",
+      "binary": "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc",
+      "config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "precision": "double",
+      "build": "cpu-double-Ofast-fastmath-leq",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "stationary_contact-cpu-double-O2-ieee-strict-hllc",
+      "binary": "build-matrix/cpu-double-O2-ieee-strict/hrsc",
+      "config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-strict",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "stationary_contact-cpu-double-O2-ieee-leq-rusanov",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "extra_cfg": { "solver": "rusanov" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "lw3-n200-cpu-double-O2-ieee-leq-hllc",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "lw3-n200-cpu-double-O3-ieee-leq-hllc",
+      "binary": "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cpu-double-O3-ieee-leq",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "lw3-n200-cpu-double-Ofast-fastmath-leq-hllc",
+      "binary": "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cpu-double-Ofast-fastmath-leq",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "lw3-n200-cpu-double-O2-ieee-strict-hllc",
+      "binary": "build-matrix/cpu-double-O2-ieee-strict/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-strict",
+      "extra_cfg": { "solver": "hllc" },
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "lw3-n200-cpu-double-O2-ieee-leq-rusanov",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "extra_cfg": { "solver": "rusanov" },
+      "output_file": "grid.bin"
+    }
+  ]
+}

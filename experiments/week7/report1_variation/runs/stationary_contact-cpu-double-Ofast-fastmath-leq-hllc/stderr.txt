@@ -1,0 +1,2 @@
+[timing] total_s=0.0101064
+Finished: 210 steps, t = 0.5

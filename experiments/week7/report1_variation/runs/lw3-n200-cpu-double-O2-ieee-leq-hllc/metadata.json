@@ -1,0 +1,25 @@
+{
+  "experiment": "week7-report1-variation",
+  "name": "lw3-n200-cpu-double-O2-ieee-leq-hllc",
+  "timestamp_utc": "2026-05-10T16:20:35.769401+00:00",
+  "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+  "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+  "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+  "run_config": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/config.cfg",
+  "precision": "double",
+  "build": "cpu-double-O2-ieee-leq",
+  "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/grid.bin",
+  "extra_cfg": {
+    "solver": "hllc"
+  },
+  "command": [
+    "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+    "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/config.cfg"
+  ],
+  "returncode": 0,
+  "timing": {
+    "total_s": 0.615973
+  },
+  "stdout": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/stdout.txt",
+  "stderr": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/stderr.txt"
+}

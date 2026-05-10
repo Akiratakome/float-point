@@ -1,0 +1,25 @@
+{
+  "experiment": "week7-report1-variation",
+  "name": "sod-cpu-double-O3-ieee-leq-hllc",
+  "timestamp_utc": "2026-05-10T16:20:34.212898+00:00",
+  "git_commit": "1a6b2f914bdc849f7e7cb095de29bd9d91f6dfde",
+  "binary": "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+  "source_config": "tests/cases/toro_1d/sod.cfg",
+  "run_config": "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/config.cfg",
+  "precision": "double",
+  "build": "cpu-double-O3-ieee-leq",
+  "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/grid.bin",
+  "extra_cfg": {
+    "solver": "hllc"
+  },
+  "command": [
+    "build-matrix/cpu-double-O3-ieee-leq/hrsc",
+    "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/config.cfg"
+  ],
+  "returncode": 0,
+  "timing": {
+    "total_s": 0.00938632
+  },
+  "stdout": "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/stdout.txt",
+  "stderr": "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/stderr.txt"
+}

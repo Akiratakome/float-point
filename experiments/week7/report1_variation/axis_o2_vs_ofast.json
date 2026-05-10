@@ -1,0 +1,352 @@
+{
+  "mode": "matrix_summary",
+  "matrix_summary": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/matrix_summary.json",
+  "run_count": 15,
+  "pair_count": 3,
+  "pair_by": "none",
+  "runs": [
+    {
+      "name": "sod-cpu-double-O2-ieee-leq-hllc",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-hllc/grid.bin",
+      "total_s": 0.00986804,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.25,
+      "integrals": {
+        "rho": 0.5624999999999999,
+        "rhou": 0.225,
+        "rhov": 0.0,
+        "E": 1.3750000000000002
+      },
+      "integral_min": 0.0,
+      "integral_max": 1.3750000000000002
+    },
+    {
+      "name": "sod-cpu-double-O3-ieee-leq-hllc",
+      "precision": "double",
+      "build": "cpu-double-O3-ieee-leq",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-O3-ieee-leq-hllc/grid.bin",
+      "total_s": 0.00938632,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.25,
+      "integrals": {
+        "rho": 0.5624999999999999,
+        "rhou": 0.225,
+        "rhov": 0.0,
+        "E": 1.3750000000000002
+      },
+      "integral_min": 0.0,
+      "integral_max": 1.3750000000000002
+    },
+    {
+      "name": "sod-cpu-double-Ofast-fastmath-leq-hllc",
+      "precision": "double",
+      "build": "cpu-double-Ofast-fastmath-leq",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/sod-cpu-double-Ofast-fastmath-leq-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-Ofast-fastmath-leq-hllc/grid.bin",
+      "total_s": 0.00919854,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.25,
+      "integrals": {
+        "rho": 0.5625,
+        "rhou": 0.22500000000000003,
+        "rhov": 0.0,
+        "E": 1.3750000000000002
+      },
+      "integral_min": 0.0,
+      "integral_max": 1.3750000000000002
+    },
+    {
+      "name": "sod-cpu-double-O2-ieee-strict-hllc",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-strict",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-strict-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-strict-hllc/grid.bin",
+      "total_s": 0.00986589,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.25,
+      "integrals": {
+        "rho": 0.5624999999999999,
+        "rhou": 0.225,
+        "rhov": 0.0,
+        "E": 1.3750000000000002
+      },
+      "integral_min": 0.0,
+      "integral_max": 1.3750000000000002
+    },
+    {
+      "name": "sod-cpu-double-O2-ieee-leq-rusanov",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-rusanov/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/sod-cpu-double-O2-ieee-leq-rusanov/grid.bin",
+      "total_s": 0.0087228,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.25,
+      "integrals": {
+        "rho": 0.5625,
+        "rhou": 0.225,
+        "rhov": 0.0,
+        "E": 1.3750000000000002
+      },
+      "integral_min": 0.0,
+      "integral_max": 1.3750000000000002
+    },
+    {
+      "name": "stationary_contact-cpu-double-O2-ieee-leq-hllc",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-hllc/grid.bin",
+      "total_s": 0.0125849,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.5,
+      "integrals": {
+        "rho": 0.75,
+        "rhou": 0.0,
+        "rhov": 0.0,
+        "E": 2.5000000000000004
+      },
+      "integral_min": 0.0,
+      "integral_max": 2.5000000000000004
+    },
+    {
+      "name": "stationary_contact-cpu-double-O3-ieee-leq-hllc",
+      "precision": "double",
+      "build": "cpu-double-O3-ieee-leq",
+      "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O3-ieee-leq-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O3-ieee-leq-hllc/grid.bin",
+      "total_s": 0.0124147,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.5,
+      "integrals": {
+        "rho": 0.75,
+        "rhou": 0.0,
+        "rhov": 0.0,
+        "E": 2.5000000000000004
+      },
+      "integral_min": 0.0,
+      "integral_max": 2.5000000000000004
+    },
+    {
+      "name": "stationary_contact-cpu-double-Ofast-fastmath-leq-hllc",
+      "precision": "double",
+      "build": "cpu-double-Ofast-fastmath-leq",
+      "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/stationary_contact-cpu-double-Ofast-fastmath-leq-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-Ofast-fastmath-leq-hllc/grid.bin",
+      "total_s": 0.0101064,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.5,
+      "integrals": {
+        "rho": 0.75,
+        "rhou": 0.0,
+        "rhov": 0.0,
+        "E": 2.5000000000000004
+      },
+      "integral_min": 0.0,
+      "integral_max": 2.5000000000000004
+    },
+    {
+      "name": "stationary_contact-cpu-double-O2-ieee-strict-hllc",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-strict",
+      "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-strict-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-strict-hllc/grid.bin",
+      "total_s": 0.00993962,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.5,
+      "integrals": {
+        "rho": 0.75,
+        "rhou": 0.0,
+        "rhov": 0.0,
+        "E": 2.5000000000000004
+      },
+      "integral_min": 0.0,
+      "integral_max": 2.5000000000000004
+    },
+    {
+      "name": "stationary_contact-cpu-double-O2-ieee-leq-rusanov",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-rusanov/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/stationary_contact-cpu-double-O2-ieee-leq-rusanov/grid.bin",
+      "total_s": 0.0145659,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.5,
+      "integrals": {
+        "rho": 0.75,
+        "rhou": 0.0,
+        "rhov": 0.0,
+        "E": 2.5000000000000004
+      },
+      "integral_min": 0.0,
+      "integral_max": 2.5000000000000004
+    },
+    {
+      "name": "lw3-n200-cpu-double-O2-ieee-leq-hllc",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-hllc/grid.bin",
+      "total_s": 0.615973,
+      "nx": 200,
+      "ny": 200,
+      "t_end": 0.3,
+      "integrals": {
+        "rho": 0.9362286351199705,
+        "rhou": 0.13410706322975477,
+        "rhov": 0.1341063034931487,
+        "E": 2.255677266652683
+      },
+      "integral_min": 0.1341063034931487,
+      "integral_max": 2.255677266652683
+    },
+    {
+      "name": "lw3-n200-cpu-double-O3-ieee-leq-hllc",
+      "precision": "double",
+      "build": "cpu-double-O3-ieee-leq",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O3-ieee-leq-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O3-ieee-leq-hllc/grid.bin",
+      "total_s": 0.511775,
+      "nx": 200,
+      "ny": 200,
+      "t_end": 0.3,
+      "integrals": {
+        "rho": 0.9362286351199705,
+        "rhou": 0.13410706322975477,
+        "rhov": 0.1341063034931487,
+        "E": 2.255677266652683
+      },
+      "integral_min": 0.1341063034931487,
+      "integral_max": 2.255677266652683
+    },
+    {
+      "name": "lw3-n200-cpu-double-Ofast-fastmath-leq-hllc",
+      "precision": "double",
+      "build": "cpu-double-Ofast-fastmath-leq",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/lw3-n200-cpu-double-Ofast-fastmath-leq-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-Ofast-fastmath-leq-hllc/grid.bin",
+      "total_s": 0.532344,
+      "nx": 200,
+      "ny": 200,
+      "t_end": 0.3,
+      "integrals": {
+        "rho": 0.9362286351199702,
+        "rhou": 0.1341070632297548,
+        "rhov": 0.13410630349314873,
+        "E": 2.255677266652683
+      },
+      "integral_min": 0.13410630349314873,
+      "integral_max": 2.255677266652683
+    },
+    {
+      "name": "lw3-n200-cpu-double-O2-ieee-strict-hllc",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-strict",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-strict-hllc/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-strict-hllc/grid.bin",
+      "total_s": 0.672099,
+      "nx": 200,
+      "ny": 200,
+      "t_end": 0.3,
+      "integrals": {
+        "rho": 0.9362286351199705,
+        "rhou": 0.1341070632297548,
+        "rhov": 0.1341063034931487,
+        "E": 2.255677266652683
+      },
+      "integral_min": 0.1341063034931487,
+      "integral_max": 2.255677266652683
+    },
+    {
+      "name": "lw3-n200-cpu-double-O2-ieee-leq-rusanov",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/liska_wendroff_2d/config3_n200.cfg",
+      "metadata": "/lsc/zeushome/yt455/floatpoint/experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-rusanov/metadata.json",
+      "raw_output": "experiments/week7/report1_variation/runs/lw3-n200-cpu-double-O2-ieee-leq-rusanov/grid.bin",
+      "total_s": 0.465201,
+      "nx": 200,
+      "ny": 200,
+      "t_end": 0.3,
+      "integrals": {
+        "rho": 0.9362286351200324,
+        "rhou": 0.13406413733527556,
+        "rhov": 0.13406347120126913,
+        "E": 2.255708637512586
+      },
+      "integral_min": 0.13406347120126913,
+      "integral_max": 2.255708637512586
+    }
+  ],
+  "pairs": [
+    {
+      "pair_label": "axis_o2_vs_ofast",
+      "left": "sod-cpu-double-O2-ieee-leq-hllc",
+      "right": "sod-cpu-double-Ofast-fastmath-leq-hllc",
+      "left_precision": "double",
+      "right_precision": "double",
+      "l1": 2.383671396799806e-16,
+      "linf": 7.105427357601002e-15,
+      "ulp_max": 12.799999999999997,
+      "reference_l1": null,
+      "philip_ratio": null
+    },
+    {
+      "pair_label": "axis_o2_vs_ofast",
+      "left": "stationary_contact-cpu-double-O2-ieee-leq-hllc",
+      "right": "stationary_contact-cpu-double-Ofast-fastmath-leq-hllc",
+      "left_precision": "double",
+      "right_precision": "double",
+      "l1": 0.0,
+      "linf": 0.0,
+      "ulp_max": 0.0,
+      "reference_l1": null,
+      "philip_ratio": null
+    },
+    {
+      "pair_label": "axis_o2_vs_ofast",
+      "left": "lw3-n200-cpu-double-O2-ieee-leq-hllc",
+      "right": "lw3-n200-cpu-double-Ofast-fastmath-leq-hllc",
+      "left_precision": "double",
+      "right_precision": "double",
+      "l1": 6.820593220616055e-16,
+      "linf": 3.885780586188048e-14,
+      "ulp_max": 40.75950945217363,
+      "reference_l1": null,
+      "philip_ratio": null
+    }
+  ],
+  "outputs": {
+    "csv": "experiments/week7/report1_variation/axis_o2_vs_ofast.csv",
+    "json": "experiments/week7/report1_variation/axis_o2_vs_ofast.json",
+    "markdown": "experiments/week7/report1_variation/axis_o2_vs_ofast.md"
+  }
+}
