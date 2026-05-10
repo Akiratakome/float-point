@@ -1,0 +1,1 @@
+FD58E1A9398178E54E5B761AE9D87959  experiments/week7/report1_smoke/sod_default_stdout.txt (PowerShell CRLF capture; matches week6 baseline)
