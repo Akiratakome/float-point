@@ -1,0 +1,23 @@
+{
+  "experiment": "week7-report1-validation-1d",
+  "name": "toro5-cpu-double-o2-ieee-leq",
+  "timestamp_utc": "2026-05-10T15:12:04.911474+00:00",
+  "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+  "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+  "source_config": "tests/cases/toro_1d/toro5.cfg",
+  "run_config": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/config.cfg",
+  "precision": "double",
+  "build": "cpu-double-O2-ieee-leq",
+  "raw_output": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/grid.bin",
+  "extra_cfg": {},
+  "command": [
+    "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+    "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/config.cfg"
+  ],
+  "returncode": 0,
+  "timing": {
+    "total_s": 0.102329
+  },
+  "stdout": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/stdout.txt",
+  "stderr": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/stderr.txt"
+}

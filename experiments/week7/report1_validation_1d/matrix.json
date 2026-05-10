@@ -1,0 +1,112 @@
+{
+  "experiment": "week7-report1-validation-1d",
+  "output_root": "experiments/week7/report1_validation_1d",
+  "metadata": {
+    "purpose": "Report 1 1D Euler validation: precision sensitivity over the six Toro 1D cases.",
+    "cases": ["sod", "toro2", "toro3", "toro4", "toro5", "stationary_contact"],
+    "varied_axis": "precision (double vs float); all other axes fixed at O2-ieee-leq.",
+    "notes": [
+      "Use existing source cfgs under tests/cases/toro_1d.",
+      "Do not edit source cfgs in place.",
+      "stationary_contact is branch-sensitivity evidence; zero-denominator ratios are diagnostic or n/a."
+    ]
+  },
+  "runs": [
+    {
+      "name": "sod-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "sod-cpu-float-o2-ieee-leq",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/sod.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "toro2-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/toro2.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "toro2-cpu-float-o2-ieee-leq",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/toro2.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "toro3-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/toro3.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "toro3-cpu-float-o2-ieee-leq",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/toro3.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "toro4-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/toro4.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "toro4-cpu-float-o2-ieee-leq",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/toro4.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "toro5-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/toro5.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "toro5-cpu-float-o2-ieee-leq",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/toro5.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "stationary-contact-cpu-double-o2-ieee-leq",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "stationary-contact-cpu-float-o2-ieee-leq",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    }
+  ]
+}

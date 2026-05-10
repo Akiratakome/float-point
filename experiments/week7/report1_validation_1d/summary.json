@@ -1,0 +1,328 @@
+{
+  "mode": "matrix_summary",
+  "matrix_summary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\matrix_summary.json",
+  "run_count": 12,
+  "pair_count": 6,
+  "pair_by": "precision",
+  "runs": [
+    {
+      "name": "sod-cpu-double-o2-ieee-leq",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\sod-cpu-double-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/grid.bin",
+      "total_s": 0.155529,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.25,
+      "integrals": {
+        "rho": 0.5624999999999999,
+        "rhou": 0.225,
+        "rhov": 0.0,
+        "E": 1.3750000000000002
+      },
+      "integral_min": 0.0,
+      "integral_max": 1.3750000000000002
+    },
+    {
+      "name": "sod-cpu-float-o2-ieee-leq",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\sod-cpu-float-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/grid.bin",
+      "total_s": 0.131871,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.25,
+      "integrals": {
+        "rho": 0.5624999846704305,
+        "rhou": 0.22500000496671765,
+        "rhov": 0.0,
+        "E": 1.3750000825151776
+      },
+      "integral_min": 0.0,
+      "integral_max": 1.3750000825151776
+    },
+    {
+      "name": "toro2-cpu-double-o2-ieee-leq",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/toro2.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\toro2-cpu-double-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/grid.bin",
+      "total_s": 0.058057,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.15,
+      "integrals": {
+        "rho": 0.4000000000000217,
+        "rhou": 0.0,
+        "rhov": 0.0,
+        "E": 0.9600000000001069
+      },
+      "integral_min": 0.0,
+      "integral_max": 0.9600000000001069
+    },
+    {
+      "name": "toro2-cpu-float-o2-ieee-leq",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/toro2.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\toro2-cpu-float-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/grid.bin",
+      "total_s": 0.0965965,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.15000000596046448,
+      "integrals": {
+        "rho": 0.3999999790522273,
+        "rhou": 3.614113585335456e-09,
+        "rhov": 0.0,
+        "E": 0.9599998562550199
+      },
+      "integral_min": 0.0,
+      "integral_max": 0.9599998562550199
+    },
+    {
+      "name": "toro3-cpu-double-o2-ieee-leq",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/toro3.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\toro3-cpu-double-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/grid.bin",
+      "total_s": 0.187864,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.012,
+      "integrals": {
+        "rho": 1.0000007440747092,
+        "rhou": 11.999852160624082,
+        "rhov": 0.0,
+        "E": 1250.0151041982463
+      },
+      "integral_min": 0.0,
+      "integral_max": 1250.0151041982463
+    },
+    {
+      "name": "toro3-cpu-float-o2-ieee-leq",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/toro3.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\toro3-cpu-float-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/grid.bin",
+      "total_s": 0.303768,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.012000000104308128,
+      "integrals": {
+        "rho": 1.0000007215142084,
+        "rhou": 11.99985251145085,
+        "rhov": 0.0,
+        "E": 1250.015178463296
+      },
+      "integral_min": 0.0,
+      "integral_max": 1250.015178463296
+    },
+    {
+      "name": "toro4-cpu-double-o2-ieee-leq",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/toro4.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\toro4-cpu-double-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/grid.bin",
+      "total_s": 0.0242395,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.035,
+      "integrals": {
+        "rho": 0.48337135000000003,
+        "rhou": 0.26638820230000004,
+        "rhov": 0.0,
+        "E": 5.482261367602702
+      },
+      "integral_min": 0.0,
+      "integral_max": 5.482261367602702
+    },
+    {
+      "name": "toro4-cpu-float-o2-ieee-leq",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/toro4.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\toro4-cpu-float-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/grid.bin",
+      "total_s": 0.0564136,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.03500000014901161,
+      "integrals": {
+        "rho": 0.483371328785166,
+        "rhou": 0.26638819868293406,
+        "rhov": 0.0,
+        "E": 5.482261728891838
+      },
+      "integral_min": 0.0,
+      "integral_max": 5.482261728891838
+    },
+    {
+      "name": "toro5-cpu-double-o2-ieee-leq",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/toro5.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\toro5-cpu-double-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/grid.bin",
+      "total_s": 0.102329,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.035,
+      "integrals": {
+        "rho": 11.410369120151001,
+        "rhou": 127.32765721766569,
+        "rhov": 0.0,
+        "E": 3223.8762204701707
+      },
+      "integral_min": 0.0,
+      "integral_max": 3223.8762204701707
+    },
+    {
+      "name": "toro5-cpu-float-o2-ieee-leq",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/toro5.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\toro5-cpu-float-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/grid.bin",
+      "total_s": 0.0716027,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.03500000014901161,
+      "integrals": {
+        "rho": 11.41036976582475,
+        "rhou": 127.3276612956599,
+        "rhov": 0.0,
+        "E": 3223.8764075855206
+      },
+      "integral_min": 0.0,
+      "integral_max": 3223.8764075855206
+    },
+    {
+      "name": "stationary-contact-cpu-double-o2-ieee-leq",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\stationary-contact-cpu-double-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/grid.bin",
+      "total_s": 0.178126,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.5,
+      "integrals": {
+        "rho": 0.75,
+        "rhou": 0.0,
+        "rhov": 0.0,
+        "E": 2.5000000000000004
+      },
+      "integral_min": 0.0,
+      "integral_max": 2.5000000000000004
+    },
+    {
+      "name": "stationary-contact-cpu-float-o2-ieee-leq",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\runs\\stationary-contact-cpu-float-o2-ieee-leq\\metadata.json",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/grid.bin",
+      "total_s": 0.0690124,
+      "nx": 200,
+      "ny": 1,
+      "t_end": 0.5,
+      "integrals": {
+        "rho": 0.7499999832361937,
+        "rhou": 0.0,
+        "rhov": 0.0,
+        "E": 2.5000001825392193
+      },
+      "integral_min": 0.0,
+      "integral_max": 2.5000001825392193
+    }
+  ],
+  "pairs": [
+    {
+      "pair_label": "sod-cpu-o2-ieee-leq",
+      "left": "sod-cpu-double-o2-ieee-leq",
+      "right": "sod-cpu-float-o2-ieee-leq",
+      "left_precision": "double",
+      "right_precision": "float",
+      "l1": 8.74334022292795e-08,
+      "linf": 1.0648650374811552e-06,
+      "ulp_max": null,
+      "reference_l1": null,
+      "philip_ratio": null
+    },
+    {
+      "pair_label": "toro2-cpu-o2-ieee-leq",
+      "left": "toro2-cpu-double-o2-ieee-leq",
+      "right": "toro2-cpu-float-o2-ieee-leq",
+      "left_precision": "double",
+      "right_precision": "float",
+      "l1": 1.7696609595352484e-07,
+      "linf": 3.2559944256327356e-06,
+      "ulp_max": null,
+      "reference_l1": null,
+      "philip_ratio": null
+    },
+    {
+      "pair_label": "toro3-cpu-o2-ieee-leq",
+      "left": "toro3-cpu-double-o2-ieee-leq",
+      "right": "toro3-cpu-float-o2-ieee-leq",
+      "left_precision": "double",
+      "right_precision": "float",
+      "l1": 6.386966576944845e-05,
+      "linf": 0.004669571683223239,
+      "ulp_max": null,
+      "reference_l1": null,
+      "philip_ratio": null
+    },
+    {
+      "pair_label": "toro4-cpu-o2-ieee-leq",
+      "left": "toro4-cpu-double-o2-ieee-leq",
+      "right": "toro4-cpu-float-o2-ieee-leq",
+      "left_precision": "double",
+      "right_precision": "float",
+      "l1": 1.462212900988208e-07,
+      "linf": 3.1072779496099656e-06,
+      "ulp_max": null,
+      "reference_l1": null,
+      "philip_ratio": null
+    },
+    {
+      "pair_label": "toro5-cpu-o2-ieee-leq",
+      "left": "toro5-cpu-double-o2-ieee-leq",
+      "right": "toro5-cpu-float-o2-ieee-leq",
+      "left_precision": "double",
+      "right_precision": "float",
+      "l1": 0.000129640991488712,
+      "linf": 0.012568098310566711,
+      "ulp_max": null,
+      "reference_l1": null,
+      "philip_ratio": null
+    },
+    {
+      "pair_label": "stationary-contact-cpu-o2-ieee-leq",
+      "left": "stationary-contact-cpu-double-o2-ieee-leq",
+      "right": "stationary-contact-cpu-float-o2-ieee-leq",
+      "left_precision": "double",
+      "right_precision": "float",
+      "l1": 5.960464466436832e-08,
+      "linf": 2.384185786574733e-07,
+      "ulp_max": null,
+      "reference_l1": null,
+      "philip_ratio": null
+    }
+  ],
+  "outputs": {
+    "csv": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\summary.csv",
+    "json": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\summary.json",
+    "markdown": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week7\\report1_validation_1d\\summary.md"
+  }
+}

@@ -1,0 +1,283 @@
+{
+  "experiment": "week7-report1-validation-1d",
+  "output_root": "experiments/week7/report1_validation_1d",
+  "run_count": 12,
+  "runs": [
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "sod-cpu-double-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:02.778829+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/config.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.155529
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/sod-cpu-double-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "sod-cpu-float-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:03.055529+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/sod.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/config.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.131871
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/sod-cpu-float-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "toro2-cpu-double-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:03.261879+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/toro2.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/config.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.058057
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/toro2-cpu-double-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "toro2-cpu-float-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:03.498979+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/toro2.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/config.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.0965965
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/toro2-cpu-float-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "toro3-cpu-double-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:03.825139+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/toro3.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/config.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.187864
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/toro3-cpu-double-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "toro3-cpu-float-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:04.270752+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/toro3.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/config.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.303768
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/toro3-cpu-float-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "toro4-cpu-double-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:04.441343+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/toro4.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/config.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.0242395
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/toro4-cpu-double-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "toro4-cpu-float-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:04.648670+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/toro4.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/config.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.0564136
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/toro4-cpu-float-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "toro5-cpu-double-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:04.911474+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/toro5.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/config.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.102329
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/toro5-cpu-double-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "toro5-cpu-float-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:05.129014+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/toro5.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/config.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.0716027
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/toro5-cpu-float-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "stationary-contact-cpu-double-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:05.487788+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/config.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-double-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.178126
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-double-o2-ieee-leq/stderr.txt"
+    },
+    {
+      "experiment": "week7-report1-validation-1d",
+      "name": "stationary-contact-cpu-float-o2-ieee-leq",
+      "timestamp_utc": "2026-05-10T15:12:05.724343+00:00",
+      "git_commit": "ad5908567325cda7c82fd207a1455d4305b401ad",
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+      "source_config": "tests/cases/toro_1d/stationary_contact.cfg",
+      "run_config": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/config.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "raw_output": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/grid.bin",
+      "extra_cfg": {},
+      "command": [
+        "build-matrix/cpu-float-O2-ieee-leq/hrsc",
+        "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/config.cfg"
+      ],
+      "returncode": 0,
+      "timing": {
+        "total_s": 0.0690124
+      },
+      "stdout": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/stdout.txt",
+      "stderr": "experiments/week7/report1_validation_1d/runs/stationary-contact-cpu-float-o2-ieee-leq/stderr.txt"
+    }
+  ]
+}
