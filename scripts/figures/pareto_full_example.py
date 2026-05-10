@@ -1,8 +1,10 @@
 """Full LW Config 3 Pareto example for sigma_FP_L1 and delivered digits.
 
 Default inputs reuse existing Week 4 A4 metric CSVs and select headline rho
-rows for HLLC/Rusanov at p53 and p24-real-float. An optional normalized input
-CSV may be supplied with columns:
+rows for HLLC/Rusanov. By default this uses the validated p53 and
+p24-real-float rows already present in Week 4; callers can request additional
+precision labels once the matching metric rows exist. An optional normalized
+input CSV may be supplied with columns:
 
 solver, precision_label, sigma_fp_l1, s_worst_q05, s_req, regime
 """
@@ -27,8 +29,8 @@ DEFAULT_SNR_CSV = REPO_ROOT / "experiments" / "week4" / "metrics" / "a4_snr_with
 DEFAULT_LOSOS_CSV = REPO_ROOT / "experiments" / "week4" / "metrics" / "a4_losos_with_float.csv"
 DEFAULT_S_REQ_CSV = REPO_ROOT / "experiments" / "week4" / "metrics" / "s_req_lw_config3_200.csv"
 HEADLINE_VARIABLE = "rho"
-PRECISIONS = ("p53", "p24-real-float")
-SOLVERS = ("hllc", "rusanov")
+DEFAULT_PRECISIONS = ("p53", "p24-real-float")
+DEFAULT_SOLVERS = ("hllc", "rusanov")
 CSV_COLUMNS = (
     "solver",
     "precision_label",
@@ -105,18 +107,25 @@ def build_rows_from_week4(
     snr_csv: Path = DEFAULT_SNR_CSV,
     losos_csv: Path = DEFAULT_LOSOS_CSV,
     s_req_csv: Path = DEFAULT_S_REQ_CSV,
+    *,
+    solvers: Sequence[str] = DEFAULT_SOLVERS,
+    precisions: Sequence[str] = DEFAULT_PRECISIONS,
 ) -> list[ParetoRow]:
     snr_rows = _read_csv(snr_csv)
     losos_rows = _read_csv(losos_csv)
     s_req_rows = _read_csv(s_req_csv)
 
     points: list[ParetoRow] = []
-    for solver in SOLVERS:
+    for solver in solvers:
         s_req_row = _pick(s_req_rows, solver=solver, variable=HEADLINE_VARIABLE)
         s_req = float(s_req_row["s_req"])
-        for precision in PRECISIONS:
-            snr_row = _pick(snr_rows, solver=solver, precision=precision, variable=HEADLINE_VARIABLE)
-            losos_row = _pick(losos_rows, solver=solver, precision=precision, variable=HEADLINE_VARIABLE)
+        for precision in precisions:
+            filters = {"solver": solver, "precision": precision, "variable": HEADLINE_VARIABLE}
+            try:
+                snr_row = _pick(snr_rows, **filters)
+                losos_row = _pick(losos_rows, **filters)
+            except KeyError as exc:
+                raise KeyError(f"missing requested Week 4 Pareto row: {filters}") from exc
             s_worst_q05 = float(losos_row["s_worst_q05"])
             margin = s_worst_q05 - s_req
             points.append(
@@ -153,7 +162,7 @@ def write_rows(rows: Sequence[ParetoRow], path: Path) -> None:
 
 def _style_for(row: ParetoRow) -> tuple[str, str]:
     colors = {"hllc": "#1f77b4", "rusanov": "#d62728"}
-    markers = {"p53": "o", "p24-real-float": "s"}
+    markers = {"p53": "o", "p32": "^", "p24-real-float": "s", "p16": "P", "p8": "X"}
     return colors.get(row.solver, "#333333"), markers.get(row.precision_label, "D")
 
 
@@ -213,6 +222,7 @@ def plot_twopanel(rows: Sequence[ParetoRow], path: Path) -> None:
 def write_summary(rows: Sequence[ParetoRow], path: Path) -> None:
     min_margin = min(row.precision_margin for row in rows)
     max_margin = max(row.precision_margin for row in rows)
+    precision_labels = ", ".join(sorted({row.precision_label for row in rows}, key=_precision_sort_key))
     p24 = [row for row in rows if row.precision_label == "p24-real-float"]
     p53 = [row for row in rows if row.precision_label == "p53"]
     sigma_ratio = ""
@@ -231,10 +241,23 @@ def write_summary(rows: Sequence[ParetoRow], path: Path) -> None:
         "orders of magnitude in emitted noise. The two-panel view separates "
         "the delivered digits from the precision-adequacy margin "
         "s_worst_q05 - s_req(N), avoiding ambiguous round-off-limited wording.\n\n"
+        f"Included precision labels: {precision_labels}.\n\n"
         f"Precision-adequacy margins in this input range from {min_margin:.2f} "
         f"to {max_margin:.2f}.{sigma_ratio}\n",
         encoding="ascii",
     )
+
+
+def _precision_sort_key(label: str) -> tuple[int, str]:
+    order = {"p8": 8, "p16": 16, "p24-real-float": 24, "p32": 32, "p53": 53}
+    return order.get(label, 10_000), label
+
+
+def _parse_csv_list(value: str) -> tuple[str, ...]:
+    items = tuple(item.strip() for item in value.split(",") if item.strip())
+    if not items:
+        raise argparse.ArgumentTypeError("list must contain at least one item")
+    return items
 
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -244,12 +267,22 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--snr-csv", type=Path, default=DEFAULT_SNR_CSV)
     parser.add_argument("--losos-csv", type=Path, default=DEFAULT_LOSOS_CSV)
     parser.add_argument("--s-req-csv", type=Path, default=DEFAULT_S_REQ_CSV)
+    parser.add_argument(
+        "--precisions",
+        type=_parse_csv_list,
+        default=DEFAULT_PRECISIONS,
+        help="Comma-separated Week 4 precision labels to plot when --input is not supplied.",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> None:
     args = _parse_args(argv)
-    rows = load_normalized_rows(args.input) if args.input else build_rows_from_week4(args.snr_csv, args.losos_csv, args.s_req_csv)
+    rows = (
+        load_normalized_rows(args.input)
+        if args.input
+        else build_rows_from_week4(args.snr_csv, args.losos_csv, args.s_req_csv, precisions=args.precisions)
+    )
     if not rows:
         raise ValueError("no Pareto rows to plot")
 

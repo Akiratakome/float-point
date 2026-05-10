@@ -194,6 +194,58 @@ def test_a4_metric_clis_accept_precision_label() -> None:
     assert losos_args.precision_label == "p24-real-float"
 
 
+def test_verificarlo_2d_runner_accepts_precision_bits() -> None:
+    script = (REPO_ROOT / "scripts" / "verificarlo" / "verificarlo_run_2d.sh").read_text(encoding="utf-8")
+
+    assert "--precision" in script
+    assert "PRECISION" in script
+    assert "--precision-binary64=${PRECISION}" in script
+    assert 'BUILD_DIR="build-vfc-p${PRECISION}-omp${ENABLE_OPENMP}"' in script
+
+
+def test_verificarlo_2d_runner_disables_openmp() -> None:
+    script = (REPO_ROOT / "scripts" / "verificarlo" / "verificarlo_run_2d.sh").read_text(encoding="utf-8")
+
+    assert 'ENABLE_OPENMP="OFF"' in script
+
+
+def test_verificarlo_2d_runner_accepts_openmp_override() -> None:
+    script = (REPO_ROOT / "scripts" / "verificarlo" / "verificarlo_run_2d.sh").read_text(encoding="utf-8")
+
+    assert "--openmp" in script
+    assert "ENABLE_OPENMP" in script
+    assert "-DENABLE_OPENMP=${ENABLE_OPENMP}" in script
+
+
+def test_verificarlo_2d_runner_sets_thread_env_only_without_openmp() -> None:
+    script = (REPO_ROOT / "scripts" / "verificarlo" / "verificarlo_run_2d.sh").read_text(encoding="utf-8")
+
+    assert 'if [[ "$ENABLE_OPENMP" == "OFF" ]]' in script
+    assert "export OMP_NUM_THREADS=1" in script
+
+
+def test_verificarlo_2d_runner_accepts_mca_mode() -> None:
+    script = (REPO_ROOT / "scripts" / "verificarlo" / "verificarlo_run_2d.sh").read_text(encoding="utf-8")
+
+    assert "--mca-mode" in script
+    assert "MCA_MODE" in script
+    assert "--mode=${MCA_MODE}" in script
+
+
+def test_verificarlo_2d_runner_uses_portable_seed_range() -> None:
+    script = (REPO_ROOT / "scripts" / "verificarlo" / "verificarlo_run_2d.sh").read_text(encoding="utf-8")
+
+    assert "0x000000007FFFFFFF" in script
+
+
+def test_verificarlo_2d_runner_uses_single_seed_source() -> None:
+    script = (REPO_ROOT / "scripts" / "verificarlo" / "verificarlo_run_2d.sh").read_text(encoding="utf-8")
+
+    assert "export VFC_BACKENDS=" in script
+    assert "VERIFICARLO_MCA_SEED" not in script
+    assert "VFC_BACKEND_SEED" not in script
+
+
 def test_tradeoff_summary_table_discovers_p53_and_float_rows(tmp_path: Path) -> None:
     from scripts.figures import tradeoff_summary_table
 

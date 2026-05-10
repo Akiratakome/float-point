@@ -15,7 +15,7 @@
 #
 # Usage (from repo root, inside WSL / Docker-Verificarlo):
 #     bash scripts/verificarlo/verificarlo_run_2d.sh \
-#         [--config CFG] [--solver hllc|rusanov] \
+#         [--config CFG] [--solver hllc|rusanov] [--precision BITS] [--mca-mode rr|mca] [--openmp on|off] \
 #         [--samples N] [--out OUTDIR]
 #
 # Defaults:
@@ -27,6 +27,9 @@
 #                 If both --solver and --config are given, --solver overrides
 #                 solver in the copied per-sample run.cfg.
 #     --samples   required (no default; pass 3 for smoke or 5 for feasibility)
+#     --precision MCA binary64 mantissa precision bits (default: 53)
+#     --mca-mode  Verificarlo MCA mode, rr or mca (default: rr)
+#     --openmp    CMake ENABLE_OPENMP switch, on or off (default: off)
 #     --out       experiments/week4/2d_vfc/smoke/<test>/<solver-effective>
 # ──────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
@@ -46,6 +49,9 @@ CONFIG=""
 SOLVER=""
 N_SAMPLES=""
 OUT_DIR=""
+PRECISION="53"
+MCA_MODE="rr"
+ENABLE_OPENMP="OFF"
 
 # ── Arg parsing ───────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
@@ -59,6 +65,20 @@ while [[ $# -gt 0 ]]; do
         --samples)
             [[ $# -lt 2 ]] && { echo "ERROR: --samples requires a value" >&2; exit 2; }
             N_SAMPLES="$2"; shift 2 ;;
+        --precision)
+            [[ $# -lt 2 ]] && { echo "ERROR: --precision requires a value" >&2; exit 2; }
+            PRECISION="$2"; shift 2 ;;
+        --mca-mode)
+            [[ $# -lt 2 ]] && { echo "ERROR: --mca-mode requires a value" >&2; exit 2; }
+            MCA_MODE="$2"; shift 2 ;;
+        --openmp)
+            [[ $# -lt 2 ]] && { echo "ERROR: --openmp requires a value" >&2; exit 2; }
+            case "$2" in
+                on|ON|1|true|TRUE) ENABLE_OPENMP="ON" ;;
+                off|OFF|0|false|FALSE) ENABLE_OPENMP="OFF" ;;
+                *) echo "ERROR: --openmp must be on or off (got '$2')." >&2; exit 2 ;;
+            esac
+            shift 2 ;;
         --out)
             [[ $# -lt 2 ]] && { echo "ERROR: --out requires a value" >&2; exit 2; }
             OUT_DIR="$2"; shift 2 ;;
@@ -68,7 +88,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "ERROR: unknown argument: $1" >&2
-            echo "Usage: bash scripts/verificarlo/verificarlo_run_2d.sh [--config CFG] [--solver hllc|rusanov] [--samples N] [--out OUTDIR]" >&2
+            echo "Usage: bash scripts/verificarlo/verificarlo_run_2d.sh [--config CFG] [--solver hllc|rusanov] [--precision BITS] [--mca-mode rr|mca] [--openmp on|off] [--samples N] [--out OUTDIR]" >&2
             exit 2
             ;;
     esac
@@ -80,6 +100,14 @@ if [[ -z "$N_SAMPLES" ]]; then
 fi
 if ! [[ "$N_SAMPLES" =~ ^[0-9]+$ ]] || [[ "$N_SAMPLES" -le 0 ]]; then
     echo "ERROR: --samples must be a positive integer (got '$N_SAMPLES')." >&2
+    exit 2
+fi
+if ! [[ "$PRECISION" =~ ^[0-9]+$ ]] || [[ "$PRECISION" -le 0 ]]; then
+    echo "ERROR: --precision must be a positive integer (got '$PRECISION')." >&2
+    exit 2
+fi
+if [[ "$MCA_MODE" != "rr" && "$MCA_MODE" != "mca" ]]; then
+    echo "ERROR: --mca-mode must be 'rr' or 'mca' (got '$MCA_MODE')." >&2
     exit 2
 fi
 
@@ -173,12 +201,13 @@ if ! have_new_cmake; then
 fi
 
 # ── Build (idempotent; shares build dir with noise_floor_run.sh) ──────────────
-BUILD_DIR="build-vfc-p53"
+BUILD_DIR="build-vfc-p${PRECISION}-omp${ENABLE_OPENMP}"
 if [[ ! -d "$BUILD_DIR" ]]; then
     echo "[build] $BUILD_DIR not present; configuring + building with verificarlo-c++"
     CXX=verificarlo-c++ cmake -S . -B "$BUILD_DIR" \
         -DCMAKE_BUILD_TYPE=Release \
-        -DFLOAT_PRECISION=double
+        -DFLOAT_PRECISION=double \
+        -DENABLE_OPENMP=${ENABLE_OPENMP}
     cmake --build "$BUILD_DIR" -j
 else
     echo "[build] reusing existing $BUILD_DIR"
@@ -194,27 +223,28 @@ fi
 # See scripts/verificarlo/noise_floor_run.sh comment for seed-mechanism rationale:
 # VFC_BACKENDS_SEED env var is silently ignored by interflop_mca; the seed
 # must be inlined in VFC_BACKENDS as --seed=<decimal uint64>.
-VFC_BASE="libinterflop_mca.so --mode=rr --precision-binary64=53"
-export OMP_NUM_THREADS=1
-export OPENBLAS_NUM_THREADS=1
-export MKL_NUM_THREADS=1
-export VECLIB_MAXIMUM_THREADS=1
-export NUMEXPR_NUM_THREADS=1
+VFC_BASE="libinterflop_mca.so --mode=${MCA_MODE} --precision-binary64=${PRECISION}"
+if [[ "$ENABLE_OPENMP" == "OFF" ]]; then
+    export OMP_NUM_THREADS=1
+    export OPENBLAS_NUM_THREADS=1
+    export MKL_NUM_THREADS=1
+    export VECLIB_MAXIMUM_THREADS=1
+    export NUMEXPR_NUM_THREADS=1
+fi
 echo "[mca] VFC_BASE=${VFC_BASE}"
-echo "[cfg] CONFIG=${CONFIG}  CONFIG_SOLVER=${CONFIG_SOLVER:-unset}  SOLVER_EFFECTIVE=${SOLVER_EFFECTIVE} (source=${SOLVER_SOURCE})  SAMPLES=${N_SAMPLES}  OUT=${OUT_DIR}"
+echo "[cfg] CONFIG=${CONFIG}  CONFIG_SOLVER=${CONFIG_SOLVER:-unset}  SOLVER_EFFECTIVE=${SOLVER_EFFECTIVE} (source=${SOLVER_SOURCE})  PRECISION=${PRECISION}  MCA_MODE=${MCA_MODE}  ENABLE_OPENMP=${ENABLE_OPENMP}  SAMPLES=${N_SAMPLES}  OUT=${OUT_DIR}"
 if [[ -n "$SOLVER" && -n "$CONFIG_SOLVER" && "$SOLVER" != "$CONFIG_SOLVER" ]]; then
     echo "[cfg] note: --solver=${SOLVER} overrides config solver=${CONFIG_SOLVER} in generated run.cfg"
 fi
 
 # ── Run N samples with independent /dev/urandom seeds ─────────────────────────
 for k in $(seq 1 "$N_SAMPLES"); do
-    # 63-bit seed (mask top bit): interflop_mca --seed uses signed int64.
+    # Keep seeds in the portable signed-32-bit range. Verificarlo 2.4.0 Docker
+    # accepts int64 syntactically, but large seeds can crash 2D MCA runs.
     SEED_RAW="$(od -An -N8 -tu8 /dev/urandom | tr -d ' \n')"
-    SEED_DEC=$(( SEED_RAW & 0x7FFFFFFFFFFFFFFF ))
+    SEED_DEC=$(( SEED_RAW & 0x000000007FFFFFFF ))
     SEED_HEX="$(printf '%016x' "$SEED_DEC")"
     export VFC_BACKENDS="${VFC_BASE} --seed=${SEED_DEC}"
-    export VERIFICARLO_MCA_SEED="0x${SEED_HEX}"
-    export VFC_BACKEND_SEED="0x${SEED_HEX}"
 
     SAMPLE_ID="$(printf '%02d' "$k")"
     SAMPLE_DIR="${OUT_DIR}/sample_${SAMPLE_ID}"

@@ -9,8 +9,8 @@
 **Tech stack:** C++17, CUDA (host-side host_device functions reused), CMake ≥ 3.18 (CUDA ≥ 3.24 prefers `native` arch), Catch2, Ninja, OpenMP (CPU baseline), Python (regression report), SLURM (CSC).
 
 **Reference docs:**
-- [`docs/week6/week6-design.md`](week6-design.md) — design + decisions (read this first)
-- [`docs/week6/week5_to_week6_bridge.md`](week5_to_week6_bridge.md) — what is already in place
+- [`docs/week6/archive/week6-design.md`](archive/week6-design.md) — design + decisions (read this first)
+- [`docs/week6/archive/week5_to_week6_bridge.md`](archive/week5_to_week6_bridge.md) — what is already in place
 - [`docs/HARNESS.md`](../HARNESS.md) — `run_matrix.py` schema
 - [`AGENTS.md`](../../AGENTS.md) — solver-numerics + cfg-default invariants
 
@@ -2316,9 +2316,9 @@ Also add to §2 below the Week 5 / Week 6 bridge listings:
 
 ```markdown
 Week 6 deliverables:
-- [week6-design.md](week6/week6-design.md) — design + decisions
-- [week6-verification.md](week6/week6-verification.md) — Phase A-E reproduction recipe
-- [csc_gpu_environment.md](week6/csc_gpu_environment.md) — D1 CSC probe
+- [week6-design.md](week6/archive/week6-design.md) — design + decisions
+- [week6-verification.md](week6/archive/week6-verification.md) — Phase A-E reproduction recipe
+- [csc_gpu_environment.md](week6/archive/csc_gpu_environment.md) — D1 CSC probe
 ```
 
 Update the footer date stamp.

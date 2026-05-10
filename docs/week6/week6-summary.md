@@ -29,7 +29,7 @@ Week 6 `.bin` files are tracked.
 | G5. Default CPU byte identity | Pass | Default Sod stdout MD5 remains `FD58E1A9398178E54E5B761AE9D87959`. |
 | G6. Timer phase split | Pass | Profiling build emits `[timing] total_s=...` plus `phase=bc/cfl/flux/sweep/update`. |
 | G7. LW Config 4 / 12 | Pass | `config4_n{200,400}.cfg`, `config12_n{200,400}.cfg`, IC dispatch, and unit tests are present. |
-| G8. Documentation closed | Pass | `week6-plan.md`, `week6-design.md`, `week6-verification.md`, `csc_gpu_environment.md`, this summary, CSC artefacts, and `docs/INDEX.md` links are present. |
+| G8. Documentation closed | Pass | `week6-plan.md`, archived `week6-design.md`, `week6-verification.md`, `csc_gpu_environment.md`, this summary, CSC artefacts, and `docs/INDEX.md` links are present. |
 
 ## Delivered
 

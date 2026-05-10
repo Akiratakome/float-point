@@ -38,7 +38,7 @@
 | 3 | [week3-plan.md](week3/week3-plan.md) | [week3-summary.md](week3/week3-summary.md) | [week3/archive/](week3/archive/) |
 | 4 | [week4-plan.md](week4/week4-plan.md) | [week4-summary.md](week4/week4-summary.md) | [week4/archive/](week4/archive/) |
 | 5 | [week5-plan.md](week5/week5-plan.md) | [week5-summary.md](week5/week5-summary.md) | [week5/archive/](week5/archive/) |
-| 6 | [week6-plan.md](week6/week6-plan.md) | [week6-summary.md](week6/week6-summary.md) | (none) |
+| 6 | [week6-plan.md](week6/week6-plan.md) | [week6-summary.md](week6/week6-summary.md) | [week6/archive/](week6/archive/) |
 | 7 | [week7-plan.md](week7/week7-plan.md) | summary pending | (none) |
 
 Week 4 also keeps:
@@ -51,14 +51,18 @@ Week 5 pre-start bridge:
 - [week5-verification.md](week5/week5-verification.md) — manual reproduction recipe for Week 5 (Phase A/B/C/D/E coverage)
 
 Week 6 pre-start bridge:
-- [week5_to_week6_bridge.md](week6/week5_to_week6_bridge.md) — Week 5 → Week 6 handoff (delivered work, reusable interfaces, Week 6 GPU plan)
+- [week5_to_week6_bridge.md](week6/archive/week5_to_week6_bridge.md) — Week 5 → Week 6 handoff (delivered work, reusable interfaces, Week 6 GPU plan)
 
 Week 6 deliverables:
-- [week6-design.md](week6/week6-design.md) — GPU Euler + CSC migration design
-- [week6-verification.md](week6/week6-verification.md) — Phase A-E reproduction recipe
-- [csc_gpu_environment.md](week6/csc_gpu_environment.md) — CSC GPU environment probe
+- [week6-design.md](week6/archive/week6-design.md) — GPU Euler + CSC migration design
+- [week6-verification.md](week6/archive/week6-verification.md) — Phase A-E reproduction recipe
+- [csc_gpu_environment.md](week6/archive/csc_gpu_environment.md) — CSC GPU environment probe
+- [week6-supervisor-plan.md](week6/archive/week6-supervisor-plan.md) — supervisor-response operational plan
+- [week6_supervisor_response.md](experiment_logs/week6_supervisor_response.md) — supervisor-response evidence log
+- [week6_pareto_precision_sweep_plan.md](experiment_logs/week6_pareto_precision_sweep_plan.md) — Pareto precision sweep extension plan
 
 Week 7 deliverables:
+- [week6_to_week7_bridge.md](week7/week6_to_week7_bridge.md) — Week 6 → Week 7 handoff (completed GPU baseline, reusable interfaces, Week 7 experiment guidance)
 - [week7-plan.md](week7/week7-plan.md) — operational plan for supervisor-response evidence collection
 - [week7_supervisor_response.md](experiment_logs/week7_supervisor_response.md) — supervisor-response evidence log; Week 7 summary pending
 
@@ -179,4 +183,4 @@ When a structured reorganization or multi-step task is in progress, three files 
 
 ---
 
-*Last updated: 2026-05-07 (desktop workspace on `main`; clarified Week 6 GPU path and build-cache policy).*
+*Last updated: 2026-05-09 (desktop workspace on `main`; Week 6 docs follow plan/summary + archive layout).*

@@ -1,7 +1,7 @@
 # Week 6 Verification Recipe
 
 **Date**: 2026-05-05 (Week 6)
-**Spec**: [week6-plan.md](week6-plan.md)
+**Spec**: [week6-plan.md](../week6-plan.md)
 **Branch**: `week5-implementation`
 **Scope**: strict CPU/CUDA builds, unit tests, WSL CPU-vs-GPU smoke/regression,
 CSC replay workflow, G5 byte-identity record, and G6 timing emit.
