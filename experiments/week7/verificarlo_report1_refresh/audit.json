@@ -1,0 +1,32 @@
+[
+  {
+    "precision": "p8",
+    "hllc_samples": 2,
+    "rusanov_samples": 2,
+    "status": "exploratory; common subset"
+  },
+  {
+    "precision": "p16",
+    "hllc_samples": 3,
+    "rusanov_samples": 3,
+    "status": "exploratory"
+  },
+  {
+    "precision": "p32",
+    "hllc_samples": 3,
+    "rusanov_samples": 3,
+    "status": "exploratory"
+  },
+  {
+    "precision": "p24-real-float",
+    "hllc_samples": 30,
+    "rusanov_samples": 30,
+    "status": "Week 4/Athena metric source"
+  },
+  {
+    "precision": "p53",
+    "hllc_samples": 30,
+    "rusanov_samples": 30,
+    "status": "Week 4/Athena metric source"
+  }
+]

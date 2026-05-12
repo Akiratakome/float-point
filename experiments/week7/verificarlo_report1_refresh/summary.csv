@@ -1,0 +1,11 @@
+solver,precision,sigma_fp_l1,s_worst_q05,s_req,precision_margin,regime,variable,s_reliability_q05,s_accuracy_q05,n_samples,precision_order,sample_status
+hllc,p8,1650.59720493,0.728031965487,3.0745470357,-2.346515,precision-adequacy deficit,rho,0.7849090670623479,0.9807450479618216,2.0,8,exploratory
+hllc,p16,9.49699453781,1.53752776194,3.0745470357,-1.537019,precision-adequacy deficit,rho,3.10325961067664,1.5375277619358405,3.0,16,exploratory
+hllc,p24-real-float,0.0295552208489,1.54216757349,3.0745470357,-1.532379,precision-adequacy deficit,rho,,,30.0,24,production
+hllc,p32,0.000142546922871,1.54217101288,3.0745470357,-1.532376,precision-adequacy deficit,rho,7.869967323728294,1.5421710128838295,3.0,32,exploratory
+hllc,p53,5.216e-11,1.54217102099,3.0745470357,-1.532376,precision-adequacy deficit,rho,,,30.0,53,production
+rusanov,p8,670.990218933,0.766483531518,2.87729874497,-2.110815,precision-adequacy deficit,rho,0.9256235409176488,0.8443240539973064,2.0,8,exploratory
+rusanov,p16,4.12485861179,1.23056013133,2.87729874497,-1.646739,precision-adequacy deficit,rho,3.123237061801857,1.2305601313324095,3.0,16,exploratory
+rusanov,p24-real-float,0.00819945711674,1.23018618905,2.87729874497,-1.647113,precision-adequacy deficit,rho,,,30.0,24,production
+rusanov,p32,6.01970896621e-05,1.23019117556,2.87729874497,-1.647108,precision-adequacy deficit,rho,7.885971406501985,1.2301911755632302,3.0,32,exploratory
+rusanov,p53,2.278e-11,1.23019118308,2.87729874497,-1.647108,precision-adequacy deficit,rho,,,30.0,53,production
