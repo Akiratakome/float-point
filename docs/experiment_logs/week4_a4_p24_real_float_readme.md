@@ -35,7 +35,7 @@ moved into the canonical Week-4 experiment locations.
 
 `losos_accuracy_heatmap.png`:
 
-- Measures how close the MCA sample mean is to the 800² block-averaged
+- Measures how close the MCA sample mean is to the current 1600² block-averaged
   reference.
 - Low values usually track shocks and contact structures where truncation error
   dominates.
@@ -49,7 +49,7 @@ moved into the canonical Week-4 experiment locations.
 
 Columns:
 
-- `mu_trunc_L1`: physical discretisation error against the 800² reference.
+- `mu_trunc_L1`: physical discretisation error against the current 1600² reference.
 - `sigma_FP_L1`: total FP noise over the MCA ensemble.
 - `s_worst_q05`: trustworthy digits in the worst 5% of cells.
 - `s_req(N)`: digits required to match the grid truncation level.

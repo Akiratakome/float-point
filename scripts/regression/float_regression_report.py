@@ -424,12 +424,19 @@ def _report_1d(input_dir: Path) -> dict[str, object]:
     return summary
 
 
-def _report_2d(input_dir: Path, gamma: float, smooth_sigma: float, allow_ssim_fallback: bool) -> dict[str, object]:
-    ref_path = input_dir / "reference_800.bin"
+def _report_2d(
+    input_dir: Path,
+    gamma: float,
+    smooth_sigma: float,
+    allow_ssim_fallback: bool,
+    reference_path: Path | None = None,
+) -> dict[str, object]:
+    ref_path = reference_path if reference_path is not None else input_dir / "reference_800.bin"
     if not ref_path.is_file():
         raise FileNotFoundError(f"Missing reference binary: {ref_path}")
     ref_header, ref_cons = read_binary(ref_path)
     ref_cons_f64 = ref_cons.astype(np.float64)
+    reference_label = ref_path.stem
     # Order matters: each double_NNN precedes its float_NNN twin, so the
     # Philip metric can reuse the double-vs-reference denominator.
     cases = [
@@ -443,8 +450,8 @@ def _report_2d(input_dir: Path, gamma: float, smooth_sigma: float, allow_ssim_fa
         "",
         "Two metrics per case:",
         "",
-        "- **L1_rho** etc.: `||candidate - reference_800_downsampled||_1`.",
-        "- **L1_rho fmd/d_err**: `||float - double||_1 / ||double - reference_800_downsampled||_1`.",
+        f"- **L1_rho** etc.: `||candidate - {reference_label}_downsampled||_1`.",
+        f"- **L1_rho fmd/d_err**: `||float - double||_1 / ||double - {reference_label}_downsampled||_1`.",
         "",
         "| case | L1_rho | L2_rho | Linf_rho | ssim_rho | delta_x_shock | delta_y_shock | L1_rho fmd/d_err | L1_u fmd/d_err | L1_p fmd/d_err |",
         "|------|-------:|-------:|---------:|---------:|--------------:|--------------:|-----------------:|---------------:|---------------:|",
@@ -603,7 +610,13 @@ def main() -> None:
     else:
         if args.input is None:
             raise ValueError("--mode 2d requires --input")
-        summary = _report_2d(args.input, args.gamma, args.smooth_sigma, allow_ssim_fallback)
+        summary = _report_2d(
+            args.input,
+            args.gamma,
+            args.smooth_sigma,
+            allow_ssim_fallback,
+            args.reference,
+        )
     print(json.dumps(summary, indent=2))
 
 

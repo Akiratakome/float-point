@@ -16,7 +16,7 @@ Conventions:
   coupling note).
 - σ_FP_L1 is taken from snr_scalars.csv.
 - s_worst_q05 / s_reliability_q05 / s_accuracy_q05 are taken from the
-  re-run losos CSV (with 800² block-avg reference).
+  re-run losos CSV (with the current block-averaged reference).
 
 No magic numbers — regime margins live in scripts/_tradeoff_thresholds.py.
 """
@@ -125,8 +125,8 @@ def _format_markdown(rows: list[dict], N: int) -> str:
     lines.append("**Notes:**")
     lines.append("")
     lines.append(f"- All values shown for the ρ variable; full per-variable breakdown is in `experiments/week4/metrics/s_req_lw_config3_{N}.csv` and `experiments/week4/metrics/losos_lw_config3_{N}.csv`.")
-    lines.append("- `μ_trunc_L1` is reference-anchored (candidate 200² minus 800² block-averaged reference, primitive variables); the column overrides the self-referenced value present in `snr_scalars.csv`.")
-    lines.append(f"- `s_worst_q05 = min(s_reliability, s_accuracy)` 5th-percentile over cells; the LoSoS reference is the same 800² block-averaged primitive `.npz` produced by `s_req_metric.py`. No upper-bound footnote is needed in this round.")
+    lines.append("- `μ_trunc_L1` is reference-anchored (candidate grid minus block-averaged high-resolution reference, primitive variables); the column overrides the self-referenced value present in `snr_scalars.csv`.")
+    lines.append(f"- `s_worst_q05 = min(s_reliability, s_accuracy)` 5th-percentile over cells; the LoSoS reference is the same block-averaged primitive `.npz` produced by `s_req_metric.py`. No upper-bound footnote is needed in this round.")
     lines.append("- `regime` is classified by `s_worst − s_req`: `> 2.0 = over-provisioned`, `(1.0, 2.0] = well-matched`, `(0, 1.0] = marginal`, `≤ 0 = round-off-limited`. Thresholds in `scripts/_tradeoff_thresholds.py`.")
     precisions = ", ".join(sorted({str(r["precision"]) for r in rows}))
     lines.append(f"- Included precision labels: {precisions}. Each non-p53 row must come from an MCA ensemble, not a single deterministic float run.")

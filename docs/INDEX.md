@@ -92,7 +92,7 @@ tests/
 ├── cases/
 │   ├── toro_1d/    # sod, toro2-5, stationary_contact (+ rusanov twins)
 │   │               # convergence_*.cfg drive resolutions = 50,100,200,400,800
-│   └── liska_wendroff_2d/  # config3_n200, config3_n400, config3_ref800
+│   └── liska_wendroff_2d/  # config3_n200, config3_n400, config3_n1600; legacy config3_ref800
 └── py/             # Python-level tests (pytest): test_ssim_scalar, test_snr_*,
                     # test_losos_*, test_s_req_*, test_plot_divergence_marker
 ```
@@ -126,7 +126,7 @@ cmake --build build-double
 | Run all unit tests | `./build-double/unit_tests -r compact && ./build-float/unit_tests -r compact` |
 | Run Sod 1D | `./build-double/hrsc tests/cases/toro_1d/sod.cfg` |
 | 1D float regression (6 Toro cases × 2 precisions × 5 N) | `bash scripts/regression/float_regression_1d.sh` |
-| 2D LW Config 3 float regression (n200/n400 + 800² ref) | `bash scripts/regression/float_regression_2d.sh` |
+| 2D LW Config 3 float regression (n200/n400 + 1600² ref when available) | `bash scripts/regression/float_regression_2d.sh` |
 | Verificarlo MCA noise floor | `bash scripts/verificarlo/verificarlo_run.sh -t sod -n 30` |
 | Verificarlo real-float vs VPREC | `bash scripts/verificarlo/verificarlo_run.sh --compare-float -t "sod stationary_contact"` |
 
@@ -139,7 +139,7 @@ For the full step-by-step manual recipe see [week4/week4-verification.md](week4/
 | Where to find | What's there |
 |---|---|
 | `experiments/week4/float_regression/1d/` | Phase C1 1D: 12 CSVs (sod, toro2-5, stationary_contact × {double, float}) + summary.{md,json} |
-| `experiments/week4/float_regression/2d/` | Phase C1 2D: reference_800.bin + 4 candidates + 16 difference heatmaps + summary.{md,json} |
+| `experiments/week4/float_regression/2d/` | Phase C1 2D: 4 candidates + 16 difference heatmaps + summary.{md,json}; current rerun uses the Week 7 1600² reference when available |
 | `experiments/week4/figures/a4_pareto/` | A4 σ_FP × s_worst Pareto figure (`pareto_lw_config3_200.png`) |
 | `experiments/week4/figures/a4_float_p24/` | A4 p24-real-float Athena heatmaps (σ_FP, LoSoS reliability/accuracy/worst) |
 | `experiments/week4/metrics/` | A4 metrics: p53 LoSoS/s_req, p24-real-float SNR/LoSoS, merged CSVs for the four-row headline table |

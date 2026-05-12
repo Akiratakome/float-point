@@ -1,7 +1,7 @@
 """Truncation-anchored required significant digits s_req(N).
 
 Computes E_trunc(N) = ||μ_sample(N) − U_ref||_1 / max(||U_ref||_1, floor_L1)
-on a coarse 200² grid against a 4×4 block-averaged 800² double reference,
+on a coarse grid against an integer-ratio block-averaged double reference,
 and emits s_req(N) = -log10(E_trunc) + 1 per primitive variable (rho, u, v, p).
 
 Floor design (related to but NOT identical to snr_metric / losos_metric):
@@ -44,42 +44,48 @@ from losos_metric import SIG_DIGITS_CEILING
 # Primitive variable names and order — mirrors IDX_* in io_helper.py.
 VAR_ORDER = ("rho", "u", "v", "p")
 
-# Coarsening factor: 800² fine reference → 200² coarse candidate grid.
-# Hardcoded as 4 because the only candidate-vs-reference pair this round is
-# 200² ↔ 800². Generalisation to other ratios is deferred to next round.
-_BLOCK_FACTOR = 4
-
-
 # ---------------------------------------------------------------------------
 # Core compute functions (public API; called by tests and CLI)
 # ---------------------------------------------------------------------------
 
-def block_average_4x_to_coarse(fine: np.ndarray) -> np.ndarray:
-    """Conservation-preserving 4×4 block average.
+def block_average_to_shape(fine: np.ndarray, target_ny: int, target_nx: int) -> np.ndarray:
+    """Conservation-preserving integer-ratio block average.
 
     Parameters
     ----------
     fine : ndarray of shape (ny_f, nx_f, nvars). Both ny_f and nx_f MUST be
-           divisible by 4. Acts on the leading two spatial axes only.
+           integer multiples of the target shape.
+    target_ny, target_nx : target coarse-grid dimensions.
 
     Returns
     -------
-    coarse : ndarray of shape (ny_f//4, nx_f//4, nvars).
-             Each coarse cell == mean of the 16 fine cells it covers.
-             Conservation: coarse.sum() * 16 == fine.sum() (float64 exact).
+    coarse : ndarray of shape (target_ny, target_nx, nvars).
+             Each coarse cell is the mean of the fine cells it covers.
     """
     ny_f, nx_f, _ = fine.shape
-    if ny_f % _BLOCK_FACTOR != 0 or nx_f % _BLOCK_FACTOR != 0:
+    if target_ny <= 0 or target_nx <= 0:
+        raise ValueError(f"target shape must be positive, got ({target_ny}, {target_nx})")
+    if ny_f % target_ny != 0 or nx_f % target_nx != 0:
         raise ValueError(
-            f"Block-average requires factor-{_BLOCK_FACTOR} grid; "
-            f"got ({ny_f}, {nx_f})"
+            f"Block-average requires integer reference/candidate ratio; "
+            f"got fine ({ny_f}, {nx_f}) and target ({target_ny}, {target_nx})"
         )
+    ry = ny_f // target_ny
+    rx = nx_f // target_nx
     f = fine.astype(np.float64, copy=False)
     return f.reshape(
-        ny_f // _BLOCK_FACTOR, _BLOCK_FACTOR,
-        nx_f // _BLOCK_FACTOR, _BLOCK_FACTOR,
+        target_ny, ry,
+        target_nx, rx,
         f.shape[2],
     ).mean(axis=(1, 3))
+
+
+def block_average_4x_to_coarse(fine: np.ndarray) -> np.ndarray:
+    """Backward-compatible 4x coarsening helper used by existing tests."""
+    ny_f, nx_f, _ = fine.shape
+    if ny_f % 4 != 0 or nx_f % 4 != 0:
+        raise ValueError(f"Block-average requires factor-4 grid; got ({ny_f}, {nx_f})")
+    return block_average_to_shape(fine, ny_f // 4, nx_f // 4)
 
 
 def compute_e_trunc(
@@ -152,16 +158,19 @@ def _load_coarse_candidate(bin_path: Path, gamma: float) -> np.ndarray:
 
 
 def _load_block_avg_reference(
-    bin_path: Path, gamma: float
+    bin_path: Path, gamma: float, target_shape: tuple[int, int]
 ) -> tuple[np.ndarray, int]:
-    """Read 800² reference, block-avg cons → 200², convert to primitive.
+    """Read fine reference, block-average conserved variables, convert to primitive.
 
     Returns (prim_coarse (ny, nx, 4), fine_N).
     """
     h, cons_fine = read_binary(bin_path)
     if cons_fine.ndim != 3 or cons_fine.shape[-1] != len(VAR_ORDER):
         raise ValueError(f"unexpected reference shape {cons_fine.shape} in {bin_path}")
-    cons_coarse = block_average_4x_to_coarse(cons_fine.astype(np.float64))
+    target_ny, target_nx = target_shape
+    cons_coarse = block_average_to_shape(
+        cons_fine.astype(np.float64), target_ny, target_nx
+    )
     prim_coarse = cons_to_prim(cons_coarse, gamma)
     return prim_coarse, h.nx
 
@@ -210,7 +219,7 @@ def _row_for(
 
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Compute s_req(N) for HLLC and Rusanov via 800² block-avg reference."
+        description="Compute s_req(N) for HLLC and Rusanov via block-averaged references."
     )
     p.add_argument("--candidate-hllc-bin",  required=True, type=Path)
     p.add_argument("--candidate-rusanov-bin", required=True, type=Path)
@@ -238,8 +247,12 @@ def main() -> None:
     mu_rusanov = _load_coarse_candidate(args.candidate_rusanov_bin, args.gamma)
 
     print("[s_req] loading + block-averaging references…", file=sys.stderr)
-    ref_hllc, fine_N_h = _load_block_avg_reference(args.reference_hllc_bin, args.gamma)
-    ref_rusanov, fine_N_r = _load_block_avg_reference(args.reference_rusanov_bin, args.gamma)
+    ref_hllc, fine_N_h = _load_block_avg_reference(
+        args.reference_hllc_bin, args.gamma, mu_hllc.shape[:2]
+    )
+    ref_rusanov, fine_N_r = _load_block_avg_reference(
+        args.reference_rusanov_bin, args.gamma, mu_rusanov.shape[:2]
+    )
 
     if mu_hllc.shape != ref_hllc.shape:
         raise ValueError(
@@ -251,7 +264,11 @@ def main() -> None:
         )
 
     N = mu_hllc.shape[0]
-    print(f"[s_req] coarse grid: {N}² (fine ref was {fine_N_h}²)", file=sys.stderr)
+    print(
+        f"[s_req] coarse grid: {N}² "
+        f"(fine refs were HLLC {fine_N_h}², Rusanov {fine_N_r}²)",
+        file=sys.stderr,
+    )
 
     rows: list[dict] = []
     for solver, mu, u_ref in (

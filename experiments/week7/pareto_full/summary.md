@@ -6,5 +6,5 @@ Log scaling is required because p24-real-float and p53 differ by many orders of 
 
 Included precision labels: p8, p16, p24-real-float, p32, p53.
 
-Precision-adequacy margins in this input range from -2.40 to -1.59.
+Precision-adequacy margins in this input range from -2.35 to -1.53.
 The plotted p24-real-float noise is about 1.30e+09 times the quietest p53 noise.

@@ -227,13 +227,15 @@ python scripts/figures/tradeoff_summary_table.py \
 LoSoS heatmaps:
 
 - `s_reliability`: how tightly the MCA samples cluster.
-- `s_accuracy`: how close the ensemble mean is to the 800² reference.
+- `s_accuracy`: how close the ensemble mean is to the current block-averaged
+  high-resolution reference.
 - `s_worst = min(s_reliability, s_accuracy)`: the significant digits you can
   actually trust. This is the field used in the headline table via q05.
 
 Headline table:
 
-- `mu_trunc_L1`: physical discretisation error against the 800² reference.
+- `mu_trunc_L1`: physical discretisation error against the current
+  block-averaged high-resolution reference.
 - `sigma_FP_L1`: accumulated FP noise across the MCA ensemble.
 - `s_worst_q05`: trustworthy significant digits in the worst 5% of cells.
 - `s_req(N)`: significant digits required to match truncation error at N=200².

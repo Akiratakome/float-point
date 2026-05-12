@@ -8,6 +8,7 @@ fi
 
 CFG_BASE="tests/cases/liska_wendroff_2d"
 OUT_DIR="experiments/week4/float_regression/2d"
+DEFAULT_REF_1600="experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/reference_1600.bin"
 
 # Pick a real Python (see float_regression_1d.sh for rationale).
 resolve_python() {
@@ -39,7 +40,12 @@ BUILD_FLOAT="$(resolve_bin build-float/hrsc)"
 
 mkdir -p "$OUT_DIR"
 
-"$BUILD_DOUBLE" "${CFG_BASE}/config3_ref800.cfg"
+REFERENCE_BIN="${HRSC_2D_REFERENCE_BIN:-$DEFAULT_REF_1600}"
+if [[ ! -f "$REFERENCE_BIN" ]]; then
+    echo "WARNING: 1600^2 reference not found at $REFERENCE_BIN; falling back to legacy 800^2 reference." >&2
+    "$BUILD_DOUBLE" "${CFG_BASE}/config3_ref800.cfg"
+    REFERENCE_BIN="${OUT_DIR}/reference_800.bin"
+fi
 
 for res in 200 400; do
     "$BUILD_DOUBLE" "${CFG_BASE}/config3_n${res}.cfg"
@@ -48,5 +54,7 @@ for res in 200 400; do
     cp "${OUT_DIR}/candidate_${res}.bin" "${OUT_DIR}/float_${res}.bin"
 done
 
-"$PY" scripts/regression/float_regression_report.py --mode 2d --input "$OUT_DIR"
-
+"$PY" scripts/regression/float_regression_report.py \
+    --mode 2d \
+    --input "$OUT_DIR" \
+    --reference "$REFERENCE_BIN"

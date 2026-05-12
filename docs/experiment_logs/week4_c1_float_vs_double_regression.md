@@ -28,7 +28,8 @@ bash scripts/float_regression_2d.sh
 
 Expected outputs:
 
-- `experiments/week4/float_regression/2d/reference_800.bin`
+- Current rerun reference: `experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/reference_1600.bin`
+- Legacy reference retained for provenance: `experiments/week4/float_regression/2d/reference_800.bin`
 - `experiments/week4/float_regression/2d/{double,float}_{200,400}.bin`
 - `experiments/week4/float_regression/2d/summary.md`
 - `experiments/week4/float_regression/2d/summary.json`
@@ -46,7 +47,7 @@ Latest 2D result table (L1/L2/Linf + SSIM + shock offsets) is generated at:
 ```bash
 python scripts/downsample_2d.py \
   --candidate experiments/week4/float_regression/2d/float_200.bin \
-  --reference experiments/week4/float_regression/2d/reference_800.bin
+  --reference experiments/week7/reference_1600/runs/lw3-n1600-gpu-double-strict/reference_1600.bin
 
 python scripts/phase_error_metrics.py \
   --candidate experiments/week4/float_regression/2d/float_200.bin \
