@@ -1,0 +1,46 @@
+{
+  "experiment": "week7-vfc-precexp",
+  "output_root": "experiments/week7/vfc_precexp",
+  "cases": [
+    "sod",
+    "stationary_contact"
+  ],
+  "solvers": [
+    "hllc",
+    "rusanov"
+  ],
+  "candidate_symbols": [
+    {
+      "component": "muscl",
+      "symbol_hint": "reconstruct_* / minmod / limiter path",
+      "source": "src/euler/muscl.hpp",
+      "reason": "slope reconstruction can amplify cancellation near discontinuities"
+    },
+    {
+      "component": "hancock",
+      "symbol_hint": "hancock_* predictor path",
+      "source": "src/euler/hancock.hpp",
+      "reason": "predictor combines reconstructed states and flux differences"
+    },
+    {
+      "component": "flux",
+      "symbol_hint": "hllc_flux / rusanov_flux",
+      "source": "src/euler/hllc.hpp; src/euler/rusanov.hpp",
+      "reason": "supervisor asked whether flux choice is the FP bottleneck"
+    },
+    {
+      "component": "eos",
+      "symbol_hint": "pressure / sound_speed / cons_to_prim",
+      "source": "src/core/eos.hpp",
+      "reason": "pressure subtracts kinetic energy from total energy"
+    },
+    {
+      "component": "cfl",
+      "symbol_hint": "CFL / timestep computation",
+      "source": "src/euler/euler_solver.hpp; src/gpu/* future",
+      "reason": "precision changes in timestep can alter trajectories"
+    }
+  ],
+  "acceptance_criterion": "density_l1_relative_and_pressure_linf_against_ieee_reference",
+  "old_artifact_boundary": "experiments/verificarlo/precexp is whole-program only"
+}
