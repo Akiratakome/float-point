@@ -72,7 +72,7 @@ function(hrsc_apply_strict_ieee_cuda target)
     _hrsc_compile_option_scope(${target} _hrsc_scope)
     target_compile_options(${target} ${_hrsc_scope}
         "$<$<COMPILE_LANGUAGE:CUDA>:--fmad=false;--ftz=false;--prec-div=true;--prec-sqrt=true>"
-        "$<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-Xcompiler=-O2;-Xcompiler=-ffp-contract=off;-Xcompiler=-fno-fast-math;-Xcompiler=-fexcess-precision=standard;-Xcompiler=-fno-unsafe-math-optimizations;-Xcompiler=-fno-strict-aliasing>"
+        "$<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-Xcompiler=-O2;-Xcompiler=-ffp-contract=off;-Xcompiler=-fno-fast-math;-Xcompiler=-fno-unsafe-math-optimizations;-Xcompiler=-fno-strict-aliasing>"
         "$<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CXX_COMPILER_ID:MSVC>>:-Xcompiler=/O2;-Xcompiler=/fp:strict;-Xcompiler=/Oi->"
     )
 endfunction()
