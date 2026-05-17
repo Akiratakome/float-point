@@ -3,13 +3,13 @@
 This file is a working synthesis for any AI agent or human collaborator working on **Report 1** of the dissertation project *"Effect of Floating-Point Precision and Hardware on HRSC Schemes"*. It focuses on report writing requirements, marking expectations, and thesis-style presentation. It is not a substitute for the official PDFs. Where a writing or assessment rule is contested, the official project brief and handbook win.
 
 Binding sources (consult before deviating):
-- `Effect of Floating-Point precision and hardware on HRSC Schemes.pdf` — project brief from supervisor Dr Philip Blakely (CSC). Defines scope, required content, Report 1 marking breakdown, and supervisor-specified references.
-- `SciComp_Mphil_Handbook-2025-26.pdf` — course handbook. Defines word limit, layout, assessment process, writing expectations, and key dates.
-- `../docs/requirement/Coding_and_submission_guidelines.pdf` — use only for writing-integrity points that affect the report text, especially TurnItIn anonymity and AI-generated text boundaries.
+- `report1/requirements/Effect of Floating-Point precision and hardware on HRSC Schemes.pdf` — project brief from supervisor Dr Philip Blakely (CSC). Defines scope, required content, Report 1 marking breakdown, and supervisor-specified references.
+- `report1/requirements/SciComp_Mphil_Handbook-2025-26.pdf` — course handbook. Defines word limit, layout, assessment process, writing expectations, and key dates.
+- `docs/requirement/Coding_and_submission_guidelines.pdf` — use only for writing-integrity points that affect the report text, especially TurnItIn anonymity and AI-generated text boundaries.
 
 Supporting sources:
-- `phd-thesis-template-2.4/` — CUED LaTeX template. The expected typesetting framework.
-- `Project-Report-1-example.pdf` — unrelated example report (Davison-Petch 2024, contrails / IMEX). Use **structure only**, not content; topic is not ours and it does not create requirements.
+- `report1/phd-thesis-template-2.4/` — CUED LaTeX template. The expected typesetting framework.
+- `report1/examples/Project-Report-1-example.pdf` — unrelated example report (Davison-Petch 2024, contrails / IMEX). Use **structure only**, not content; topic is not ours and it does not create requirements.
 
 ---
 
@@ -45,7 +45,7 @@ Supporting sources:
 - 12-point font (handbook p.11)
 - 1.5 or double line spacing
 - Margins at least 2 cm on all sides
-- Use the local CUED template `phd-thesis-template-2.4/` for the title page. If manually checking the generated page, the handbook rule is: **author's name**, **approved** project title, and degree at the **top**; supervisor name at the **bottom right-hand corner** (handbook p.11).
+- Use the local CUED template `report1/phd-thesis-template-2.4/` for the title page. If manually checking the generated page, the handbook rule is: **author's name**, **approved** project title, and degree at the **top**; supervisor name at the **bottom right-hand corner** (handbook p.11).
 
 ### 2.3 Front matter
 
@@ -183,7 +183,7 @@ To pass the research project component, the report should broadly meet these cri
 
 ## 4. Suggested chapter structure for Report 1
 
-Use `report1/manuscript_outline.md` as the detailed chapter-by-chapter writing plan. The structure below is the same final report order in compact form. Word allocation is illustrative — adjust to evidence, never to fill a quota.
+Use `report1/planning/manuscript_outline.md` as the detailed chapter-by-chapter writing plan. The structure below is the same final report order in compact form. Word allocation is illustrative — adjust to evidence, never to fill a quota.
 
 | Chapter | Topic | Approx. words (hard upper) | Anchors |
 |---|---|---|---|
@@ -287,7 +287,7 @@ Run through this list before treating the report draft as ready for supervisor o
 - [ ] At least 4 Euler test cases required by the brief; the planned main set now uses 5 evidence-complete tests: Sod, Toro3, Toro5, LW3, and LW12 (unified prose label), each with CPU + GPU and fp32 + fp64 quantitative comparison. The set includes four explicitly supersonic entries (Toro3, Toro5, LW3, LW12); Sod is reported with its actual Mach/wave context rather than used as a bare supersonic tick.
 - [ ] Reference-solution method explicitly described.
 - [ ] Floating-point background section discusses hardware, compiler, thread ordering.
-- [ ] Bibliography curated and verified (see `reference.md` after vetting it for hallucinations).
+- [ ] Bibliography curated and verified (see `report1/references/reference.md` after vetting it for hallucinations).
 - [ ] Internal planning labels such as week numbers, D1/D2-style labels, and local experiment nicknames are not used in manuscript prose or captions. Use descriptive scientific labels instead.
 
 **Style and integrity**

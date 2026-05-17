@@ -11,7 +11,7 @@ Use this skill only for project constraints. Do not use it for prose style, para
 
 ## Constraints
 
-- Report 1 word limit: 7,500 words total, including tables, figure legends, and appendices; bibliography excluded.
+- Report 1 word limit: 7,500 words. For the current project clarification, use Overleaf counted text as the controlling value; tables and figure captions are not counted, bibliography is excluded, and pseudocode/algorithm bodies are counted.
 - Word-count penalty thresholds: up to 7,875 words has no penalty; 7,876-8,250 words gives a 10 percentage point penalty; 8,251-9,000 words gives a 20 percentage point penalty; 9,001+ words requires resubmission within 48 hours.
 - Layout: 12-point font, 1.5 or double spacing, margins at least 2 cm.
 - Use the local CUED LaTeX template at `report1/phd-thesis-template-2.4/`; if checking manually, the title page has author's name, approved project title, and degree at the top, with supervisor's name at the bottom right.

@@ -22,6 +22,9 @@
 *.btmp*
 *.xdv*
 *.fls*
+*.fdb_latexmk*
+*.synctex*
+*.synctex(busy)*
 *.glo*
 *.idx*
 *.ist*

@@ -50,8 +50,8 @@ Use this group to support the mathematical-theory and code-description sections.
 - **van Leer, B.** "Towards the ultimate conservative difference scheme. V. A second-order sequel to Godunov's method," *Journal of Computational Physics*, 32(1), 101-136, 1979. doi:`10.1016/0021-9991(79)90145-1`.  
   Use for: MUSCL reconstruction and second-order extension of Godunov methods.
 
-- **Sod, G. A.** "A survey of several finite difference methods for systems of nonlinear hyperbolic conservation laws," *Journal of Computational Physics*, 27, 1-31, 1978.  
-  Use for: Sod shock tube only if this test appears in the validation suite.
+- **Sod, Gary A.** "A survey of several finite difference methods for systems of nonlinear hyperbolic conservation laws," *Journal of Computational Physics*, 27(1), 1-31, 1978. doi:`10.1016/0021-9991(78)90023-2`.  
+  Use for: Sod shock tube only if this test appears in the validation suite. Verified publisher metadata gives author "Gary A Sod", volume 27, issue 1, April 1978, pages 1-31. Suggested BibTeX key if used: `SOD19781`.
 
 ## Floating-Point, Precision, and Reliability
 
@@ -66,8 +66,10 @@ Use this group to make the precision discussion rigorous. Avoid generic statemen
 - **Parker, D. S.** *Monte Carlo Arithmetic: Exploiting Randomness in Floating-Point Arithmetic*, UCLA Computer Science Department Technical Report CSD-970002, 1997.  
   Use for: historical Monte Carlo arithmetic background if Verificarlo/MCA is introduced.
 
-- **Denis, C., de Oliveira Castro, P. and Petit, E.** "Verificarlo: checking floating point accuracy through Monte Carlo Arithmetic," 23rd IEEE Symposium on Computer Arithmetic (ARITH), 2016. doi:`10.1109/ARITH.2016.31`; arXiv:`1509.01347`.  
-  Use for: Verificarlo methodology if the report discusses or uses Verificarlo.
+- **Denis, C., de Oliveira Castro, P. and Petit, E.** "Verificarlo: checking floating point accuracy through Monte Carlo Arithmetic."  
+  Use for: Verificarlo methodology if the report discusses or uses Verificarlo. There are two citable records; choose one deliberately in `references.bib`, rather than mixing fields from both:
+  - Published proceedings version: *2016 IEEE 23rd Symposium on Computer Arithmetic (ARITH)*, 55-62, 2016. doi:`10.1109/ARITH.2016.31`.
+  - arXiv version: arXiv:`1509.01347` `[cs.MS]`, submitted 2015 and last revised as v4 in 2018; arXiv DOI `10.48550/arXiv.1509.01347`. If using the user's arXiv BibTeX, keep it as an `@misc` arXiv entry with `year={2018}` and no IEEE proceedings DOI.
 
 ## Benchmark and Validation References
 
@@ -115,16 +117,16 @@ These should support implementation choices, not replace experiment evidence.
 
 These are binding for the project but are not normally bibliography items unless the report style requires internal documents to be cited.
 
-- `report1/Effect of Floating-Point precision and hardware on HRSC Schemes.pdf`  
+- `report1/requirements/Effect of Floating-Point precision and hardware on HRSC Schemes.pdf`  
   Use for: project aims, required Report 1 validation scope, expected comparison across precision and hardware, and supervisor-specified references.
 
-- `report1/SciComp_Mphil_Handbook-2025-26.pdf`  
+- `report1/requirements/SciComp_Mphil_Handbook-2025-26.pdf`  
   Use for: word limit, formatting, submission process, declaration, deadline, and general marking context.
 
 - `docs/requirement/Coding_and_submission_guidelines.pdf`  
   Use for: code archive, README, reproducibility, and submission-integrity expectations.
 
-- `report1/Project-Report-1-example.pdf`  
+- `report1/examples/Project-Report-1-example.pdf`  
   Use only as a structural example. It must not be treated as a source of scientific content or project-specific requirements.
 
 ## Suggested Citation Map by Section
