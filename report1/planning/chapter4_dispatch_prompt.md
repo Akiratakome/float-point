@@ -30,6 +30,7 @@ Read these files before dispatching workers:
 8. `report1/references/reference.md`
 9. `report1/planning/drafting_status.md`
 10. `report1/phd-thesis-template-2.4/Chapter4/chapter4.tex`
+11. `report1/phd-thesis-template-2.4/Chapter5/chapter5.tex`
 
 Read these implementation files only to support Chapter 4 claims:
 
@@ -60,6 +61,10 @@ Lazy-load these style skills only when you are about to use them:
 - Main agent does not write Chapter 4 prose. Its job is to read context,
   prepare the marker skeleton, dispatch workers, verify edits, enforce
   evidence/style/LaTeX consistency, run review rounds, and check citations.
+  During improvement rounds, the main agent may make only integration edits:
+  trimming, de-duplicating, fixing LaTeX/citation issues, and correcting
+  source-backed wording. If a change requires new section-level prose, re-run
+  the owning worker rather than editing freely.
 - Each section is written by exactly one worker. Workers run serially. Never
   spawn two workers against `chapter4.tex` at the same time.
 - A worker may modify only the region between its assigned markers.
@@ -73,7 +78,7 @@ Lazy-load these style skills only when you are about to use them:
   project-brief context or comparison point if needed; do not imply AMReX was
   used in the Report 1 experiments.
 - Manuscript-facing prose, captions, labels, and figure paths must not contain:
-  `week7`, `week8`, `week9`, `D1`, `D2`, `HLLC-fill`, `config12`,
+  any `weekN` label, `D1`, `D2`, `HLLC-fill`, `config12`,
   `LW12/config12`, or `USE_GPU`.
 - Manuscript prose uses "Liska-Wendroff configuration 3 (LW3)" and
   "Liska-Wendroff configuration 12 (LW12)".
@@ -86,6 +91,8 @@ Lazy-load these style skills only when you are about to use them:
 - The CPU/GPU toolchain split must be disclosed: Toro3/Toro5 use Windows
   BuildTools; Sod/LW3/LW12 use Linux/WSL. Each within-case CPU/GPU comparison
   uses one matched binary.
+- `experiments/week7/report1_validation_1d/summary.md` pair L1 is the
+  fp64-fp32 final-state difference, not a separate fp32 or fp64 exact error.
 - AI-assisted prose must pass `avoiding-ai-flavor`: no filler, no marketing
   tone, no unsupported confidence, and no generic paragraph that could fit an
   unrelated report.
@@ -93,9 +100,12 @@ Lazy-load these style skills only when you are about to use them:
 ### Chapter scope and word budget
 
 Working target: 1000-1130 counted words. Overleaf counts pseudocode, so keep
-all algorithm boxes to at most about 100 counted words total. The chapter should
-answer the Code Description 20% requirement by explaining the implementation
-choices that make the validation and precision evidence interpretable.
+the single pseudocode block to at most about 80 counted words. Section targets
+below are deliberately tight and sum to 930-1125 counted words; if a worker
+writes a table, keep it compact because tables are excluded from the controlling
+Overleaf count but still affect presentation. The chapter should answer the Code
+Description 20% requirement by explaining the implementation choices that make
+the validation and precision evidence interpretable.
 
 ### Required implementation coverage
 
@@ -136,11 +146,21 @@ covered here, it stops and reports.
 | `src/core/boundary.hpp`, `src/utils/io.hpp` | boundary handling and binary output as comparability controls |
 | `scripts/build_all.sh` | build matrix provenance |
 | `scripts/regression/float_regression_report.py` | metric/report generation, device pairing, precision/reference comparisons |
+| `tests/cases/toro_1d/toro_tests.hpp` | Toro initial states for auditable strong/supersonic-wave basis |
+| `tests/cases/liska_wendroff_2d/lw_tests.hpp` | LW3/LW12 initial states for auditable benchmark-wave basis |
 | `experiments/report1_evidence_map.md` | evidence routing and P0/P1 scope |
 | `experiments/week6/regression/summary.md` | regression harness provenance only; not HLLC strict CPU/GPU claim |
+| `experiments/week4/float_regression/1d/summary.md` | 1D exact-reference and float-double/reference provenance |
+| `experiments/week4/float_regression/2d/summary.md` | 2D high-resolution-reference and float-double/reference provenance |
 | `experiments/week7/report1_validation_1d/summary.md` | 1D validation matrix provenance |
 | `experiments/week7/report1_validation_2d/summary.md` | LW3 validation matrix provenance |
+| `experiments/week7/report1_validation_1d_device/cpu_vs_gpu_toro3_toro5_hllc_strict.md` | Toro3/Toro5 matched CPU/GPU HLLC strict summary |
+| `experiments/week7/report1_validation_1d_device/matrix.json` | Toro3/Toro5 Windows BuildTools matched-binary provenance |
+| `experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.md` | LW3 fp64 matched CPU/GPU HLLC strict summary |
+| `experiments/week8/report1_device_hllc_fill/cpu_vs_gpu_sod_lw3fp32_hllc_strict.md` | Sod fp32/fp64 and LW3 fp32 matched CPU/GPU HLLC strict summary |
 | `experiments/week8/report1_2d_config12_fill/summary.md` | LW12 validation matrix provenance |
+| `experiments/week8/report1_2d_config12_fill/reference_comparison/summary.md` | LW12 N=800 numerical-reference provenance |
+| `experiments/week8/report1_2d_config12_fill/cpu_vs_gpu_config12_hllc_strict.md` | LW12 matched CPU/GPU HLLC strict summary |
 | `experiments/week9/cpu_gpu_midtime/summary.md`, `experiments/week9/cpu_gpu_midtime_n400/summary.md` | checkpointed CPU/GPU evidence, if mentioned |
 | `experiments/week9/variation_fp32/summary.md`, `experiments/week9/variation_fp32_extend/summary.md` | fp32 compiler-flag variation, if mentioned |
 
@@ -161,13 +181,21 @@ supports a sentence. For Chapter 4, allowed keys are:
 | `bard_dorelli_2014` | GPU MUSCL-Hancock context if relevant |
 | `zhang_etal_2019` | AMReX context only if AMReX is explicitly discussed as not used |
 
-Do not add new BibTeX entries during this chapter draft. If a worker believes a
-new citation is needed, it stops and reports.
+Workers may not invent citation keys or bibliography metadata. If a worker
+believes a citation beyond this list is needed, it stops and reports the exact
+claim needing support. The main agent may add a BibTeX entry only after checking
+`report1/references/reference.md` or another primary/publisher source and must
+run a final citation-key and BibTeX syntax check.
 
 ### LaTeX skeleton with markers
 
-Before spawning any worker, main agent rewrites `chapter4.tex` to exactly this
-marker skeleton:
+Step 0 before spawning any worker:
+
+1. Snapshot the current `chapter4.tex` content.
+2. Overwrite `chapter4.tex` with exactly this marker skeleton.
+3. Run `rg -n "% <<SECTION_[1-5]_(BEGIN|END)>>" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex`.
+4. Confirm the command returns exactly 10 lines.
+5. Dispatch Worker 1 only after the marker check passes.
 
 ```tex
 %!TEX root = ../thesis.tex
@@ -234,7 +262,7 @@ contradicts this prompt, the worker stops and reports.
 
 Assigned markers: `SECTION_1_BEGIN` to `SECTION_1_END`.
 
-Write Section 4.1, working target 220-280 words. Explain why Report 1 uses the
+Write Section 4.1, working target 190-230 words. Explain why Report 1 uses the
 stand-alone code path: the implementation is organised so precision, hardware,
 and selected implementation choices can vary while the nominal finite-volume
 algorithm remains comparable. Mention AMReX only as project-brief context, and
@@ -261,7 +289,7 @@ Allowed citations if needed: `bard_dorelli_2014`, `zhang_etal_2019`.
 
 Assigned markers: `SECTION_2_BEGIN` to `SECTION_2_END`.
 
-Write Section 4.2, working target 280-345 counted words including pseudocode.
+Write Section 4.2, working target 250-305 counted words including pseudocode.
 Describe the report-level implementation path: configuration dispatch,
 boundary treatment, CFL step selection, reconstruction, Hancock predictor,
 Riemann flux, conservative update, output, and metric collection.
@@ -269,9 +297,12 @@ Riemann flux, conservative update, output, and metric collection.
 Include exactly one pseudocode box based on `EulerSolver::step` and the sweep
 functions. Constraints:
 
+- use a compile-safe structure already supported by the template, such as a
+  `quote` block with short numbered lines, unless the main agent first enables
+  an algorithm package in `Preamble/preamble.tex`;
 - no more than 12 algorithm lines,
 - each line about 7 words or fewer,
-- total pseudocode about 85 counted words or fewer,
+- total pseudocode about 80 counted words or fewer,
 - no second algorithm box.
 
 After the pseudocode, include one GPU-mirror paragraph of 60 words or fewer
@@ -290,8 +321,8 @@ Allowed citation: `toro2009`.
 
 Assigned markers: `SECTION_3_BEGIN` to `SECTION_3_END`.
 
-Write Section 4.3, working target 190-240 words plus one compact matrix if
-needed. Explain the fp32/fp64 and CPU/GPU variant matrix. State what is held
+Write Section 4.3, working target 170-210 words. Do not add a second matrix
+unless it replaces prose without increasing length. Explain the fp32/fp64 and CPU/GPU variant matrix. State what is held
 fixed and what is changed:
 
 - same cfg-selected test/solver/boundary setup,
@@ -305,7 +336,14 @@ matched CPU/GPU claims are within-case and within-binary, while cross-case
 toolchain differences are disclosed rather than hidden.
 
 Sources to read: `cmake/PrecisionConfig.cmake`, `cmake/CompilerFlags.cmake`,
-`CMakeLists.txt`, `src/main.cpp`, CPU/GPU evidence summaries listed above.
+`CMakeLists.txt`, `src/main.cpp`,
+`experiments/week7/report1_validation_1d_device/cpu_vs_gpu_toro3_toro5_hllc_strict.md`,
+`experiments/week7/report1_validation_1d_device/matrix.json`,
+`experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.md`,
+`experiments/week8/report1_device_hllc_fill/cpu_vs_gpu_sod_lw3fp32_hllc_strict.md`,
+`experiments/week8/report1_2d_config12_fill/cpu_vs_gpu_config12_hllc_strict.md`,
+`experiments/week9/cpu_gpu_midtime/summary.md`, and
+`experiments/week9/cpu_gpu_midtime_n400/summary.md`.
 
 Allowed citations if needed: `ieee754_2019`, `goldberg_1991`, `higham_2002`.
 
@@ -313,8 +351,12 @@ Allowed citations if needed: `ieee754_2019`, `goldberg_1991`, `higham_2002`.
 
 Assigned markers: `SECTION_4_BEGIN` to `SECTION_4_END`.
 
-Write Section 4.4, working target 280-360 words including a compact validation
-matrix table. The table must have these columns:
+Write Section 4.4, working target 220-290 counted words plus a compact
+experimental-design matrix table. Chapter 4 owns the design matrix: it states
+which cases, axes, references, and metrics the experiments are meant to cover.
+Chapter 5 owns the results/evidence matrix and already contains
+`tab:validation-matrix`; do not duplicate that label or contradict those rows.
+The Chapter 4 design matrix must use a distinct label and have these columns:
 
 - case,
 - dimension,
@@ -341,10 +383,22 @@ only as needed for Chapter 5 readability. Do not write local artifact labels in
 the table.
 
 Sources to read: `experiments/report1_evidence_map.md`,
+`report1/phd-thesis-template-2.4/Chapter5/chapter5.tex`,
+`tests/cases/toro_1d/toro_tests.hpp`,
+`tests/cases/liska_wendroff_2d/lw_tests.hpp`,
 `experiments/week7/report1_validation_1d/summary.md`,
 `experiments/week7/report1_validation_2d/summary.md`,
-`experiments/week8/report1_2d_config12_fill/summary.md`, CPU/GPU summaries,
-and reference-comparison summaries.
+`experiments/week8/report1_2d_config12_fill/summary.md`,
+`experiments/week7/report1_validation_1d_device/cpu_vs_gpu_toro3_toro5_hllc_strict.md`,
+`experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.md`,
+`experiments/week8/report1_device_hllc_fill/cpu_vs_gpu_sod_lw3fp32_hllc_strict.md`,
+`experiments/week8/report1_2d_config12_fill/cpu_vs_gpu_config12_hllc_strict.md`,
+`experiments/week4/float_regression/1d/summary.md`,
+`experiments/week4/float_regression/2d/summary.md`, and
+`experiments/week8/report1_2d_config12_fill/reference_comparison/summary.md`.
+When using `experiments/week7/report1_validation_1d/summary.md`, remember that
+the pair L1 is fp64-fp32 final-state difference, not a separate fp32 or fp64
+exact error.
 
 Allowed citations: `sod_1978`, `toro2009`, `liska_wendroff_2003`.
 
@@ -352,7 +406,7 @@ Allowed citations: `sod_1978`, `toro2009`, `liska_wendroff_2003`.
 
 Assigned markers: `SECTION_5_BEGIN` to `SECTION_5_END`.
 
-Write Section 4.5, working target 190-250 words. Explain why reference
+Write Section 4.5, working target 100-170 words. Explain why reference
 solutions are needed to separate numerical/reference error from hardware or
 precision drift. Use "exact" only for analytic/exact Riemann references. Use
 "high-resolution reference" or "N=800 numerical reference" for 2D cases and
@@ -379,18 +433,21 @@ Allowed citations if needed: `toro2009`, `liska_wendroff_2003`, `higham_2002`.
 
 Round 1: main agent reviews Chapter 4 against the hard rules, source/evidence
 coverage, forbidden tokens, marker integrity, table compactness, citation keys,
-pseudocode length, and word budget. Fix only integration defects, not worker
-ownership boundaries.
+pseudocode length, Chapter 5 consistency, and word budget. Fix only integration
+defects, not worker ownership boundaries. If a section needs substantive new
+prose, restore the pre-review snapshot for that section and re-dispatch the
+owning worker with the specific defect.
 
-Round 2: spawn one independent `worker` as a reviewer. It must not edit files.
-Give it Chapter 4, the source/evidence coverage table, the hard rules, and this
-instruction:
+Round 2: spawn one independent reviewing subagent (worker role: reviewer). It must not edit files.
+Give it Chapter 4, the current Chapter 5 validation-matrix section, the
+source/evidence coverage table, the hard rules, and this instruction:
 
 > Review for unsupported implementation claims, missing Code Description
 > features, wrong CPU/GPU or fp32/fp64 wording, missing toolchain disclosure,
 > AMReX overclaiming, forbidden manuscript labels, table/pseudocode bloat,
-> citation-key violations, and LaTeX risks. Return findings with file/line
-> references. Do not modify files.
+> citation-key violations, Chapter 5 matrix contradictions or duplicate labels,
+> and LaTeX risks. Return findings with file/line references. Do not modify
+> files.
 
 Main agent then fixes confirmed issues.
 
@@ -412,7 +469,8 @@ strictly against the Report 1 requirements before claiming it is ready. Use a
 Then iterate:
 
 1. Write a short self-review note with the score breakdown and top defects.
-2. Revise Chapter 4 to address the highest-impact defects.
+2. Address the highest-impact defects. Use direct edits only for integration
+   issues; re-dispatch the owning worker for new section-level prose.
 3. Re-score with the same rubric.
 4. Repeat until either the score is at least 95/100 or three improvement rounds
    have completed.
@@ -436,20 +494,21 @@ artifact location, and the claim it would support.
 Run these checks from the repository root:
 
 ```powershell
-rg -n "week7" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
-rg -n "week8" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
-rg -n "week9" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
+rg -n "week[0-9]+" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
 rg -n "\bD1\b" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
 rg -n "\bD2\b" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
-rg -n "config12" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
+rg -n -i "config\s*12|configuration-12|LW12/config12" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
 rg -n "HLLC-fill" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
 rg -n "USE_GPU" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
-rg -n "IEEE fp32" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
-rg -n -U "LW12(.|\n)*config12" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
+rg -n -U -i "p32(.|\n){0,120}IEEE fp32|IEEE fp32(.|\n){0,120}p32" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
+rg -n "\\label\\{tab:validation-matrix\\}" report1/phd-thesis-template-2.4/Chapter4/chapter4.tex
 ```
 
 Each command should return no manuscript-facing hit. If a forbidden token only
 appears in an explanatory comment left inside the `.tex`, remove the comment.
+The final label check prevents Chapter 4 from duplicating the existing Chapter 5
+validation-matrix label; use a Chapter-4-specific label if the design matrix is
+kept in Chapter 4.
 
 Then compile:
 
