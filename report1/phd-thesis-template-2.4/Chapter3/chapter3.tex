@@ -72,7 +72,8 @@ Substitution gives the conservative flux-difference update
 A shared face therefore contributes equal and opposite fluxes to neighbouring
 cells, so summing the update cancels all interior exchanges and leaves only
 boundary fluxes. This cancellation is the finite-volume conservation mechanism
-used below \citep{toro2009,leveque_2002}. Equation~\ref{eq:fv-update} fixes the
+used below, following the standard treatments of \citet{toro2009} and
+\citet{leveque_2002}. Equation~\ref{eq:fv-update} fixes the
 two-direction notation; the implementation applies this conservative update
 through alternating directional sweeps, described in Chapter~4. In two
 dimensions each sweep is a one-dimensional conservative update using the current
@@ -116,8 +117,8 @@ defined, this corresponds to
 \]
 This limiter keeps the slope zero across opposite-signed jumps and selects the
 smaller monotone jump otherwise, reducing oscillations near discontinuities
-while retaining second-order reconstruction in smooth monotone regions
-\citep{vanleer_1979,toro2009}. Minbee is a diffusive TVD limiter, so small
+while retaining second-order reconstruction in smooth monotone regions, following
+\citet{vanleer_1979} and the presentation in \citet{toro2009}. Minbee is a diffusive TVD limiter, so small
 perturbations may be damped more strongly than they would be with a less
 diffusive limiter. Other limiters such as van~Leer or superbee exist in the
 source tree, but Chapter~5 does not claim an isolated limiter-sensitivity
@@ -173,9 +174,10 @@ At a vertical interface the predictor supplies left and right states \(U_L\) and
     U_R, & x>0 .
   \end{cases}
 \]
-The report's main validation flux is HLLC, which approximates this fan by left,
-contact, and right waves with speeds \(S_L\), \(S_\ast\), and \(S_R\)
-\citep{toro2009,toro_spruce_speares_1994}. In the implemented Davis estimate,
+The report's main validation flux is HLLC. In the construction introduced by
+\citet{toro_spruce_speares_1994} and presented in \citet{toro2009}, this flux
+approximates the fan by left, contact, and right waves with speeds \(S_L\),
+\(S_\ast\), and \(S_R\). In the implemented Davis estimate,
 \[
   S_L=\min(u_L-a_L,u_R-a_R), \qquad
   S_R=\max(u_L+a_L,u_R+a_R),
@@ -246,8 +248,9 @@ across \(S_K\) and may be written in closed form as
 \]
 with the contact pressure
 \(p_\ast=p_K+\rho_K(S_K-u_K)(S_\ast-u_K)\) equal on both sides of the contact.
-This is the part of HLLC that restores the contact wave missing from a two-wave
-HLL approximation \citep{toro_spruce_speares_1994,toro2009}. The exact choice of strict or non-strict
+This is the part of HLLC that restores the contact wave missing from the
+two-wave HLL approximation discussed by \citet{toro_spruce_speares_1994} and
+\citet{toro2009}. The exact choice of strict or non-strict
 inequality at zero is a precision-sensitive implementation decision and is
 discussed separately in Section~\ref{sec:precision-sensitive-decisions}.
 
@@ -264,8 +267,9 @@ by a centred flux plus scalar dissipation,
 \]
 This form is useful for comparison because it has a single local signal-speed
 penalty and no contact-wave branch, but its stronger numerical diffusion can
-smear contacts and shear layers relative to HLLC
-\citep{harten_lax_vanleer_1983,toro2009}.
+smear contacts and shear layers relative to HLLC, as expected for the HLL family
+introduced by \citet{harten_lax_vanleer_1983} and described by
+\citet{toro2009}.
 % <<SECTION_3_END>>
 
 \section{Stability, Limiting, and Positivity}
@@ -437,8 +441,9 @@ acoustic waves and a contact. The magnetic field must also satisfy
   \nabla\cdot B = 0,
 \]
 at the continuous level. A finite-volume discretisation does not preserve this
-constraint automatically, so divergence cleaning \citep{dedner_2002} or
-constrained-transport \citep{evans_hawley_1988} choices become part of the
+constraint automatically, so choices such as the divergence cleaning of
+\citet{dedner_2002} or the constrained transport of
+\citet{evans_hawley_1988} become part of the
 numerical method rather than optional diagnostics.
 
 For this report, these MHD equations define the project context only. The

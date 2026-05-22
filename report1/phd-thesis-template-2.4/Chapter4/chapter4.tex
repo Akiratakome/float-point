@@ -6,8 +6,9 @@
 \label{sec:implementation-route}
 % <<SECTION_1_BEGIN>>
 The Report 1 evidence uses the stand-alone Euler code path rather than an
-AMReX application. AMReX remains relevant to the wider project as a route to
-adaptive mesh refinement and accelerator support~\citep{zhang_etal_2019}, but
+AMReX application. The AMReX framework of \citet{zhang_etal_2019} remains
+relevant to the wider project as a route to adaptive mesh refinement and
+accelerator support, but
 the reported Euler comparisons do not use AMR or AMReX. The stand-alone route
 keeps the comparison narrow: precision, backend, and selected implementation
 choices can change while the finite-volume update remains fixed.
@@ -43,7 +44,7 @@ $\Delta t$, performs one or two directional sweeps, and advances the time
 accumulator. The method inside each sweep is MUSCL--Hancock with a
 component-wise minbee limiter and HLLC or Rusanov fluxes; HLLC is the main
 Report 1 solver because the validation and variation axes require a
-Riemann-solver-based scheme~\citep{toro2009}.
+Riemann-solver-based scheme of the kind described by \citet{toro2009}.
 
 The conservative state is stored row-major with the variable index as the
 fastest-varying dimension and with $n_g$ ghost-cell layers on every side, so
@@ -58,7 +59,8 @@ then clips the result to the requested final time. Metric collection is kept
 outside this update path: scripts compare written conservative states or
 primitive tables and aggregate $L_1$, $L_2$, $L_\infty$, and ULP diagnostics.
 The dispatch is summarised in Algorithm~\ref{alg:step-dispatch}. Both drivers
-advance time with Kahan compensated summation~\citep{higham_2002}.
+advance time with Kahan compensated summation, following the treatment in
+\citet{higham_2002}.
 
 \begin{algorithm}
 \caption{Report-Level Solver Dispatch}\label{alg:step-dispatch}
@@ -80,7 +82,8 @@ advance time with Kahan compensated summation~\citep{higham_2002}.
 
 The CUDA solver follows the same ordering through boundary, face-state, flux,
 and conservative-update kernels, with $16\times16$ thread blocks for
-reconstruction~\citep{bard_dorelli_2014}. Its HLLC wrappers
+reconstruction, matching the GPU MUSCL-Hancock baseline of
+\citet{bard_dorelli_2014}. Its HLLC wrappers
 call the same \texttt{hllc.hpp} flux algebra as the CPU path, so the
 \texttt{<} versus \texttt{<=} branch rule is a shared sensitivity axis. For
 the CFL stage, CUDA reduces stable cellwise time-step candidates through
@@ -121,8 +124,9 @@ cross-toolchain equivalence claims.
 Verificarlo runs are diagnostic experiments, not real fp32/fp64 runs.  The
 solver is built through the MCA/virtual-precision toolchain and sampled with
 independent seeds; labels p8, p16, p32, and p53 denote virtual mantissa
-settings applied by the tool, not binary storage
-formats~\citep{parker_1997,denis_etal_2016}.  For a primitive
+settings applied by the tool, not binary storage formats, following the
+Monte Carlo arithmetic formulation of \citet{parker_1997} and the Verificarlo
+tool of \citet{denis_etal_2016}.  For a primitive
 component $q_j$, the sample standard deviation
 $\sigma_{\mathrm{FP},j}=\operatorname{std}_k(q_j^{(k)})$ defines a local
 roundoff scale that can be compared with the field magnitude or with the
@@ -134,13 +138,13 @@ only from real fp32/fp64 comparisons against the chosen reference solution.
 \section{Test-Case Matrix and Metrics}
 % <<SECTION_4_BEGIN>>
 The selected validation cases exercise the same implementation axes on one-
-and two-dimensional Euler problems.  Sod gives a standard shock-tube baseline
-with an exact Riemann reference~\citep{sod_1978}.  Toro3 and Toro5 add a
-right-running supersonic shock and a collision of supersonic shocks from
-Toro's test set~\citep{toro2009}.  Liska--Wendroff configuration 3 (LW3) and
-Liska--Wendroff configuration 12 (LW12) test multidimensional wave
-interaction, with supersonic shock segments identified from the published
-benchmark definitions~\citep{liska_wendroff_2003}. Table~\ref{tab:ch4-design-matrix}
+and two-dimensional Euler problems.  \citet{sod_1978} gives the standard
+shock-tube baseline with an exact Riemann reference.  Toro3 and Toro5 add a
+right-running supersonic shock and a collision of supersonic shocks from the
+test set in \citet{toro2009}.  Liska--Wendroff configuration 3 (LW3) and
+Liska--Wendroff configuration 12 (LW12) test multidimensional wave interaction,
+with supersonic shock segments identified from the benchmark definitions of
+\citet{liska_wendroff_2003}. Table~\ref{tab:ch4-design-matrix}
 records the intended coverage; Chapter~5 reports the measured values.
 
 The metrics named in the design matrix are field norms ($L_1$, $L_\infty$,
@@ -179,11 +183,11 @@ float--double or CPU--GPU difference is only meaningful once it has a scale.
 For Sod and the Toro shock tubes used in the validation tables, the comparison
 is made against analytic exact Riemann references, so the reported error mixes
 discretisation and floating-point effects in a controlled one-dimensional
-setting~\citep{toro2009}.  For the two-dimensional Liska--Wendroff problems,
+setting described by \citet{toro2009}.  For the two-dimensional Liska--Wendroff problems,
 no analytic reference is used.  LW3 is compared with an $N=1600$ fp64
 numerical reference, and Liska--Wendroff configuration 12 uses an
 \(N=800\) fp64 numerical reference for the reference-scaled fp32--fp64 ratios
-\citep{liska_wendroff_2003}.  These high-resolution references provide the
+in the benchmark family of \citet{liska_wendroff_2003}.  These high-resolution references provide the
 discretisation-error scale used in the reference-scaled ratios; if that scale
 dominates the numerator, the ratio should be read as a bound on precision drift
 relative to the chosen reference, not as an independent estimate of the

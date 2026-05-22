@@ -2,51 +2,27 @@
 
 \chapter{Validation and Precision Results}
 
-\section{Validation Matrix}
+\section{Validation Overview}
 % <<SECTION_1_BEGIN>>
-Chapter~5 treats validation as a controlled study rather than as a sequence of
-plots. It uses the MUSCL--Hancock--HLLC algorithm described in Chapter~3 and
-the comparability rules from Chapter~4. The matrix in
-Table~\ref{tab:validation-matrix} fixes the cases used to
-answer four questions: whether the MUSCL--Hancock--HLLC solver reproduces
-standard Euler benchmarks; how real fp32 and fp64 runs differ; whether matched
-CPU and GPU executions reproduce the same conservative state; and how sensitive
-the conclusions are to selected implementation and compiler variations. Sod is
-included as the exact-reference shock tube. The Toro cases add one-dimensional
-strong-wave tests, including the right-running supersonic shock in Toro3 and the
-collision of supersonic shocks in Toro5. The two-dimensional set uses
-Liska-Wendroff configuration 3 (LW3) and Liska-Wendroff configuration 12
-(LW12), both of which contain interacting supersonic quadrant-interface shocks.
+Chapter~5 reports the validation and precision evidence generated from the
+experimental design in Chapter~4. The design matrix, metric definitions, and
+reference choices are fixed in Table~\ref{tab:ch4-design-matrix}; the role of
+this chapter is to interpret the measured outputs rather than to redefine the
+test suite. The results answer four questions: whether the
+MUSCL--Hancock--HLLC implementation reproduces the selected Euler benchmarks;
+how real fp32 and fp64 outputs differ when scaled against reference or
+discretisation error; whether matched strict CPU/GPU runs reproduce saved
+conservative states; and how selected compiler, branch-rule, solver, and
+time-resolved variation axes affect the final or checkpointed outputs.
 
-The reported norms are computed on the conservative state unless a scalar field
-is named. $L_1$ denotes the mean absolute difference over cells and conserved
-variables, while $L_\infty$ is the maximum absolute cellwise difference. ULP
-counts measure the largest representable-spacing difference between paired
-floating-point outputs. SSIM is used only for two-dimensional image-like
-comparisons against a higher-resolution reference. Reference-scaled ratios divide
-the fp32--fp64 difference by the fp64--reference error; discretisation-scaled
-ratios use the same idea when the denominator is a grid-refinement error rather
-than an exact solution. Thus a ratio below one means that the precision gap is
-smaller than the measured reference or discretisation error, not that fp32 is
-adequate in general.
-
-\begin{table}[htbp]
-\centering
-\small
-\begin{tabularx}{\textwidth}{@{}ll>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
-\toprule
-Case & Dim. & Reference scale & Strong-wave role & Supersonic basis & Evidence used \\
-\midrule
-Sod & 1D & exact Riemann solution & standard shock tube & not used as a supersonic checkbox & exact-error ratios; fp32/fp64 and CPU/GPU drift \\
-Toro3 & 1D & exact Riemann solution & right-running supersonic shock & Toro shock-tube definition and exact-wave structure & exact-error ratios; compiler and branch sensitivity \\
-Toro5 & 1D & exact Riemann solution & colliding supersonic shocks & Toro shock-tube definition and exact-wave structure & exact-error ratios; compiler and branch sensitivity \\
-LW3 & 2D & $1600^2$ fp64 reference & four quadrant-interface shocks & Liska--Wendroff four-shock benchmark & $L_1$, SSIM, CPU/GPU, reference-scaled precision \\
-LW12 & 2D & $800^2$ fp64 reference & two shock and two contact interfaces & Liska--Wendroff two-shock benchmark & $L_1$, SSIM, CPU/GPU, reference-scaled precision \\
-\bottomrule
-\end{tabularx}
-\caption{Validation matrix for Chapter~5. Each row has fp32/fp64 evidence and a matched strict-HLLC CPU/GPU comparison; Sod, LW3, and LW12 also have intermediate-time CPU/GPU checkpoints. A stationary-contact 1D case is used as a degenerate-reference control in Sections~5.4 and~5.6 but is not part of the main matrix.}
-\label{tab:validation-matrix}
-\end{table}
+The chapter starts with one-dimensional Riemann tests, then moves to the two
+Liska-Wendroff two-dimensional configurations. Precision comparisons are
+reported only as pairwise fp32--fp64 differences or reference-scaled ratios,
+not as separate fp32 or fp64 exact errors. CPU/GPU entries are likewise bounded:
+they compare matched strict-HLLC saved outputs for the listed cases and
+precisions. This separation keeps the result claims tied to their evidence and
+leaves the broader interpretation of precision and hardware sensitivity to the
+discussion chapter.
 % <<SECTION_1_END>>
 
 \section{One-Dimensional Euler Validation}
@@ -54,10 +30,10 @@ LW12 & 2D & $800^2$ fp64 reference & two shock and two contact interfaces & Lisk
 The one-dimensional tests are placed before the precision and hardware
 interpretation because they establish the baseline question: whether the
 implemented Euler solver captures the expected Riemann structure of the
-MUSCL--Hancock--HLLC path~\citep{toro2009} before small
+MUSCL--Hancock--HLLC path described by \citet{toro2009} before small
 fp32--fp64 or CPU--GPU differences are assigned any meaning. Sod provides the
 least severe check, with a left rarefaction, contact discontinuity, and
-right-moving shock from the standard shock-tube problem~\citep{sod_1978}. In
+right-moving shock from the standard shock-tube problem of \citet{sod_1978}. In
 Fig.~\ref{fig:ch5-sod-comparison}, the computed density, velocity, and pressure
 profiles follow the exact solution across all three waves. The remaining
 discrepancy is concentrated at discontinuities, as expected for a finite-volume
@@ -65,14 +41,14 @@ shock-capturing method~\citep{leveque_2002}, rather than appearing as a
 systematic offset in the smooth parts of the solution.
 
 Toro3 and Toro5 then stress the same code path with stronger waves from the
-Toro test set~\citep{toro2009}. Toro3 has a right-running supersonic shock, and
+test set of \citet{toro2009}. Toro3 has a right-running supersonic shock, and
 Fig.~\ref{fig:ch5-toro3-comparison} shows that the shock, contact, and
 rarefaction are placed on the same branches as the exact solution. Toro5
 involves collision of supersonic shocks; Fig.~\ref{fig:ch5-toro5-comparison}
 therefore checks a more severe pressure and velocity interaction than Sod. The
 profiles do not remove the usual grid-scale smearing at sharp waves, but they
 show that the solver resolves the ordering and amplitude of the main
-one-dimensional structures used later in the validation matrix.
+one-dimensional structures fixed in the Chapter~4 design matrix.
 
 The numerical summaries support the same interpretation. At $N=200$, the
 final-state fp64--fp32 $L_1$ difference on the conservative state is
@@ -101,7 +77,10 @@ Toro3 & $6.386967\times10^{-5}$ & $1.364064\times10^{-5}$ & $0/0/0$ \\
 Toro5 & $1.296410\times10^{-4}$ & $3.913105\times10^{-5}$ & $0/0/0$ \\
 \bottomrule
 \end{tabular}
-\caption[One-dimensional precision and device summary]{One-dimensional precision and device summary, where
+\caption[One-dimensional precision and device summary]{One-dimensional precision and device summary. The
+second column is the conservative-state fp64--fp32 final-state difference
+$\|U_{\mathrm{fp64}}-U_{\mathrm{fp32}}\|_1$ at $N=200$. The density
+reference-scaled ratio is
 $R_\rho^{\mathrm{exact}}=
 \|\rho_{\mathrm{fp32}}-\rho_{\mathrm{fp64}}\|_1/
 \|\rho_{\mathrm{fp64}}-\rho_{\mathrm{exact}}\|_1$. The CPU/GPU entry reports
@@ -112,21 +91,28 @@ $L_1/L_\infty/\mathrm{ULP}_{\max}$ for matched strict-HLLC outputs.}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{Figs/report1/sod_comparison.png}
-\caption{Sod shock-tube comparison against the exact Riemann solution.}
+\caption{Sod's shock-tube problem at $N=200$ and output time $t=0.25$,
+computed with the MUSCL--Hancock scheme and the HLLC Riemann solver. The
+plotted reference is Toro's exact Euler Riemann solution.}
 \label{fig:ch5-sod-comparison}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{Figs/report1/toro3_comparison.png}
-\caption{Toro3 comparison against the exact Riemann solution, including the right-running supersonic shock.}
+\caption{Toro3 at $N=200$ and output time $t=0.012$, computed with the
+MUSCL--Hancock scheme and the HLLC Riemann solver. The plotted reference is
+Toro's exact Euler Riemann solution; the case includes a right-running
+supersonic shock.}
 \label{fig:ch5-toro3-comparison}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{Figs/report1/toro5_comparison.png}
-\caption{Toro5 comparison against the exact Riemann solution for colliding supersonic shocks.}
+\caption{Toro5 at $N=200$ and output time $t=0.035$, computed with the
+MUSCL--Hancock scheme and the HLLC Riemann solver. The plotted reference is
+Toro's exact Euler Riemann solution for the colliding-shock test.}
 \label{fig:ch5-toro5-comparison}
 \end{figure}
 % <<SECTION_2_END>>
@@ -134,10 +120,11 @@ $L_1/L_\infty/\mathrm{ULP}_{\max}$ for matched strict-HLLC outputs.}
 \section{Two-Dimensional Euler Validation}
 % <<SECTION_3_BEGIN>>
 The two-dimensional tests extend the validation from isolated shock-tube waves
-to interacting Riemann structures. Liska-Wendroff configuration 3 (LW3) is the
-four-shock case from the Liska--Wendroff benchmark set, with supersonic shock
-segments initially lying on the left, right, upper, and lower quadrant
-interfaces around the central cross~\citep{liska_wendroff_2003}. In the
+to interacting Riemann structures. The selected cases are configurations 3 and
+12 from \citet{liska_wendroff_2003}. Liska-Wendroff
+configuration 3 (LW3) is the four-shock case from that benchmark set, with
+supersonic shock segments initially lying on the left, right, upper, and lower
+quadrant interfaces around the central cross. In the
 $N=400$ fp64 schlieren field, Fig.~\ref{fig:ch5-lw3-schlieren} shows these
 segments evolving into a compact interaction region: a diamond-like set of
 shock fronts surrounds the centre, while curved contact-like structures and a
@@ -152,11 +139,12 @@ $4.95\times10^{-3}$ at $N=400$, while density SSIM increases from 0.966 to
 $N=400$ is $3.24\times10^{-7}$, much smaller than the reference-scale
 density error.
 
-Liska-Wendroff configuration 12 (LW12) is treated as a separate two-dimensional
-Riemann problem, not as a repeat of LW3. Its initial data contain two
+Liska-Wendroff configuration 12 (LW12) is treated as a separate
+two-dimensional Riemann problem, not as a repeat of LW3. Its initial data contain two
 supersonic shock segments, one on the upper vertical quadrant interface and one
 on the right horizontal quadrant interface, together with two contact
-interfaces~\citep{liska_wendroff_2003}. Figure~\ref{fig:ch5-lw12-schlieren}
+interfaces, again following \citet{liska_wendroff_2003}.
+Figure~\ref{fig:ch5-lw12-schlieren}
 has a different topology from LW3: the $N=400$ fp64 schlieren image contains a
 large curved shock arc reaching towards the upper-right corner, a second curved
 front below it, and a small shear/contact roll-up near the central interaction.
@@ -176,13 +164,13 @@ measured error scale.
 \toprule
 Case & reference & grid & fp64 density $L_1$ & density SSIM & $R_\rho^{\mathrm{ref}}$ \\
 \midrule
-LW3 & $1600^2$ fp64 & $200^2$ & $7.885603\times10^{-3}$ & 0.966320 & $4.466390\times10^{-5}$ \\
-LW3 & $1600^2$ fp64 & $400^2$ & $4.951412\times10^{-3}$ & 0.981685 & $9.252833\times10^{-5}$ \\
-LW12 & $800^2$ fp64 & $200^2$ & $2.952149\times10^{-3}$ & 0.988960 & $4.626293\times10^{-5}$ \\
-LW12 & $800^2$ fp64 & $400^2$ & $1.330052\times10^{-3}$ & 0.996270 & $1.300607\times10^{-4}$ \\
+LW3 & $1600^2$ fp64 & $200^2$ & $7.89\times10^{-3}$ & 0.9663 & $4.47\times10^{-5}$ \\
+LW3 & $1600^2$ fp64 & $400^2$ & $4.95\times10^{-3}$ & 0.9817 & $9.25\times10^{-5}$ \\
+LW12 & $800^2$ fp64 & $200^2$ & $2.95\times10^{-3}$ & 0.9890 & $4.63\times10^{-5}$ \\
+LW12 & $800^2$ fp64 & $400^2$ & $1.33\times10^{-3}$ & 0.9963 & $1.30\times10^{-4}$ \\
 \bottomrule
 \end{tabular}
-\caption[Two-dimensional density validation and precision scale]{Two-dimensional density validation and precision scale, where
+\caption[Two-dimensional density validation and precision scale]{Two-dimensional density validation and precision scale against higher-resolution fp64 numerical references, where
 $R_\rho^{\mathrm{ref}}=
 \|\rho_{\mathrm{fp32}}-\rho_{\mathrm{fp64}}\|_1/
 \|\rho_{\mathrm{fp64}}-\rho_{\mathrm{ref}}\|_1$ at the same grid.}
@@ -191,24 +179,30 @@ $R_\rho^{\mathrm{ref}}=
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.72\textwidth]{Figs/report1/lw3_n400_double_rho_schlieren.png}
-\caption{LW3 density schlieren at $N=400$ in fp64, showing the four-shock interaction region.}
+\includegraphics[width=\textwidth]{Figs/report1/lw3_n400_double_rho_schlieren.png}
+\caption{LW3 density schlieren at $400^2$ cells and $t=0.3$, computed in
+fp64 with MUSCL--Hancock and the HLLC Riemann solver. The
+numerical-reference comparison in Table~\ref{tab:ch5-2d-summary} uses a
+$1600^2$ fp64 solution.}
 \label{fig:ch5-lw3-schlieren}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.72\textwidth]{Figs/report1/lw12_n400_double_rho_schlieren.png}
-\caption{LW12 density schlieren at $N=400$ in fp64, showing the curved shock fronts and central contact roll-up.}
+\includegraphics[width=\textwidth]{Figs/report1/lw12_n400_double_rho_schlieren.png}
+\caption{LW12 density schlieren at $400^2$ cells and $t=0.25$, computed in
+fp64 with MUSCL--Hancock and the HLLC Riemann solver. The reference used for
+the tabulated metrics is a higher-resolution $800^2$ fp64 numerical solution,
+not an exact solution.}
 \label{fig:ch5-lw12-schlieren}
 \end{figure}
 % <<SECTION_3_END>>
 
 \section{Single- and Double-Precision Comparison}
 % <<SECTION_4_BEGIN>>
-The fp32--fp64 comparison is most useful when it is scaled against the error
+The direct IEEE fp32--fp64 comparison is most useful when it is scaled against the error
 already present in the discretisation or reference comparison. For a scalar
-field $\phi$, the reported direct-precision ratio is
+field $\phi$, the reported direct IEEE precision ratio is
 \begin{equation*}
 R_\phi(N)=
 \frac{\|\phi_{\mathrm{fp32}}(N)-\phi_{\mathrm{fp64}}(N)\|_1}
@@ -223,22 +217,28 @@ second two-dimensional case: for LW12 against the $800^2$ fp64 reference,
 $R_\rho=4.63\times10^{-5}$ at $N=200$ and
 $R_\rho=1.30\times10^{-4}$ at $N=400$.
 
-The one-dimensional exact-reference rows give a similar scale for the selected
+The one-dimensional exact-reference comparisons give a similar scale for the selected
 shock-tube tests. At $N=800$, the density fp32--fp64 gap divided by the
 fp64--exact error is $1.06\times10^{-4}$ for Sod,
 $1.36\times10^{-5}$ for Toro3, and $3.91\times10^{-5}$ for Toro5.
-The stationary-contact case is reported separately because its exact-stationary pressure makes the denominator zero. In particular, the
-stationary-contact pressure row has $L_1$ fp32--fp64 divided by fp64--exact
+The stationary-contact case is reported separately because its exact-stationary
+pressure makes the denominator zero. In particular, the stationary-contact
+pressure comparison has $L_1$ fp32--fp64 divided by fp64--exact
 reported as $\infty$, because the fp64 pressure error against the exact
-stationary state is zero. This row is therefore a degenerate-reference result,
+stationary state is zero. This case is therefore a degenerate-reference result,
 not a quantitative precision-adequacy ratio.
 
-These measurements show that, for the tested Euler cases, the final-time
+These measurements show that, for the tested Euler cases, the final-time direct
 fp32--fp64 differences are smaller than the available reference or
-discretisation error estimates~\citep{higham_2002}. They do not show that fp32 is generally
-sufficient: the ratios are case-, field-, resolution-, and final-time metrics,
+discretisation error estimates~\citep{higham_2002}. They do not show that fp32
+is generally sufficient: the ratios are case-, field-, resolution-, and final-time metrics,
 and the increasing two-dimensional density ratios show that the comparison can
-move as the numerical reference improves. Virtual-precision sensitivity maps
+move as the numerical reference improves. The localised LW12 density difference
+in Fig.~\ref{fig:ch5-lw12-precision-heatmap} is consistent with precision
+sensitivity where reconstructed left and right states feed the HLLC wave-speed
+estimates and flux decisions near the upper-right shock interaction. It does
+not, by itself, prove that a specific HLLC branch changed; no branch-count diagnostic
+is used for that figure. Virtual-precision sensitivity maps
 are discussed separately in Chapter~6 rather than used as direct fp32 evidence
 here.
 
@@ -251,7 +251,7 @@ here.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.6\textwidth]{Figs/report1/lw12_n400_fp32_minus_fp64_rho.png}
+\includegraphics[width=\textwidth]{Figs/report1/lw12_n400_fp32_minus_fp64_rho.png}
 \caption{LW12 cellwise density difference $\rho_{\mathrm{fp32}}-\rho_{\mathrm{fp64}}$ at $N=400$ and $t=0.25$. The diverging colormap is centred at zero; the difference reaches $L_\infty=6.22\times10^{-6}$ near the upper-right interaction region, while the cellwise mean magnitude is $1.73\times10^{-7}$. This locates the precision-sensitive structure on the shock-interaction front rather than spreading it uniformly across the domain.}
 \label{fig:ch5-lw12-precision-heatmap}
 \end{figure}
@@ -262,141 +262,114 @@ here.
 % <<SECTION_5_BEGIN>>
 The matched CPU/GPU comparison asks a narrower question than the fp32--fp64
 study: for a fixed case, precision, solver, and binary, does changing the
-runtime device alter the final conservative state? Table~\ref{tab:ch5-cpu-gpu}
-summarises the available strict-HLLC evidence. All rows use \texttt{solver=hllc}
-and \texttt{STRICT\_IEEE=ON}; the strict build disables the fast-math and fused-operation
-shortcuts that would otherwise make a device comparison less controlled. The
-comparison is byte-level for the saved final \texttt{grid.bin} files, with the
-reported $L_1$, $L_\infty$, and ULP metrics computed on the conservative
-state. Byte identity therefore implies all three drift measures are zero, but
-only for the output state and cases listed here.
+runtime device alter the saved conservative state? Table~\ref{tab:ch5-cpu-gpu}
+summarises the available strict-HLLC coverage without listing each zero-valued
+comparison separately. All entries use
+\texttt{solver=hllc} and \texttt{STRICT\_IEEE=ON}; the strict build disables
+the fast-math and fused-operation shortcuts that would otherwise make a device
+comparison less controlled. The final-output comparison is byte-level for the
+saved \texttt{grid.bin} files, with $L_1$, $L_\infty$, and ULP metrics computed
+on the conservative state.
 
 \begin{table}[htbp]
 \centering
 \footnotesize
-\begin{tabular}{@{}p{0.16\linewidth}p{0.15\linewidth}p{0.16\linewidth}p{0.13\linewidth}p{0.13\linewidth}p{0.13\linewidth}@{}}
+\begin{tabular}{@{}p{0.14\linewidth}p{0.15\linewidth}p{0.22\linewidth}p{0.24\linewidth}p{0.10\linewidth}@{}}
 \toprule
-Case & Precision & Resolution & $L_1$ & $L_\infty$ & $\mathrm{ULP}_{\max}$ \\
+Case & Precision & Final outputs & Saved checkpoints & Result \\
 \midrule
-Sod & fp32, fp64 & 200 & 0 & 0 & 0 \\
-Toro3 & fp32, fp64 & 200 & 0 & 0 & 0 \\
-Toro5 & fp32, fp64 & 200 & 0 & 0 & 0 \\
-LW3 & fp32 & 200, 400 & 0 & 0 & 0 \\
-LW3 & fp64 & 200, 400 & 0 & 0 & 0 \\
-LW12 & fp32, fp64 & 200, 400 & 0 & 0 & 0 \\
+Sod & fp32, fp64 & 2 at $N=200$ & 8 at $N=200$, to $t=0.25$ & zero \\
+Toro3 & fp32, fp64 & 2 at $N=200$ & none & zero \\
+Toro5 & fp32, fp64 & 2 at $N=200$ & none & zero \\
+LW3 & fp32, fp64 & 4 at $200^2$ and $400^2$ & 16 at $200^2$ and $400^2$, to $t=0.3$ & zero \\
+LW12 & fp32, fp64 & 4 at $200^2$ and $400^2$ & 16 at $200^2$ and $400^2$, to $t=0.25$ & zero \\
 \bottomrule
 \end{tabular}
 \begin{minipage}{0.9\textwidth}
 \vspace{0.25em}
-\footnotesize\emph{Footnote.} Toro3/Toro5 were built with Windows BuildTools; Sod/LW3/LW12 were built with Linux/WSL; each within-case CPU/GPU comparison uses one matched binary, so bit-identity is claimed within a case, not across toolchains.
+\footnotesize\emph{Footnote.} Toro3/Toro5 were built with Windows BuildTools;
+Sod/LW3/LW12 were built with Linux/WSL; each within-case CPU/GPU comparison
+uses one matched binary pair, so bit-identity is claimed within a case, not
+across toolchains.
 \end{minipage}
-\caption{Matched CPU/GPU strict-HLLC comparison at final time.}
+\caption[Matched CPU/GPU strict-HLLC coverage]{Matched CPU/GPU strict-HLLC coverage. ``Zero drift'' means that every covered same-precision CPU/GPU comparison has
+$L_1=0$, $L_\infty=0$, and $\mathrm{ULP}_{\max}=0$ on the saved conservative
+state; for Toro3 and Toro5 the evidence is final-output only, while Sod, LW3,
+and LW12 also have saved-checkpoint comparisons.}
 \label{tab:ch5-cpu-gpu}
 \end{table}
 
-The table gives zero $L_1$, $L_\infty$, and ULP drift for Sod, Toro3,
-Toro5, LW3, and Liska-Wendroff configuration 12 (LW12) in both fp32 and fp64.
-For LW3 and LW12 the two-dimensional rows cover both $200^2$ and $400^2$
-grids; for the one-dimensional shock tubes the checked resolution is $N=200$.
-LW3 is split into two precision rows because the fp64 and fp32 device runs were collected from two matched-binary batches (fp64 and fp32 separately); both give the same zero-drift metrics.
-These zero rows are included only where the corresponding summaries explicitly
-report zero $L_1$, zero $L_\infty$, and $\mathrm{ULP}_{\max}=0$; missing rows are
-not inferred from neighbouring cases or resolutions.
-This supports a device-reproducibility statement for the final-time
-conservative state under the tested strict-HLLC configurations. The statement
-is tied to the matched within-case binaries, the listed precision modes, the
-selected Euler tests, and the final saved output; it is not a claim about other
-devices, flags, solvers, or cases.
+Across the 14 final-output comparisons in Table~\ref{tab:ch5-cpu-gpu}, the
+reported maximum drift is $L_1=0$, $L_\infty=0$, and
+$\mathrm{ULP}_{\max}=0$ for Sod, Toro3, Toro5, LW3, and Liska-Wendroff
+configuration 12 (LW12) in both fp32 and fp64. The statement is tied to the
+matched within-case binaries, the listed precision modes, the selected Euler
+tests, and the final saved output; it is not a claim about other devices,
+flags, solvers, or cases. Missing cases or resolutions are not inferred from
+neighbouring comparisons.
 
-The supplementary checkpoint matrix removes part of the earlier
-final-time boundary for Sod, LW3, and LW12. Table~\ref{tab:ch5-midtime}
-summarises the new intermediate-time runs: every listed same-precision CPU/GPU
-pair has $L_1=0$, $L_\infty=0$, and $\mathrm{ULP}_{\max}=0$. This is still a
-checkpointed-output claim, not a statement about every internal update stage,
-but it shows that the observed zero drift is not confined to the last saved
-state for these cases. The values in Table~\ref{tab:ch5-midtime} come from the
-completed intermediate-time CPU/GPU supplementary matrix.
-
-\begin{table}[htbp]
-\centering
-\small
-\begin{tabular}{@{}lccc@{}}
-\toprule
-Case & checkpoints & precisions & max CPU/GPU drift \\
-\midrule
-Sod & $t=0.0625,0.125,0.1875,0.25$ & fp32, fp64 & $0/0/0$ \\
-LW3, $200^2$ & $t=0.075,0.15,0.225,0.3$ & fp32, fp64 & $0/0/0$ \\
-LW3, $400^2$ & $t=0.075,0.15,0.225,0.3$ & fp32, fp64 & $0/0/0$ \\
-LW12, $200^2$ & $t=0.0625,0.125,0.1875,0.25$ & fp32, fp64 & $0/0/0$ \\
-LW12, $400^2$ & $t=0.0625,0.125,0.1875,0.25$ & fp32, fp64 & $0/0/0$ \\
-\bottomrule
-\end{tabular}
-\caption{Intermediate-time CPU/GPU supplement from the completed supplementary
-matrix. The drift entry reports the
-maximum $L_1/L_\infty/\mathrm{ULP}_{\max}$ across same-precision strict-HLLC
-pairs in the checkpoint matrix.}
-\label{tab:ch5-midtime}
-\end{table}
+The saved-checkpoint comparisons narrow the final-time boundary for Sod, LW3,
+and LW12: all 40 listed checkpoint comparisons also have $L_1=0$,
+$L_\infty=0$, and $\mathrm{ULP}_{\max}=0$. These are synchronized saved
+outputs, not evidence that all intermediate stage values inside a time step are
+identical.
 % <<SECTION_5_END>>
 
 \section{Compiler, Branch, Solver, and Drift-Growth Sensitivity}
 % <<SECTION_6_BEGIN>>
 \subsection*{Compiler, branch-rule, and solver variation}
 
-Table~\ref{tab:ch5-variation} separates three sensitivity axes which should
-not be interpreted in the same way. The first table uses CPU fp64 final states.
-Branch-rule and compiler-flag rows cover the selected one-dimensional
-strong-wave cases as well as Sod, stationary contact, and LW3-N200; the
-solver-variation rows are limited to the three cases for which a Rusanov
-comparison was run. The branch-rule comparison changes only the HLLC
-wave-speed test controlled by \texttt{RIEMANN\_STRICT\_INEQUALITY}: the
-baseline uses $\leq$, while the strict-inequality build uses $<$. The
-compiler-flag comparison keeps HLLC fixed and compares O2, O3, and
-Ofast with fast-math. The solver-variation comparison is different: HLLC and
-Rusanov are deliberately different numerical fluxes, so the reported difference
-is a method effect rather than reproducibility drift.
+Table~\ref{tab:ch5-variation} separates the sensitivity axes which should
+not be interpreted in the same way. It reports representative verified
+comparisons rather than cross-case ranges. The branch-rule comparison changes
+only the HLLC wave-speed test controlled by the branch-rule macro defined in
+Chapter~3: the baseline uses $\leq$, while the strict-inequality build uses
+$<$. The compiler comparison keeps HLLC fixed.
+The solver comparison is different: HLLC and Rusanov are deliberately
+different numerical fluxes, so the reported difference is a method effect
+rather than reproducibility drift. The compiler switches themselves are listed
+in Chapter~4; here they are used only as named experimental axes.
 
 \begin{table}[htbp]
 \centering
-\footnotesize
-\begin{tabular}{@{}p{0.27\textwidth}p{0.31\textwidth}p{0.14\textwidth}p{0.14\textwidth}@{}}
+\small
+\begin{tabular}{@{}p{0.28\textwidth}p{0.25\textwidth}p{0.15\textwidth}p{0.15\textwidth}@{}}
 \toprule
-Comparison & Cases covered & $L_1$ range & $L_\infty$ range \\
+Comparison & reported evidence & $L_1$ & $L_\infty$ \\
 \midrule
-Branch-rule comparison, $\leq$ vs $<$ & Sod, stationary contact, Toro3, Toro5 zero; LW3-N200 roundoff-level & $0$--$5.03\times10^{-16}$ & $0$--$2.04\times10^{-14}$ \\
-Compiler-flag comparison, O2 vs O3 & Sod, stationary contact, Toro3, Toro5, LW3-N200 & $0$ & $0$ \\
-Compiler-flag comparison, O2 vs Ofast+fast-math & Sod, stationary contact, Toro3, Toro5, LW3-N200 & $0$--$4.57\times10^{-13}$ & $0$--$7.41\times10^{-11}$ \\
-Solver-variation comparison, HLLC vs Rusanov & Sod, stationary contact, LW3-N200 & $1.20\times10^{-3}$--$8.58\times10^{-3}$ & $1.93\times10^{-2}$--$1.45$ \\
+HLLC branch, $\leq$ vs $<$ & LW3, $200^2$ & $5.03\times10^{-16}$ & $2.04\times10^{-14}$ \\
+O2 vs O3 & all tested entries & $0$ & $0$ \\
+O2 vs Ofast+fast-math & Toro5, $N=200$ & $4.57\times10^{-13}$ & $7.41\times10^{-11}$ \\
+HLLC vs Rusanov & LW3, $200^2$ & $8.58\times10^{-3}$ & $1.45$ \\
 \bottomrule
 \end{tabular}
-\caption{Final-time variation metrics on the conservative state.}
+\caption{Final-time CPU-fp64 variation metrics on the conservative state.
+The table reports representative verified comparisons: the largest non-zero
+branch-rule entry, the zero O2--O3 result across the tested entries, the
+largest compiler-flag drift, and the largest available HLLC--Rusanov method
+difference.}
 \label{tab:ch5-variation}
 \end{table}
 
-The zero O2--O3 rows show that changing optimisation level alone did not alter
-the saved final state in the tested IEEE builds. Fast-math is different:
-stationary contact remains zero, but all non-stationary cases acquire a small
-double-precision drift, with the largest final-time values in Toro5
-$(L_1=4.57\times10^{-13}, L_\infty=7.41\times10^{-11})$. The HLLC--Rusanov
-rows are much larger because the flux formula has changed; their role is to put
-compiler and branch effects on the scale of an intentional solver change. These
-ranges are therefore screening metrics, not convergence studies or estimates of
-uncertainty across all compilers and platforms.
+The zero O2--O3 comparison shows that changing optimisation level alone did not
+alter the saved final state in the tested IEEE builds. The branch-rule axis is
+also zero for Sod, stationary contact, Toro3, and Toro5; the non-zero LW3 value
+in Table~\ref{tab:ch5-variation} is at roundoff scale. Fast-math is different:
+stationary contact remains zero, while the other CPU-fp64 HLLC comparisons give
+$L_1=2.38\times10^{-16}$ for Sod, $6.82\times10^{-16}$ for LW3,
+$2.15\times10^{-13}$ for Toro3, and $4.57\times10^{-13}$ for Toro5. The
+HLLC--Rusanov entry is much larger because the flux formula has changed; its
+role is to put compiler and branch effects on the scale of an intentional
+solver change. These are screening metrics, not convergence studies or
+estimates of uncertainty across compilers and platforms.
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.48\textwidth}
-\centering
 \includegraphics[width=\textwidth]{Figs/report1/density_hllc_vs_rusanov_200.png}
-\caption{Density.}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\centering
-\includegraphics[width=\textwidth]{Figs/report1/pressure_hllc_vs_rusanov_200.png}
-\caption{Pressure.}
-\end{subfigure}
-\caption{LW3 $200^2$ HLLC and Rusanov comparison used as a scale reference for the solver-variation rows in Table~\ref{tab:ch5-variation}.}
+\caption{LW3 $200^2$ density comparison between HLLC and Rusanov at final
+time. The visual difference is used as a scale reference for the
+solver-variation entry in Table~\ref{tab:ch5-variation}; pressure shows the
+same qualitative separation and is not repeated in the main text.}
 \label{fig:ch5-hllc-rusanov}
 \end{figure}
 
@@ -407,7 +380,7 @@ every tested case. Ofast+fast-math perturbs every non-stationary case, and the
 case ordering tracks the strong-wave structure: Toro5 has the largest
 final-time drift ($L_1=1.708782\times10^{-4}$,
 $L_\infty=1.928711\times10^{-2}$, $\mathrm{ULP}_{\max}\approx29.9$),
-Toro3 is next, the two-dimensional LW3 row at $200^2$ cells sits in between, and the smooth
+Toro3 is next, the two-dimensional LW3 entry at $200^2$ cells sits in between, and the smooth
 Sod cases at $N=200$ and $N=400$ stay near a few fp32 ULPs.
 
 \begin{table}[htbp]
@@ -426,97 +399,64 @@ Toro5, $N=200$ & O2 vs Ofast+fast-math & $1.708782\times10^{-4}$ & $1.928711\tim
 LW3, $200^2$ & O2 vs Ofast+fast-math & $3.523305\times10^{-7}$ & $1.204014\times10^{-5}$ & 23.52 \\
 \bottomrule
 \end{tabular}
-\caption{fp32 CPU compiler-flag matrix for final strict-HLLC outputs. O2 vs O3
-rows are reported once per case where checked and are zero throughout; the
-Ofast+fast-math rows are reported per case. Rows cover Sod at $N=200$ and
+\caption{fp32 CPU compiler-flag matrix for final HLLC outputs. O2 vs O3
+comparisons are reported once per case where checked and are zero throughout;
+the Ofast+fast-math entries are reported per case. The table covers Sod at $N=200$ and
 $N=400$, Toro3 and Toro5 at $N=200$, and LW3 at $200^2$.}
 \label{tab:ch5-fp32-flags}
 \end{table}
 
-A GPU strict-vs-fast probe tests the build-control side of the matched
-CPU/GPU result. Two additional CUDA builds were configured with
-\texttt{STRICT\_IEEE=OFF} and \texttt{FAST\_MATH=ON} (host \texttt{-ffast-math
--O3}, nvcc default \texttt{--fmad=true}, \texttt{--ftz=true}, approximate
-\texttt{prec-div} and \texttt{prec-sqrt}; the per-kernel \texttt{--fmad=false}
-pin on \texttt{src/gpu/euler\_kernels.cu} is retained in both builds) and
-compared against the strict CUDA builds at the same case, precision, and grid.
+A GPU flag probe tests the build-control side of the matched CPU/GPU result.
+The fast CUDA build disables the strict-IEEE option and enables fast-math, so
+the host path uses fast-math optimisation and nvcc reverts to its default
+fused-operation and denormal-handling choices. The per-kernel FMA pin remains
+unchanged. Fast CUDA outputs are compared against strict CUDA outputs at the
+same case, precision, and grid.
 Sod at $N=200$ in fp64 acquires $L_1=2.89\times10^{-17}$,
 $L_\infty=3.66\times10^{-15}$, $\mathrm{ULP}_{\max}\approx6.6$; LW3 at
 $200^2$ cells in fp64 grows to $\mathrm{ULP}_{\max}\approx23.3$; the matching
-LW3 fp32 row reaches
+LW3 fp32 comparison reaches
 $L_1=3.62\times10^{-7}$, $L_\infty=1.57\times10^{-5}$,
 $\mathrm{ULP}_{\max}\approx30.7$. Sod at $N=200$ in fp32 happens to remain
-bit-identical. The non-zero rows do not by themselves constitute a non-strict
-CPU/GPU comparison, because both sides of this probe are CUDA outputs. They do
-show that the strict build flags materially affect the saved GPU state, so the
+bit-identical. This supplementary GPU flag probe does not constitute a
+non-strict CPU/GPU comparison, because both sides are CUDA outputs. The probe
+is used only to show that
+the strict build flags can materially affect the saved GPU state, so the
 zero-drift CPU/GPU statement in Table~\ref{tab:ch5-cpu-gpu} is bounded to the
-\texttt{STRICT\_IEEE=ON}, \texttt{FAST\_MATH=OFF} configuration rather than to
-CUDA execution in general.
+strict-IEEE, fast-math-off configuration rather than to CUDA execution in
+general.
+
+Limiter sensitivity is not reported as a result in this chapter. The available
+experiment summary records that the report experiment setup has no documented
+limiter-selection axis, so producing such a result during writing would require a
+new opt-in interface or a solver-numerics change.
 
 \subsection*{Time-resolved drift and Toro2 branch stability}
 
 Figure~\ref{fig:ch5-drift-timeseries} uses ten synchronized checkpoints per
-case, from 10\% to 100\% of each run time, to show how $L_1$ differences
-develop under the same O2 versus Ofast+fast-math comparison. The fitted
-$\lambda_{\mathrm{fit}}$ values are finite-time slopes of $\log(L_1)$
-against solver time over those ten samples,
-\begin{equation*}
-\log L_1(t_k)=a+\lambda_{\mathrm{fit}}t_k .
-\end{equation*}
-This slope is a finite-time Lyapunov-like growth rate in the
-implementation-drift sense, in the spirit of the time-series fit used
-by~\citet{wolf_etal_1985} and the broader chaotic-attractor framing
-of~\citet{eckmann_ruelle_1985}; it diagnoses how quickly compiler-level
-rounding differences amplify in the computed solution and is not a continuous
-PDE-level dynamical-system exponent. Table~\ref{tab:ch5-lyapunov} reports the slopes
-for the strict-IEEE O2 versus Ofast+fast-math implementation pair across all
-six one-dimensional cases. Toro3 has the largest density and pressure slopes,
-297.7 and 254.8; Toro5 density (111.1) and Toro4 pressure (96.79) are next,
-followed by Toro5 pressure (94.56) and Toro4 density (86.38); the
-stationary-contact control remains exactly zero.
-
-\begin{table}[htbp]
-\centering
-\small
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-Case & $\rho$ slope & $p$ slope & $\rho$ final $L_1$ & $p$ final $L_1$ \\
-\midrule
-Sod                 & 14.92  & 13.02  & $3.15\times10^{-16}$ & $2.12\times10^{-16}$ \\
-Toro2               & 23.64  & 22.38  & $6.57\times10^{-16}$ & $2.64\times10^{-16}$ \\
-Toro3               & 297.7  & 254.8  & $1.54\times10^{-15}$ & $2.82\times10^{-13}$ \\
-Toro4               & 86.38  & 96.79  & $3.97\times10^{-17}$ & $1.68\times10^{-16}$ \\
-Toro5               & 111.1  & 94.56  & $9.22\times10^{-15}$ & $7.21\times10^{-13}$ \\
-Stationary contact  & ---    & ---    & $0$                  & $0$                  \\
-\bottomrule
-\end{tabular}
-\caption{Finite-time Lyapunov-like growth rates fitted over ten synchronized
-checkpoints (nine intermediate \texttt{output\_times} at 10--90\% of
-$t_{\mathrm{end}}$ plus the final dump) for the strict-IEEE O2 versus
-Ofast+fast-math implementation pair. Slopes come from a linear fit of
-$\log L_1(t)$ against solver time. The stationary-contact pair gives zero
-drift at every checkpoint, so $\log L_1$ is undefined and no slope is
-reported.}
-\label{tab:ch5-lyapunov}
-\end{table}
+case, from 10\% to 100\% of each case duration, to show how $L_1$ differences
+develop under the compiler and branch-rule comparisons. The main-text point is
+the checkpoint ordering rather than a fitted-rate table: the largest visible
+absolute drifts are the pressure curves for Toro5 and Toro3, followed by the
+Toro5 density curve, while Sod, Toro2, Toro4, and the stationary-contact
+control remain in lower or zero-drift bands. The comparison is finite-time and
+checkpoint-based; it is not interpreted as a continuous dynamical-system rate.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.72\textwidth]{Figs/report1/drift_timeseries_l1_normalized.png}
-\caption{Normalised-time $L_1$ drift time series for one-dimensional cases under compiler and branch-rule comparisons.}
+\includegraphics[width=\textwidth]{Figs/report1/drift_timeseries_l1_normalized.png}
+\caption{Normalised-time $L_1$ drift time series for one-dimensional cases
+under compiler and branch-rule comparisons. Several legend entries are not
+visible as separate curves because zero-drift comparisons cannot appear on the
+logarithmic axis and some non-zero compiler curves overlap at the plotted
+scale.}
 \label{fig:ch5-drift-timeseries}
 \end{figure}
 
-Toro2 yields no measured branch-rule drift row because the strict-inequality build did not complete on this case. Under the same CPU double
-toolchain and default CFL, the $\leq$ branch completed the near-vacuum Toro
-123 case in about 0.13 s, while the $<$ branch did not produce a final
-\texttt{grid.bin} within a 600 s retry cap. This is reported as
-branch-specific stability degradation for the near-vacuum case, not as a
-measured finite-time drift.
-
-Together, the validation, precision, device, and variation rows give the
-empirical basis for the discussion chapter. They connect the method and
-implementation choices from Chapters~3--4 to measured Euler outputs, while
-leaving two boundaries explicit: no limiter-sensitivity result is claimed, and
-MHD remains a Report~2 extension rather than Chapter~5 evidence.
+Toro2 yields no measured branch-rule drift entry because the strict-inequality
+build did not complete on this case. Under the same CPU double toolchain and
+default CFL, the $\leq$ branch completed the near-vacuum Toro 123 case in about
+0.13 s, while the $<$ branch did not produce a final \texttt{grid.bin} within a
+600 s retry cap. Non-completion within the 600 s limit was observed; the
+mechanism was not diagnosed in Report 1.
 % <<SECTION_6_END>>
