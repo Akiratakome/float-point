@@ -15,7 +15,10 @@ You are the main agent for the Report 1 drafting phase. Repository:
 
     c:\Users\tangy\Desktop\floatpoint
 
-This round drafts only Chapter 2, "Background and Governing Equations".
+This round drafts only Chapter 2, "Background and Governing Equations". In the
+planning outline, treat this chapter as "Background and Literature Context":
+it is the main literature/background chapter, with only minimal governing
+definitions.
 
 Target file: `report1/phd-thesis-template-2.4/Chapter2/chapter2.tex`
 
@@ -64,9 +67,11 @@ Lazy-load these style skills only when you are about to use them:
   overwrite edits outside your assigned marker region."
 - Do not modify solver numerics, cfg defaults, experiment results, output
   formats, or raw artifacts. Do not move files under `experiments/`.
-- Chapter 2 is selective background and governing equations, not a full method
-  derivation and not a results chapter. Detailed MUSCL-Hancock, HLLC, CFL,
-  implementation, and validation evidence belong to Chapters 3--5.
+- Chapter 2 is the main literature/background chapter, with minimal governing
+  definitions. It is not a finite-volume derivation, not an HLLC explanation,
+  not an implementation chapter, and not a results chapter. Detailed
+  MUSCL-Hancock, HLLC, CFL, implementation, and validation evidence belong to
+  Chapters 3--5.
 - Do not describe MHD as validated Report 1 evidence. MHD appears only as
   project context and Report 2 direction.
 - Manuscript-facing prose, captions, labels, and figure paths must not contain:
@@ -87,34 +92,39 @@ Lazy-load these style skills only when you are about to use them:
   measuring; quantitative claims belong to Chapters 5 and 6.
 - Every citation must support a specific sentence. Avoid source lists and
   chronological paper summaries.
+- Do not invent citations or citation keys. Use only verified sources from
+  `report1/references/reference.md` and keys confirmed in `references.bib`.
 - AI-assisted prose must pass `avoiding-ai-flavor`: no filler, no marketing
   tone, no unsupported confidence, and no generic paragraph that could fit an
   unrelated report.
 
 ### Chapter target and structure
 
-Working target: 780-860 Overleaf-counted words. Hard upper: 880. The worker
+Working target: 950-1,050 Overleaf-counted words. Hard upper: 1,100. The worker
 targets below are advisory ranges, not additive entitlements: their upper ends
 sum above the chapter cap once the Euler equation block is included. The main
 agent must check total length after each worker and compress before continuing
-if the chapter is drifting above budget. If the draft approaches 860 counted
+if the chapter is drifting above budget. If the draft approaches 1,050 counted
 words, compress Section 2.1, Section 2.3, and Section 2.5 before weakening the
 floating-point mechanism coverage in Section 2.4. Equation text may be counted
-by Overleaf, so prose should stay below about 820 words when Section 2.1 uses a
+by Overleaf, so prose should stay below about 1,000 words when Section 2.1 uses a
 displayed equation block.
 
 Purpose: satisfy the literature/background marking category while setting up
-the equations and concepts used later. The chapter should narrow from the Euler
-validation system to finite-volume HRSC methods and floating-point
-reproducibility, then state the Report 1 gap.
+only the equations and concepts needed later. The chapter should narrow from
+the Euler validation system to the finite-volume HRSC literature and
+floating-point reproducibility literature, then state the Report 1 gap.
+Equations are minimal; derivations belong to Chapter 3.
 
 The chapter should do five things:
 
-1. Define the compressible Euler system used as the Report 1 validation system.
+1. Define the compressible Euler system used as the Report 1 validation system,
+   using only the minimum equations needed for later notation.
 2. Position ideal MHD as the wider project target, with divergence control as a
    future-project issue.
 3. Explain why finite-volume HRSC and Riemann-solver methods are the relevant
-   method family for shocks and contacts.
+   method family for shocks and contacts, without deriving the update or HLLC
+   flux.
 4. Explain the floating-point mechanisms that can change simple expressions and
    time-dependent solvers: binary32/binary64, rounding, non-associativity, FMA,
    compiler flags, and parallel ordering.
@@ -250,21 +260,21 @@ stops and reports.
 
 Assigned markers: `SECTION_1_BEGIN` to `SECTION_1_END`.
 
-Write Section 2.1, working target 140-165 counted words plus one compact
+Write Section 2.1, working target 150-185 counted words plus one compact
 equation block (use `equation` or `align` to match Chapter 3 style). Present
 the compressible Euler equations as the governing system for the 1D and 2D
 validation settings, but keep this as background rather than the detailed
 method derivation. Define the conservative state and ideal-gas closure; include
 fluxes only in compact vector form or by reference to the standard conservation
-law, because Chapter 3 already gives the full flux matrices and finite-volume
-update. Explain why Euler is the Report 1 validation system: it contains shocks,
+law, because Chapter 3 owns the full flux matrices and finite-volume update.
+Explain why Euler is the Report 1 validation system: it contains shocks,
 contacts, and rarefactions relevant to HRSC validation while remaining simpler
 than ideal MHD.
 
-Do not derive eigenvalues, CFL conditions, HLLC wave speeds, or the
-MUSCL-Hancock update; those belong to Chapter 3. Do not duplicate the full
-flux-matrix exposition in Chapter 3. Do not introduce new result claims. Use
-notation that can be reused in Chapter 3.
+Do not derive eigenvalues, finite-volume updates, CFL conditions, HLLC wave
+speeds, or the MUSCL-Hancock update; those belong to Chapter 3. Do not
+duplicate the full flux-matrix exposition in Chapter 3. Do not introduce new
+result claims. Use notation that can be reused in Chapter 3.
 
 Sources to read:
 
@@ -279,7 +289,7 @@ Allowed citations: `toro2009`; `sod_1978` only if Sod is named.
 
 Assigned markers: `SECTION_2_BEGIN` to `SECTION_2_END`.
 
-Write Section 2.2, hard target 95-125 counted words. Explain ideal MHD as the
+Write Section 2.2, hard target 100-135 counted words. Explain ideal MHD as the
 wider project target and mention the divergence-free magnetic-field constraint.
 Keep MHD as context for Report 2, not as the main evidence of Report 1. This
 section should be a short bridge, not an MHD method survey.
@@ -304,7 +314,7 @@ the wording does not duplicate Chapter 3.
 
 Assigned markers: `SECTION_3_BEGIN` to `SECTION_3_END`.
 
-Write Section 2.3, working target 135-165 counted words. Make it a thematic
+Write Section 2.3, working target 170-220 counted words. Make it a thematic
 literature paragraph, not a chronology. Explain why finite-volume HRSC methods
 are suitable for discontinuous compressible flows: they update cell averages by
 interface fluxes and can preserve conservation across shocks and contacts.
@@ -327,8 +337,8 @@ Allowed citations: `toro2009`, `harten_lax_vanleer_1983`, `vanleer_1979`.
 
 Assigned markers: `SECTION_4_BEGIN` to `SECTION_4_END`.
 
-Write Section 2.4, working target 285-315 counted words (hard cap 320; if the
-chapter total has already reached 820, compress to 265-280 instead). This is the load-bearing
+Write Section 2.4, working target 310-350 counted words (hard cap 360; if the
+chapter total has already reached 980, compress to 290-310 instead). This is the load-bearing
 background subsection for the brief's requirement to discuss floating-point
 arithmetic and how hardware, compiler options, and parallel-thread ordering can
 affect simple expressions and algorithms.
@@ -361,7 +371,7 @@ Allowed citations: `goldberg_1991`, `ieee754_2019`, `higham_2002`.
 
 Assigned markers: `SECTION_5_BEGIN` to `SECTION_5_END`.
 
-Write Section 2.5, working target 85-115 counted words. Synthesize the chapter
+Write Section 2.5, working target 110-145 counted words. Synthesize the chapter
 without listing papers. Group the literature into method foundations, benchmark
 design, and floating-point reliability. Then state the gap: Report 1 isolates
 how the same nominal HRSC computation behaves across precision and hardware
@@ -482,7 +492,7 @@ pdflatex -draftmode -interaction=nonstopmode thesis.tex
 pdflatex -draftmode -interaction=nonstopmode thesis.tex
 ```
 
-If the `texcount` total exceeds 860, compress before declaring the chapter
+If the `texcount` total exceeds 1,050, compress before declaring the chapter
 ready (see ceilings in the "Chapter target and structure" section). If
 `bibtex` reports an undefined citation, treat it as a blocking defect rather
 than a warning.

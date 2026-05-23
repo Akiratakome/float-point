@@ -31,7 +31,7 @@ Supporting sources:
 
 ### 2.1 Word count
 
-- **Maximum: 7,500 words** per report. Current course clarification for this project: the controlling count is Overleaf Word Count / counted text; tables and figure captions are not counted. Bibliography is excluded.
+- **Maximum: 7,500 words** per report. Current course clarification for this project: the controlling count is Overleaf Word Count / counted text; tables and figure captions are not counted. Bibliography is excluded. Pseudocode and algorithm-environment text are counted as ordinary prose unless Overleaf proves otherwise for the final template.
 - Penalty schedule (handbook p.11):
   - up to +5% (≤7,875 words): no penalty
   - +5% to +10% (7,876–8,250): **−10 percentage points**
@@ -187,17 +187,17 @@ Use `report1/planning/manuscript_outline.md` as the detailed chapter-by-chapter 
 
 | Chapter | Topic | Approx. words (hard upper) | Anchors |
 |---|---|---|---|
-| 1 | **Introduction** — context, gap, aim, scope, report structure | 600-720 (720) | brief §3.1 motivation |
-| 2 | **Background and governing equations** — compressible Euler equations, ideal-MHD context (≤ 140 w), HRSC background, floating-point reproducibility (300-360 w) | 780-880 (880) | brief §3.1 bullets 1-4 |
-| 3 | **Numerical method** — finite-volume framework, MUSCL-Hancock, HLLC, limiter/stability choices, precision-sensitive decision points, MHD bridge (≤ 140 w) | 1,080-1,220 (1,220) | brief §3.2 |
-| 4 | **Implementation and experimental design** — stand-alone route, key code path with pseudocode (pseudocode IS counted), comparability principle, test matrix incl. supersonic column, reference-solution methodology | 1,000-1,130 (1,130) | brief §3.3 |
-| 5 | **Validation and precision results** — selected Euler cases (Sod, Toro3, Toro5, LW3, LW12), CPU/GPU comparison with toolchain footnote, fp32/fp64 quantification, compiler/branch/solver variation, time-resolved drift | 1,750-1,900 (1,900) | brief §3.4 |
-| 6 | **Discussion** — synthesis, precision effects relative to numerical error (incl. Verificarlo virtual-precision regional interpretation), hardware/implementation sensitivity, limitations | 600-720 (720) | handbook criteria 3-5 |
-| 7 | **Conclusion** — evidence-bounded findings and next project direction | 330-430 (430) | continuity with Report 2 |
-| Abstract | Compact paragraph, ≥ 2 specific numerical values | 180-220 (220) | quality [20%] |
+| 1 | **Introduction** — context, gap, aim, scope, report structure | 500-600 (600) | brief §3.1 motivation |
+| 2 | **Background and literature context** — compressible Euler equations, ideal-MHD context (≤ 160 w), HRSC background, floating-point reproducibility (300-360 w) | 850-950 (950) | brief §3.1 bullets 1-4 |
+| 3 | **Numerical method** — finite-volume framework, MUSCL-Hancock, HLLC, limiter/stability choices, precision-sensitive decision points, MHD bridge (≤ 160 w) | 1,200-1,350 (1,350) | brief §3.2 |
+| 4 | **Implementation and experimental design** — stand-alone route, key code path with pseudocode (pseudocode IS counted), comparability principle, test matrix incl. supersonic column, reference-solution methodology | 950-1,100 (1,100) | brief §3.3 |
+| 5 | **Validation and precision results** — selected Euler cases (Sod, Toro3, Toro5, LW3, LW12), CPU/GPU comparison with toolchain footnote, fp32/fp64 quantification, compiler/branch/solver variation, time-resolved drift | 1,800-1,950 (1,950) | brief §3.4 |
+| 6 | **Discussion** — synthesis, precision effects relative to numerical error (incl. Verificarlo virtual-precision regional interpretation), hardware/implementation sensitivity, limitations | 650-750 (750) | handbook criteria 3-5 |
+| 7 | **Conclusion** — evidence-bounded findings and next project direction | 300-360 (360) | continuity with Report 2 |
+| Abstract | Compact paragraph, ≥ 2 specific numerical values | 180-210 (210) | quality [20%] |
 | Refs | Bibliography | — | excluded from word count |
 
-Total per-chapter hard-upper sum: **7,220 words**, leaving ~280 words of cushion under the 7,500 Overleaf cap. Working drafting target: **≤ 7,400 Overleaf-counted words**. Tables and figure captions are not counted under the current course clarification, so the results chapter should target a figure/table-heavy density (modelled on the Davison-Petch example, about 20-24 main items). Pseudocode/algorithm-environment bodies ARE counted by Overleaf Word Count — the Ch. 4 cap above already absorbs this.
+Total per-chapter hard-upper sum: **7,210 words**, leaving ~290 words of cushion under the 7,500 Overleaf cap. Working drafting target: **≤ 7,400 Overleaf-counted words**. Tables and figure captions are not counted under the current course clarification, so the report can draw from a figure/table-heavy candidate pool (modelled on the Davison-Petch example, about 20-24 possible items), but the main text should normally keep about 14-18 figures/tables and move duplicate or provenance-only visuals to an appendix. Pseudocode/algorithm-environment bodies ARE counted by Overleaf Word Count — the Ch. 4 cap above already absorbs this.
 
 Use the CUED template for formatting. Do not let the template's default chapter files determine the intellectual structure; the chapter structure above should be driven by the project brief and evidence.
 

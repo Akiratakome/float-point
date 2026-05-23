@@ -13,16 +13,28 @@ This document is the working manuscript plan for Report 1 of *Effect of Floating
 The final report order is different from the drafting order:
 
 1. Introduction
-2. Background and governing equations
+2. Background and literature context
 3. Numerical method
 4. Implementation and experimental design
 5. Validation and precision results
 6. Discussion
 7. Conclusion
 
-Target counted length: keep the Overleaf Word Count result strictly below 7,500 words. Course clarification for this report: use Overleaf's counted text result as the controlling count; **tables and figure captions are not counted**, but **pseudocode/algorithm-environment bodies are counted** because Overleaf Word Count treats their text content as ordinary prose. Bibliography is excluded. Working target: ≤ 7,400 Overleaf-counted words after final edit, with a hard internal stop at 7,420 leaving an ~80-word revision margin. Because tables and captions are free, this report should carry a figure/table-heavy results chapter modelled on the Davison-Petch example (target 20-24 main figures/tables): every figure or table must still be interpreted in prose, but evidence density in the results chapter is not constrained by word budget the way prose density is.
+Target counted length: keep the Overleaf Word Count result strictly below 7,500 words. Course clarification for this report: use Overleaf's counted text result as the controlling count; **tables and figure captions are not counted**, but **pseudocode/algorithm-environment bodies are counted** because Overleaf Word Count treats their text content as ordinary prose. Bibliography is excluded. Working target: ≤ 7,400 Overleaf-counted words after final edit. Because tables and captions are free, this report can draw from a figure/table-heavy candidate pool modelled on the Davison-Petch example (about 20-24 possible figures/tables), but the main text should normally use about 14-18 items and move duplicate or provenance-only visuals to an appendix. Every figure or table must still be interpreted in prose; visual density is not a substitute for evidence-linked argument.
 
 Write in the local CUED template at `report1/phd-thesis-template-2.4/`. Use the template for front matter, chapter structure, references, and final LaTeX word-count checking; do not let the template's sample chapter content determine the intellectual structure of the report.
+
+## Chapter Responsibility Lock
+
+Use this ownership split to clean up the current broad Chapter 3/4/5 drafts and to prevent duplication across the final pass.
+
+- **C1:** problem entry, scope, contribution, and roadmap only; no method details or result numbers.
+- **C2:** background and literature context; minimal governing definitions only; no finite-volume derivation or HLLC detail.
+- **C3:** numerical method theory only.
+- **C4:** implementation and experimental design; this is the single owner of the design matrix.
+- **C5:** validation and results only; cite the C4 design matrix instead of duplicating design rationale.
+- **C6:** cross-cutting discussion and synthesis; no new results and no case-by-case repetition.
+- **C7:** evidence-bounded conclusion; no second discussion.
 
 ## Global Requirements
 
@@ -70,9 +82,12 @@ Prioritise these P0 artifacts from `experiments/report1_evidence_map.md`.
 | 2D visual | `experiments/week7/report1_validation_2d/figures/lw3_n400_double_rho_schlieren.png`; `experiments/week8/report1_2d_config12_fill/figures/lw12_n400_double_rho_schlieren.png`; `experiments/week8/report1_2d_config12_fill/figures/lw12_n400_double_rho.png` | Main 2D LW3 and LW12 validation figures |
 | 2D float/reference adequacy | `experiments/week4/float_regression/2d/summary.md`; `experiments/week8/report1_2d_config12_fill/reference_comparison/summary.md` | 2D reference comparison against high-resolution numerical references |
 | CPU/GPU quantification | `experiments/week8/report1_device_hllc_fill/cpu_vs_gpu_sod_lw3fp32_hllc_strict.md`; `experiments/week7/report1_validation_1d_device/cpu_vs_gpu_toro3_toro5_hllc_strict.md`; `experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.md`; `experiments/week8/report1_2d_config12_fill/cpu_vs_gpu_config12_hllc_strict.md` | Required CPU-GPU quantitative comparison for Sod, Toro3, Toro5, LW3, and LW12 under `solver=hllc`, `STRICT_IEEE=ON`. In manuscript prose, call these "matched CPU/GPU HLLC strict comparisons"; do not mention directory week numbers or local fill names. |
+| CPU/GPU checkpoint quantification | `experiments/week9/cpu_gpu_midtime/summary.md`; `experiments/week9/cpu_gpu_midtime_n400/summary.md` | Completed checkpointed strict-HLLC CPU/GPU evidence for Sod, LW3, and LW12 in fp32 and fp64. Use as saved-checkpoint output evidence only; do not claim stage-by-stage identity inside a time step. |
 | Regression/reproducibility | `experiments/week6/regression/summary.md` | Support implementation/testing description |
 | Variation axes (Sod/stationary_contact/LW3-N200) | `experiments/week7/report1_variation/summary.md` | Compiler flags (O2/O3/Ofast plus fast-math), HLLC `<` vs `<=` wave-speed branch (`RIEMANN_STRICT_INEQUALITY` ON vs OFF, file `axis_leq_vs_strict.*`), and HLLC vs Rusanov as method variation. CPU double only. The "leq" vs "strict" suffix on the build name controls only the HLLC wave-speed branch and is unrelated to `STRICT_IEEE`. |
 | Variation axes (Toro3/Toro5 extension) | `experiments/week8/report1_variation_extend/summary.md` | Same axes (`<=` vs `<`, O2 vs O3, O2 vs Ofast-fastmath) applied to Toro3 and Toro5 so the variation matrix spans the same selected cases as the validation matrix. CPU double only. HLLC `<=` vs `<` and O2 vs O3 are zero drift on Toro3 and Toro5; O2 vs Ofast-fastmath produces the largest non-stationary final-time drift in the combined matrix on these two cases (L1 ~2-5e-13, Linf ~3-7e-11). |
+| fp32 compiler variation | `experiments/week9/variation_fp32/summary.md`; `experiments/week9/variation_fp32_extend/summary.md` | Completed CPU fp32 O2/O3/Ofast-fastmath sensitivity rows for Sod, Toro3, Toro5, and LW3. Use as fp32 compiler sensitivity, not as hardware evidence. |
+| Limiter variation status | `experiments/week9/variation_limiter/summary.md` | No limiter-sensitivity result is claimed because the current report harness has no documented limiter-selection axis. Use only as a limitation; do not modify solver numerics during writing to create this result. |
 | Drift growth | `experiments/week7/lyapunov_1d_full/summary.md`; `experiments/week7/lyapunov_1d_full/figures/drift_timeseries_l1_normalized.png` | Time-evolution of implementation sensitivity on the 1D Toro cases. Toro2 `<` branch did not complete in the original harness; see `experiments/week8/toro2_lt_branch_retry/` for an independent attempt and its outcome. |
 | Precision adequacy | `experiments/week7/report1_d2_replots/float_double_over_reference_bar.png` | Clear fp32 adequacy comparison |
 | Region-aware precision | `experiments/week7/report1_d2_replots/region_losos_margin_rho_p32.png` | Region-aware significant-digit margin |
@@ -80,7 +95,7 @@ Prioritise these P0 artifacts from `experiments/report1_evidence_map.md`.
 
 ## Figure and Table Plan
 
-Main text should be selective but evidence-rich. Let LaTeX number figures and tables automatically; do not hard-code final figure/table numbers in draft prose. The sample Report 1 PDF uses 20+ figures/tables in a results-heavy report, and the current course word-count clarification means tables and captions do not consume the Overleaf counted-word budget. A strong version should therefore target around 20-24 main figures/tables, provided each one carries a distinct claim, is interpreted in prose, and does not duplicate another visual. Duplicate heatmaps or provenance plots can move to an appendix if layout becomes crowded.
+Main text should be selective but evidence-rich. Let LaTeX number figures and tables automatically; do not hard-code final figure/table numbers in draft prose. The sample Report 1 PDF uses 20+ figures/tables in a results-heavy report, and the current course word-count clarification means tables and captions do not consume the Overleaf counted-word budget. Treat 20-24 items as a candidate pool, not a mandate: the main text should normally carry about 14-18 figures/tables, with duplicate heatmaps, provenance plots, or detailed variation rows moved to an appendix if layout becomes crowded. Each retained item must carry a distinct claim and be interpreted in prose.
 
 | Candidate item | Type | Content | Likely chapter |
 |---|---|---|---|
@@ -127,26 +142,26 @@ Per-paragraph constraints that prompts inherit:
 
 ## Word Budget Lock
 
-Chapter caps below are the per-chapter Overleaf-counted upper bounds; their max sum is **7,220**, leaving ~280 words of revision margin under the 7,500 hard cap. Pseudocode lines count as ordinary prose (see Global Requirements), so the §4.2 budget already absorbs the algorithm box.
+Chapter caps below are Overleaf-counted upper bounds, not writing entitlements. The controlling count remains the Overleaf counted-text result: target no more than 7,400 counted words, hard cap 7,500. Under the current course clarification, tables and figure captions are excluded; pseudocode lines count as ordinary prose, so the Chapter 4 budget must absorb the algorithm box. The hard-upper sum is **7,210**, leaving about 290 words under the formal cap for Overleaf counting surprises and final edits.
 
-| Chapter | Range | Hard upper |
-|---|---|---|
-| Abstract | 180-220 | 220 |
-| Ch. 1 Introduction | 600-720 | 720 |
-| Ch. 2 Background | 780-880 | 880 |
-| Ch. 3 Numerical method | 1,080-1,220 | 1,220 |
-| Ch. 4 Implementation (incl. pseudocode) | 1,000-1,130 | 1,130 |
-| Ch. 5 Validation and precision results | 1,750-1,900 | 1,900 |
-| Ch. 6 Discussion | 600-720 | 720 |
-| Ch. 7 Conclusion | 330-430 | 430 |
+| Chapter | Working range | Hard upper |
+|---|---:|---:|
+| Abstract | 180-210 | 210 |
+| Ch. 1 Introduction | 500-600 | 600 |
+| Ch. 2 Background and literature context | 850-950 | 950 |
+| Ch. 3 Numerical method | 1,200-1,350 | 1,350 |
+| Ch. 4 Implementation and experimental design | 950-1,100 | 1,100 |
+| Ch. 5 Validation and precision results | 1,800-1,950 | 1,950 |
+| Ch. 6 Discussion | 650-750 | 750 |
+| Ch. 7 Conclusion | 300-360 | 360 |
 | Front matter (declaration, abstract heading) | n/a | n/a |
-| **Sum (max)** | | **7,220** |
+| **Sum (hard upper)** | | **7,210** |
 
-Lower-bound sum is 6,320, upper-bound sum is 7,220. The extra 280-word headroom between 7,220 and 7,500 absorbs unexpected pseudocode overrun, equation labels Overleaf treats as words, and one round of supervisor-requested additions. If a section pushes against its hard upper, cut from §6.x synthesis or §2.2 MHD context before touching evidence-bearing sections (§5.x).
+If a section pushes against its hard upper, cut duplicated design material from Chapters 5 and 6 first, then compress general background exposition. Do not cut evidence-bearing numerical values, the validation matrix, the CPU/GPU boundary statement, or the MHD conceptual coverage required by the brief.
 
 ## Chapter 1: Introduction
 
-Working target: 600-720 counted words (hard upper 720). Draft after Chapters 3-6 are stable.
+Working target: 500-600 counted words. Draft after Chapters 3-6 are stable.
 
 Purpose: narrow from HRSC methods and floating-point reproducibility to this Report 1 study.
 
@@ -226,11 +241,11 @@ Using `writing-introduction` and `academic-english-style`, write a concise contr
 
 **Skill:** `writing-introduction` + `academic-english-style`.
 
-## Chapter 2: Background and Governing Equations
+## Chapter 2: Background and Literature Context
 
-Working target: 780-880 counted words (hard upper 880).
+Working target: 850-950 counted words.
 
-Purpose: satisfy background/literature and set up the equations and concepts used later.
+Purpose: satisfy background/literature and set up the minimal governing definitions used later. This chapter is now the main literature/background chapter; derivations, finite-volume update details, and HLLC mechanism belong to Chapter 3. It should read as a source-backed literature review, not as a textbook tutorial: each subsection should identify what role the source plays for this report, then hand off to the method, design, or results chapter without duplicating those chapters.
 
 ### 2.1 Compressible Euler equations
 
@@ -240,34 +255,34 @@ Purpose: satisfy background/literature and set up the equations and concepts use
 
 **Citations:** Toro; Sod if introducing shock-tube validation.
 
-**Scoring alignment:** Literature/background [20%]; mathematical theory [20%]; handbook criteria 1 and 2.
+**Scoring alignment:** Literature/background [20%]; handbook criteria 1 and 2.
 
-**Requirements:** Present conservation form for 1D and 2D settings, define conservative variables and fluxes, state ideal-gas closure.
+**Requirements:** Present only the minimal conservation-law definition needed for later chapters: conservative variables, compact flux notation, and ideal-gas closure. Do not derive flux matrices, eigenstructure, finite-volume updates, CFL restrictions, or HLLC details.
 
 **Prompt:**
 ```text
-Using `writing-literature-review` and `academic-english-style`, draft Section 2.1. Present the compressible Euler equations in conservation form for the 1D and 2D validation settings. Define conservative variables, fluxes, and the ideal-gas equation of state. Explain why Euler is the Report 1 validation system. Keep the section concise and tied to later validation.
+Using `writing-literature-review` and `academic-english-style`, draft Section 2.1. Present the compressible Euler equations only as the governing validation system. Define conservative variables, compact flux notation, and the ideal-gas equation of state. Explain why Euler is the Report 1 validation system. Keep equations minimal; finite-volume derivation and Riemann-solver detail belong to Chapter 3.
 ```
 
 **Skill:** `writing-literature-review` + `academic-english-style`.
 
 ### 2.2 Ideal MHD as wider project target
 
-Working sub-target: ≤ 140 counted words. This is context only; the section must not expand into MHD methodology.
+Working sub-target: ≤ 160 counted words. This is context only; the section must not expand into MHD validation.
 
 **Topic sentence:** Ideal MHD extends the Euler system by coupling fluid motion to magnetic fields, and this makes divergence control a central issue for the later project stages.
 
-**Figure/table:** Optional equation block if space allows; otherwise prose.
+**Figure/table:** Required compact equation/constraint block; keep the prose short enough that the block does not turn this into a method chapter.
 
-**Citations:** Bard and Dorelli (one citation only in this section); Dedner/Evans-Hawley only if divergence cleaning is named; Brio-Wu/Orszag-Tang only if benchmarks are discussed.
+**Citations:** Bard and Dorelli only if needed for GPU/MHD motivation; Dedner or Evans-Hawley only if divergence cleaning or constrained transport is named; Brio-Wu/Orszag-Tang only if benchmarks are discussed.
 
-**Scoring alignment:** Literature/background [20%]; mathematical theory [20%].
+**Scoring alignment:** Literature/background [20%].
 
-**Requirements:** Keep ≤ 140 words and ≤ 1 citation. Report 1 should not read as MHD validation. Do not introduce method names that the report does not use.
+**Requirements:** Keep ≤ 160 words and normally ≤ 2 citations. The brief requires an overview of ideal MHD, so include a compact ideal-MHD equation block or conservative-form summary, the divergence-free magnetic-field constraint, and, if space allows, one sentence naming divergence cleaning or constrained transport as future numerical choices. Report 1 should not read as MHD validation: do not present a chosen Report 1 MHD method, MHD benchmark result, or MHD accuracy claim.
 
 **Prompt:**
 ```text
-Using `writing-literature-review` and `academic-english-style`, draft Section 2.2. Explain ideal MHD as the wider project target and mention the divergence-free magnetic-field constraint. Keep MHD as context for Report 2, not as the main evidence of Report 1. Cite Bard and Dorelli for GPU/MHD motivation and cite divergence-control references only if the text specifically names a method.
+Using `writing-literature-review` and `academic-english-style`, draft Section 2.2 in no more than 160 counted words plus one compact equation/constraint block. Explain ideal MHD as the wider project target, include the divergence-free magnetic-field constraint, and name divergence cleaning or constrained transport only as future numerical choices if the sentence is supported by Dedner or Evans-Hawley. Keep MHD as context for Report 2, not as Report 1 evidence. Do not state or imply that MHD validation has been completed.
 ```
 
 **Skill:** `writing-literature-review` + `academic-english-style`.
@@ -280,34 +295,34 @@ Using `writing-literature-review` and `academic-english-style`, draft Section 2.
 
 **Citations:** Toro; Harten-Lax-van Leer; van Leer.
 
-**Scoring alignment:** Literature/background [20%]; mathematical theory [20%]; handbook criterion 2.
+**Scoring alignment:** Literature/background [20%]; handbook criterion 2.
 
-**Requirements:** Do not rederive the full method here; introduce why finite-volume/Riemann-solver methods are the relevant family.
+**Requirements:** Keep this as literature/background motivation only. Do not rederive the finite-volume update, MUSCL-Hancock predictor, CFL condition, or HLLC/Rusanov formulas; Chapter 3 owns those details.
 
 **Prompt:**
 ```text
-Using `writing-literature-review` and `academic-english-style`, draft Section 2.3 as a thematic literature paragraph, not a chronology. Explain why finite-volume HRSC methods suit discontinuous compressible flows. Cite Toro as the main source, with Harten-Lax-van Leer and van Leer only where their specific contribution matters. Close by motivating the more detailed method chapter.
+Using `writing-literature-review` and `academic-english-style`, draft Section 2.3 as a thematic literature paragraph, not a chronology. Explain why finite-volume HRSC methods suit discontinuous compressible flows and why Riemann-solver methods are relevant. Cite Toro as the main source, with Harten-Lax-van Leer and van Leer only where their specific contribution matters. Close by pointing to Chapter 3 for derivation and solver detail.
 ```
 
 **Skill:** `writing-literature-review` + `academic-english-style`.
 
 ### 2.4 Floating-point arithmetic and reproducibility
 
-Working target: 300-360 counted words. This subsection carries the brief's Literature/Background [20%] bullet "a brief discussion of floating-point arithmetic, and what effect different hardware, compiler options, and parallel-thread ordering may have on the result of simple expressions and algorithms." Treat it as a small standalone block, not a stub.
+Working target: 300-360 counted words. This subsection carries the brief's Literature/Background [20%] bullet "a brief discussion of floating-point arithmetic, and what effect different hardware, compiler options, and parallel-thread ordering may have on the result of simple expressions and algorithms." Treat it as a literature/background block, not a results preview.
 
 **Topic sentence:** Floating-point arithmetic introduces small local rounding differences that can become measurable in nonlinear time-dependent solvers.
 
 **Figure/table:** None required; one short equation or numerical demonstration of non-associativity is allowed if it stays within the word budget.
 
-**Citations:** Goldberg; IEEE 754-2019; Higham; Higham and Mary only if mixed/probabilistic precision is discussed.
+**Citations:** Goldberg; IEEE 754-2019; Higham; Brogi et al. for CFD-specific reduced/mixed precision context; Wang, Xia, and Chen if a compressible finite-volume hybrid-precision example is useful; Parker and Denis et al. if Verificarlo/MCA is introduced; Demmel and Nguyen only if reproducible reductions are explicitly discussed; Higham and Mary only for broad mixed-precision framing, not as CFD evidence.
 
 **Scoring alignment:** Literature/background [20%]; validation [20%]; handbook criteria 1 and 4.
 
-**Requirements:** Cover, at conceptual level: binary32 versus binary64 storage and unit roundoff; round-to-nearest-even semantics; non-associativity of `(a+b)+c` versus `a+(b+c)` as the underlying mechanism the brief asks about for "simple expressions and algorithms"; FMA and `-ffp-contract` behaviour; compiler options such as `-Ofast` and `--use_fast_math` and how they relax IEEE semantics; reduction order across parallel threads or GPU blocks. Each mechanism must be named; do not collapse them into a single paragraph of generalities. Hedge: differences exist mechanically, but whether they grow in a given solver is an empirical question the rest of the report measures.
+**Requirements:** Cover, at conceptual level: binary32 versus binary64 significand length and exponent range; unit roundoff; round-to-nearest-even semantics; non-associativity using the supervisor's `(1e-18 + 1) - 1` versus `1e-18 + (1 - 1)` example or an equivalent; FMA and `-ffp-contract` behaviour; why `-Ofast`/fast-math allows reassociation or approximations not allowed in the same way under normal `-O3`; reciprocal/division and square-root approximations; reduction order across parallel threads or GPU blocks; Verificarlo/MCA and the boundary that Verificarlo `p32` is not IEEE binary32/fp32. Each mechanism must be named; do not collapse them into a single paragraph of generalities. Hedge: differences exist mechanically, but whether they grow in a given solver is an empirical question the rest of the report measures. Use Brogi et al. and, if space allows, Wang/Xia/Chen to show that reduced or hybrid precision has been studied in CFD settings; do not turn those papers into evidence for this report's HRSC solver or any general fp32 adequacy claim.
 
 **Prompt:**
 ```text
-Using `writing-literature-review` and `academic-english-style`, draft Section 2.4 in 320-400 counted words. Open with binary32/binary64 storage and unit roundoff. Then give a one-sentence example of how a simple expression such as a finite-difference sum changes under reordering or FMA fusion, citing the brief's explicit interest in "the result of simple expressions and algorithms". Continue with FMA / `-ffp-contract`, compiler-option families (`-Ofast`, `--use_fast_math`), and parallel reduction order. Cite Goldberg, IEEE 754-2019, and Higham each at least once and only when supporting a specific claim. Hedge: local differences can become measurable in nonlinear solvers, but the report measures the size rather than assuming it.
+Using `writing-literature-review` and `academic-english-style`, draft Section 2.4 in 300-360 counted words. Open with binary32/binary64 significand length, exponent range, and unit roundoff. Then give the supervisor's non-associativity example or an equivalent one, linking it to the brief's explicit interest in "the result of simple expressions and algorithms". Continue with FMA / `-ffp-contract`, `-O3` versus `-Ofast`/fast-math, reciprocal/division and square-root approximations, and parallel reduction order. Use Brogi et al. as the main CFD-specific reduced/mixed precision citation; optionally use Wang, Xia, and Chen for a compressible finite-volume hybrid-precision example if the sentence remains short. Introduce Denis et al.'s Verificarlo and Parker's MCA only if Chapter 4-6 need those terms, and state that Verificarlo `p32` is a virtual mantissa setting rather than IEEE fp32. Cite Goldberg, IEEE 754-2019, and Higham only when supporting a specific claim. Do not imply that any cited CFD precision paper validates this report's selected HRSC cases.
 ```
 
 **Skill:** `writing-literature-review` + `academic-english-style`.
@@ -322,7 +337,7 @@ Using `writing-literature-review` and `academic-english-style`, draft Section 2.
 
 **Scoring alignment:** Literature/background [20%]; quality [20%]; handbook criterion 5.
 
-**Requirements:** Link literature limitations directly to the report's validation matrix.
+**Requirements:** Link literature limitations directly to the report's validation matrix. Group the literature by function: governing equations, benchmark sources, HRSC method foundations, and floating-point/reproducibility mechanisms. Do not list papers chronologically.
 
 **Prompt:**
 ```text
@@ -333,9 +348,9 @@ Using `writing-literature-review`, draft Section 2.5 as the synthesis paragraph 
 
 ## Chapter 3: Numerical Method
 
-Working target: 1,080-1,220 counted words (hard upper 1,220).
+Working target: 1,200-1,350 counted words.
 
-Purpose: demonstrate mathematical understanding of the method used to generate the evidence.
+Purpose: demonstrate mathematical understanding of the method used to generate the evidence. Cleanup/compression target: Chapter 3 owns method theory only. Keep derivations, MUSCL-Hancock, HLLC/Rusanov, limiter/CFL, and precision-sensitive branch concepts here; remove implementation routing, design-matrix prose, and result interpretation to Chapters 4-6.
 
 ### 3.1 Finite-volume update
 
@@ -423,41 +438,41 @@ Using `scientific-writing-duke` and `academic-english-style`, draft Section 3.4.
 
 **Scoring alignment:** Mathematical theory [20%]; validation [20%]; handbook criterion 4.
 
-**Requirements:** Discuss `<` vs `<=`, exact-solver tolerances, limiter branches, reductions, and compiler options as possible sensitivity axes. **Scope statement (binding):** in Report 1, only `<` vs `<=` (HLLC wave-speed branch), compiler flags (O2/O3/Ofast±fast-math), HLLC-vs-Rusanov solver variation, and — if the supplementary minmod/vanleer experiment completes — limiter choice carry quantitative evidence. Exact-solver tolerances and parallel-reduction order are introduced as concepts only and explicitly marked as not measured in this report. Do not write "as the experiments below show" for the unmeasured axes.
+**Requirements:** Discuss `<` vs `<=`, exact-solver tolerances, limiter branches, reductions, and compiler options as possible sensitivity axes. **Scope statement (binding):** in Report 1, only `<` vs `<=` (HLLC wave-speed branch), compiler flags (O2/O3/Ofast±fast-math), fp32 compiler rows, HLLC-vs-Rusanov solver variation, and time-resolved drift carry quantitative evidence. Limiter choice, exact-solver tolerances, and parallel-reduction order are introduced as concepts only and explicitly marked as not measured in this report. Do not write "as the experiments below show" for the unmeasured axes.
 
 **Prompt:**
 ```text
-Using `scientific-writing-duke` and `academic-english-style`, draft Section 3.5. Explain why branch conditions, tolerances, limiter decisions, reductions, and compiler options may produce measurable differences in finite-precision runs. Use the project brief's `<` versus `<=` example. State explicitly which of these axes the report measures (HLLC branch rule, compiler flags, HLLC-vs-Rusanov, limiter if the supplementary run completes) and which are introduced at concept level only (tolerances, reductions). Do not claim large effects; state that the report measures their effect in selected cases.
+Using `scientific-writing-duke` and `academic-english-style`, draft Section 3.5. Explain why branch conditions, tolerances, limiter decisions, reductions, and compiler options may produce measurable differences in finite-precision runs. Use the project brief's `<` versus `<=` example. State explicitly which of these axes the report measures (HLLC branch rule, compiler flags including fp32 compiler rows, HLLC-vs-Rusanov, and time-resolved drift) and which are introduced at concept level only (limiter choice, exact-solver tolerances, reductions). Do not claim large effects; state that the report measures their effect in selected cases.
 ```
 
 **Skill:** `scientific-writing-duke` + `academic-english-style`.
 
 ### 3.6 MHD extensions and Report 2 bridge
 
-Working sub-target: ≤ 140 counted words.
+Working sub-target: ≤ 160 counted words.
 
 **Topic sentence:** The Euler method forms the controlled validation base for later MHD work, where additional wave families and divergence control introduce further numerical choices.
 
 **Figure/table:** None.
 
-**Citations:** Bard and Dorelli only if no Bard-and-Dorelli citation has yet appeared in §1.3 or §2.2 (cap: Bard and Dorelli at most twice in the whole manuscript, see References Plan); Dedner/Evans-Hawley only if named.
+**Citations:** Bard and Dorelli only if no Bard-and-Dorelli citation has yet appeared in §1.3 or §2.2 (cap: Bard and Dorelli at most twice in the whole manuscript, see References Plan); Dedner/Evans-Hawley only if divergence cleaning or constrained transport is named.
 
 **Scoring alignment:** Literature/background [20%]; mathematical theory [20%]; conclusion/future direction.
 
-**Requirements:** Keep ≤ 140 words. This is conceptual bridge, not current validation evidence. Do not name an MHD method that the report does not use.
+**Requirements:** Keep ≤ 160 words. This is conceptual bridge, not current validation evidence. The brief asks for MHD-specific numerical variations, so name different Riemann solvers and divergence-control approaches only as future choices; do not present them as implemented, selected, or validated in Report 1.
 
 **Prompt:**
 ```text
-Using `scientific-writing-duke` and `academic-english-style`, draft Section 3.6 as a short bridge. Explain that the Euler solver provides a controlled base for later ideal-MHD work, where additional waves and divergence control will add algorithmic choices. Avoid presenting MHD as already validated unless evidence exists in the report.
+Using `scientific-writing-duke` and `academic-english-style`, draft Section 3.6 as a short bridge of no more than 160 counted words. Explain that the Euler solver provides a controlled base for later ideal-MHD work, where additional wave families, Riemann-solver choices, and divergence-control approaches will add algorithmic choices. Name these as future Report 2 choices only; avoid presenting MHD as already implemented or validated unless evidence exists in the report.
 ```
 
 **Skill:** `scientific-writing-duke` + `academic-english-style`.
 
 ## Chapter 4: Implementation and Experimental Design
 
-Working target: 1,000-1,130 counted words (hard upper 1,130). **Pseudocode is counted by Overleaf Word Count**: budget at most ~100 counted words across all algorithm boxes in this chapter (≈ 15 lines at average density), so the prose budget is effectively 880-1,030 words. Verify Overleaf's counted-text behaviour for the `algorithmic` environment once during the Word-Budget Lock milestone before drafting §4.2.
+Working target: 950-1,100 counted words. **Pseudocode is counted by Overleaf Word Count**: budget at most ~100 counted words across all algorithm boxes in this chapter (≈ 15 lines at average density), so the prose budget is effectively 850-1,000 words. Verify Overleaf's counted-text behaviour for the `algorithmic` environment once during the Word-Budget Lock milestone before drafting §4.2.
 
-Purpose: explain the implementation choices that make the evidence interpretable. This chapter is about the report's scientific design, not how to run the code.
+Purpose: explain the implementation choices that make the evidence interpretable. This chapter is about the report's scientific design, not how to run the code. Cleanup/compression target: Chapter 4 is the single design-matrix owner. Keep implementation route, comparability principle, precision/hardware matrix, validation matrix, metrics, and reference strategy here; remove repeated numerical-method theory to Chapter 3 and result interpretation to Chapter 5/6.
 
 This chapter carries the project brief's **Code description [20%]** requirement. It should therefore be specific enough for assessors to understand how the reported method and comparisons were produced, while remaining focused on interpretation and evidence quality.
 
@@ -591,9 +606,9 @@ Using `scientific-writing-duke` and `academic-english-style`, draft Section 4.5.
 
 ## Chapter 5: Validation and Precision Results
 
-Working target: 1,750-1,900 counted words (hard upper 1,900). Figures and tables in this chapter are not counted (course clarification), so this chapter may carry a large fraction of the report's 20+ figure/table count. Each figure/table must still be interpreted in prose.
+Working target: 1,800-1,950 counted words. Figures and tables in this chapter are not counted (course clarification), so this chapter may carry a large fraction of the report's figure/table count. Each figure/table must still be interpreted in prose.
 
-Purpose: satisfy the evidence-heavy validation requirement. Draft this chapter first.
+Purpose: satisfy the evidence-heavy validation requirement. Draft this chapter first. Cleanup/compression target: Chapter 5 owns validation/results only. Cite the Chapter 4 design matrix instead of repeating test-selection rationale, reference-strategy prose, or implementation details. Keep prose to result purpose, measured metric, figure/table interpretation, and bounded implication; move synthesis to Chapter 6.
 
 ### 5.1 Validation overview
 
@@ -689,7 +704,7 @@ Using `scientific-writing-duke` and `academic-english-style`, draft Section 5.4.
 
 **Figure/table:** Candidate CPU-GPU quantitative comparison table: L1/Linf/ULP or available metrics.
 
-**Evidence:** `experiments/week8/report1_device_hllc_fill/cpu_vs_gpu_sod_lw3fp32_hllc_strict.md` (Sod fp32+fp64 and LW3 fp32 N=200/N=400 HLLC strict); `experiments/week7/report1_validation_1d_device/cpu_vs_gpu_toro3_toro5_hllc_strict.md` (Toro3, Toro5 fp32+fp64 HLLC strict); `experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.md` (LW3 fp64 N=200/N=400 HLLC strict); `experiments/week8/report1_2d_config12_fill/cpu_vs_gpu_config12_hllc_strict.md` (LW12 fp32+fp64 N=200/N=400 HLLC strict). `experiments/week6/regression/summary.md` remains as Rusanov strict provenance only and is not cited in the HLLC reproducibility claim.
+**Evidence:** `experiments/week8/report1_device_hllc_fill/cpu_vs_gpu_sod_lw3fp32_hllc_strict.md` (Sod fp32+fp64 and LW3 fp32 N=200/N=400 HLLC strict); `experiments/week7/report1_validation_1d_device/cpu_vs_gpu_toro3_toro5_hllc_strict.md` (Toro3, Toro5 fp32+fp64 HLLC strict); `experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.md` (LW3 fp64 N=200/N=400 HLLC strict); `experiments/week8/report1_2d_config12_fill/cpu_vs_gpu_config12_hllc_strict.md` (LW12 fp32+fp64 N=200/N=400 HLLC strict); `experiments/week9/cpu_gpu_midtime/summary.md` and `experiments/week9/cpu_gpu_midtime_n400/summary.md` (checkpointed saved-output CPU/GPU comparisons for Sod, LW3, and LW12). `experiments/week6/regression/summary.md` remains as Rusanov strict provenance only and is not cited in the HLLC reproducibility claim.
 
 **Citations:** Goldberg/Higham for numerical framing; Bard and Dorelli only for GPU solver context.
 
@@ -699,11 +714,11 @@ Using `scientific-writing-duke` and `academic-english-style`, draft Section 5.4.
 
 **Toolchain footnote (binding for the §5.5 table):** the CPU-vs-GPU table in §5.5 must carry a footnote stating the toolchain split (Toro3/Toro5: Windows BuildTools; Sod/LW3/LW12: Linux/WSL) and the matched-binary principle (one binary per within-case CPU/GPU comparison). This is the §5.5 instance of the toolchain split disclosure declared in Global Requirements.
 
-**Optional supplementary evidence (use only if the planned mid-time CPU/GPU experiment in `experiments/report1_evidence_map.md` "Planned supplementary experiments" has completed):** add one additional row stating CPU-GPU drift at intermediate-time checkpoints for the same selected cases, bounding the "final-time only" caveat. If this experiment has not produced an output by drafting time, omit the row and keep the explicit "final-time conservative state" boundary unchanged.
+**Checkpoint evidence boundary:** add one row or short sentence from the completed checkpoint summaries for Sod, LW3, and LW12. This bounds the final-time-only caveat for saved outputs, but it still does not prove stage-by-stage identity inside a time step, non-strict builds, other cases, or MHD.
 
 **Prompt:**
 ```text
-Using `scientific-writing-duke` and `academic-english-style`, draft Section 5.5. Use the CPU-vs-GPU summaries to quantify differences, not just state visual agreement. State that all five selected cases (Sod, Toro3, Toro5, LW3, LW12) are covered by matched CPU/GPU runs under `solver=hllc` and `STRICT_IEEE=ON` in both fp32 and fp64: Sod fp32+fp64 and LW3 fp32 N=200/N=400 from the matched HLLC strict device-comparison summary, Toro3/Toro5 from the 1D device summary, LW3 fp64 N=200/N=400 from the 2D HLLC strict device summary, and LW12 fp32+fp64 N=200/N=400 from the LW12 device-comparison summary. Carry a single footnote on the CPU-vs-GPU table stating the toolchain split (Toro3/Toro5 on Windows BuildTools; Sod/LW3/LW12 on Linux/WSL) and the matched-binary principle (one binary per within-case comparison). Report zero L1/Linf/ULP drift only where the evidence files show it (here, zero on the conservative state at final time for all five cases in both precisions), then state what this does and does not imply about intermediate-time outputs, other compiler settings, untested cases, non-strict builds, or future MHD cases. If the planned intermediate-time supplementary experiment has completed, add one sentence reporting whether mid-evolution snapshots remain bit-identical; otherwise keep the final-time-only boundary explicit. Use the unified naming "LW12", not "config12". Do not mention local week numbers or internal experiment nicknames.
+Using `scientific-writing-duke` and `academic-english-style`, draft Section 5.5. Use the CPU-vs-GPU summaries to quantify differences, not just state visual agreement. State that all five selected cases (Sod, Toro3, Toro5, LW3, LW12) are covered by matched CPU/GPU runs under `solver=hllc` and `STRICT_IEEE=ON` in both fp32 and fp64: Sod fp32+fp64 and LW3 fp32 N=200/N=400 from the matched HLLC strict device-comparison summary, Toro3/Toro5 from the 1D device summary, LW3 fp64 N=200/N=400 from the 2D HLLC strict device summary, and LW12 fp32+fp64 N=200/N=400 from the LW12 device-comparison summary. Carry a single footnote on the CPU-vs-GPU table stating the toolchain split (Toro3/Toro5 on Windows BuildTools; Sod/LW3/LW12 on Linux/WSL) and the matched-binary principle (one binary per within-case comparison). Report zero L1/Linf/ULP drift only where the evidence files show it: zero on the conservative state at final time for all five cases in both precisions, and zero at saved checkpoints for Sod, LW3, and LW12 where the checkpoint summaries show it. State that checkpoint identity is saved-output evidence, not proof of stage-by-stage identity inside a time step, and does not extend to other compiler settings, untested cases, non-strict builds, or future MHD cases. Use the unified naming "LW12", not "config12". Do not mention local week numbers or internal experiment nicknames.
 ```
 
 **Skill:** `scientific-writing-duke` + `academic-english-style`.
@@ -714,22 +729,22 @@ Using `scientific-writing-duke` and `academic-english-style`, draft Section 5.5.
 
 **Figure/table:** Variation summary table or drift-timeseries figure.
 
-**Evidence:** `experiments/week7/report1_variation/summary.md`; `experiments/week8/report1_variation_extend/summary.md`; `experiments/week7/report1_variation/axis_o2_vs_ofast.*`; `experiments/week7/report1_variation/axis_leq_vs_strict.*`; `experiments/week7/report1_variation/axis_hllc_vs_rusanov.*`; `experiments/week7/lyapunov_1d_full/summary.md`; `experiments/week7/lyapunov_1d_full/timeout_notes.json`; `experiments/week8/toro2_lt_branch_retry/summary.md`; `experiments/week7/lyapunov_1d_full/figures/drift_timeseries_l1_normalized.png`.
+**Evidence:** `experiments/week7/report1_variation/summary.md`; `experiments/week8/report1_variation_extend/summary.md`; `experiments/week9/variation_fp32/summary.md`; `experiments/week9/variation_fp32_extend/summary.md`; `experiments/week9/variation_limiter/summary.md`; `experiments/week7/report1_variation/axis_o2_vs_ofast.*`; `experiments/week7/report1_variation/axis_leq_vs_strict.*`; `experiments/week7/report1_variation/axis_hllc_vs_rusanov.*`; `experiments/week7/lyapunov_1d_full/summary.md`; `experiments/week7/lyapunov_1d_full/timeout_notes.json`; `experiments/week8/toro2_lt_branch_retry/summary.md`; `experiments/week7/lyapunov_1d_full/figures/drift_timeseries_l1_normalized.png`.
 
 **Citations:** Higham; Goldberg; project brief for variation examples.
 
 **Scoring alignment:** Mathematical theory [20%]; validation [20%]; code description [20%]; handbook criteria 3, 4.
 
-**Requirements:** Treat HLLC-vs-Rusanov as method variation, not reproducibility drift. Treat zero results as valid findings if measured. Cover the brief's suggested sensitivity axes where evidence exists: compiler options, simple Riemann-solver branch/tolerance changes, resolution or time evolution, and hardware. Floating-point precision is covered directly in §5.4; §5.6 must not imply that the compiler/branch/solver variation table covers fp32 unless the planned fp32 compiler-flag supplementary run has completed and is explicitly added as a tagged row.
+**Requirements:** Treat HLLC-vs-Rusanov as method variation, not reproducibility drift. Treat zero results as valid findings if measured. Cover the brief's suggested sensitivity axes where evidence exists: compiler options, simple Riemann-solver branch/tolerance changes, resolution or time evolution, and hardware. Floating-point precision is covered directly in §5.4; §5.6 may add the completed fp32 compiler rows from the week9 summaries, but must tag them clearly because the older compiler/branch/solver matrix is CPU double. Limiter variation has no claimed result and appears only as a limitation, because adding it would require a new documented limiter-selection axis.
 
 **Structure (binding): split §5.6 into two subsubsections to keep prompts and prose manageable.**
 
-- §5.6a "Compiler, branch-rule, and solver variation" — final-time variation table on Sod, stationary_contact, LW3-N200, Toro3, Toro5. CPU double only. Carry the brief's `<` vs `<=` mapping (HLLC wave-speed branch, `RIEMANN_STRICT_INEQUALITY` CMake option) and the HLLC-vs-Rusanov framing as method variation. If the planned fp32 × compiler-flag supplementary experiment has completed, add it as one row of the same table with a column note that this row is fp32 (all other rows remain CPU double).
+- §5.6a "Compiler, branch-rule, and solver variation" — final-time variation table on Sod, stationary_contact, LW3-N200, Toro3, Toro5. The base rows are CPU double. Carry the brief's `<` vs `<=` mapping (HLLC wave-speed branch, `RIEMANN_STRICT_INEQUALITY` CMake option) and the HLLC-vs-Rusanov framing as method variation. Add the completed fp32 compiler rows as a separate tagged block or table row group, not as if the whole variation matrix were fp32.
 - §5.6b "Time-resolved drift and the Toro2 `<` non-completion" — drift-timeseries figure, the side-by-side Toro2 `<` non-completion vs `<=` completion, and the explicit warning that fitted λ are finite-time slopes from 10 checkpoints, not Lyapunov exponents.
 
 **Prompt for §5.6a:**
 ```text
-Using `scientific-writing-duke` and `academic-english-style`, draft §5.6a "Compiler, branch-rule, and solver variation". Build the section around one summary table covering Sod, stationary_contact, LW3-N200, Toro3, and Toro5 under three axes: `<=` vs `<` HLLC wave-speed branch (map this to `RIEMANN_STRICT_INEQUALITY`; cite the brief's note that the branch only matters when wave speeds are close to zero), O2 vs O3 vs Ofast±fast-math compiler flags, and HLLC vs Rusanov as method variation. All rows are CPU double; state this once explicitly. If the planned fp32 × compiler-flag supplementary experiment has produced a result, add a single fp32 row with a clear precision-column tag. Distinguish reproducibility drift (branch, compiler) from deliberate method changes (HLLC vs Rusanov). Use descriptive labels ("branch-rule comparison", "compiler-flag comparison", "solver-variation comparison"); no week numbers, no D1/D2-style shorthand.
+Using `scientific-writing-duke` and `academic-english-style`, draft §5.6a "Compiler, branch-rule, and solver variation". Build the section around one summary table covering Sod, stationary_contact, LW3-N200, Toro3, and Toro5 under three axes: `<=` vs `<` HLLC wave-speed branch (map this to `RIEMANN_STRICT_INEQUALITY`; cite the brief's note that the branch only matters when wave speeds are close to zero), O2 vs O3 vs Ofast±fast-math compiler flags, and HLLC vs Rusanov as method variation. State that the base rows are CPU double. Add the completed fp32 compiler-flag rows for Sod, Toro3, Toro5, and LW3 as a clearly tagged fp32 block, using the fp32 variation summaries. Distinguish reproducibility drift (branch, compiler) from deliberate method changes (HLLC vs Rusanov). State that limiter variation is not claimed because no documented limiter-selection axis exists. Use descriptive labels ("branch-rule comparison", "compiler-flag comparison", "solver-variation comparison"); no week numbers, no D1/D2-style shorthand.
 ```
 
 **Prompt for §5.6b:**
@@ -741,13 +756,13 @@ Using `scientific-writing-duke` and `academic-english-style`, draft §5.6b "Time
 
 ## Chapter 6: Discussion
 
-Working target: 600-720 counted words (hard upper 720).
+Working target: 650-750 counted words.
 
-Purpose: synthesise results without repeating them. Explain what the validation evidence means for the project question.
+Purpose: synthesise results without repeating them. Explain what the validation evidence means for the project question. Chapter 6 introduces no new results and should not repeat the case-by-case order of Chapter 5.
 
-### 6.1 What the validation establishes
+### 6.1 Validation as the basis for interpretation
 
-**Topic sentence:** The validation evidence supports the use of the solver and test matrix as a basis for measuring precision and hardware effects.
+**Topic sentence:** Validation enables the precision and hardware interpretation by showing where the solver, references, and metrics are trustworthy enough to compare variants.
 
 **Figure/table:** Refer back to core validation figures/tables; no new figure needed.
 
@@ -755,18 +770,18 @@ Purpose: synthesise results without repeating them. Explain what the validation 
 
 **Scoring alignment:** Validation [20%]; handbook criteria 3 and 5.
 
-**Requirements:** Synthesis, not restatement. Explain why correctness evidence is sufficient for Report 1.
+**Requirements:** Synthesis, not restatement. Explain how the validation evidence enables later interpretation, without replaying every test case.
 
 **Prompt:**
 ```text
-Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.1. Synthesize what the 1D and 2D validation evidence establishes. Do not repeat every result. Explain why the solver and test matrix are adequate for measuring the precision and hardware effects required in Report 1.
+Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.1 as synthesis. Explain how the 1D and 2D validation evidence enables interpretation of precision and hardware comparisons. Do not repeat every result or reproduce the Chapter 5 case order; focus on the evidential basis for later claims.
 ```
 
 **Skill:** `scientific-writing-duke` + `academic-english-style`.
 
-### 6.2 Precision effects relative to numerical error
+### 6.2 Precision scale and Verificarlo virtual precision
 
-**Topic sentence:** The precision results are most meaningful when interpreted relative to discretisation or reference error rather than as raw float-double differences.
+**Topic sentence:** Precision effects are most meaningful when direct fp32/fp64 differences are scaled against reference error and separated from Verificarlo virtual-precision diagnostics.
 
 **Figure/table:** Refer to float-double/reference figure; optionally region-aware precision figure.
 
@@ -774,11 +789,11 @@ Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.1.
 
 **Scoring alignment:** Validation [20%]; handbook criteria 4 and 5.
 
-**Requirements:** Discuss ratios and regimes. Include any low-precision or region-aware finding only if it clarifies precision sensitivity or the limits of the direct fp32/fp64 comparison; direct fp32 adequacy claims must use real fp32/fp64 evidence. **§6.2 now owns the Verificarlo virtual-precision regional interpretation** (moved from §5.4); §5.4 ends with a pointer to §6.2.
+**Requirements:** Discuss ratios and regimes. Include any low-precision or region-aware finding only if it clarifies precision sensitivity or the limits of the direct fp32/fp64 comparison; direct fp32 adequacy claims must use real fp32/fp64 evidence. **§6.2 owns the Verificarlo virtual-precision regional interpretation**; §5.4 ends with a pointer to §6.2.
 
 **Prompt:**
 ```text
-Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.2. Interpret the fp32/fp64 results relative to reference or discretisation error. Use the float-double/reference ratio for direct fp32 claims. The region-aware precision figure is owned by this section: state explicitly that it is a Verificarlo virtual-precision diagnostic and that virtual p32 is not IEEE binary32/fp32. Report the regional margins from the LoSoS summary: at virtual p32 the HLLC LoSoS median margin is positive in the smooth region (~+1.9 digits) and negative in the transition (~-0.17) and discontinuity (~-1.76) regions; this is a spatially non-uniform statement about the diagnostic precision sweep, not a universal "fp32 is adequate" claim. If referring to `experiments/week7/verificarlo_report1_refresh/summary.md`, explain that **every** precision row (including p53) shows a worst-q05 precision-adequacy deficit because the q05 statistic is dominated by shock/contact cells whose discretisation-side error is independent of FP precision; do not present the deficit table as evidence that fp32 is inadequate for production runs. Mention that the available MCA quantiles are descriptive summaries of a small sample set. Keep the conclusion scoped to the tested cases and the tested precisions.
+Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.2 as synthesis. Interpret direct fp32/fp64 results relative to reference or discretisation error, then separately interpret Verificarlo virtual-precision diagnostics as scale and spatial-sensitivity evidence. State explicitly that virtual p32 is not IEEE binary32/fp32. Use the LoSoS regional margins only as diagnostic evidence for non-uniform sensitivity, not as a universal "fp32 is adequate" or "fp32 is inadequate" claim. Mention that the available MCA quantiles are descriptive summaries of a small sample set. Keep conclusions scoped to the tested cases and precisions.
 ```
 
 **Skill:** `scientific-writing-duke` + `academic-english-style`.
@@ -793,18 +808,18 @@ Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.2.
 
 **Scoring alignment:** Code description [20%]; validation [20%]; handbook criteria 3, 4, 5.
 
-**Requirements:** Compare CPU-GPU, compiler flags, branch rules, solver variation. Avoid universal claims.
+**Requirements:** Compare CPU-GPU evidence with compiler flags, branch rules, fp32 compiler rows, and solver variation at synthesis level. Use checkpointed CPU/GPU evidence only as saved-output evidence. Avoid universal claims and do not add new result rows beyond the locked evidence.
 
 **Prompt:**
 ```text
-Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.3. Compare the CPU-GPU findings with compiler/branch/solver variation. Explain whether hardware differences are smaller, larger, or comparable to other variation axes in the tested evidence. Make clear which conclusions are specific to strict double, fp32, selected test cases, or selected compilers.
+Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.3 as synthesis. Compare the CPU-GPU findings, including checkpointed saved-output evidence, with compiler/branch/solver variation and the completed fp32 compiler rows. Explain what this says about hardware versus implementation sensitivity. Make clear which conclusions are specific to strict builds, fp32/fp64, selected test cases, selected compilers, or saved checkpoints. Do not repeat Chapter 5 case-by-case results.
 ```
 
 **Skill:** `scientific-writing-duke` + `academic-english-style`.
 
-### 6.4 Limitations and implications for Report 2
+### 6.4 Limitations and MHD next step
 
-**Topic sentence:** The Report 1 conclusions are limited by the Euler test suite and selected hardware/precision axes, but they define a controlled baseline for later MHD work.
+**Topic sentence:** The Report 1 conclusions are limited by the Euler test suite and selected hardware/precision axes, but they define the controlled baseline needed for the MHD next step.
 
 **Figure/table:** None.
 
@@ -812,20 +827,20 @@ Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.3.
 
 **Scoring alignment:** Handbook criteria 4 and 5; conclusion/future direction.
 
-**Requirements:** Limitations should bound claims, not apologise. Future work must follow from evidence.
+**Requirements:** Limitations should bound claims, not apologise. MHD is a next step unless validated MHD evidence is added; do not imply completed MHD validation.
 
 **Prompt:**
 ```text
-Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.4. State the main limitations: Euler-focused validation, selected test cases, selected hardware/compiler axes, and reference-solution assumptions. Then explain how these limitations define the next MHD experiments rather than weakening Report 1. Avoid generic "more research is needed" phrasing.
+Using `scientific-writing-duke` and `academic-english-style`, draft Section 6.4 as synthesis. State the main limitations: Euler-focused validation, selected test cases, selected hardware/compiler axes, and reference-solution assumptions. Then identify the MHD next step as an evidence requirement for Report 2, especially divergence-control validation. Avoid generic "more research is needed" phrasing and do not introduce new results.
 ```
 
 **Skill:** `scientific-writing-duke` + `academic-english-style`.
 
 ## Chapter 7: Conclusion
 
-Working target: 330-430 counted words (hard upper 430).
+Working target: 300-360 counted words.
 
-Purpose: answer the introduction's question with bounded claims and a concrete next step.
+Purpose: answer the introduction's question with bounded claims and a concrete next step. Limit the chapter to the aim, three bounded findings, and one limitation/next-step sentence; do not write a second discussion.
 
 ### Conclusion evidence lock
 
@@ -835,10 +850,10 @@ Use only these conclusion claims unless a later evidence review adds a new artif
 |---|---|---|
 | 1D Euler validation is documented for the selected 1D cases, including Sod and strong Toro cases. | `experiments/week7/report1_validation_1d/summary.md`; `experiments/week3/week3_validation/plots/sod_comparison.png`; `experiments/week3/week3_validation/plots/toro3_comparison.png`; `experiments/week3/week3_validation/plots/toro5_comparison.png` | Treat as solver/precision validation unless matched CPU and GPU evidence is also shown for the same case. |
 | 2D Euler validation is documented for two Liska-Wendroff Riemann configurations, LW3 and LW12. | `experiments/week7/report1_validation_2d/summary.md`; `experiments/week7/report1_validation_2d/figures/lw3_n400_double_rho_schlieren.png`; `experiments/week7/report1_validation_2d_gpu/summary.md`; `experiments/week8/report1_2d_config12_fill/summary.md`; `experiments/week8/report1_2d_config12_fill/reference_comparison/summary.md`; `experiments/week8/report1_2d_config12_fill/figures/lw12_n400_double_rho_schlieren.png` | Do not generalise from these two configurations to all 2D Riemann problems or to shock-bubble/MHD. LW12 uses an N=800 numerical reference, not an exact solution. Use the unified prose label "LW12" (the directory name `report1_2d_config12_fill` is internal). |
-| CPU-GPU differences are quantified for the selected cases with matched device runs under `solver=hllc`, `STRICT_IEEE=ON`. | `experiments/week8/report1_device_hllc_fill/cpu_vs_gpu_sod_lw3fp32_hllc_strict.md` (Sod fp32+fp64; LW3 fp32 N=200/N=400); `experiments/week7/report1_validation_1d_device/cpu_vs_gpu_toro3_toro5_hllc_strict.md` (Toro3, Toro5 fp32+fp64); `experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.md` (LW3 fp64 N=200/N=400); `experiments/week8/report1_2d_config12_fill/cpu_vs_gpu_config12_hllc_strict.md` (LW12 fp32+fp64 N=200/N=400) | Supports Sod, Toro3, Toro5, LW3, and LW12 in both fp32 and fp64, each showing zero L1/Linf/ULP drift on the conservative state at final time. **Toolchain split boundary (binding):** Toro3/Toro5 binaries are produced on Windows BuildTools; Sod/LW3/LW12 on Linux/WSL. Each within-case CPU-vs-GPU comparison uses one binary, so bit-identity holds within a case independently of cross-case toolchain differences. Do not generalise to untested Toro/LW cases, to non-strict builds, to intermediate-time outputs (unless the planned intermediate-time supplementary experiment has completed and is cited explicitly), or to MHD. `experiments/week6/regression/summary.md` is Rusanov strict and is not part of this claim. |
+| CPU-GPU differences are quantified for the selected cases with matched device runs under `solver=hllc`, `STRICT_IEEE=ON`. | `experiments/week8/report1_device_hllc_fill/cpu_vs_gpu_sod_lw3fp32_hllc_strict.md` (Sod fp32+fp64; LW3 fp32 N=200/N=400); `experiments/week7/report1_validation_1d_device/cpu_vs_gpu_toro3_toro5_hllc_strict.md` (Toro3, Toro5 fp32+fp64); `experiments/week7/report1_validation_2d_device/cpu_vs_gpu_hllc_strict_double.md` (LW3 fp64 N=200/N=400); `experiments/week8/report1_2d_config12_fill/cpu_vs_gpu_config12_hllc_strict.md` (LW12 fp32+fp64 N=200/N=400); `experiments/week9/cpu_gpu_midtime/summary.md`; `experiments/week9/cpu_gpu_midtime_n400/summary.md` (saved-checkpoint CPU/GPU comparisons for Sod, LW3, and LW12). | Supports Sod, Toro3, Toro5, LW3, and LW12 in both fp32 and fp64, each showing zero L1/Linf/ULP drift on the conservative state at final time. The checkpoint summaries add saved-output checkpoint evidence for Sod, LW3, and LW12, but not stage-by-stage identity inside a time step. **Toolchain split boundary (binding):** Toro3/Toro5 binaries are produced on Windows BuildTools; Sod/LW3/LW12 on Linux/WSL. Each within-case CPU-vs-GPU comparison uses one binary, so bit-identity holds within a case independently of cross-case toolchain differences. Do not generalise to untested Toro/LW cases, to non-strict builds, to unsaved intermediate stages, or to MHD. `experiments/week6/regression/summary.md` is Rusanov strict and is not part of this claim. |
 | fp32/fp64 differences can be compared with reference or discretisation error in the tested cases. | `experiments/week4/float_regression/1d/summary.md`; `experiments/week4/float_regression/2d/summary.md`; `experiments/week8/report1_2d_config12_fill/reference_comparison/summary.md`; `experiments/week7/report1_d2_replots/float_double_over_reference.csv`; `experiments/week7/report1_d2_replots/float_double_over_reference_bar.png` | State the measured scope and variables; do not say fp32 is generally adequate for HRSC or MHD. Direct fp32 claims must come from real fp32/fp64 runs, not from virtual p32 diagnostics. |
 | Region-aware virtual-precision diagnostics show spatially non-uniform precision sensitivity in LW3. | `experiments/week7/report1_d2_replots/region_losos_quantiles_rho.csv`; `experiments/week7/report1_d2_replots/summary.md`; `experiments/week7/report1_d2_replots/region_losos_margin_rho_p32.png`; `experiments/week7/report1_d2_replots/noise_to_error_ratio_heatmap_grid_rho.png` | Treat `p32` as Verificarlo virtual precision, not IEEE binary32. Use these figures to discuss spatial structure and diagnostic sensitivity only; note the small MCA sample counts if quantiles are reported. |
-| Compiler, branch-rule, solver, and drift-growth variation axes were measured as sensitivity evidence. | `experiments/week7/report1_variation/summary.md`; `experiments/week8/report1_variation_extend/summary.md`; `experiments/week7/lyapunov_1d_full/summary.md`; `experiments/week8/toro2_lt_branch_retry/summary.md` | Compare axes only where the same metric and setup make the comparison meaningful. Variation rows are CPU double only unless explicitly stated. Report Toro2 `<` as non-completion/stability degradation, not as a zero-drift row. |
+| Compiler, branch-rule, solver, and drift-growth variation axes were measured as sensitivity evidence. | `experiments/week7/report1_variation/summary.md`; `experiments/week8/report1_variation_extend/summary.md`; `experiments/week9/variation_fp32/summary.md`; `experiments/week9/variation_fp32_extend/summary.md`; `experiments/week7/lyapunov_1d_full/summary.md`; `experiments/week8/toro2_lt_branch_retry/summary.md`; `experiments/week9/variation_limiter/summary.md` | Compare axes only where the same metric and setup make the comparison meaningful. The base variation rows are CPU double; the fp32 compiler rows must be tagged separately. Report Toro2 `<` as non-completion/stability degradation, not as a zero-drift row. Limiter variation is a limitation/status item, not a claimed sensitivity result. |
 
 Do not write conclusion claims that MHD validation has been completed, that the full Euler catalogue has CPU-GPU coverage, that HLLC is universally superior, that hardware has no effect, or that fp32 is adequate outside the measured cases.
 
@@ -852,11 +867,11 @@ Do not write conclusion claims that MHD validation has been completed, that the 
 
 **Scoring alignment:** Handbook criterion 5; quality [20%].
 
-**Requirements:** No new literature. No new results.
+**Requirements:** No new literature. No new results. Open by restating the aim and evidence base in one short paragraph.
 
 **Prompt:**
 ```text
-Using `writing-conclusion` and `report1-context`, draft the opening of the conclusion. Restate the aim in the same terms as the introduction: precision, hardware, HRSC schemes, and controlled Euler validation. Do not introduce new citations or new evidence.
+Using `writing-conclusion` and `report1-context`, draft the opening of the conclusion. Restate the aim in the same terms as the introduction: precision, hardware, HRSC schemes, and controlled Euler validation. Do not introduce new citations, new evidence, or discussion-style interpretation.
 ```
 
 **Skill:** `writing-conclusion` + `report1-context`.
@@ -871,11 +886,11 @@ Using `writing-conclusion` and `report1-context`, draft the opening of the concl
 
 **Scoring alignment:** Validation [20%]; handbook criteria 3 and 5.
 
-**Requirements:** Use 2-4 findings only. Include numbers only from the evidence lock above.
+**Requirements:** Use exactly three bounded findings. Include numbers only from the evidence lock above.
 
 **Prompt:**
 ```text
-Using `writing-conclusion` and `academic-english-style`, draft the key-findings paragraph. Name only the load-bearing results in the conclusion evidence lock: 1D/2D validation, fp32/fp64 comparison, CPU-GPU quantification for matched device runs, and selected variation axes. Include representative numerical values only when they appear in the listed evidence files. Hedge implications but report measured findings directly.
+Using `writing-conclusion` and `academic-english-style`, draft the key-findings paragraph as exactly three bounded findings. Choose from the load-bearing results in the conclusion evidence lock: 1D/2D validation, fp32/fp64 comparison, CPU-GPU quantification for matched device runs, and selected variation axes. Include representative numerical values only when they appear in the listed evidence files. Hedge implications but report measured findings directly.
 ```
 
 **Skill:** `writing-conclusion` + `academic-english-style`.
@@ -890,18 +905,18 @@ Using `writing-conclusion` and `academic-english-style`, draft the key-findings 
 
 **Scoring alignment:** Handbook criteria 4 and 5; quality [20%].
 
-**Requirements:** End with one concrete next step into Report 2. Do not overclaim.
+**Requirements:** End with one limitation and one concrete next step into Report 2. Do not overclaim or re-open the discussion.
 
 **Prompt:**
 ```text
-Using `writing-conclusion` and `academic-english-style`, draft the final conclusion paragraph. Synthesize the contribution as a controlled Euler baseline for later MHD precision/hardware work. State the main limitation in neutral terms and give one concrete next step for Report 2, such as extending the validated framework to ideal-MHD tests with divergence control. End with a clear, evidence-bounded take-home sentence.
+Using `writing-conclusion` and `academic-english-style`, draft the final conclusion paragraph. State the main limitation in neutral terms and give one concrete next step for Report 2, such as extending the validated framework to ideal-MHD tests with divergence control. End with a clear, evidence-bounded take-home sentence and do not add a second discussion.
 ```
 
 **Skill:** `writing-conclusion` + `academic-english-style`.
 
 ## Abstract
 
-Working target: 180-220 counted words (hard upper 220). Write last.
+Working target: 180-210 counted words. Write last.
 
 **Topic sentence:** Not applicable; the abstract should be a single compact paragraph.
 
@@ -915,7 +930,7 @@ Working target: 180-220 counted words (hard upper 220). Write last.
 
 **Prompt:**
 ```text
-Using `academic-english-style`, write a 180-220 word abstract for Report 1. Include: the project problem, the Euler HRSC validation scope (Sod, Toro3, Toro5, LW3, LW12 — using unified naming, not "config12"), the CPU/GPU and fp32/fp64 comparison design, the strongest quantitative findings allowed by the conclusion evidence lock, and the contribution to the later MHD precision/hardware study. Include at least two specific numerical values (one CPU-GPU drift, one fp32-vs-fp64-vs-reference ratio) drawn from the conclusion evidence lock; do not paraphrase magnitudes. Do not include citations. Keep claims bounded to the tested cases and do not imply completed MHD validation.
+Using `academic-english-style`, write a 180-210 word abstract for Report 1. Include: the project problem, the Euler HRSC validation scope (Sod, Toro3, Toro5, LW3, LW12 — using unified naming, not "config12"), the CPU/GPU and fp32/fp64 comparison design, the strongest quantitative findings allowed by the conclusion evidence lock, and the contribution to the later MHD precision/hardware study. Include at least two specific numerical values (one CPU-GPU drift, one fp32-vs-fp64-vs-reference ratio) drawn from the conclusion evidence lock; do not paraphrase magnitudes. Do not include citations. Keep claims bounded to the tested cases and do not imply completed MHD validation.
 ```
 
 **Skill:** `academic-english-style`.
@@ -960,19 +975,19 @@ Use these milestones in order.
    - Confirm CPU/GPU evidence remains traceable for every selected test: Sod, Toro3, Toro5, LW3, and LW12.
 
 2. **Word-budget lock**
-   - Allocate counted-word targets before drafting full prose using the per-chapter caps in the Word Budget Lock block at the top of this file.
+   - Allocate counted-word targets before drafting full prose using the per-chapter hard uppers in the Word Budget Lock block at the top of this file.
    - Keep the Overleaf Word Count target ≤ 7,400 counted words to preserve ≥ 80 words of revision margin under the 7,500 hard cap.
    - Tables and figure captions are not counted under the current course clarification, but keep them concise for presentation quality.
    - **Pseudocode IS counted.** Before drafting §4.2, paste a 5-line throwaway `algorithm` block into the Overleaf draft and verify that Overleaf Word Count increases by ~5 × words/line; if Overleaf is configured differently, recalibrate the §4.2 cap before drafting.
-   - Use the figure/table headroom: tables and captions are free, so a results-chapter density of 20-24 main figures/tables (as in the Davison-Petch example) is appropriate provided each item carries a distinct claim; move duplicate heatmaps or provenance-only visuals to appendix rather than deleting load-bearing evidence.
+   - Use the figure/table headroom carefully: 20-24 items is a candidate pool, not a main-text target. Keep about 14-18 main figures/tables unless the draft remains readable; move duplicate heatmaps or provenance-only visuals to appendix rather than deleting load-bearing evidence.
 
-3. **Supplementary experiments (run before §5.5/§5.6/§3.5 drafting, ideally during the evidence-lock milestone).** See `experiments/report1_evidence_map.md` § "Planned supplementary experiments" for full specification. Each entry below should produce one summary file that the relevant outline section can cite; if any run does not complete, leave the section's optional-evidence paragraph out and keep the existing scoped wording.
+3. **Supplementary evidence status (check before §5.5/§5.6/§3.5 drafting).** See `experiments/report1_evidence_map.md` § "Planned supplementary experiments" for full specification. Two planned evidence gaps are now filled; one remains a limitation because producing it would require a new documented limiter-selection axis.
 
-    - **Intermediate-time CPU/GPU snapshots** on Sod and LW3 (and ideally LW12) at 3-5 mid-evolution checkpoints, comparing L1/Linf/ULP between matched CPU and GPU binaries. Output: `experiments/<weekN>/cpu_gpu_midtime/summary.md`. Used by §5.5 to bound the "final-time only" caveat and by §6.3 to discuss whether device drift accumulates in time.
-    - **fp32 × compiler-flag mini-matrix** on Sod (and optionally Toro3) under fp32, varying O2/O3/Ofast±fast-math, all CPU. Output: `experiments/<weekN>/variation_fp32/summary.md`. Used by §5.6a as one additional fp32 row in the variation table and by §6.3 to compare "compiler flag effect vs precision effect".
-    - **Limiter variation** on Sod (and optionally LW3-N200) under fp32 and fp64, varying minmod vs van Leer (and any other limiter actually implemented), CPU double + fp32. Output: `experiments/<weekN>/variation_limiter/summary.md`. Used by §3.5 to upgrade the "limiter branch" axis from a conceptual mention to a quantitative entry, and by §5.6a as an additional row if it materially changes drift.
+    - **Completed: intermediate-time CPU/GPU snapshots** on Sod, LW3, and LW12 at saved checkpoints, comparing L1/Linf/ULP between matched CPU and GPU binaries. Output: `experiments/week9/cpu_gpu_midtime/summary.md` and `experiments/week9/cpu_gpu_midtime_n400/summary.md`. Used by §5.5 to bound the "final-time only" caveat for saved outputs and by §6.3 to discuss whether device drift appears at reported checkpoints. Do not claim stage-by-stage identity inside a time step.
+    - **Completed: fp32 × compiler-flag mini-matrix** on Sod, Toro3, Toro5, and LW3 under fp32, varying O2/O3/Ofast±fast-math, all CPU. Output: `experiments/week9/variation_fp32/summary.md` and `experiments/week9/variation_fp32_extend/summary.md`. Used by §5.6a as a clearly tagged fp32 block and by §6.3 to compare compiler effects with direct precision effects.
+    - **Limitation only: limiter variation** was not run because the current report harness has no documented limiter-selection axis. Output/status: `experiments/week9/variation_limiter/summary.md`. Use in §3.5 and §5.6 only to say that limiter sensitivity is conceptual/future work; do not claim a limiter result or change solver numerics while writing.
 
-    Each summary must include: case, axis, precision, hardware, L1/Linf/ULP for the conservative state at final time (or per checkpoint for the intermediate-time experiment), and one sentence on interpretation. All three are CPU-only by default; the intermediate-time experiment requires GPU as well.
+    Each used summary must provide case, axis, precision, hardware, L1/Linf/ULP for the conservative state at final time or saved checkpoints, and one sentence on interpretation. If any later evidence is added, it must be added to `experiments/report1_evidence_map.md` before it appears in manuscript prose.
 
 4. **Results skeleton**
    - Write Chapter 5 section headings.
@@ -1002,7 +1017,7 @@ Use these milestones in order.
 
 10. **Discussion and conclusion**
     - Draft Chapter 6 as synthesis.
-    - Draft Chapter 7 with the conclusion six-move structure.
+    - Draft Chapter 7 as aim + three bounded findings + limitation/next step.
 
 11. **Abstract**
     - Write last, after findings are stable.
@@ -1054,7 +1069,7 @@ Formatting and integrity (handbook compliance):
 - [ ] 12-point font, 1.5 or double line spacing, ≥ 2 cm margins on all sides.
 - [ ] Title page: author's name, approved project title, and degree at the top; supervisor name at the bottom right corner; "Report 1" identification present if the template renders it. Use the author's name, not BGN.
 - [ ] Declaration page present with the verbatim handbook wording: "This project report is substantially my own work and conforms to the University of Cambridge's guidelines on plagiarism. Where reference has been made to other research this is acknowledged in the text and bibliography."
-- [ ] Wordcount declaration recorded from Overleaf Word Count. The controlling Overleaf counted-text value is ≤ 7,500; the drafting target is ≤ 7,400 (per-chapter caps in the Word Budget Lock block sum to 7,220). Do not use a `texcount` mode that counts table cells or figure captions as the controlling value, because current course clarification says tables and captions are not counted. **Pseudocode IS counted** by Overleaf Word Count — §4.2 budget already absorbs this.
+- [ ] Wordcount declaration recorded from Overleaf Word Count. The controlling Overleaf counted-text value is ≤ 7,500; the drafting target is ≤ 7,400. Do not use a `texcount` mode that counts table cells or figure captions as the controlling value, because current course clarification says tables and captions are not counted. **Pseudocode IS counted** by Overleaf Word Count — §4.2 budget already absorbs this.
 - [ ] Abstract contains at least two specific numerical values drawn from the conclusion evidence lock (one CPU-GPU drift, one fp32-vs-fp64-vs-reference ratio).
 - [ ] No Blind Grading Number or BGN is used as the author identifier.
 - [ ] No AI-generated paragraph is left as raw output; every AI-assisted paragraph has been rewritten in the student's own voice and passed `avoiding-ai-flavor/SKILL.md`.

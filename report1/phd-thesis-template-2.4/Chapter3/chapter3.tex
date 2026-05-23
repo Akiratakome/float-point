@@ -10,11 +10,11 @@ rules around this fixed update.
 % <<SECTION_1_BEGIN>>
 For the ideal-gas Euler system the conserved state is
 \(U=(\rho,\rho u,\rho v,E)^T\). In two dimensions it satisfies
-\[
+\begin{equation}\label{eq:ch3-euler-2d}
   U_t + F(U)_x + G(U)_y = 0,
-\]
+\end{equation}
 with physical fluxes
-\[
+\begin{equation}\label{eq:ch3-euler-fluxes}
   F(U)=
   \begin{pmatrix}
     \rho u\\ \rho u^2+p\\ \rho uv\\ u(E+p)
@@ -24,11 +24,11 @@ with physical fluxes
   \begin{pmatrix}
     \rho v\\ \rho uv\\ \rho v^2+p\\ v(E+p)
   \end{pmatrix}.
-\]
+\end{equation}
 On the Cartesian cell
 \(C_{ij}=[x_{i-1/2},x_{i+1/2}]\times[y_{j-1/2},y_{j+1/2}]\), integrating over
 \([t^n,t^{n+1}]\times C_{ij}\) gives
-\[
+\begin{equation}\label{eq:ch3-fv-integral}
 \begin{aligned}
   &\int_{C_{ij}} U(x,y,t^{n+1})\,dx\,dy
   - \int_{C_{ij}} U(x,y,t^n)\,dx\,dy \\
@@ -40,22 +40,22 @@ On the Cartesian cell
       \left[G(U(x,y_{j+1/2},t))-G(U(x,y_{j-1/2},t))\right]\,dx\,dt
   =0 .
 \end{aligned}
-\]
+\end{equation}
 The discrete unknown is the cell average
-\[
+\begin{equation}\label{eq:ch3-cell-average}
   \bar U_{ij}^{\,n}
   = \frac{1}{\Delta x\,\Delta y}
     \int_{C_{ij}} U(x,y,t^n)\,dx\,dy .
-\]
+\end{equation}
 The interface flux is the time- and face-averaged physical flux, approximated in
 practice by a Riemann solver:
-\[
+\begin{equation}\label{eq:ch3-interface-flux}
   \widehat F_{i+1/2,j}^{\,n}
   =
   \frac{1}{\Delta t^n\,\Delta y}
   \int_{t^n}^{t^{n+1}}\!\!\int_{y_{j-1/2}}^{y_{j+1/2}}
   F(U(x_{i+1/2},y,t))\,dy\,dt ,
-\]
+\end{equation}
 with \(\widehat G_{i,j+1/2}^{\,n}\) defined analogously on horizontal faces.
 Substitution gives the conservative flux-difference update
 \begin{equation}\label{eq:fv-update}
@@ -69,11 +69,31 @@ Substitution gives the conservative flux-difference update
     \left(\widehat G_{i,j+1/2}^{\,n}
           -\widehat G_{i,j-1/2}^{\,n}\right).
 \end{equation}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[>=latex,scale=1.0]
+  \draw (-1.6,-1.2) rectangle (1.6,1.2);
+  \node at (0,0) {$\bar U_{ij}^n$};
+  \draw[->,thick] (-2.4, 0) -- (-1.65,0) node[midway,above] {$\widehat F_{i-\tfrac{1}{2},j}$};
+  \draw[->,thick] ( 1.65, 0) -- ( 2.4, 0) node[midway,above] {$\widehat F_{i+\tfrac{1}{2},j}$};
+  \draw[->,thick] ( 0,-2.0) -- ( 0,-1.25) node[midway,right] {$\widehat G_{i,j-\tfrac{1}{2}}$};
+  \draw[->,thick] ( 0, 1.25) -- ( 0, 2.0) node[midway,right] {$\widehat G_{i,j+\tfrac{1}{2}}$};
+\end{tikzpicture}
+\caption{Finite-volume conservative update: the cell average $\bar U_{ij}^n$
+evolves by the difference of interface fluxes $\widehat F_{i\pm\tfrac{1}{2},j}$ in
+$x$ and $\widehat G_{i,j\pm\tfrac{1}{2}}$ in $y$, following
+Equation~\ref{eq:fv-update}.}
+\label{fig:ch3-fv-cell}
+\end{figure}
+Fig.~\ref{fig:ch3-fv-cell} sketches the four interface fluxes in this update.
 A shared face therefore contributes equal and opposite fluxes to neighbouring
 cells, so summing the update cancels all interior exchanges and leaves only
 boundary fluxes. This cancellation is the finite-volume conservation mechanism
 used below, following the standard treatments of \citet{toro2009} and
-\citet{leveque_2002}. Equation~\ref{eq:fv-update} fixes the
+\citet{leveque_2002}. The explicit time step is controlled by a
+Courant--Friedrichs--Lewy (CFL) condition on local acoustic wave speeds; the
+full formula is given in Section~\ref{sec:ch3-stability}.
+Equation~\ref{eq:fv-update} fixes the
 two-direction notation; the implementation applies this conservative update
 through alternating directional sweeps, described in Chapter~4. In two
 dimensions each sweep is a one-dimensional conservative update using the current
@@ -86,71 +106,73 @@ flux corrections.
 % <<SECTION_2_BEGIN>>
 \paragraph{Slope limiting.}
 The MUSCL-Hancock step uses a piecewise-linear reconstruction inside each cell,
-followed by a half-time predictor before the Riemann solve. For conserved
-component \(k\), define the one-sided jumps
-\[
+followed by a half-time predictor before the Riemann solve. Near shocks and
+contacts an unlimited piecewise-linear reconstruction can introduce new local
+extrema and spurious oscillations. A slope limiter suppresses these extrema
+while retaining second-order accuracy in smooth monotone regions. The
+reconstruction follows the MUSCL framework of van~Leer~\citep{vanleer_1979}, in
+the presentation of \citet{toro2009}. For conserved component \(k\), define the
+one-sided jumps
+\begin{equation}\label{eq:ch3-onesided-jumps}
   \delta^- U_i^{(k)}=\bar U_i^{(k),n}-\bar U_{i-1}^{(k),n},
   \qquad
   \delta^+ U_i^{(k)}=\bar U_{i+1}^{(k),n}-\bar U_i^{(k),n}.
-\]
+\end{equation}
 The report path uses component-wise minbee, equivalently minmod-style, limiting:
-\[
+\begin{equation}\label{eq:ch3-minmod-sigma}
   \sigma_i^{(k)}
   =
   \operatorname{minmod}\!\left(\delta^- U_i^{(k)},\delta^+ U_i^{(k)}\right),
-\]
+\end{equation}
 where
-\[
+\begin{equation}\label{eq:ch3-minmod-def}
   \operatorname{minmod}(a,b)
   =
   \begin{cases}
     0, & ab\le 0,\\
     \operatorname{sgn}(a)\min\!\left(|a|,|b|\right), & ab>0 .
   \end{cases}
-\]
+\end{equation}
 In ratio form, where \(r_i^{(k)}=\delta^- U_i^{(k)}/\delta^+ U_i^{(k)}\) is
 defined, this corresponds to
-\[
+\begin{equation}\label{eq:ch3-limiter-ratio}
   \sigma_i^{(k)}=\Phi(r_i^{(k)})\,\delta^+ U_i^{(k)},
   \qquad
   \Phi(r)=\max(0,\min(1,r)).
-\]
-This limiter keeps the slope zero across opposite-signed jumps and selects the
-smaller monotone jump otherwise, reducing oscillations near discontinuities
-while retaining second-order reconstruction in smooth monotone regions, following
-\citet{vanleer_1979} and the presentation in \citet{toro2009}. Minbee is a diffusive TVD limiter, so small
-perturbations may be damped more strongly than they would be with a less
-diffusive limiter. Other limiters such as van~Leer or superbee exist in the
-source tree, but Chapter~5 does not claim an isolated limiter-sensitivity
-result.
+\end{equation}
+Minbee is a diffusive Total Variation Diminishing (TVD) limiter, so small
+perturbations may be damped. For a scalar conservation law a TVD scheme cannot
+increase the discrete total variation in time and so cannot generate spurious
+extrema; for the nonlinear Euler system this property is heuristic rather than
+proved.
 
 \paragraph{Hancock predictor.}
 The reconstructed states at the left and right faces of cell \(i\) are
-\[
+\begin{equation}\label{eq:ch3-reconstructed-states}
   U_{i,L}^{n}=\bar U_i^{n}-\frac12\sigma_i,
   \qquad
   U_{i,R}^{n}=\bar U_i^{n}+\frac12\sigma_i .
-\]
-They are then advanced through a local Hancock half step using the flux
-difference across the reconstructed cell profile:
-\[
+\end{equation}
+A local Hancock half-step then advances them using the flux difference across
+the reconstructed cell profile:
+\begin{equation}\label{eq:ch3-hancock-half-step-L}
   \bar U_{i,L}^{\,n+1/2}
   =
   U_{i,L}^{n}
   -\frac{\Delta t}{2\Delta x}
   \left[F(U_{i,R}^{n})-F(U_{i,L}^{n})\right],
-\]
-\[
+\end{equation}
+\begin{equation}\label{eq:ch3-hancock-half-step-R}
   \bar U_{i,R}^{\,n+1/2}
   =
   U_{i,R}^{n}
   -\frac{\Delta t}{2\Delta x}
   \left[F(U_{i,R}^{n})-F(U_{i,L}^{n})\right].
-\]
+\end{equation}
 \paragraph{Riemann input.}
 The Riemann problem at \(x_{i+1/2}\) is finally posed from neighbouring
 predicted states,
-\[
+\begin{equation}\label{eq:ch3-riemann-input}
   U_{i+1/2}^{L}=\bar U_{i,R}^{\,n+1/2},
   \qquad
   U_{i+1/2}^{R}=\bar U_{i+1,L}^{\,n+1/2},
@@ -158,36 +180,36 @@ predicted states,
   \widehat F_{i+1/2}
   =
   \mathcal{R}\!\left(U_{i+1/2}^{L},U_{i+1/2}^{R}\right).
-\]
-The same construction applies in the \(y\)-direction with \(G\), \(\Delta y\),
-and bottom/top reconstructed states.
+\end{equation}
+The construction applies identically in the \(y\)-direction.
 % <<SECTION_2_END>>
 
 \section{HLLC and Rusanov Fluxes}
 % <<SECTION_3_BEGIN>>
-At a vertical interface the predictor supplies left and right states \(U_L\) and
+At an interface the predictor supplies left and right states \(U_L\) and
 \(U_R\), so the local problem is the one-dimensional Riemann problem
-\[
+\begin{equation}\label{eq:ch3-riemann-init}
   U_{\mathrm{RP}}(x,0)=
   \begin{cases}
     U_L, & x<0,\\
     U_R, & x>0 .
   \end{cases}
-\]
+\end{equation}
 The report's main validation flux is HLLC. In the construction introduced by
 \citet{toro_spruce_speares_1994} and presented in \citet{toro2009}, this flux
 approximates the fan by left, contact, and right waves with speeds \(S_L\),
-\(S_\ast\), and \(S_R\). In the implemented Davis estimate,
-\[
+\(S_\ast\), and \(S_R\). In the wave-speed bound of \citet{davis_1988} as presented by
+\citet{toro2009},
+\begin{equation}\label{eq:ch3-hllc-wavespeeds}
   S_L=\min(u_L-a_L,u_R-a_R), \qquad
   S_R=\max(u_L+a_L,u_R+a_R),
-\]
+\end{equation}
 and
-\[
+\begin{equation}\label{eq:ch3-hllc-sstar}
   S_\ast =
   \frac{p_R-p_L+\rho_L u_L(S_L-u_L)-\rho_R u_R(S_R-u_R)}
        {\rho_L(S_L-u_L)-\rho_R(S_R-u_R)} .
-\]
+\end{equation}
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[>=latex,scale=1.1]
@@ -209,7 +231,7 @@ sign of these three speeds selects the interface flux in HLLC.}
 \end{figure}
 
 The approximate solution sampled at \(\xi=x/t\) is
-\[
+\begin{equation}\label{eq:ch3-hllc-sampled}
   \tilde U(\xi)=
   \begin{cases}
     U_L, & \xi<S_L,\\
@@ -217,24 +239,24 @@ The approximate solution sampled at \(\xi=x/t\) is
     U_{\ast R}, & S_\ast<\xi<S_R,\\
     U_R, & S_R<\xi .
   \end{cases}
-\]
+\end{equation}
 The corresponding interface flux is selected by the sign of the wave speeds:
-\[
+\begin{equation}\label{eq:ch3-hllc-fluxselect}
   \widehat F_{\mathrm{HLLC}}=
   \begin{cases}
-    F_L, & 0\le S_L,\\
-    F_{\ast L}, & S_L\le 0 \le S_\ast,\\
-    F_{\ast R}, & S_\ast\le 0 \le S_R,\\
-    F_R, & S_R\le 0 .
+    F_L, & S_L\ge 0,\\
+    F_{\ast L}, & S_L<0\le S_\ast,\\
+    F_{\ast R}, & S_\ast<0\le S_R,\\
+    F_R, & S_R<0 .
   \end{cases}
-\]
+\end{equation}
 For \(K\in\{L,R\}\), the star-region flux is written as
-\[
+\begin{equation}\label{eq:ch3-hllc-fstark}
   F_{\ast K}=F_K+S_K\left(U_{\ast K}-U_K\right),
-\]
+\end{equation}
 where \(U_{\ast K}\) is obtained from the Rankine--Hugoniot jump conditions
 across \(S_K\) and may be written in closed form as
-\[
+\begin{equation}\label{eq:ch3-hllc-ustark}
   U_{\ast K}
   =
   \rho_K\,\frac{S_K-u_K}{S_K-S_\ast}
@@ -245,7 +267,7 @@ across \(S_K\) and may be written in closed form as
     \dfrac{E_K}{\rho_K}
     +(S_\ast-u_K)\!\left[S_\ast+\dfrac{p_K}{\rho_K(S_K-u_K)}\right]
   \end{pmatrix},
-\]
+\end{equation}
 with the contact pressure
 \(p_\ast=p_K+\rho_K(S_K-u_K)(S_\ast-u_K)\) equal on both sides of the contact.
 This is the part of HLLC that restores the contact wave missing from the
@@ -257,14 +279,14 @@ discussed separately in Section~\ref{sec:precision-sensitive-decisions}.
 Rusanov is used later as a more diffusive comparator and method variation, not
 as the main validation method. It replaces the contact-resolving HLLC structure
 by a centred flux plus scalar dissipation,
-\[
+\begin{equation}\label{eq:ch3-rusanov}
   \widehat F_{\mathrm{Rus}}
   =
   \frac12\left(F_L+F_R\right)
   -\frac12 S_{\max}\left(U_R-U_L\right),
   \qquad
   S_{\max}=\max\left(|u_L|+a_L,\ |u_R|+a_R\right).
-\]
+\end{equation}
 This form is useful for comparison because it has a single local signal-speed
 penalty and no contact-wave branch, but its stronger numerical diffusion can
 smear contacts and shear layers relative to HLLC, as expected for the HLL family
@@ -274,22 +296,12 @@ introduced by \citet{harten_lax_vanleer_1983} and described by
 
 \section{Stability, Limiting, and Positivity}
 % <<SECTION_4_BEGIN>>
+\label{sec:ch3-stability}
 Stability is controlled by nondimensional Courant numbers rather than by the
-time step alone. For the Euler equations the relevant one-cell signal speeds are
-the acoustic bounds in each coordinate direction, so a local update can be
-described by
-\[
-  \nu_{x,ij}
-  =
-  \frac{\Delta t}{\Delta x}\left(|u_{ij}|+c_{ij}\right),
-  \qquad
-  \nu_{y,ij}
-  =
-  \frac{\Delta t}{\Delta y}\left(|v_{ij}|+c_{ij}\right),
-\]
-where \(c_{ij}\) is the sound speed. In the implemented update the time step is
-selected globally from the local wave speeds,
-\[
+time step alone, with the relevant one-cell signal speeds being the acoustic
+bounds \(|u|+c\) and \(|v|+c\) in each coordinate direction. The implemented
+update therefore selects the time step globally from the local wave speeds,
+\begin{equation}\label{eq:ch3-cfl-timestep}
   \Delta t^{n}
   =
   C_{\mathrm{CFL}}\,
@@ -299,8 +311,21 @@ selected globally from the local wave speeds,
   \right),
   \qquad
   0<C_{\mathrm{CFL}}\le 1,
-\]
-so that \(\max_{ij}\max(\nu_{x,ij},\nu_{y,ij})\le C_{\mathrm{CFL}}\). The
+\end{equation}
+where \(c_{ij}\) is the sound speed in cell \(ij\). The associated per-cell
+Courant numbers in the two coordinate directions are
+\begin{equation}\label{eq:ch3-courant-numbers}
+  \nu_{x,ij}
+  =
+  \frac{\Delta t}{\Delta x}\left(|u_{ij}|+c_{ij}\right),
+  \qquad
+  \nu_{y,ij}
+  =
+  \frac{\Delta t}{\Delta y}\left(|v_{ij}|+c_{ij}\right).
+\end{equation}
+Substituting Equation~\ref{eq:ch3-cfl-timestep} into
+Equation~\ref{eq:ch3-courant-numbers} gives
+\(\max_{ij}\max(\nu_{x,ij},\nu_{y,ij})\le C_{\mathrm{CFL}}\) directly. The
 implemented update is dimensionally split: Equation~\ref{eq:fv-update} is
 applied as successive one-dimensional sweeps in \(x\) and \(y\). The working
 role of \(C_{\mathrm{CFL}}\) is therefore a safety factor on the local acoustic
@@ -319,11 +344,11 @@ towards a first-order Godunov step \citep{vanleer_1979,toro2009}.
 
 The same restriction is also tied to physical admissibility. The primitive
 conversion requires
-\[
+\begin{equation}\label{eq:ch3-positivity}
   \rho > 0,
   \qquad
   p=(\gamma-1)\left(E-\frac12\rho(u^2+v^2)\right)>0 .
-\]
+\end{equation}
 Large Courant numbers, strong waves, or near-vacuum states can produce predicted
 or updated states outside this admissible set even when the conservative update
 is algebraically well defined. HLLC wave-speed estimates and limiter decisions
@@ -339,87 +364,77 @@ CFL and limiter choices are treated as part of the controlled numerical method.
 \paragraph{Rounding model.}
 A useful local model for the floating-point part of the method is the standard
 one-operation rounding model
-\[
+\begin{equation}\label{eq:ch3-rounding-model}
   \operatorname{fl}(a \mathbin{\mathrm{op}} b)
   =
   (a \mathbin{\mathrm{op}} b)(1+\delta),
   \qquad |\delta|\le u ,
-\]
+\end{equation}
 for a basic arithmetic operation under round-to-nearest-even IEEE\,754 semantics,
 away from overflow, underflow, and exceptional cases
-\citep{ieee754_2019,goldberg_1991,higham_2002}. A flux
-evaluation is then a composed map rather than one rounded operation: primitive
-recovery, sound-speed evaluation, wave-speed estimates, star-state construction,
-and flux differences each introduce small perturbations. If the final update
-were a smooth function of the cell averages only, this would mainly be an error
-propagation question. HLLC also contains comparisons, so rounded real numbers
-can change which algebraic formula is sampled at an interface.
+\citep{ieee754_2019,goldberg_1991,higham_2002}. A flux evaluation is a composed
+map: primitive recovery, sound-speed evaluation, wave-speed estimates, star-state
+construction, and flux differences each introduce small perturbations. Some
+intermediate quantities are sufficiently accurate in binary64 but insufficiently
+so in binary32, and HLLC comparisons mean rounded operands can change which
+algebraic formula is sampled at an interface. FMA accuracy also depends on
+hardware and compiler choices: a CPU FMA typically rounds once after a
+higher-precision intermediate, while a GPU FMA can remain at the working
+precision throughout \citep{ieee754_2019,higham_2002}.
 
 \paragraph{Branch sensitivity.}
-For HLLC, the branch decision is made from computed estimates
-\(\widehat S_L,\widehat S_\ast,\widehat S_R\), not exact wave speeds. Thus the
+For HLLC the branch decision uses computed estimates
+\(\widehat S_L,\widehat S_\ast,\widehat S_R\), not exact wave speeds. The
 logical test
-\[
+\begin{equation}\label{eq:ch3-branch-test}
   S_L \le 0 \le S_\ast
   \qquad\hbox{or}\qquad
   S_L < 0 < S_\ast
-\]
-is sensitive when one of the speeds is close to zero. The two versions differ
-only on equality in exact arithmetic, but equality and near-equality are not
-innocent in a rounded implementation: the computed sign of \(\widehat S_\ast\)
-is the result of a quotient. Writing
-\[
+\end{equation}
+may only affect results when one of the computed wave speeds is very close to
+zero. Exact arithmetic distinguishes the two versions only at equality, but the
+computed sign of \(\widehat S_\ast\) is a quotient,
+\begin{equation}\label{eq:ch3-sstar-decomp}
   S_\ast=\frac{N_\ast}{D_\ast}, \qquad
   D_\ast=\rho_L(S_L-u_L)-\rho_R(S_R-u_R),
-\]
-shows the possible conditioning issue. A first-order perturbation gives
-\[
+\end{equation}
+and a first-order perturbation gives
+\begin{equation}\label{eq:ch3-sstar-perturbation}
   \frac{\Delta S_\ast}{S_\ast}
   \approx
   \frac{\Delta N_\ast}{N_\ast}
   -
   \frac{\Delta D_\ast}{D_\ast},
-\]
-when the terms are non-zero. This does not prove that the reported tests contain
-large \(S_\ast\) errors. It identifies a mechanism: cancellation or a small
-denominator can amplify rounded changes in the wave-speed estimate, and the
-amplified value may then enter a discontinuous branch selection \citep{toro2009}.
+\end{equation}
+when the terms are non-zero. Cancellation in \(N_\ast\) or a small \(D_\ast\)
+can amplify rounded changes in the wave-speed estimate, and the amplified value
+may then enter a discontinuous branch selection \citep{toro2009}.
 
-\paragraph{Measured versus concept-only axes.}
-The controlled axes in this report are therefore separated from conceptual
-sources of sensitivity. The HLLC branch-rule comparison is controlled by
-\texttt{RIEMANN\_STRICT\_INEQUALITY} and tests \(<\) rather than \(\le\) in the
-wave-speed branch. The CPU compiler-flag rows compare gcc \texttt{-O2},
-\texttt{-O3}, and \texttt{-Ofast} with fast-math, while the CUDA
-strict-versus-fast probe in Chapter~5 separately tests the build-control effect
-of disabling \texttt{STRICT\_IEEE} and enabling \texttt{FAST\_MATH}. These flags
-can change expression evaluation through reassociation, fused operations,
-flush-to-zero behaviour, or approximate division and square root; they do not
-change the finite-volume formula. The fp32 axis changes the unit roundoff and
-exponent range relative to fp64, using real binary32 runs rather than a
-surrogate precision. By contrast, exact-solver stopping tolerances, alternative
-limiter choices, and general parallel reduction ordering are discussed only as
-possible sensitivity mechanisms unless an isolated experiment is shown for them.
+\paragraph{Method components and build switches.}
+Tables~\ref{tab:method-decision-points} and~\ref{tab:precision-macros}
+summarise the precision-sensitive update points and the build-time switches used
+in Chapters~4 and~5.
 
 \begin{table}[htbp]
 \centering
 \small
+\renewcommand{\arraystretch}{1.16}
 \begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
 \toprule
 Method component & Role in the update & Precision-sensitive point \\
 \midrule
 Limited reconstruction & Builds left/right states for the Hancock predictor &
-Limiter branches can change local order near extrema or shocks. \\
+Limiter branches can change local order near extrema or shocks. \\ \addlinespace
 Hancock predictor & Evolves reconstructed states by a half step before the
-Riemann solve & Flux differences combine rounded primitive recovery and
-energy terms. \\
-HLLC flux & Selects the contact-resolving interface flux & Wave-speed tests
-near zero expose the \(<\) versus \(\le\) branch rule. \\
+Riemann solve & Flux differences combine rounded primitive recovery and energy
+terms. \\ \addlinespace
+HLLC flux & Selects the contact-resolving interface flux & Wave-speed tests near
+zero expose the \(<\) versus \(\le\) branch rule. \\ \addlinespace
 CFL selection & Sets the explicit time step from acoustic signal speeds &
 Global maxima and final-time clipping can differ across precision or evaluation
-order. \\
-Rusanov flux & Provides a deliberately more diffusive comparator & It removes
-the contact branch, so differences from HLLC are method variation rather than
+order. \\ \addlinespace
+Rusanov flux & Provides a deliberately more diffusive comparator & Removes the
+contact branch, so differences from HLLC are method variation rather than
 reproducibility drift. \\
 \bottomrule
 \end{tabularx}
@@ -427,30 +442,73 @@ reproducibility drift. \\
 experiments.}
 \label{tab:method-decision-points}
 \end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.16}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Macro & Build effect & Tested in \\
+\midrule
+\texttt{RIEMANN\_STRICT\_INEQUALITY} & Selects the strict \(<\) HLLC branch rule
+in place of the default \(\le\). & Chapter~5 wave-speed branch variation. \\
+\addlinespace
+\texttt{STRICT\_IEEE} & Pins IEEE rounding on CPU and CUDA by disabling FMA
+contraction, fast-math reassociation, flush-to-zero, and approximate division
+and square root. & Chapter~5 CPU/GPU strict-precision matched comparison. \\
+\addlinespace
+\texttt{FAST\_MATH} & Enables fast-math: reassociation, FMA contraction,
+flush-to-zero, and approximate division and square root. & Chapter~5 fp32
+compiler-flag comparisons against the strict baseline. \\
+\bottomrule
+\end{tabularx}
+\caption{Build-time switches that toggle the precision-sensitive decisions
+discussed above.}
+\label{tab:precision-macros}
+\end{table}
+
+\paragraph{Variation axes by status.}
+Measured Report~1 axes are the HLLC branch rule, gcc
+\texttt{-O2}/\texttt{-O3}/\texttt{-Ofast} with fast-math, HLLC versus
+Rusanov, and fp32/fp64. Exact-Riemann stopping tolerances, limiter choice, and
+CPU/GPU reduction ordering remain concept-only. CPU architecture and
+\texttt{-mtune}/vectorisation, MPI/OpenMP thread-count variation, and
+Boost::Multiprecision quad precision are Report~2 axes.
 % <<SECTION_5_END>>
 
 \section{Extension to Ideal MHD}
 % <<SECTION_6_BEGIN>>
-The Euler system used in Report 1 is the hydrodynamic limit of the later
-ideal-MHD problem. The MHD conserved state adds magnetic-field components to
-density, momentum, and energy, and the fluxes add magnetic pressure, magnetic
-tension, and induction terms. This changes the characteristic structure: the
-Riemann fan contains fast, Alfven, slow, and contact families rather than only
-acoustic waves and a contact. The magnetic field must also satisfy
-\[
-  \nabla\cdot B = 0,
-\]
-at the continuous level. A finite-volume discretisation does not preserve this
-constraint automatically, so choices such as the divergence cleaning of
-\citet{dedner_2002} or the constrained transport of
-\citet{evans_hawley_1988} become part of the
-numerical method rather than optional diagnostics.
+Report 1 uses Euler, the hydrodynamic limit of the later ideal-MHD problem. In
+ideal MHD the conserved state augments \((\rho,\rho\mathbf{u},E)\) with
+\(\mathbf{B}\), and the fluxes add magnetic-pressure, magnetic-tension, and
+induction terms. The Riemann fan contains fast magnetosonic, Alfven, slow
+magnetosonic, and contact/entropy families, not only acoustic waves and a
+contact \citep{toro2009}. In an MHD CFL estimate, the fast magnetosonic speed
+replaces the acoustic speed in Equation~\ref{eq:ch3-cfl-timestep}, while the
+slow and Alfven speeds depend on field direction. The magnetic field must also
+satisfy
+\begin{equation}\label{eq:ch3-divB-zero}
+  \nabla\cdot\mathbf{B}=0,
+\end{equation}
+at the continuous level. A finite-volume update does not preserve this
+constraint automatically, so non-zero discrete divergence can create spurious
+magnetic forces and distort wave speeds.
 
-For this report, these MHD equations define the project context only. The
-validated evidence in later chapters is for Euler tests, where exact or
-high-resolution reference solutions and matched precision/device comparisons are
-available. Extending the same evidence chain to ideal MHD requires separate
-validation of the additional waves, magnetic-energy coupling, and discrete
-divergence control; a GPU-accelerated MUSCL-Hancock baseline of the form
-intended for Report~2 is described by \citet{bard_dorelli_2014}.
+Dedner et al.'s hyperbolic cleaning approach \citep{dedner_2002} augments the
+induction equation with a scalar field \(\psi\):
+\begin{equation}\label{eq:ch3-dedner-cleaning}
+  \partial_t \mathbf{B}
+  + \nabla\cdot(\mathbf{u}\mathbf{B}-\mathbf{B}\mathbf{u})
+  + \nabla\psi = 0,
+  \qquad
+  \partial_t \psi + c_h^2\nabla\cdot\mathbf{B} = -\psi/\tau .
+\end{equation}
+Here \(\psi\) carries divergence error, \(c_h\) is the cleaning-wave speed, and
+\(\tau\) is the damping time. Constrained transport \citep{evans_hawley_1988}
+instead preserves a staggered-mesh discrete divergence constraint. These MHD
+options only frame the later project: Report~1 evidence remains Euler-only,
+with exact or high-resolution references and matched precision/device
+comparisons. In ideal MHD, Roe-type and HLLD approximate Riemann solvers extend the HLL/HLLC family to the seven-wave fan; their selection forms part of the Report~2 numerical-method work. Ideal MHD will need separate tests of magnetic waves, energy
+coupling, and divergence control.
 % <<SECTION_6_END>>

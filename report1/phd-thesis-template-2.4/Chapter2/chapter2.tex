@@ -1,20 +1,166 @@
 %!TEX root = ../thesis.tex
 
-\chapter{Background and Governing Equations}
-
-% Drafting comment:
-% Use this chapter for selective background, not a full survey. Follow
-% report1/planning/manuscript_outline.md, Chapter 2.
+\chapter{Background and Literature Context}
 
 \section{Compressible Euler Equations}
-% TODO: Draft from manuscript_outline.md Section 2.1.
+% <<SECTION_1_BEGIN>>
+The Report 1 validation cases use the compressible Euler equations for an
+ideal gas. These equations form a suitable first system because they contain
+the wave features that a shock-capturing code must resolve, including shocks,
+contact discontinuities, and rarefactions, while retaining well documented
+Riemann-problem and two-dimensional benchmark references
+\citep{toro2009,liska_wendroff_2003}. Magnetic-field effects are therefore
+left as project context until the Euler precision and hardware comparisons
+have an auditable baseline.
 
-\section{Ideal-MHD Context}
-% TODO: Draft from manuscript_outline.md Section 2.2.
-% Boundary: no claim that MHD validation is complete.
+In two space dimensions the conservative form is
+\begin{equation}
+  \partial_t U + \partial_x F(U) + \partial_y G(U) = 0,
+  \qquad
+  U =
+  \begin{pmatrix}
+    \rho\\ \rho u\\ \rho v\\ E
+  \end{pmatrix},
+\end{equation}
+where \(\rho\) is density, \(\rho u\) and \(\rho v\) are the Cartesian momentum
+densities, and \(E\) is the total energy density. The physical fluxes are
+\begin{equation}
+  F(U)=
+  \begin{pmatrix}
+    \rho u\\ \rho u^2+p\\ \rho uv\\ u(E+p)
+  \end{pmatrix},
+  \qquad
+  G(U)=
+  \begin{pmatrix}
+    \rho v\\ \rho uv\\ \rho v^2+p\\ v(E+p)
+  \end{pmatrix}.
+\end{equation}
+The one-dimensional form used for shock-tube tests is obtained by suppressing
+the \(y\)-dependence and the transverse flux. The ideal-gas closure is
+\begin{equation}
+  E = \rho e + \frac{1}{2}\rho\left(u^2+v^2\right),
+  \qquad
+  p = (\gamma-1)\rho e
+    = (\gamma-1)\left[E-\frac{1}{2}\rho\left(u^2+v^2\right)\right],
+\end{equation}
+where \(e\) is the specific internal energy, \(p\) is pressure, and
+\(\gamma\) is the ratio of specific heats. This section fixes only the
+governing variables and closure; the numerical flux construction is introduced
+later with the finite-volume method.
+% <<SECTION_1_END>>
 
-\section{Finite-Volume HRSC Methods}
-% TODO: Draft from manuscript_outline.md Section 2.3.
+\section{Ideal-MHD Project Context}
+% <<SECTION_2_BEGIN>>
+The longer project extends the Euler model by coupling the gas to a magnetic
+field \(\mathbf{B}\). This adds magnetic pressure, magnetic tension, and
+magnetosonic wave families to the gas-dynamic system. In nondimensional units
+with magnetic permeability set to one, a compact ideal-MHD conservation form is
+\begin{equation}
+  \partial_t
+  \begin{pmatrix}
+    \rho\\ \rho\mathbf{u}\\ E\\ \mathbf{B}
+  \end{pmatrix}
+  +
+  \nabla\cdot
+  \begin{pmatrix}
+    \rho\mathbf{u}\\
+    \rho\mathbf{u}\otimes\mathbf{u}
+      + p_t I - \mathbf{B}\otimes\mathbf{B}\\
+    (E+p_t)\mathbf{u}-(\mathbf{u}\cdot\mathbf{B})\mathbf{B}\\
+    \mathbf{u}\otimes\mathbf{B}-\mathbf{B}\otimes\mathbf{u}
+  \end{pmatrix}
+  =0,
+  \qquad
+  \nabla\cdot\mathbf{B}=0,
+\end{equation}
+where \(\mathbf{u}\) is velocity, \(E\) is the total gas, kinetic, and magnetic
+energy density, and \(p_t=p+\lvert\mathbf{B}\rvert^2/2\) is the total pressure.
+The final flux row is the conservative induction equation for \(\mathbf{B}\).
+The constraint \(\nabla\cdot\mathbf{B}=0\) states that the magnetic field is
+solenoidal. If numerical divergence is allowed to grow, the computed magnetic
+force and MHD wave propagation can be polluted by non-physical monopole error.
+Report 1 does not implement or validate MHD; divergence cleaning
+\citep{dedner_2002} and constrained transport \citep{evans_hawley_1988} are
+therefore future numerical choices rather than evidence assessed here.
+% <<SECTION_2_END>>
+
+\section{HRSC and Benchmark Literature}
+% <<SECTION_3_BEGIN>>
+High-resolution shock-capturing (HRSC) finite-volume methods are a natural
+choice for compressible Euler flows because they evolve cell averages in
+conservative form while allowing discontinuities to be represented without
+tracking shock or contact positions explicitly. In Godunov-type methods, the
+face flux is obtained from a local Riemann problem, so the approximate Riemann
+solver is not a secondary implementation detail: it controls the dissipation
+and wave information used at shocks and contact discontinuities
+\citep{toro2009,harten_lax_vanleer_1983}. The Harten--Lax--van Leer (HLL)
+family gives a standard approximate-flux framework, and the HLLC extension of
+\citet{toro_spruce_speares_1994} restores a contact wave within that family;
+the algebraic form used in this report is deferred to Chapter~3.
+
+Benchmark problems serve a different role from the numerical method itself.
+They provide recognisable wave patterns and comparison points against which a
+solver can be checked before precision and hardware effects are interpreted.
+Sod's shock tube and Toro's one-dimensional Riemann problems are standard
+sources for shocks, contacts, and rarefactions in a controlled setting
+\citep{sod_1978,toro2009}. Liska and Wendroff's two-dimensional Euler Riemann
+configurations extend this role to interacting waves and multidimensional
+structure without requiring the background chapter to catalogue individual test
+cases \citep{liska_wendroff_2003}.
+% <<SECTION_3_END>>
 
 \section{Floating-Point Arithmetic and Reproducibility}
-% TODO: Draft from manuscript_outline.md Section 2.4.
+% <<SECTION_4_BEGIN>>
+IEEE floating-point arithmetic represents real numbers with finite significand
+and exponent fields, so the same mathematical update is not evaluated over the
+real numbers. In round-to-nearest arithmetic, binary32 has a 24-bit significand
+including the hidden bit and a normal exponent range of roughly \(-126\) to
+\(+127\), while binary64 has a 53-bit significand and a normal exponent range
+of roughly \(-1022\) to \(+1023\) \citep{ieee754_2019,goldberg_1991}. The
+corresponding unit roundoff is about \(2^{-24}\) for binary32 and \(2^{-53}\)
+for binary64, giving a first scale for local rounding error
+\citep{higham_2002}. This scale is not, by itself, a bound on solution error in
+a nonlinear time-dependent HRSC calculation.
+
+The key difficulty is that floating-point operations are not associative. For
+example, in binary64 arithmetic \((10^{-18}+1)-1\) rounds the small increment
+away and returns zero, whereas \(10^{-18}+(1-1)\) returns \(10^{-18}\). In an
+isolated expression this exposes a rounding-scale difference; inside a
+nonlinear solver, the changed value can affect wave-speed estimates, limiter
+decisions, fluxes, and subsequent time steps. The report therefore measures
+the size and location of such differences rather than assuming that they either
+remain harmless or grow monotonically.
+
+Compiler and device choices introduce further variation. Ordinary \texttt{-O3}
+optimisation may change instruction selection and scheduling, but it does not
+give the compiler the same freedom to reassociate expressions or replace
+operations with approximate forms as fast-math or \texttt{-Ofast}. Fast-math
+settings can permit reassociation, FMA (fused multiply-add) contraction,
+reciprocal-based division, and approximate square-root paths; parallel
+execution can also change reduction order, and comparison order can matter
+when candidate values are tied or nearly tied. CFD
+precision studies such as Brogi et al.'s OpenFOAM work show why reduced or
+mixed precision must be validated case by case rather than inferred from
+arithmetic format alone \citep{brogi_etal_2024}. This report also uses
+Verificarlo, which implements Monte Carlo arithmetic (MCA) by perturbing
+floating-point operations to estimate rounding sensitivity
+\citep{parker_1997,denis_etal_2016}. Its \texttt{p32} setting is
+a virtual mantissa precision used for diagnostics, not IEEE binary32. The
+practical question is therefore which variables, regions, operations, and
+compiler or device settings can be relaxed without exceeding the relevant
+discretisation or reference-error scale.
+% <<SECTION_4_END>>
+
+\section{Report 1 Gap}
+% <<SECTION_5_BEGIN>>
+Together, the literature reviewed here separates three tasks. HRSC and
+Riemann-solver work provide the method foundations for discontinuous Euler
+flow; Sod, Toro, and Liska--Wendroff benchmarks define controlled validation
+settings; and floating-point studies explain why arithmetic format, compiler
+choices, and device execution can alter a nominally identical computation. The
+remaining gap for Report 1 is to measure precision and hardware sensitivity
+under controlled Euler validation tests, before treating ideal MHD as a later
+extension. Chapter~3 defines the numerical method, Chapter~4 defines the
+experimental design, and Chapter~5 reports the measured validation and
+precision results.
+% <<SECTION_5_END>>

@@ -57,6 +57,12 @@ Use this group to support the mathematical-theory and code-description sections.
 
 Use this group to make the precision discussion rigorous. Avoid generic statements such as "GPU is less accurate"; specify the mechanism being discussed.
 
+- **Brogi, F., Bna, S., Boga, G., Amati, G., Esposti Ongaro, T. and Cerminara, M.** "On floating point precision in computational fluid dynamics using OpenFOAM," *Future Generation Computer Systems*, 152, 1-16, 2024. doi:`10.1016/j.future.2023.10.006`.
+  Use for: CFD-specific reduced/mixed precision context, including accuracy/performance trade-offs, CPU/GPU aspects, and OpenFOAM cases including compressible/shock-related benchmarks. Do not use it as evidence for this report's HRSC solver, Euler test matrix, or fp32 adequacy; it is background showing that CFD precision reduction requires case-specific validation.
+
+- **Wang, C., Xia, J. and Chen, L.** "A heterogeneous hybrid-precision finite volume method for compressible flow on unstructured grids," *Computers & Fluids*, 288, 106505, 2025. doi:`10.1016/j.compfluid.2024.106505`.
+  Use for: a CFD/finite-volume example of hybrid precision on heterogeneous CPU/GPU hardware for compressible flow. This is closer to the report's finite-volume/hardware theme than linear-algebra-only mixed precision work, but it is not the same solver, grid structure, test matrix, or evidence base; keep claims bounded.
+
 - **Higham, N. J. and Mary, T.** "Mixed precision algorithms in numerical linear algebra," *Acta Numerica*, 31, 347-414, 2022. doi:`10.1017/S0962492922000022`.  
   Use for: broader mixed-precision framing. This is useful background, but Report 1 should still ground claims in the project's Euler experiments.
 
@@ -132,11 +138,11 @@ These are binding for the project but are not normally bibliography items unless
 ## Suggested Citation Map by Section
 
 - **Introduction:** project brief, Toro, Goldberg/IEEE, Bard and Dorelli if motivating the hardware/MHD trajectory.
-- **Literature/background:** Toro, Liska-Wendroff, Goldberg, Higham, IEEE 754; add HLLC/MUSCL primary papers only where they support a specific technical claim.
+- **Literature/background:** Toro, Liska-Wendroff, Goldberg, Higham, IEEE 754; Brogi et al. and Wang/Xia/Chen if the paragraph discusses CFD-specific reduced or hybrid precision; add HLLC/MUSCL primary papers only where they support a specific technical claim.
 - **Mathematical theory:** Toro, van Leer, Harten-Lax-van Leer, Toro-Spruce-Speares, Higham.
 - **Code description:** Toro for algorithmic structure; Bard and Dorelli for GPU-solver comparison only if relevant; AMReX only if used/discussed.
 - **Validation:** Liska-Wendroff, Sod, Woodward-Colella, Shu-Osher, or other benchmark-origin references only for tests actually run.
-- **Precision/hardware analysis:** Goldberg, IEEE 754, Higham, Verificarlo/Parker only if stochastic arithmetic or accuracy tooling is actually used.
+- **Precision/hardware analysis:** Goldberg, IEEE 754, Higham, Brogi et al. for CFD reduced/mixed precision context, Wang/Xia/Chen for compressible finite-volume hybrid precision context, and Verificarlo/Parker only if stochastic arithmetic or accuracy tooling is actually used.
 - **Conclusion/future work:** brief return to Bard and Dorelli / MHD references only if the text explains how Report 1 sets up Report 2.
 
 ## Before Adding to `references.bib`

@@ -3,58 +3,16 @@
 \chapter{Conclusion}
 
 \section{Aim and Evidence Base}
-
-This report asked how floating-point precision and hardware choice affect a
-controlled Euler finite-volume validation harness for shock-dominated HRSC
-schemes. The evidence base is intentionally bounded: one-dimensional exact
-Riemann tests, two Liska--Wendroff two-dimensional configurations, matched
-strict-HLLC CPU/GPU runs, selected compiler and branch-rule variations, and
-reference-scaled fp32/fp64 precision comparisons. The results support statements
-about these Euler cases and saved output states only; they do not yet validate
-MHD extensions, limiter alternatives, or general compiler portability.
+% <<SECTION_1_BEGIN>>
+The central question was how precision and hardware/backend choices affect a Riemann-solver-based HRSC method on a controlled Euler validation suite. Evidence came from one- and two-dimensional Euler cases, matched CPU/GPU saved-output comparisons, compiler and branch-rule variations, and region-aware precision diagnostics.
+% <<SECTION_1_END>>
 
 \section{Key Findings}
+% <<SECTION_2_BEGIN>>
+Matched strict-HLLC CPU/GPU saved outputs were bit-identical within each tested case on its Windows BuildTools or Linux/WSL toolchain, with zero \(L_1\), \(L_\infty\), and \(\mathrm{ULP}_{\max}\); checkpoint equality applies only to saved states. Implementation sensitivity was axis-dependent: O2/O3 comparisons were bit-identical where tested, fast-math changed non-stationary saved states, and HLLC--Rusanov was deliberate method variation. Direct fp32/fp64 gaps stayed below the available reference scale; for LW12 at \(400^2\), the density ratio was \(1.30\times10^{-4}\), while Verificarlo \texttt{p32}, a virtual rather than IEEE fp32 mode, located remaining precision pressure on LW3 fronts. Together these findings provide a bounded Euler baseline for the later precision and hardware study.
+% <<SECTION_2_END>>
 
-The Euler validation baseline is sound for the tested cases. Sod, Toro3, and
-Toro5 reproduce the expected exact Riemann wave ordering, and LW3/LW12 reproduce
-the expected interacting two-dimensional shock structures against numerical
-references. The measured fp32--fp64 gaps are small relative to the available
-reference scale: for example, the LW3
-\(R_\rho^{\mathrm{ref}}=
-\|\rho_{\mathrm{fp32}}-\rho_{\mathrm{fp64}}\|_1/
-\|\rho_{\mathrm{fp64}}-\rho_{\mathrm{ref}}\|_1\) value remains below
-\(10^{-4}\) at \(400^2\), while the corresponding LW12 \(R_\rho^{\mathrm{ref}}\) value is
-\(1.300607\times10^{-4}\).
-
-Matched CPU/GPU strict-HLLC outputs are byte-identical in the tested saved
-states. The original final-time result is now supplemented by intermediate
-checkpoints for Sod, LW3, and LW12; across 24 same-precision checkpoint pairs,
-the maximum \(L_1/L_\infty/\mathrm{ULP}_{\max}\) drift is \(0/0/0\). This
-strengthens the hardware-reproducibility claim, while still leaving internal
-stage-by-stage identity and untested platforms outside scope.
-
-The precision conclusion is bounded by the reference scale used in Chapter~5.
-The tested fp32 outputs sit below the measured reference-error scale, but this
-does not make a general claim that fp32 is sufficient for other cases, fields,
-resolutions, final times, or solver choices.
-
-Implementation choices can matter more than nominal precision changes. O2 and
-O3 agree bitwise in the tested fp32 compiler mini-matrix, whereas
-Ofast+fast-math changes the saved fp32 state, with the largest tested Toro3
-drift \(L_1=6.778757\times10^{-5}\). The HLLC--Rusanov comparison is still much
-larger, confirming that intentional flux changes dominate the small compiler
-and branch-rule drifts in these summaries.
-
-\section{Limitations and Next Step}
-
-The main limitation is scope. The CPU/GPU result is a checkpointed-output
-statement, not a proof of identical internal arithmetic. The fp32 compiler
-matrix covers only two one-dimensional cases. Limiter sensitivity was not run
-because the current harness does not expose a limiter-selection interface
-without changing solver numerics.
-
-Report 2 should therefore extend the same evidence discipline rather than
-replace it: add an opt-in limiter matrix, broaden compiler and device coverage,
-and then move from Euler to validated MHD tests. Until that MHD evidence is
-added, the MHD solver remains project context and future direction, not a
-validated result of this report.
+\section{Limitation and Next Step}
+% <<SECTION_3_BEGIN>>
+The baseline does not cover untested compilers, devices, limiter choices, internal time-step stages, or MHD. Report 2 should add an Orszag--Tang MHD validation entry with Dedner-type divergence cleaning on the same matched-binary CPU/GPU framework. The tested Euler baseline fixes what must be preserved before the MHD extension is judged.
+% <<SECTION_3_END>>

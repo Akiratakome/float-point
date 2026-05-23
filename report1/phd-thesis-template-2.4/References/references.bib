@@ -9,22 +9,54 @@
   year      = {2009}
 }
 
-@article{sod_1978,
-  author  = {Sod, Gary A.},
-  title   = {A survey of several finite difference methods for systems of nonlinear hyperbolic conservation laws},
-  journal = {Journal of Computational Physics},
-  volume  = {27},
+@article{goldberg_1991,
+  author  = {Goldberg, D.},
+  title   = {What Every Computer Scientist Should Know About Floating-Point Arithmetic},
+  journal = {ACM Computing Surveys},
+  volume  = {23},
   number  = {1},
-  pages   = {1--31},
-  year    = {1978},
-  doi     = {10.1016/0021-9991(78)90023-2}
+  pages   = {5--48},
+  year    = {1991},
+  doi     = {10.1145/103162.103163}
 }
 
-@book{leveque_2002,
-  author    = {LeVeque, R. J.},
-  title     = {Finite Volume Methods for Hyperbolic Problems},
-  publisher = {Cambridge University Press},
-  year      = {2002}
+@manual{ieee754_2019,
+  author       = {{IEEE Computer Society}},
+  title        = {{IEEE} Standard for Floating-Point Arithmetic},
+  organization = {IEEE},
+  edition      = {IEEE Std 754-2019},
+  year         = {2019},
+  doi          = {10.1109/IEEESTD.2019.8766229}
+}
+
+@article{brogi_etal_2024,
+  author  = {Brogi, Federico and Bn{\`a}, Simone and Boga, Gabriele and Amati, Giorgio and Esposti Ongaro, Tomaso and Cerminara, Matteo},
+  title   = {On floating point precision in computational fluid dynamics using {OpenFOAM}},
+  journal = {Future Generation Computer Systems},
+  volume  = {152},
+  pages   = {1--16},
+  year    = {2024},
+  doi     = {10.1016/j.future.2023.10.006}
+}
+
+@article{wang_xia_chen_2025,
+  author  = {Wang, Chen and Xia, Jian and Chen, Long},
+  title   = {A heterogeneous hybrid-precision finite volume method for compressible flow on unstructured grids},
+  journal = {Computers \& Fluids},
+  volume  = {288},
+  pages   = {106505},
+  year    = {2025},
+  doi     = {10.1016/j.compfluid.2024.106505}
+}
+
+@article{higham_mary_2022,
+  author  = {Higham, Nicholas J. and Mary, Theo},
+  title   = {Mixed Precision Algorithms in Numerical Linear Algebra},
+  journal = {Acta Numerica},
+  volume  = {31},
+  pages   = {347--414},
+  year    = {2022},
+  doi     = {10.1017/S0962492922000022},
 }
 
 @article{liska_wendroff_2003,
@@ -36,6 +68,26 @@
   pages   = {995--1017},
   year    = {2003},
   doi     = {10.1137/S1064827502402120}
+}
+
+@article{dedner_2002,
+  author  = {Dedner, A. and Kemm, F. and Kr{\"o}ner, D. and Munz, C.-D. and Schnitzer, T. and Wesenberg, M.},
+  title   = {Hyperbolic Divergence Cleaning for the {MHD} Equations},
+  journal = {Journal of Computational Physics},
+  volume  = {175},
+  pages   = {645--673},
+  year    = {2002},
+  doi     = {10.1006/jcph.2001.6961}
+}
+
+@article{evans_hawley_1988,
+  author  = {Evans, C. R. and Hawley, J. F.},
+  title   = {Simulation of Magnetohydrodynamic Flows: A Constrained Transport Method},
+  journal = {Astrophysical Journal},
+  volume  = {332},
+  pages   = {659--677},
+  year    = {1988},
+  doi     = {10.1086/166684}
 }
 
 @article{harten_lax_vanleer_1983,
@@ -58,15 +110,26 @@
   doi     = {10.1007/BF01414629}
 }
 
-@article{vanleer_1979,
-  author  = {van Leer, B.},
-  title   = {Towards the Ultimate Conservative Difference Scheme. V. A Second-Order Sequel to Godunov's Method},
+@article{davis_1988,
+  author  = {Davis, S. F.},
+  title   = {Simplified Second-Order {Godunov}-Type Methods},
+  journal = {SIAM Journal on Scientific and Statistical Computing},
+  volume  = {9},
+  number  = {3},
+  pages   = {445--473},
+  year    = {1988},
+  doi     = {10.1137/0909030},
+}
+
+@article{sod_1978,
+  author  = {Sod, Gary A.},
+  title   = {A survey of several finite difference methods for systems of nonlinear hyperbolic conservation laws},
   journal = {Journal of Computational Physics},
-  volume  = {32},
+  volume  = {27},
   number  = {1},
-  pages   = {101--136},
-  year    = {1979},
-  doi     = {10.1016/0021-9991(79)90145-1}
+  pages   = {1--31},
+  year    = {1978},
+  doi     = {10.1016/0021-9991(78)90023-2}
 }
 
 @book{higham_2002,
@@ -75,26 +138,6 @@
   edition   = {2},
   publisher = {SIAM},
   year      = {2002}
-}
-
-@article{goldberg_1991,
-  author  = {Goldberg, D.},
-  title   = {What Every Computer Scientist Should Know About Floating-Point Arithmetic},
-  journal = {ACM Computing Surveys},
-  volume  = {23},
-  number  = {1},
-  pages   = {5--48},
-  year    = {1991},
-  doi     = {10.1145/103162.103163}
-}
-
-@manual{ieee754_2019,
-  author       = {{IEEE Computer Society}},
-  title        = {{IEEE} Standard for Floating-Point Arithmetic},
-  organization = {IEEE},
-  edition      = {IEEE Std 754-2019},
-  year         = {2019},
-  doi          = {10.1109/IEEESTD.2019.8766229}
 }
 
 @techreport{parker_1997,
@@ -114,6 +157,24 @@
   doi       = {10.1109/ARITH.2016.31}
 }
 
+@book{leveque_2002,
+  author    = {LeVeque, R. J.},
+  title     = {Finite Volume Methods for Hyperbolic Problems},
+  publisher = {Cambridge University Press},
+  year      = {2002}
+}
+
+@article{vanleer_1979,
+  author  = {van Leer, B.},
+  title   = {Towards the Ultimate Conservative Difference Scheme. V. A Second-Order Sequel to Godunov's Method},
+  journal = {Journal of Computational Physics},
+  volume  = {32},
+  number  = {1},
+  pages   = {101--136},
+  year    = {1979},
+  doi     = {10.1016/0021-9991(79)90145-1}
+}
+
 @article{bard_dorelli_2014,
   author  = {Bard, C. M. and Dorelli, J. C.},
   title   = {A simple {GPU}-accelerated two-dimensional {MUSCL-Hancock} solver for ideal magnetohydrodynamics},
@@ -123,6 +184,19 @@
   year    = {2014},
   doi     = {10.1016/j.jcp.2013.12.006}
 }
+
+@article{sohier_etal_2021,
+  author  = {Sohier, Devan and de Oliveira Castro, Pablo and F{\'e}votte, Fran{\c{c}}ois and Lathuili{\`e}re, Bruno and Petit, Eric and Jamond, Olivier},
+  title   = {Confidence Intervals for Stochastic Arithmetic},
+  journal = {ACM Transactions on Mathematical Software},
+  volume  = {47},
+  number  = {2},
+  pages   = {1--33},
+  year    = {2021},
+  doi     = {10.1145/3432184},
+}
+
+% ---- Orphan keys: kept for archive only. Not cited in current manuscript. ----
 
 @article{zhang_etal_2019,
   author  = {Zhang, W. and others},
@@ -155,24 +229,4 @@
   number  = {3},
   pages   = {617--656},
   doi     = {10.1103/RevModPhys.57.617}
-}
-
-@article{dedner_2002,
-  author  = {Dedner, A. and Kemm, F. and Kr{\"o}ner, D. and Munz, C.-D. and Schnitzer, T. and Wesenberg, M.},
-  title   = {Hyperbolic Divergence Cleaning for the {MHD} Equations},
-  journal = {Journal of Computational Physics},
-  volume  = {175},
-  pages   = {645--673},
-  year    = {2002},
-  doi     = {10.1006/jcph.2001.6961}
-}
-
-@article{evans_hawley_1988,
-  author  = {Evans, C. R. and Hawley, J. F.},
-  title   = {Simulation of Magnetohydrodynamic Flows: A Constrained Transport Method},
-  journal = {Astrophysical Journal},
-  volume  = {332},
-  pages   = {659--677},
-  year    = {1988},
-  doi     = {10.1086/166684}
 }

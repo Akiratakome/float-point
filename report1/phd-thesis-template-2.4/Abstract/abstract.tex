@@ -1,8 +1,22 @@
 % ************************** Thesis Abstract *****************************
 % Use `abstract' as an option in the document class to print only the titlepage and the abstract.
 \begin{abstract}
-TODO: Write this last, after Chapters 3--7 are stable. Follow the Abstract
-instructions in the manuscript outline and keep the Overleaf counted text near
-180--220 words. Include at least two quantitative values from the evidence lock
-and keep all claims bounded to the Euler validation cases.
+Precision, hardware, and backend choices are examined for a stand-alone CPU/CUDA
+Euler HRSC code using a second-order finite-volume MUSCL--Hancock scheme with
+the HLLC Riemann solver. The validation suite covers Sod, Toro3, Toro5,
+Liska-Wendroff configuration 3 (LW3), and Liska-Wendroff configuration 12
+(LW12), spanning one- and two-dimensional ideal-gas Euler tests with exact or
+higher-resolution references; LW12 is compared with an \(800^2\) fp64 numerical
+reference. The experiments compare real fp32/fp64 builds, matched strict-HLLC
+CPU/GPU saved outputs, selected compiler, branch-rule and solver variations,
+and Verificarlo/MCA diagnostics, where \texttt{p32} is treated as virtual
+precision rather than IEEE fp32. Across the matched CPU/GPU saved-output set,
+final conservative states give \(L_1=0\), \(L_\infty=0\), and
+\(\mathrm{ULP}_{\max}=0\), with checkpoint equality limited to saved states.
+Direct fp32/fp64 gaps remain below the available reference scale in the tested
+cases; for LW12 at \(400^2\), the density reference-scaled ratio is
+\(1.30\times10^{-4}\). Selected implementation checks show O2/O3 bit-identity
+where tested, while fast-math perturbs non-stationary saved states. The result
+is a bounded Euler baseline for the later MHD precision and hardware study, not
+MHD validation.
 \end{abstract}

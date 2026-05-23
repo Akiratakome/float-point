@@ -5,173 +5,264 @@
 \section{Implementation Route and Comparability Principle}
 \label{sec:implementation-route}
 % <<SECTION_1_BEGIN>>
-The Report 1 evidence uses the stand-alone Euler code path rather than an
-AMReX application. The AMReX framework of \citet{zhang_etal_2019} remains
-relevant to the wider project as a route to adaptive mesh refinement and
-accelerator support, but
-the reported Euler comparisons do not use AMR or AMReX. The stand-alone route
-keeps the comparison narrow: precision, backend, and selected implementation
-choices can change while the finite-volume update remains fixed.
+Report 1 uses a stand-alone Euler implementation so that the finite-volume
+update stays fixed while precision, backend, and selected build choices are
+varied. The real type is selected at configuration time and is then used as the
+single scalar type in the solver:
 
-Five implementation features support that comparison:
-\begin{itemize}\setlength{\itemsep}{0pt}
-  \item \textbf{fp32/fp64 templating.} A single \texttt{HRSC\_REAL} alias
-        selected by \texttt{FLOAT\_PRECISION} compiles the same source as a
-        single- or double-precision binary~\citep{ieee754_2019}.
-  \item \textbf{Compile-once device dispatch.} \texttt{ENABLE\_CUDA=ON} builds
-        one binary that selects \texttt{device=cpu/gpu} at runtime.
-  \item \textbf{Strict-IEEE build mode.} \texttt{STRICT\_IEEE=ON} controls FMA,
-        denormal, division, and square-root behaviour on CPU and CUDA.
-  \item \textbf{Compile-time variation switches.}
-        \texttt{RIEMANN\_STRICT\_INEQUALITY} toggles the HLLC wave-speed
-        \texttt{<} versus \texttt{<=} branch; the solver switch selects HLLC
-        or Rusanov.
-  \item \textbf{Python regression and report harness.} Build provenance, run
-        configuration, norms, and ratios are logged for each run.
-\end{itemize}
-Device evidence uses a disclosed toolchain split: Toro3 and Toro5 are run
-through Windows BuildTools, while Sod, LW3, and LW12 use the Linux/WSL
-toolchain. Each CPU/GPU comparison is still within-case and matched-binary.
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Configuration choice & Compile-time definition & Report role \\
+\midrule
+\texttt{-DFLOAT\_PRECISION=float}  & \texttt{HRSC\_REAL=float}  & IEEE binary32 run \\
+\texttt{-DFLOAT\_PRECISION=double} & \texttt{HRSC\_REAL=double} & IEEE binary64 run \\
+\texttt{-DENABLE\_CUDA=ON}         & \texttt{HRSC\_HAS\_CUDA}   & enables \texttt{device=gpu} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This design keeps the precision comparison to two storage formats,
+binary32 and binary64~\citep{ieee754_2019}. Higher-precision extensions, such
+as a Boost::Multiprecision route, are outside the Report 1 evidence scope.
+When CUDA is enabled, the same executable interface serves CPU and CUDA
+backends; \texttt{device=cpu/gpu} selects the backend at runtime.
+
+The toolchain boundary is part of the experimental design: Toro3 and Toro5 use
+Windows BuildTools; Sod, Liska-Wendroff configuration 3 (LW3), and
+Liska-Wendroff configuration 12 (LW12) use Linux/WSL; each CPU/GPU
+comparison stays within one matched binary/configuration.
+
+The four implementation features that make this comparison auditable are:
+\begin{enumerate}
+  \item fp32/fp64 source-level templating via \texttt{HRSC\_REAL}, so the same
+        source compiles to either precision;
+  \item CMake \texttt{ENABLE\_CUDA} build switch plus runtime
+        \texttt{device=cpu/gpu} selection, producing matched within-binary
+        CPU/GPU comparisons;
+  \item a Python regression harness that re-runs the validation matrix and
+        checks outputs against stored references;
+  \item the matched-binary CPU--GPU switch, so bit-identity claims are not
+        confused with toolchain or compiler-flag differences.
+\end{enumerate}
 % <<SECTION_1_END>>
 
 \section{Algorithmic Structure of the Implementation}
 % <<SECTION_2_BEGIN>>
 At run time the executable reads the configuration, selects the initial
-condition, boundary modes, flux solver, output format, and device, then
-dispatches to the CPU solver or to CUDA when \texttt{ENABLE\_CUDA} is
-available. A solver step fills ghost cells, computes a CFL-limited
-$\Delta t$, performs one or two directional sweeps, and advances the time
-accumulator. The method inside each sweep is MUSCL--Hancock with a
-component-wise minbee limiter and HLLC or Rusanov fluxes; HLLC is the main
-Report 1 solver because the validation and variation axes require a
-Riemann-solver-based scheme of the kind described by \citet{toro2009}.
+condition, boundary modes, flux solver, and device, then dispatches to the CPU
+solver or to CUDA. CUDA is the NVIDIA GPU programming model used here and is
+available only in binaries built with \texttt{ENABLE\_CUDA}. Each step fills
+ghost cells, chooses a CFL-limited time step, applies directional sweeps, and
+updates time. The sweep uses MUSCL--Hancock reconstruction with HLLC or
+Rusanov fluxes~\citep{toro2009}.
 
-The conservative state is stored row-major with the variable index as the
-fastest-varying dimension and with $n_g$ ghost-cell layers on every side, so
-CPU and CUDA kernels use the same indexing convention and boundary-condition
-rules.  The CPU CFL scan computes
-\[
+The conservative state stores the variable index as the fastest-varying
+dimension and uses $n_g$ ghost-cell layers on every side, giving CPU loops and
+GPU kernels the same logical cell ordering and boundary rules. The CFL scan
+computes
+\begin{equation}\label{eq:ch4-cfl-scan}
   \Delta t = C_{\mathrm{CFL}}
   \min\left(\frac{\Delta x}{\max_{i,j}(|u|+c)},
              \frac{\Delta y}{\max_{i,j}(|v|+c)}\right),
-\]
-then clips the result to the requested final time. Metric collection is kept
-outside this update path: scripts compare written conservative states or
-primitive tables and aggregate $L_1$, $L_2$, $L_\infty$, and ULP diagnostics.
-The dispatch is summarised in Algorithm~\ref{alg:step-dispatch}. Both drivers
-advance time with Kahan compensated summation, following the treatment in
-\citet{higham_2002}.
+\end{equation}
+then clips the result to the requested final time. Equation~\ref{eq:ch4-cfl-scan}
+is a deterministic max/min comparison over wave-speed candidates, not a
+summation reduction, so it is not evidence for summation-order sensitivity.
+Algorithm~\ref{alg:step-dispatch} summarises the dispatch, and
+Algorithm~\ref{alg:muscl-hancock} expands the per-cell predictor.
+
+Reproducibility follows the harness sequence: configuration, build, run,
+measurement, aggregation, and plotting. Matrix runs copy the source
+configuration into a generated run directory rather than editing it in place,
+then save stdout, stderr, binary path, precision, device, build label, command,
+and output path as metadata. Chapter~5 uses the aggregated summaries and
+report-facing figures from these runs, not raw grids as direct evidence.
 
 \begin{algorithm}
 \caption{Report-Level Solver Dispatch}\label{alg:step-dispatch}
 \begin{algorithmic}[1]
-\State Read configuration and select CPU or CUDA backend
-\State Fill ghost cells with the configured boundary conditions
-\State Compute CFL-limited $\Delta t$ and clip to final time
-\If{$n_y=1$}
-    \State Apply one MUSCL--Hancock $x$-sweep
-\ElsIf{step index is even}
-    \State Apply $x$-sweep, refill ghost cells, then apply $y$-sweep
-\Else
-    \State Apply $y$-sweep, refill ghost cells, then apply $x$-sweep
-\EndIf
-\State Advance the time accumulator with Kahan summation
-\State Write final grid, or CPU checkpoints, outside the sweep
+\State Read configuration
+\State Select CPU or CUDA
+\State Fill ghost cells and compute clipped $\Delta t$
+\State Apply one 1D sweep, or alternate $x/y$ sweep order in 2D
+\State Refill ghost cells between 2D sweeps
+\State Advance time with Kahan summation~\citep{higham_2002}
+\State Write configured outputs
 \end{algorithmic}
 \end{algorithm}
 
-The CUDA solver follows the same ordering through boundary, face-state, flux,
-and conservative-update kernels, with $16\times16$ thread blocks for
-reconstruction, matching the GPU MUSCL-Hancock baseline of
-\citet{bard_dorelli_2014}. Its HLLC wrappers
-call the same \texttt{hllc.hpp} flux algebra as the CPU path, so the
-\texttt{<} versus \texttt{<=} branch rule is a shared sensitivity axis. For
-the CFL stage, CUDA reduces stable cellwise time-step candidates through
-ordered floating-point bits, keeping the selected $\Delta t$ independent of
-block-completion order.
+\begin{algorithm}
+\caption{MUSCL--Hancock face-state construction for one cell, one direction}
+\label{alg:muscl-hancock}
+\begin{algorithmic}[1]
+\Function{ReconstructFaces}{$\bar U_{i-1}^{n}, \bar U_i^{n}, \bar U_{i+1}^{n}, \Delta x, \Delta t$}
+  \State $\delta^{-} \gets \bar U_i^{n} - \bar U_{i-1}^{n}$
+  \State $\delta^{+} \gets \bar U_{i+1}^{n} - \bar U_i^{n}$
+  \State $\sigma_i \gets \textsc{Minmod}(\delta^{-}, \delta^{+})$ \Comment{Eq.~\eqref{eq:ch3-minmod-def}}
+  \State $U_{i,L}^{n} \gets \bar U_i^{n} - \tfrac{1}{2}\sigma_i$
+  \State $U_{i,R}^{n} \gets \bar U_i^{n} + \tfrac{1}{2}\sigma_i$
+  \State $\Delta F \gets F(U_{i,R}^{n}) - F(U_{i,L}^{n})$
+  \State $\bar U_{i,L}^{n+1/2} \gets U_{i,L}^{n} - \tfrac{\Delta t}{2\Delta x}\,\Delta F$
+  \State $\bar U_{i,R}^{n+1/2} \gets U_{i,R}^{n} - \tfrac{\Delta t}{2\Delta x}\,\Delta F$
+  \State \Return $(\bar U_{i,L}^{n+1/2},\, \bar U_{i,R}^{n+1/2})$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+The CUDA path uses separate kernels for boundary handling, face-state
+construction, flux evaluation, and conservative updates. Its reconstruction and
+update kernels use thread blocks: GPU thread tiles assigned to neighbouring
+grid cells. The main two-dimensional kernels use $16\times16$ tiles, consistent
+with \citet{bard_dorelli_2014}. The HLLC branch-rule sensitivity axis is shared
+across CPU and CUDA. In the CUDA CFL stage, ordered comparisons make the
+selected $\Delta t$ independent of block-completion order.
 
 {\sloppy
-CPU sweep loops use static OpenMP schedules and the CFL scan uses an explicit
-\texttt{reduction(max:\dots)} clause. Verificarlo MCA runs force serial
-execution because the \texttt{libinterflop} PRNG is not thread-safe. MPI is not
-used, so the reported hardware, precision, and compiler comparisons are not
-mixed with inter-process ordering or domain-decomposition effects.\par}
+CPU sweep loops use OpenMP static schedules, giving fixed loop-iteration
+assignment to CPU threads. The CPU CFL scan uses \texttt{reduction(max:\dots)}
+over wave-speed candidates, a deterministic comparison rather than a
+floating-point sum. Verificarlo MCA runs force serial execution because the
+\texttt{libinterflop} PRNG is not thread-safe. MPI is not used, so comparisons
+exclude inter-process ordering.\par}
+
+Algorithm~\ref{alg:hllc-flux-select} expands the HLLC interface flux; the
+strict-inequality variant tested in Section~\ref{sec:precision-sensitive-decisions}
+flips each branch comparator.
+\begin{algorithm}
+\caption{HLLC interface flux selection (one face)}
+\label{alg:hllc-flux-select}
+\begin{algorithmic}[1]
+\Function{HllcFlux}{$U_L, U_R$}
+  \State Compute $(\rho_L,u_L,p_L,a_L)$ from $U_L$; same for $R$
+  \State $S_L \gets \min(u_L-a_L,\,u_R-a_R)$ \Comment{Eq.~\eqref{eq:ch3-hllc-wavespeeds}}
+  \State $S_R \gets \max(u_L+a_L,\,u_R+a_R)$
+  \State $S_\ast \gets \textsc{ComputeContactSpeed}(U_L, U_R, S_L, S_R)$ \Comment{Eq.~\eqref{eq:ch3-hllc-sstar}}
+  \If{$S_L \ge 0$} \State \Return $F(U_L)$
+  \ElsIf{$S_\ast \ge 0$} \State \Return $F(U_L) + S_L\,(U_{\ast L} - U_L)$
+  \ElsIf{$S_R \ge 0$} \State \Return $F(U_R) + S_R\,(U_{\ast R} - U_R)$
+  \Else \State \Return $F(U_R)$
+  \EndIf
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 % <<SECTION_2_END>>
 
 \section{Precision and Hardware Variants}
 % <<SECTION_3_BEGIN>>
 The experiment matrix separates precision, hardware, compiler, and branch-rule
-effects.  The same input file selects the test name, grid size, final time,
-flux solver, boundary conditions, and output format before backend dispatch.
-The fp32/fp64 axis is a build axis:
+effects. The fp32/fp64 axis is a build axis:
 \texttt{FLOAT\_PRECISION=float} and \texttt{FLOAT\_PRECISION=double} compile
-the same source with different \texttt{HRSC\_REAL} definitions.  The CPU/GPU
-axis is a runtime axis inside CUDA-enabled binaries: a run with
-\texttt{device=cpu} and a run with \texttt{device=gpu} use the same configured
-executable when \texttt{ENABLE\_CUDA} has been enabled.  Where matched device
-evidence is used, \texttt{STRICT\_IEEE=ON} applies strict CPU flags and
-corresponding CUDA controls on fused multiply-add, denormals, division, and
-square root.  {\sloppy
-The recorded flags include \texttt{-ffp-contract=off} and
-\texttt{-fno-fast-math} on CPU, and \texttt{--fmad=false},
-\texttt{--ftz=false}, \texttt{--prec-div=true}, and
-\texttt{--prec-sqrt=true} on CUDA.\par} Compiler optimisation and the HLLC
-wave-speed branch rule are separate axes.
+the same source with different \texttt{HRSC\_REAL} definitions. A matched
+device comparison means the same case, executable, precision, and
+configuration, changing only \texttt{device=cpu} to \texttt{device=gpu} at run
+time inside a CUDA-enabled binary. CPU/GPU statements are therefore
+within-case and within-binary claims, not cross-toolchain equivalence claims.
 
-CPU/GPU statements are within-case and within-binary, not
-cross-toolchain equivalence claims.
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}ll>{\raggedright\arraybackslash}X@{}}
+\toprule
+Scope & Flag & Meaning for the comparison \\
+\midrule
+CPU & \texttt{-ffp-contract=off} & forbids compiler contraction of
+\(a\times b+c\) into a fused multiply-add (FMA), avoiding a different
+single-rounding path \\
+CPU & \texttt{-fno-fast-math} & disables the fast-math umbrella, including
+transformations that may reassociate expressions or weaken IEEE-style
+semantics \\
+CUDA & \texttt{--fmad=false} & forbids implicit CUDA FMA contraction where the
+compiler would otherwise fuse multiply-add operations \\
+CUDA & \texttt{--ftz=false} & keeps denormal values instead of flushing them
+to zero \\
+CUDA & \texttt{--prec-div=true} & requests precise division rather than a
+faster approximate sequence \\
+CUDA & \texttt{--prec-sqrt=true} & requests precise square root rather than a
+faster approximate sequence \\
+\bottomrule
+\end{tabularx}
+\caption{Strict floating-point controls used for matched CPU/GPU comparisons
+when \texttt{STRICT\_IEEE=ON}.}
+\label{tab:ch4-strict-flags}
+\end{table}
 
-Verificarlo runs are diagnostic experiments, not real fp32/fp64 runs.  The
-solver is built through the MCA/virtual-precision toolchain and sampled with
-independent seeds; labels p8, p16, p32, and p53 denote virtual mantissa
-settings applied by the tool, not binary storage formats, following the
-Monte Carlo arithmetic formulation of \citet{parker_1997} and the Verificarlo
-tool of \citet{denis_etal_2016}.  For a primitive
-component $q_j$, the sample standard deviation
-$\sigma_{\mathrm{FP},j}=\operatorname{std}_k(q_j^{(k)})$ defines a local
-roundoff scale that can be compared with the field magnitude or with the
-local reference error, supporting spatial discussion of sensitivity near
-smooth regions and wave fronts.  Direct statements about fp32 adequacy come
-only from real fp32/fp64 comparisons against the chosen reference solution.
+Compiler optimisation and the HLLC wave-speed branch rule are separate axes
+from the strict device comparison in Table~\ref{tab:ch4-strict-flags}. The
+table is included to define the build controls used when the saved CPU and GPU
+states are compared; Chapter~5 reports the measured differences.
+
+Verificarlo runs are diagnostic experiments, not real fp32/fp64 runs. Following
+Parker's Monte Carlo arithmetic formulation~\citep{parker_1997} and Denis et
+al.'s Verificarlo tool~\citep{denis_etal_2016}, the solver is built through the
+MCA/virtual-precision toolchain and sampled with independent seeds. Labels
+\texttt{p8}, \texttt{p16}, \texttt{p32}, and \texttt{p53} denote virtual
+mantissa settings applied by the tool, not binary storage formats; in
+particular, \texttt{p32} is not IEEE binary32/fp32. For a primitive component
+\(q_j\), the sample standard deviation
+\(\sigma_{\mathrm{FP},j}=\operatorname{std}_k(q_j^{(k)})\) defines a local
+roundoff scale that can be compared with the field magnitude or with the local
+reference error. Direct statements about fp32 adequacy come only from real
+fp32/fp64 comparisons against the chosen reference solution.
 % <<SECTION_3_END>>
 
 \section{Test-Case Matrix and Metrics}
 % <<SECTION_4_BEGIN>>
-The selected validation cases exercise the same implementation axes on one-
-and two-dimensional Euler problems.  \citet{sod_1978} gives the standard
-shock-tube baseline with an exact Riemann reference.  Toro3 and Toro5 add a
-right-running supersonic shock and a collision of supersonic shocks from the
-test set in \citet{toro2009}.  Liska--Wendroff configuration 3 (LW3) and
-Liska--Wendroff configuration 12 (LW12) test multidimensional wave interaction,
-with supersonic shock segments identified from the benchmark definitions of
-\citet{liska_wendroff_2003}. Table~\ref{tab:ch4-design-matrix}
-records the intended coverage; Chapter~5 reports the measured values.
+The validation set exercises one- and two-dimensional Euler problems under the
+same implementation axes. Sod provides the lower-severity exact-reference
+baseline~\citep{sod_1978}. Toro's tests supply the one-dimensional strong
+waves, and Liska and Wendroff's benchmark set supplies the two-dimensional
+quadrant Riemann problems~\citep{toro2009,
+liska_wendroff_2003}. The supersonic-wave requirement is met by four entries
+in this matrix: Toro3 has a right-running supersonic shock, Toro5 has
+colliding supersonic shocks, and LW3 and LW12 contain supersonic
+quadrant-interface shocks in Liska and Wendroff's initial states. Sod is
+retained as the lower-severity exact-reference baseline rather than as the main
+supersonic example. Table~\ref{tab:ch4-design-matrix} records this design
+coverage; Chapter~5 reports the measured values.
 
-The metrics named in the design matrix are field norms ($L_1$, $L_\infty$,
-ULP, plus SSIM for two-dimensional images) and reference- or
-discretisation-scaled ratios that divide an fp32--fp64 difference by the
-corresponding fp64--reference or grid-refinement error; Chapter~5 states the
-formal definitions before first use.  CPU/GPU entries are matched-binary
-comparisons under the device-selection rule of
-Section~\ref{sec:implementation-route}.
+The scalar comparisons use field norms on the saved state: \(L_1\),
+\(L_\infty\), and \(\mathrm{ULP}_{\max}\). For two-dimensional density images,
+SSIM measures image-structure similarity; values near 1 indicate closer
+agreement with the reference image. Precision adequacy uses the
+reference-scaled ratio
+\begin{equation}\label{eq:ch4-rref}
+R_{\mathrm{ref}} =
+\frac{\|U_{\mathrm{fp32}}-U_{\mathrm{fp64}}\|_1}
+     {\|U_{\mathrm{fp64}}-U_{\mathrm{ref}}\|_1}.
+\end{equation}
+A value below 1 means that the fp32--fp64 gap is below the chosen
+reference/discretisation scale; values near or above 1 mean that it is
+comparable to, or larger than, that scale. If the denominator is zero, the
+comparison is degenerate and is not interpreted as a finite adequacy ratio.
+CPU/GPU entries are matched-binary comparisons under the device-selection rule
+of Section~\ref{sec:implementation-route}.
 
 \begin{table}[htbp]
 \centering
-\scriptsize
-\setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{1.08}
-\begin{tabularx}{\textwidth}{@{}lc>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}Xll@{}}
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.16}
+\begin{tabularx}{\textwidth}{@{}l c >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
 \toprule
-case & dimension & physical feature & supersonic? (Y/N plus which wave) & basis for supersonic label & reference solution & metrics & hardware & precision \\
+Case & Dim. & Benchmark role and wave content & Reference & Comparisons \\
 \midrule
-Sod & 1D & shock tube: rarefaction, contact, right shock & N; right shock noted but not used for the brief count & exact solution gives shock Mach $S_R/a_R\approx1.66$ into the right state and post-shock flow Mach $\approx0.73$ & exact Riemann solution & $L_1$, $L_\infty$, ULP, reference-scaled ratios & CPU+GPU & fp32+fp64 \\
-Toro3 & 1D & very strong pressure jump & Y: right-running supersonic shock & Toro test-3 initial states and exact wave pattern & exact Riemann solution & $L_1$, $L_\infty$, ULP, reference-scaled ratios & CPU+GPU & fp32+fp64 \\
-Toro5 & 1D & opposing high-speed shock interaction & Y: collision of supersonic shocks & initial Mach numbers about 1.89 on both sides; Toro test definition & exact Riemann solution & $L_1$, $L_\infty$, ULP, reference-scaled ratios & CPU+GPU & fp32+fp64 \\
-LW3 & 2D & four-shock quadrant Riemann interaction & Y: supersonic shock segments along quadrant interfaces & Liska--Wendroff configuration 3 benchmark states & $1600^2$ fp64 numerical reference & $L_1$, $L_\infty$, ULP, SSIM, reference-scaled ratios & CPU+GPU & fp32+fp64 \\
-LW12 & 2D & two-shock, two-contact quadrant Riemann interaction & Y: supersonic shock segments along quadrant interfaces & Liska--Wendroff configuration 12 benchmark states & $800^2$ fp64 numerical reference & $L_1$, $L_\infty$, ULP, SSIM, reference-scaled ratios & CPU+GPU & fp32+fp64 \\
+Sod & 1D & Baseline shock tube: left rarefaction, contact discontinuity, and right-moving shock. & Exact Riemann solution & fp32/fp64; CPU/GPU; reference-scaled norms \\
+\addlinespace
+Toro3 & 1D & Toro test with a strong pressure jump and a right-running supersonic shock. & Exact Riemann solution & fp32/fp64; CPU/GPU; reference-scaled norms \\
+\addlinespace
+Toro5 & 1D & Toro colliding-shock test with opposing supersonic waves. & Exact Riemann solution & fp32/fp64; CPU/GPU; reference-scaled norms \\
+\addlinespace
+LW3 & 2D & Liska--Wendroff configuration 3: four-shock quadrant Riemann interaction. & \(1600^2\) fp64 numerical reference & fp32/fp64; CPU/GPU; norms and SSIM \\
+\addlinespace
+LW12 & 2D & Liska--Wendroff configuration 12: two shock segments and two contacts. & \(800^2\) fp64 numerical reference & fp32/fp64; CPU/GPU; norms and SSIM \\
 \bottomrule
 \end{tabularx}
-\caption{Experimental-design matrix for the Report~1 Euler validation suite.}
+\caption{Experimental-design matrix for the Report~1 Euler validation suite.
+All cases are evaluated in fp32 and fp64 on the available CPU and GPU backends;
+the quantitative metrics are \(L_1\), \(L_\infty\),
+\(\mathrm{ULP}_{\max}\), reference-scaled ratios, and SSIM for the
+two-dimensional image comparisons.}
 \label{tab:ch4-design-matrix}
 \end{table}
 % <<SECTION_4_END>>
@@ -183,22 +274,26 @@ float--double or CPU--GPU difference is only meaningful once it has a scale.
 For Sod and the Toro shock tubes used in the validation tables, the comparison
 is made against analytic exact Riemann references, so the reported error mixes
 discretisation and floating-point effects in a controlled one-dimensional
-setting described by \citet{toro2009}.  For the two-dimensional Liska--Wendroff problems,
-no analytic reference is used.  LW3 is compared with an $N=1600$ fp64
-numerical reference, and Liska--Wendroff configuration 12 uses an
-\(N=800\) fp64 numerical reference for the reference-scaled fp32--fp64 ratios
-in the benchmark family of \citet{liska_wendroff_2003}.  These high-resolution references provide the
-discretisation-error scale used in the reference-scaled ratios; if that scale
-dominates the numerator, the ratio should be read as a bound on precision drift
-relative to the chosen reference, not as an independent estimate of the
-rounding error~\citep{higham_2002}.
+setting described by \citet{toro2009}. For the two-dimensional
+Liska--Wendroff problems, no exact reference is used. LW3 is compared with a
+\(1600^2\) fp64 numerical reference, and Liska--Wendroff configuration 12
+(LW12) is compared with an \(800^2\) fp64 numerical reference in the benchmark
+family of \citet{liska_wendroff_2003}.
 
-This strategy is load-bearing for the later interpretation.  Ratios such as
+The lower-grid two-dimensional comparisons map these high-resolution
+references to the candidate grid before metrics are computed. The conserved
+variables in the reference grid are averaged over integer-ratio cell blocks,
+then the candidate and block-averaged reference states are converted to
+primitive variables for the reported norms and SSIM. Thus LW3 maps
+\(1600^2\) to \(400^2\) or \(200^2\) by \(4\times4\) or \(8\times8\) block
+averaging, while LW12 maps \(800^2\) to \(400^2\) or \(200^2\) by \(2\times2\)
+or \(4\times4\) block averaging. This is a conservative mapping step, not an
+exact-solution construction.
+
+Ratios such as
 \(\|U_{\mathrm{fp32}}-U_{\mathrm{fp64}}\|_1/
-\|U_{\mathrm{fp64}}-U_{\mathrm{ref}}\|_1\) say whether precision drift is
-small relative to the chosen reference error, not whether fp32 is generally
-adequate.  CPU/GPU rows are instead final-state conservative-state
-comparisons between matched same-precision outputs.  Checkpointed CPU/GPU
-summaries are used only to bound time-evolution statements at the saved
-outputs, not to prove stage-by-stage identity.
+\|U_{\mathrm{fp64}}-U_{\mathrm{ref}}\|_1\) bound precision drift relative to
+the reference scale, not absolute terms~\citep{higham_2002}. CPU/GPU entries
+are matched same-precision final-state comparisons; checkpointed summaries
+bound only saved-output behaviour, not stage-by-stage identity.
 % <<SECTION_5_END>>

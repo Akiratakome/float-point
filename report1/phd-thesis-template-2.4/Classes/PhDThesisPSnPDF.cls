@@ -1174,9 +1174,9 @@ wish to left align your text}
       % supervisor is not defined
     }{
       \begin{center}
-        \makebox[\widthof{supervisorrole} + \@supervisorlinewidth][c]{
+        \makebox[\widthof{\@supervisorrole} + \@supervisorlinewidth][c]{
           \Large
-          \@supervisorrole \parbox[t]{\@supervisorlinewidth}{\@supervisor}
+          \@supervisorrole \parbox[t]{\@supervisorlinewidth}{\centering\@supervisor}
         }
       \end{center}
       \vspace{0.5em}
@@ -1258,4 +1258,3 @@ wish to left align your text}
 			- \totalheightof{\usebox{\PHD@collegedate}}
 }
 }
-
