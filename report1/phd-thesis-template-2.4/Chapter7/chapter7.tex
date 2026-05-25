@@ -4,15 +4,15 @@
 
 \section{Aim and Evidence Base}
 % <<SECTION_1_BEGIN>>
-The central question was how precision and hardware/backend choices affect a Riemann-solver-based HRSC method on a controlled Euler validation suite. Evidence came from one- and two-dimensional Euler cases, matched CPU/GPU saved-output comparisons, compiler and branch-rule variations, and region-aware precision diagnostics.
+The central question was how precision and hardware/backend choices affect a Riemann-solver-based HRSC method on a controlled Euler validation suite. Evidence came from one- and two-dimensional Euler cases, matched CPU/GPU saved-output comparisons, compiler and branch-rule variations, direct fp32/fp64 reference scaling, and region-aware precision diagnostics.
 % <<SECTION_1_END>>
 
 \section{Key Findings}
 % <<SECTION_2_BEGIN>>
-Matched strict-HLLC CPU/GPU saved outputs were bit-identical within each tested case on its Windows BuildTools or Linux/WSL toolchain, with zero \(L_1\), \(L_\infty\), and \(\mathrm{ULP}_{\max}\); checkpoint equality applies only to saved states. Implementation sensitivity was axis-dependent: O2/O3 comparisons were bit-identical where tested, fast-math changed non-stationary saved states, and HLLC--Rusanov was deliberate method variation. Direct fp32/fp64 gaps stayed below the available reference scale; for LW12 at \(400^2\), the density ratio was \(1.30\times10^{-4}\), while Verificarlo \texttt{p32}, a virtual rather than IEEE fp32 mode, located remaining precision pressure on LW3 fronts. Together these findings provide a bounded Euler baseline for the later precision and hardware study.
+Matched strict-HLLC CPU/GPU runs showed no saved-state divergence within each tested case on its Windows BuildTools or Linux/WSL toolchain, with zero \(L_1\), \(L_\infty\), and \(\mathrm{ULP}_{\max}\); this applies to saved outputs and checkpoints, not every intermediate value inside a time step. Implementation sensitivity was axis-dependent: O2/O3 comparisons were bit-identical where tested, fast-math changed non-stationary saved states, and HLLC--Rusanov was deliberate method variation. Direct fp32/fp64 gaps stayed below the available reference scale; for LW12 at \(400^2\), the density ratio was \(1.30\times10^{-4}\) and the pressure ratio was \(1.13\times10^{-4}\). Verificarlo \texttt{p32}, a virtual rather than IEEE fp32 mode, then located remaining precision pressure on LW3 fronts. Together these findings provide a bounded Euler baseline for the later precision and hardware study.
 % <<SECTION_2_END>>
 
 \section{Limitation and Next Step}
 % <<SECTION_3_BEGIN>>
-The baseline does not cover untested compilers, devices, limiter choices, internal time-step stages, or MHD. Report 2 should add an Orszag--Tang MHD validation entry with Dedner-type divergence cleaning on the same matched-binary CPU/GPU framework. The tested Euler baseline fixes what must be preserved before the MHD extension is judged.
+Detailed limitations are listed in Section~\ref{sec:ch6-limits}. Report~2 will extend the framework to ideal-MHD validation with divergence control, applied to the same matched-binary CPU/GPU framework used here.
 % <<SECTION_3_END>>
