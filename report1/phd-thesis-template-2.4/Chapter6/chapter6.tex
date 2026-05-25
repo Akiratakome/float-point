@@ -108,18 +108,9 @@ The limitations are evidence-specific:
 The validated scope is ideal-gas Euler only: matched CPU/GPU evidence covers
 five selected cases, and no MHD validation is claimed.
 
-Report~2 should extend the framework to ideal-MHD tests with divergence
-control, treating Dedner-type cleaning \citep{dedner_2002} or constrained
-transport \citep{evans_hawley_1988} as explicit numerical choices and HLLD
-\citep{miyoshi_kusano_2005} as a candidate MHD Riemann solver. The brief
-asks whether discrepancies between implementations grow over time, with
-chaotic MHD problems flagged as the limiting case. Quantifying that growth
-connects to the dynamical-systems framework for sensitive dependence on
-initial conditions: the Lyapunov-exponent estimate from a time series
-\citep{wolf_etal_1985} measures the average exponential separation rate of
-nearby trajectories, and the ergodic theory of chaotic attractors
-\citep{eckmann_ruelle_1985} explains why the long-time observable is that
-rate rather than any single finite-time drift. The Chapter~5
-drift-time-series figure is a finite-time precursor of that analysis;
-Report~2 will pick it up on the MHD test set.
+Report~2 will extend the Chapter~5 drift-time-series to the MHD test set,
+where chaotic dynamics motivate Lyapunov-type long-time separation estimates
+rather than finite-time drift only; Dedner-type cleaning \citep{dedner_2002}
+or constrained transport \citep{evans_hawley_1988} and the HLLD scheme
+\citep{miyoshi_kusano_2005} are the candidate MHD-side choices.
 % <<SECTION_4_END>>
