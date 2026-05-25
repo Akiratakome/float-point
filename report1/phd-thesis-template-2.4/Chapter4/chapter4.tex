@@ -70,15 +70,27 @@ build label, command, and output path, and supply Chapter~5 with aggregated
 summaries and report-facing figures rather than raw grids.
 
 \begin{algorithm}
-\caption{Report-Level Solver Dispatch}\label{alg:step-dispatch}
+\caption{Time-stepping loop with dimensional splitting and Kahan-compensated time accumulation}
+\label{alg:step-dispatch}
 \begin{algorithmic}[1]
-\State Read configuration
-\State Select CPU or CUDA
-\State Fill ghost cells and compute clipped $\Delta t$
-\State Apply a 1D sweep, or alternate $x/y$ sweeps in 2D
-\State Refill ghost cells between sweeps
-\State Advance scalar time with Kahan summation~\citep{higham_2002}
-\State Write configured outputs
+\Function{AdvanceToFinalTime}{$U^{0}, t_{\mathrm{end}}, C_{\mathrm{CFL}}$}
+  \State $U \gets U^{0}$;\quad $t \gets 0$;\quad $n_{\mathrm{step}} \gets 0$;\quad $c \gets 0$ \Comment{$c$: Kahan compensation}
+  \While{$t < t_{\mathrm{end}}$}
+    \State \textsc{RefillGhostCells}($U$)
+    \State $\Delta t \gets C_{\mathrm{CFL}}\,\min\!\left(\Delta x/\max_{i,j}(|u|+c_s),\;\Delta y/\max_{i,j}(|v|+c_s)\right)$ \Comment{Eq.~\eqref{eq:ch4-cfl-scan}}
+    \State $\Delta t \gets \min(\Delta t,\; t_{\mathrm{end}} - t)$ \Comment{clip to final time}
+    \If{2D \textbf{and} $n_{\mathrm{step}}$ is even}
+      \State $U \gets \textsc{XSweep}(U, \Delta t)$;\quad \textsc{RefillGhostCells}($U$);\quad $U \gets \textsc{YSweep}(U, \Delta t)$
+    \ElsIf{2D}
+      \State $U \gets \textsc{YSweep}(U, \Delta t)$;\quad \textsc{RefillGhostCells}($U$);\quad $U \gets \textsc{XSweep}(U, \Delta t)$
+    \Else
+      \State $U \gets \textsc{XSweep}(U, \Delta t)$ \Comment{1D}
+    \EndIf
+    \State $(t, c) \gets \textsc{KahanAdd}(t, \Delta t, c)$ \Comment{compensated summation~\citep{higham_2002}}
+    \State $n_{\mathrm{step}} \gets n_{\mathrm{step}} + 1$
+  \EndWhile
+  \State \Return $U$
+\EndFunction
 \end{algorithmic}
 \end{algorithm}
 
