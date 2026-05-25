@@ -267,12 +267,7 @@ two-dimensional image comparisons.}
 Table~\ref{tab:ch4-runtime-minimatrix} reports wall-clock timing metadata
 from one containerized CUDA 12.5 / GCC 13 environment (strict HLLC, five
 repeats per row); the fp64 LW3 row shows GPU $\approx$ CPU, so the rows are
-computational-cost context, not a portable timing result. The hardware
-environment for every reported run is fixed: Intel-class x86\_64 host CPU,
-NVIDIA RTX 4060 Laptop GPU (CUDA compute capability 8.9), CUDA toolkit
-12.5, NVIDIA driver from the same release, GCC 13 on Linux/WSL for Sod,
-LW3, and LW12, and MSVC Build Tools on Windows for Toro3 and Toro5. The
-CUDA path uses one GPU only, so cross-device portability is outside scope.
+computational-cost context, not a portable timing result.
 
 \begin{table}[htbp]
 \centering
