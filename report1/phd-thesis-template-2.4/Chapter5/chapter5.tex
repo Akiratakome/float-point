@@ -503,13 +503,9 @@ in Table~\ref{tab:ch5-variation} and the text.}
 
 \section{Toro2 Branch Stability}
 % <<SECTION_7_BEGIN>>
-Toro2 is separated from the aggregate branch-rule table because the
-strict-inequality retry did not produce a comparable final state. Under the
-same CPU double toolchain and default CFL, the baseline $\leq$ branch completed
-the near-vacuum Toro 123 case in about 0.13 s, while the $<$ branch did not
-write a final \texttt{grid.bin} within a 600 s retry cap. This is consistent
-with time-step shrinkage when wave speeds pass near zero, but the experiment
-does not log the triggering branch or prove that mechanism. The finding is
-therefore reported only as observed non-completion under the tested branch
-rule.
+Under the same CPU--fp64 toolchain and default CFL, the baseline $\leq$ branch finishes Toro~123 in roughly $0.13$~s, while the strict $<$ branch does not produce a final \texttt{grid.bin} within the $600$~s wall-clock budget. The two branches differ only in a single comparison inside the HLLC dispatcher.
+
+The mechanism is visible analytically. Toro~123 is the symmetric near-vacuum problem with $u_L = -2$, $u_R = +2$, $\rho_L = \rho_R = \rho$ and $p_L = p_R$, hence $a_L = a_R = a$. Substituting into Eq.~\ref{eq:ch3-sstar-decomp}, the pressure jump $p_R - p_L$ vanishes and the momentum-wave terms cancel pairwise, $\rho_L u_L (S_L - u_L) - \rho_R u_R (S_R - u_R) = 2\rho a - 2\rho a = 0$, so $N_\ast = 0$ exactly by symmetry. The denominator is $D_\ast = -2\rho a$, well-conditioned and bounded away from zero. Analytically $S_\ast = 0$ from Eq.~\ref{eq:ch3-hllc-sstar}, but the computed $N_\ast$ carries rounding noise, so the sign of the computed $S_\ast$ is set by that noise.
+
+The $\leq$ branch routes the equality $S_\ast = 0$ to one fixed flux. The strict $<$ branch sees the rounded sign of $S_\ast$ flip between sub-steps and alternates between $F_{\ast L}$ and $F_{\ast R}$; repeated alternation drives flux-update inconsistency and CFL collapse. This is consistent with the observation, but the stage-by-stage trigger is not directly logged; a stage-resolved diagnostic is deferred to Report~2. The result is a single-case observation, not a systematic study.
 % <<SECTION_7_END>>
