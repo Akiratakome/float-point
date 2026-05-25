@@ -111,19 +111,14 @@ contacts an unlimited piecewise-linear reconstruction can introduce new local
 extrema and spurious oscillations. A slope limiter suppresses these extrema
 while retaining second-order accuracy in smooth monotone regions. The
 reconstruction follows the MUSCL framework of van~Leer~\citep{vanleer_1979}, in
-the presentation of \citet{toro2009}. For conserved component \(k\), define the
-one-sided jumps
-\begin{equation}\label{eq:ch3-onesided-jumps}
-  \delta^- U_i^{(k)}=\bar U_i^{(k),n}-\bar U_{i-1}^{(k),n},
-  \qquad
-  \delta^+ U_i^{(k)}=\bar U_{i+1}^{(k),n}-\bar U_i^{(k),n}.
-\end{equation}
-The report path uses the minbee limiter in Toro's nomenclature, written here in
-the component-wise minmod form used by the code:
+the presentation of \citet{toro2009}. The reconstruction uses one-sided jumps
+and the minbee limiter (in Toro's nomenclature), written here in the
+component-wise minmod form used by the code: for conserved component \(k\),
 \begin{equation}\label{eq:ch3-minmod-sigma}
   \sigma_i^{(k)}
   =
-  \operatorname{minmod}\!\left(\delta^- U_i^{(k)},\delta^+ U_i^{(k)}\right),
+  \operatorname{minmod}\!\left(\bar U_i^{(k),n}-\bar U_{i-1}^{(k),n},\;
+                               \bar U_{i+1}^{(k),n}-\bar U_i^{(k),n}\right),
 \end{equation}
 where
 \begin{equation}\label{eq:ch3-minmod-def}
@@ -134,13 +129,12 @@ where
     \operatorname{sgn}(a)\min\!\left(|a|,|b|\right), & ab>0 .
   \end{cases}
 \end{equation}
-In ratio form, where \(r_i^{(k)}=\delta^- U_i^{(k)}/\delta^+ U_i^{(k)}\) is
-defined, this corresponds to
-\begin{equation}\label{eq:ch3-limiter-ratio}
-  \sigma_i^{(k)}=\Phi(r_i^{(k)})\,\delta^+ U_i^{(k)},
-  \qquad
-  \Phi(r)=\max(0,\min(1,r)).
-\end{equation}
+Equivalently, writing the one-sided jumps as
+\(\delta^- U_i^{(k)} = \bar U_i^{(k),n}-\bar U_{i-1}^{(k),n}\) and
+\(\delta^+ U_i^{(k)} = \bar U_{i+1}^{(k),n}-\bar U_i^{(k),n}\), one has
+\(\sigma_i^{(k)} = \Phi(r_i^{(k)})\,\delta^+ U_i^{(k)}\) with
+\(\Phi(r) = \max(0, \min(1, r))\) for
+\(r_i^{(k)} = \delta^- U_i^{(k)} / \delta^+ U_i^{(k)}\).
 Minbee is a diffusive Total Variation Diminishing (TVD) limiter, so small
 perturbations may be damped. For a scalar conservation law a TVD scheme cannot
 increase the discrete total variation in time and so cannot generate spurious
