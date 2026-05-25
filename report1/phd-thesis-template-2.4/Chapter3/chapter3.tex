@@ -384,12 +384,22 @@ hardware and compiler choices: a CPU FMA typically rounds once after a
 higher-precision intermediate, while a GPU FMA can remain at the working
 precision throughout \citep{ieee754_2019,higham_2002}.
 
-Primitive recovery is one place where small relative changes can become
-method-visible. The pressure calculation subtracts kinetic energy from total
-energy, so when internal energy is small compared with the kinetic term,
-cancellation can perturb the recovered pressure. That pressure then enters the
-sound speed, HLLC wave-speed estimates, positivity checks, and ultimately the
-branching decisions sampled by the flux.
+\paragraph{Primitive recovery.}
+Recovered pressure follows
+\(p = (\gamma-1)\bigl(E - \tfrac{1}{2}\rho(u^2+v^2)\bigr)\),
+and the subtraction \(E - \tfrac{1}{2}\rho\lvert\mathbf{u}\rvert^{2}\) is the
+cancellation site: when kinetic energy approaches total energy the two operands
+are of like sign and comparable magnitude, violating the Sterbenz condition and
+shedding leading digits in the difference \citep{higham_2002}. This regime is
+reached in the high-Mach pockets of LW12, in particular the upper-right
+shock-interaction arc highlighted in Fig.~\ref{fig:ch5-lw12-precision-heatmap},
+and in the colliding-shock star state of Toro5. The recovered pressure feeds
+the sound speed \(a=\sqrt{\gamma p/\rho}\), which in turn enters the HLLC
+wave-speed estimates (Eq.~\ref{eq:ch3-hllc-wavespeeds}) and the contact speed
+\(S_\ast\) (Eq.~\ref{eq:ch3-hllc-sstar}). In fp32 the relative accuracy of \(p\)
+in these regions is reduced by roughly the cancellation factor, and that loss
+propagates into \(\widehat S_L,\widehat S_\ast,\widehat S_R\), amplifying the
+branch sensitivity discussed next.
 
 \paragraph{Branch sensitivity.}
 For HLLC the branch decision uses computed estimates
