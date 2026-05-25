@@ -338,16 +338,10 @@ would be impossible if the GPU path were inert. The zero-drift result is
 therefore a statement about what the matched strict build hides, not about
 whether the GPU is exercised.
 
-As a CPU-only sanity check, an additional WSL/GCC strict CPU
-rerun of Toro3 and Toro5 retained the same qualitative fp64-vs-fp32 ranking
-and matched the existing strict CPU outputs with zero saved-state drift.
-Saved-checkpoint coverage is uneven by design: Sod, LW3, and LW12 were
-re-run after a uniform checkpoint-emit option was enabled, while the Toro3
-and Toro5 Windows-BuildTools binaries used at validation time emitted final
-output only. The final-output zero-drift result for Toro3 and Toro5 is
-consistent with the saved-checkpoint behaviour of the three Linux/WSL cases,
-but a future re-run with checkpoints enabled is the natural way to close
-this gap.
+A CPU-only sanity check (WSL/GCC strict CPU rerun of Toro3 and Toro5)
+matched the existing strict CPU outputs with zero saved-state drift;
+saved-checkpoint coverage is uneven only by design (Sod, LW3, and LW12
+re-run with checkpoints, Toro3 and Toro5 final output only).
 % <<SECTION_5_END>>
 
 \section{Compiler, Branch, Solver, and Drift-Growth Sensitivity}
