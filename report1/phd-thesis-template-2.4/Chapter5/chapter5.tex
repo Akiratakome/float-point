@@ -258,10 +258,8 @@ not a quantitative precision-adequacy ratio.
 
 These measurements show that, for the tested Euler cases, the final-time direct
 fp32--fp64 density and pressure differences are smaller than the available
-reference or discretisation error estimates~\citep{higham_2002}. They do not
-show that fp32 is generally sufficient: the ratios are case-, field-,
-resolution-, and final-time metrics, and the increasing two-dimensional ratios
-show that the comparison can move as the numerical reference improves. The
+reference scale~\citep{higham_2002}, but increasing two-dimensional ratios
+show the comparison can move as the numerical reference improves. The
 localised LW12 density difference
 in Fig.~\ref{fig:ch5-lw12-precision-heatmap} is consistent with precision
 sensitivity in the steep pressure and density gradients of the upper-right
@@ -275,8 +273,7 @@ here.
 Saved-checkpoint precision drift gives the same caution in time: for fp64--fp32
 HLLC outputs, final density $L_1$ drift ranges from
 $8.25\times10^{-8}$ for Sod to $2.56\times10^{-6}$ for Toro5, while Toro5
-pressure reaches $1.98\times10^{-4}$. This is precision-pair drift, not
-exact-error measurement.
+pressure reaches $1.98\times10^{-4}$.
 
 \begin{figure}[htbp]
 \centering
@@ -362,10 +359,7 @@ would be impossible if the GPU path were inert. The zero-drift result is
 therefore a statement about what the matched strict build hides, not about
 whether the GPU is exercised.
 
-The zero-drift statement is bounded to matched within-case strict-HLLC
-binaries and saved conservative states; it does not cover unsaved primitive
-states, wave-speed estimates, sub-step values, or other devices, compilers,
-and solvers. As a CPU-only sanity check, an additional WSL/GCC strict CPU
+As a CPU-only sanity check, an additional WSL/GCC strict CPU
 rerun of Toro3 and Toro5 retained the same qualitative fp64-vs-fp32 ranking
 and matched the existing strict CPU outputs with zero saved-state drift.
 Saved-checkpoint coverage is uneven by design: Sod, LW3, and LW12 were
