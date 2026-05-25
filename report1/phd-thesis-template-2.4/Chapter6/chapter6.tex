@@ -6,14 +6,7 @@
 % <<SECTION_2_BEGIN>>
 The validation results give each precision and hardware difference a scale. Exact Riemann and high-resolution numerical references enter through Chapter~4 Equation~\eqref{eq:ch4-rref}, while matched CPU/GPU runs test saved conservative outputs under a fixed within-case setup. For the non-degenerate reference comparisons, direct IEEE fp32/fp64 final-state differences stay below the available reference or discretisation scale in both density and pressure. The largest reported density ratio, \(R_\rho \approx 1.30\times10^{-4}\) for Liska-Wendroff configuration 12 (LW12) at \(400^2\), remains informative, and the corresponding pressure ratio is comparable at \(R_p \approx 1.13\times10^{-4}\). The density difference occurs with a localised upper-right shock-interaction structure in Fig.~\ref{fig:ch5-lw12-precision-heatmap}. That localisation suggests sensitivity where reconstructed states feed HLLC wave-speed or flux decisions, without proving that a specific HLLC branch changed. The stationary-contact infinite ratio is a degenerate-reference case, because its denominator is zero. The following diagnostics locate precision pressure rather than introduce a separate IEEE-fp32 claim.
 
-Parker's Monte Carlo Arithmetic perturbs floating-point operations to form an ensemble, and Denis et al.'s Verificarlo applies that idea to compiled programs \citep{parker_1997,denis_etal_2016}. In this report, the MCA ensemble gives the per-cell distribution needed to locate sensitivity rather than only estimate a single global rounding scale. The Sod overlay in Fig.~\ref{fig:ch6-vfc-sod-overlay} shows how the ensemble spread and significant-digit estimates are read from a one-dimensional diagnostic before the same idea is used on LW3. Figure~\ref{fig:ch6-sigma-fp} then uses the \(\sigma_{\mathrm{FP}}\) local roundoff scale of Chapter~4 Section~4.3: for both HLLC and Rusanov, \(\sigma_{\mathrm{FP}}\) falls as virtual mantissa precision rises. Lower or similar Rusanov values are read as the combined effect of a different arithmetic path and extra diffusion smoothing gradients, not as an accuracy ranking or as reproducibility drift. The virtual-precision labels are diagnostic mantissa settings rather than IEEE storage formats (see Section~2.4).
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.72\textwidth]{Figs/report1/vfc_sod_overlay.png}
-\caption{Sod MCA overlay from Verificarlo: a one-dimensional illustrative diagnostic for reading ensemble spread and significant-digit estimates, not a validation result.}
-\label{fig:ch6-vfc-sod-overlay}
-\end{figure}
+Parker's Monte Carlo Arithmetic perturbs floating-point operations to form an ensemble, and Denis et al.'s Verificarlo applies that idea to compiled programs \citep{parker_1997,denis_etal_2016}. In this report, the MCA ensemble gives the per-cell distribution needed to locate sensitivity rather than only estimate a single global rounding scale. Verificarlo MCA gives an ensemble spread per cell; before extending to LW3, the same idea is read off a one-dimensional Sod diagnostic. Figure~\ref{fig:ch6-sigma-fp} then uses the \(\sigma_{\mathrm{FP}}\) local roundoff scale of Chapter~4 Section~4.3: for both HLLC and Rusanov, \(\sigma_{\mathrm{FP}}\) falls as virtual mantissa precision rises. Lower or similar Rusanov values are read as the combined effect of a different arithmetic path and extra diffusion smoothing gradients, not as an accuracy ranking or as reproducibility drift. The virtual-precision labels are diagnostic mantissa settings rather than IEEE storage formats (see Section~2.4).
 
 \begin{figure}[htbp]
 \centering
@@ -24,20 +17,25 @@ Parker's Monte Carlo Arithmetic perturbs floating-point operations to form an en
 
 The loss-of-significance score LoSoS gives a complementary view of the same LW3 density samples. Figure~\ref{fig:ch6-losos-quantiles} reports quantiles rather than the worst cell: for HLLC the median LoSoS rises with virtual precision, while lower quantiles stay closer to the front-sensitive part of the field (Fig.~\ref{fig:ch6-losos-quantiles}). The raw-field quantiles use only two or three samples per virtual precision, so the figure is a spatial diagnostic, not a confidence-bounded distribution estimate.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.72\textwidth]{Figs/report1/losos_quantiles_rho.png}
-\caption{LoSoS quantiles for LW3 density under MCA resampling. The quantile view avoids basing the precision interpretation on a single worst cell.}
-\label{fig:ch6-losos-quantiles}
-\end{figure}
-
 The required-significant-digits threshold \(s_{\mathrm{req}}\) turns LoSoS into a regional margin. Figure~\ref{fig:ch6-region-losos} plots available digits at \texttt{p32} minus \(s_{\mathrm{req}}\). For HLLC at \texttt{p32}, the smooth interior keeps a positive margin while the shock-front band is negative; the transition/contact band sits in between (Fig.~\ref{fig:ch6-region-losos}). The same pattern appears in Fig.~\ref{fig:ch6-noise-error}: for HLLC, the fraction of cells with MCA noise above the reference-error scale drops monotonically with virtual precision (Fig.~\ref{fig:ch6-noise-error}). This reading is consistent with the LW12 localisation in Chapter~5, but remains bounded to the tested precisions, cases, and LW3 MCA grid.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.72\textwidth]{Figs/report1/region_losos_margin_rho_p32.png}
-\caption{Region-aware LoSoS margin for LW3 density at Verificarlo virtual precision \texttt{p32}. Positive values indicate that the virtual precision has more available significant digits than the local \(s_{\mathrm{req}}\) threshold.}
-\label{fig:ch6-region-losos}
+\begin{subfigure}[b]{0.48\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{Figs/report1/losos_quantiles_rho.png}
+  \caption{Quantile view of raw LoSoS.}
+  \label{fig:ch6-losos-quantiles}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.48\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{Figs/report1/region_losos_margin_rho_p32.png}
+  \caption{Region-aware margin at virtual precision \texttt{p32}.}
+  \label{fig:ch6-region-losos}
+\end{subfigure}
+\caption{LoSoS for LW3 density under MCA: quantile distribution (left) and region-aware margin against $s_{\mathrm{req}}$ at virtual precision \texttt{p32} (right).}
+\label{fig:ch6-losos-combined}
+% TODO: panel-merge in figure pipeline (currently two separate PNGs sharing one figure environment)
 \end{figure}
 
 \begin{figure}[htbp]
