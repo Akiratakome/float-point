@@ -79,9 +79,17 @@ The final flux row is the conservative induction equation for \(\mathbf{B}\).
 The constraint \(\nabla\cdot\mathbf{B}=0\) states that the magnetic field is
 solenoidal. If numerical divergence is allowed to grow, the computed magnetic
 force and MHD wave propagation can be polluted by non-physical monopole error.
-Report 1 does not implement or validate MHD; divergence cleaning
-\citep{dedner_2002} and constrained transport \citep{evans_hawley_1988} are
-therefore future numerical choices rather than evidence assessed here.
+Report 1 does not implement or validate MHD; for Report~2, the candidate
+numerical choices fall into two families surveyed by \citet{toth_2000}:
+hyperbolic divergence cleaning of Dedner-type \citep{dedner_2002}, which
+augments the induction equation with a scalar transport that carries
+divergence error away, and constrained transport \citep{evans_hawley_1988},
+which preserves a discrete staggered-mesh divergence constraint by
+construction. The corresponding MHD Riemann solver candidate is the
+multi-state HLLD scheme \citep{miyoshi_kusano_2005}, which retains the fast
+and Alfv\'en waves missing from a direct Euler-HLLC reuse. A GPU-accelerated
+MUSCL--Hancock ideal-MHD precedent is provided by \citet{bard_dorelli_2014}.
+Eight-wave formulations \citep{powell_1999} provide an alternative MHD HRSC framework with built-in cleaning, noted here for the Report~2 MHD extension.
 % <<SECTION_2_END>>
 
 \section{HRSC and Benchmark Literature}
@@ -111,56 +119,56 @@ cases \citep{liska_wendroff_2003}.
 
 \section{Floating-Point Arithmetic and Reproducibility}
 % <<SECTION_4_BEGIN>>
-IEEE floating-point arithmetic represents real numbers with finite significand
-and exponent fields, so the same mathematical update is not evaluated over the
-real numbers. In round-to-nearest arithmetic, binary32 has a 24-bit significand
-including the hidden bit and a normal exponent range of roughly \(-126\) to
-\(+127\), while binary64 has a 53-bit significand and a normal exponent range
-of roughly \(-1022\) to \(+1023\) \citep{ieee754_2019,goldberg_1991}. The
-corresponding unit roundoff is about \(2^{-24}\) for binary32 and \(2^{-53}\)
-for binary64, giving a first scale for local rounding error
-\citep{higham_2002}. This scale is not, by itself, a bound on solution error in
-a nonlinear time-dependent HRSC calculation.
+IEEE floating-point arithmetic uses finite significand and exponent fields, so
+the update is not evaluated over the real numbers. In round-to-nearest
+arithmetic, binary32 has a 24-bit significand and normal exponent range roughly
+\(-126\) to \(+127\), while binary64 has a 53-bit significand and range
+\(-1022\) to \(+1023\) \citep{ieee754_2019,goldberg_1991}. The corresponding
+unit roundoff is about \(2^{-24}\) and \(2^{-53}\), respectively
+\citep{higham_2002}; this is a local scale, not a solution-error bound for a
+nonlinear time-dependent HRSC calculation. A unit in the last place (ULP) is
+the spacing between adjacent representable numbers; later
+\(\mathrm{ULP}_{\max}\) tables use it to expose bit-level differences hidden
+by relative norms.
 
-The key difficulty is that floating-point operations are not associative. For
-example, in binary64 arithmetic \((10^{-18}+1)-1\) rounds the small increment
-away and returns zero, whereas \(10^{-18}+(1-1)\) returns \(10^{-18}\). In an
-isolated expression this exposes a rounding-scale difference; inside a
-nonlinear solver, the changed value can affect wave-speed estimates, limiter
-decisions, fluxes, and subsequent time steps. The report therefore measures
-the size and location of such differences rather than assuming that they either
-remain harmless or grow monotonically.
+The key difficulty is non-associativity, with a related hazard of catastrophic
+cancellation: subtraction of nearly-equal quantities loses leading digits and
+inflates the relative error. In binary64, \((10^{-18}+1)-1\) rounds the small
+increment away and returns zero, whereas \(10^{-18}+(1-1)\) returns
+\(10^{-18}\). Such changes alter wave speeds, limiters, fluxes, and later steps. Compensated (Kahan) summation tracks lost low-order bits in a
+correction term, recovering near full precision in long accumulations;
+Algorithm~1 uses it for the simulation-time counter. The report measures the size and location of these effects rather than
+assuming harmlessness.
 
-Compiler and device choices introduce further variation. Ordinary \texttt{-O3}
-optimisation may change instruction selection and scheduling, but it does not
-give the compiler the same freedom to reassociate expressions or replace
-operations with approximate forms as fast-math or \texttt{-Ofast}. Fast-math
-settings can permit reassociation, FMA (fused multiply-add) contraction,
-reciprocal-based division, and approximate square-root paths; parallel
-execution can also change reduction order, and comparison order can matter
-when candidate values are tied or nearly tied. CFD
-precision studies such as Brogi et al.'s OpenFOAM work show why reduced or
-mixed precision must be validated case by case rather than inferred from
-arithmetic format alone \citep{brogi_etal_2024}. This report also uses
-Verificarlo, which implements Monte Carlo arithmetic (MCA) by perturbing
-floating-point operations to estimate rounding sensitivity
-\citep{parker_1997,denis_etal_2016}. Its \texttt{p32} setting is
-a virtual mantissa precision used for diagnostics, not IEEE binary32. The
-practical question is therefore which variables, regions, operations, and
-compiler or device settings can be relaxed without exceeding the relevant
-discretisation or reference-error scale.
+Compiler and device choices add variation. Ordinary \texttt{-O3} may change
+instruction selection, but fast-math or \texttt{-Ofast} can permit
+reassociation, FMA contraction, reciprocal-based division, and approximate
+square-root paths. Since floating-point addition is non-associative, GPU block
+or warp scheduling and atomic reductions can change the accumulation tree; the
+solver comparisons below avoid summation-order claims unless an ordered max/min
+or saved-state metric supports them. Reproducible summation algorithms can
+control this source of variation, but they must be designed explicitly rather
+than assumed from the mathematical expression \citep{demmel_nguyen_2013}. CUDA
+devices follow IEEE-754 and expose fused multiply-add (FMA), which aids
+accuracy and throughput but shifts bit patterns relative to a non-FMA CPU
+build \citep{whitehead_fitflorea_2011}. Comparison order can also matter for tied
+or nearly tied candidates. CFD precision studies such as Brogi et al.'s
+OpenFOAM work show why reduced or mixed precision must be validated case by
+case \citep{brogi_etal_2024}. This report also uses Verificarlo, which
+implements Monte Carlo arithmetic (MCA) by perturbing floating-point operations
+to estimate rounding sensitivity \citep{parker_1997,denis_etal_2016}.
+
+\paragraph{Virtual precision versus IEEE binary32.}
+Verificarlo's \texttt{p8}, \texttt{p16}, \texttt{p32}, and \texttt{p53}
+settings are virtual mantissa precisions used by the MCA-RR operator, which
+draws an independent random rounding for every elementary floating-point
+operation. An IEEE binary32 run, by contrast, stores every value with a
+fixed 24-bit significand and rounds each operation deterministically under
+round-to-nearest-even semantics \citep{ieee754_2019}. The two differ in
+both the rounding rule and the noise model, so \texttt{p32} and IEEE fp32
+are not interchangeable: \texttt{p32} probes rounding sensitivity at a
+virtual mantissa width, whereas IEEE fp32 is a storage and arithmetic
+format used in actual production runs. Wherever this report quantifies an
+fp32 effect, the numbers come from a real \texttt{HRSC\_REAL=float} build,
+not a \texttt{p32} sample.
 % <<SECTION_4_END>>
-
-\section{Report 1 Gap}
-% <<SECTION_5_BEGIN>>
-Together, the literature reviewed here separates three tasks. HRSC and
-Riemann-solver work provide the method foundations for discontinuous Euler
-flow; Sod, Toro, and Liska--Wendroff benchmarks define controlled validation
-settings; and floating-point studies explain why arithmetic format, compiler
-choices, and device execution can alter a nominally identical computation. The
-remaining gap for Report 1 is to measure precision and hardware sensitivity
-under controlled Euler validation tests, before treating ideal MHD as a later
-extension. Chapter~3 defines the numerical method, Chapter~4 defines the
-experimental design, and Chapter~5 reports the measured validation and
-precision results.
-% <<SECTION_5_END>>
