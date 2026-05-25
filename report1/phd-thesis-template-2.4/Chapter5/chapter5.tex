@@ -238,16 +238,15 @@ not a quantitative precision-adequacy ratio.
 These measurements show that, for the tested Euler cases, the final-time direct
 fp32--fp64 density and pressure differences are smaller than the available
 reference scale~\citep{higham_2002}, but increasing two-dimensional ratios
-show the comparison can move as the numerical reference improves. The
+show the comparison may shift with the reference. The
 localised LW12 density difference
 in Fig.~\ref{fig:ch5-lw12-precision-heatmap} is consistent with precision
 sensitivity in the steep pressure and density gradients of the upper-right
 shock-interaction region. Those gradients drive extrema in local wave-speed
-estimates, which enter the HLLC star-state and flux algebra described in
-Chapter~3. The figure does not, by itself, prove that a specific HLLC branch
-changed; no branch-count diagnostic is used for that figure. Virtual-precision sensitivity maps
-are discussed separately in Chapter~6 rather than used as direct fp32 evidence
-here.
+estimates, which enter the HLLC star-state and flux algebra of Chapter~3. The
+figure does not prove that a specific HLLC branch changed; no branch-count
+diagnostic is used here. Virtual-precision sensitivity maps appear in
+Chapter~6.
 
 Saved-checkpoint precision drift gives the same caution in time: for fp64--fp32
 HLLC outputs, final density $L_1$ drift ranges from
@@ -274,14 +273,13 @@ pressure reaches $1.98\times10^{-4}$.
 % <<SECTION_5_BEGIN>>
 The matched CPU/GPU comparison asks a narrower question than the fp32--fp64
 study: for a fixed case, precision, solver, and binary, does changing the
-runtime device alter the saved conservative state? Table~\ref{tab:ch5-cpu-gpu}
-summarises the available strict-HLLC coverage without listing each zero-valued
-comparison separately. All entries use
-\texttt{solver=hllc} and \texttt{STRICT\_IEEE=ON}; the strict build disables
-the fast-math and fused-operation shortcuts that would otherwise make a device
-comparison less controlled. The final-output comparison is byte-level for the
-saved \texttt{grid.bin} files, with $L_1$, $L_\infty$, and ULP metrics computed
-on the conservative state.
+runtime device alter the saved state? Table~\ref{tab:ch5-cpu-gpu}
+summarises the coverage without listing each zero-valued comparison
+separately. All entries use \texttt{solver=hllc} and \texttt{STRICT\_IEEE=ON};
+the strict build disables fast-math and fused-operation shortcuts that would
+otherwise make a device comparison less controlled. The final-output
+comparison is byte-level for the saved \texttt{grid.bin} files, with $L_1$,
+$L_\infty$, and ULP metrics computed on the conservative state.
 
 \begin{table}[htbp]
 \centering
@@ -330,18 +328,17 @@ saved-state divergence the expected outcome rather than a surprise:
         cell-local wave-speed candidates, not an unordered sum, so the
         chosen \(\Delta t\) does not depend on block, warp, or thread order.
 \end{enumerate}
-The GPU is nonetheless doing live arithmetic in these runs, not echoing CPU
-outputs: the supplementary CUDA flag probe at the end of this section shows
-that switching from strict to fast-math CUDA controls perturbs the same
-saved states by up to \(\mathrm{ULP}_{\max}\approx 30.7\) on LW3 fp32, which
-would be impossible if the GPU path were inert. The zero-drift result is
-therefore a statement about what the matched strict build hides, not about
-whether the GPU is exercised.
+The GPU is nonetheless doing live arithmetic, not echoing CPU outputs: the
+CUDA flag probe below shows that switching from strict to fast-math CUDA
+controls perturbs the same saved states by up to
+\(\mathrm{ULP}_{\max}\approx 30.7\) on LW3 fp32, impossible if the GPU path
+were inert. The zero-drift result is therefore a statement about what the
+matched strict build hides, not about whether the GPU is exercised.
 
-A CPU-only sanity check (WSL/GCC strict CPU rerun of Toro3 and Toro5)
-matched the existing strict CPU outputs with zero saved-state drift;
-saved-checkpoint coverage is uneven only by design (Sod, LW3, and LW12
-re-run with checkpoints, Toro3 and Toro5 final output only).
+A CPU-only sanity check (WSL/GCC strict rerun of Toro3 and Toro5)
+matched the existing strict CPU outputs with zero drift; saved-checkpoint
+coverage is uneven by design (Sod, LW3, LW12 with checkpoints; Toro3, Toro5
+final output only).
 % <<SECTION_5_END>>
 
 \section{Compiler, Branch, Solver, and Drift-Growth Sensitivity}
@@ -381,9 +378,7 @@ The zero O2--O3 comparison shows that changing optimisation level alone did not
 alter the saved final state in the tested IEEE builds. The branch-rule axis is
 zero for the one-dimensional cases and only roundoff-scale for LW3. Fast-math
 produces the largest CPU-fp64 HLLC drift on Toro5, while the HLLC--Rusanov
-entry is much larger because the flux formula has changed. These are screening
-metrics, not convergence studies or estimates of uncertainty across compilers
-and platforms.
+entry is much larger because the flux formula has changed.
 
 \begin{figure}[htbp]
 \centering
@@ -428,22 +423,20 @@ $N=400$, Toro3 and Toro5 at $N=200$, and LW3 at $200^2$.}
 \label{tab:ch5-fp32-flags}
 \end{table}
 
-A GPU flag probe tests the build-control side of the matched CPU/GPU result by
-comparing fast CUDA outputs with strict CUDA outputs at the same case,
-precision, and grid. Sod fp64 at $N=200$ acquires $L_1=2.89\times10^{-17}$,
-$L_\infty=3.66\times10^{-15}$, and
+A GPU flag probe compares fast CUDA against strict CUDA outputs at the same
+case, precision, and grid. Sod fp64 at $N=200$ acquires
+$L_1=2.89\times10^{-17}$, $L_\infty=3.66\times10^{-15}$,
 $\mathrm{ULP}_{\max}\approx6.6$; LW3 fp64 at $200^2$ reaches
 $\mathrm{ULP}_{\max}\approx23.3$; LW3 fp32 reaches
-$L_1=3.62\times10^{-7}$, $L_\infty=1.57\times10^{-5}$, and
-$\mathrm{ULP}_{\max}\approx30.7$. Both sides are CUDA outputs, so this is not a CPU/GPU comparison; it bounds
+$L_1=3.62\times10^{-7}$, $L_\infty=1.57\times10^{-5}$,
+$\mathrm{ULP}_{\max}\approx30.7$. Both sides are CUDA outputs, so this bounds
 the zero-drift result in Table~\ref{tab:ch5-cpu-gpu} to strict-IEEE,
 fast-math-off builds.
 
-An opt-in limiter probe gives a method-sensitivity scale, not hardware or
-same-solver reproducibility evidence. With CPU-fp64 HLLC at the same grid,
-switching from minbee to van Leer gives $L_1=9.21\times10^{-4}$ for Sod,
-$1.71$ for Toro3, $1.39$ for Toro5, and $3.09\times10^{-3}$ for LW3 at
-$200^2$, as expected when reconstruction changes.
+A limiter probe gives a method-sensitivity scale, not reproducibility
+evidence. With CPU-fp64 HLLC at the same grid, switching from minbee to van
+Leer gives $L_1=9.21\times10^{-4}$ for Sod, $1.71$ for Toro3, $1.39$ for
+Toro5, and $3.09\times10^{-3}$ for LW3 at $200^2$.
 
 \subsection*{Time-resolved drift}
 
@@ -452,10 +445,8 @@ case, from 10\% to 100\% of each case duration, for the non-zero O2 versus
 Ofast+fast-math rows. Zero branch-rule rows are omitted from the log-scale
 plot and reported in Table~\ref{tab:ch5-variation} and the text instead. The
 largest visible absolute drifts are the pressure curves for Toro5 and Toro3,
-followed by Toro5 density; Sod, Toro2, and Toro4 remain lower. Toro2 and Toro4
-are included only because this figure is a wider one-dimensional drift probe
-than the main validation set. The comparison is finite-time and
-checkpoint-based.
+followed by Toro5 density; Sod, Toro2, and Toro4 remain lower. The comparison
+is finite-time and checkpoint-based.
 
 \begin{figure}[htbp]
 \centering

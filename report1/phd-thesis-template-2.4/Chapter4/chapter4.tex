@@ -22,8 +22,6 @@ Configuration choice & Compile-time definition & Report role \\
 This design keeps the precision comparison to two storage formats,
 binary32 and binary64~\citep{ieee754_2019}. Higher-precision extensions, such
 as a Boost::Multiprecision route, are outside the Report 1 evidence scope.
-When CUDA is enabled, the same executable interface serves CPU and CUDA
-backends; \texttt{device=cpu/gpu} selects the backend at runtime.
 
 The toolchain boundary is part of the experimental design: Toro3 and Toro5 use
 Windows BuildTools; Sod, Liska-Wendroff configuration 3 (LW3), and
@@ -197,8 +195,7 @@ probe rather than a converged distribution.
 For a primitive component \(q_j\), the sample standard deviation
 \(\sigma_{\mathrm{FP},j}=\operatorname{std}_k(q_j^{(k)})\) gives a local
 roundoff scale for comparison with field magnitude or local reference error.
-Verificarlo was chosen because MCA and virtual precision support the reported
-p8/p16/p32/p53 rounding-sensitivity diagnostics. RAPTOR remains a possible
+RAPTOR remains a possible
 future tool for automated mixed-precision source transformation; Report 1 does
 not present per-routine precision rewrites. Direct fp32 claims come only from
 real fp32/fp64 comparisons against the chosen reference solution.
