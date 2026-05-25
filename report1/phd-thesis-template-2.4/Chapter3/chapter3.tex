@@ -118,7 +118,8 @@ one-sided jumps
   \qquad
   \delta^+ U_i^{(k)}=\bar U_{i+1}^{(k),n}-\bar U_i^{(k),n}.
 \end{equation}
-The report path uses component-wise minbee, equivalently minmod-style, limiting:
+The report path uses the minbee limiter in Toro's nomenclature, written here in
+the component-wise minmod form used by the code:
 \begin{equation}\label{eq:ch3-minmod-sigma}
   \sigma_i^{(k)}
   =
@@ -144,7 +145,8 @@ Minbee is a diffusive Total Variation Diminishing (TVD) limiter, so small
 perturbations may be damped. For a scalar conservation law a TVD scheme cannot
 increase the discrete total variation in time and so cannot generate spurious
 extrema; for the nonlinear Euler system this property is heuristic rather than
-proved.
+proved. The quantity \(\sigma_i\) is therefore a component-wise limited cell
+jump used in the linear reconstruction, not a derivative \(dU/dx\).
 
 \paragraph{Hancock predictor.}
 The reconstructed states at the left and right faces of cell \(i\) are
@@ -276,9 +278,12 @@ two-wave HLL approximation discussed by \citet{toro_spruce_speares_1994} and
 inequality at zero is a precision-sensitive implementation decision and is
 discussed separately in Section~\ref{sec:precision-sensitive-decisions}.
 
-Rusanov is used later as a more diffusive comparator and method variation, not
-as the main validation method. It replaces the contact-resolving HLLC structure
-by a centred flux plus scalar dissipation,
+Rusanov is used later as a controlled method comparator, not as the main
+validation method or as an accuracy recommendation. It changes only the
+interface flux inside the same MUSCL--Hancock update, leaving reconstruction and
+time integration fixed, so the comparison isolates the contact-wave, branch, and
+arithmetic path introduced by HLLC. The flux replaces the contact-resolving HLLC
+structure by a centred flux plus scalar dissipation,
 \begin{equation}\label{eq:ch3-rusanov}
   \widehat F_{\mathrm{Rus}}
   =
@@ -287,11 +292,7 @@ by a centred flux plus scalar dissipation,
   \qquad
   S_{\max}=\max\left(|u_L|+a_L,\ |u_R|+a_R\right).
 \end{equation}
-This form is useful for comparison because it has a single local signal-speed
-penalty and no contact-wave branch, but its stronger numerical diffusion can
-smear contacts and shear layers relative to HLLC, as expected for the HLL family
-introduced by \citet{harten_lax_vanleer_1983} and described by
-\citet{toro2009}.
+Rusanov has no contact-wave branch and stronger numerical diffusion than HLLC \citep{harten_lax_vanleer_1983,toro2009}, which makes the HLLC/Rusanov comparison in Chapter~5 an isolation of the contact-resolving path rather than an accuracy ranking.
 % <<SECTION_3_END>>
 
 \section{Stability, Limiting, and Positivity}
@@ -339,8 +340,9 @@ nonsmooth data. The limiter makes the reconstruction nonlinear, so the local
 order is not uniform across the grid. In smooth monotone regions the
 piecewise-linear data and Hancock predictor give the expected second-order
 truncation behaviour. At extrema, shocks, contacts, and rarefaction edges the
-minbee/minmod-type limiter can set or reduce the slope, moving the local update
-towards a first-order Godunov step \citep{vanleer_1979,toro2009}.
+minbee limiter, written in minmod form above, can set or reduce the slope,
+moving the local update towards a first-order Godunov step
+\citep{vanleer_1979,toro2009}.
 
 The same restriction is also tied to physical admissibility. The primitive
 conversion requires
@@ -382,6 +384,13 @@ hardware and compiler choices: a CPU FMA typically rounds once after a
 higher-precision intermediate, while a GPU FMA can remain at the working
 precision throughout \citep{ieee754_2019,higham_2002}.
 
+Primitive recovery is one place where small relative changes can become
+method-visible. The pressure calculation subtracts kinetic energy from total
+energy, so when internal energy is small compared with the kinetic term,
+cancellation can perturb the recovered pressure. That pressure then enters the
+sound speed, HLLC wave-speed estimates, positivity checks, and ultimately the
+branching decisions sampled by the flux.
+
 \paragraph{Branch sensitivity.}
 For HLLC the branch decision uses computed estimates
 \(\widehat S_L,\widehat S_\ast,\widehat S_R\), not exact wave speeds. The
@@ -406,9 +415,13 @@ and a first-order perturbation gives
   -
   \frac{\Delta D_\ast}{D_\ast},
 \end{equation}
-when the terms are non-zero. Cancellation in \(N_\ast\) or a small \(D_\ast\)
-can amplify rounded changes in the wave-speed estimate, and the amplified value
-may then enter a discontinuous branch selection \citep{toro2009}.
+when the terms are non-zero. The numerator \(N_\ast\) contains the pressure
+jump and two momentum-wave terms, so nearly balanced states can lose leading
+digits before division by \(D_\ast\). The denominator has the same risk when
+\(\rho_L(S_L-u_L)\) and \(\rho_R(S_R-u_R)\) nearly balance. Cancellation in
+\(N_\ast\) or \(D_\ast\) can amplify rounded changes in the wave-speed estimate,
+and the amplified value may then enter a discontinuous branch selection
+\citep{toro2009}.
 
 \paragraph{Method components and build switches.}
 Tables~\ref{tab:method-decision-points} and~\ref{tab:precision-macros}
@@ -471,29 +484,50 @@ discussed above.}
 \paragraph{Variation axes by status.}
 Measured Report~1 axes are the HLLC branch rule, gcc
 \texttt{-O2}/\texttt{-O3}/\texttt{-Ofast} with fast-math, HLLC versus
-Rusanov, and fp32/fp64. Exact-Riemann stopping tolerances, limiter choice, and
-CPU/GPU reduction ordering remain concept-only. CPU architecture and
+Rusanov, fp32/fp64, and an opt-in slope-limiter probe (minbee versus van
+Leer) reported in Chapter~5 as a method-sensitivity check rather than as
+reproducibility evidence. Exact-Riemann stopping tolerances and CPU/GPU
+reduction ordering remain concept-only. CPU architecture and
 \texttt{-mtune}/vectorisation, MPI/OpenMP thread-count variation, and
 Boost::Multiprecision quad precision are Report~2 axes.
 % <<SECTION_5_END>>
 
 \section{Extension to Ideal MHD}
 % <<SECTION_6_BEGIN>>
-Report 1 uses Euler, the hydrodynamic limit of the later ideal-MHD problem. In
+Report~1 uses Euler, the hydrodynamic limit of the later ideal-MHD problem. In
 ideal MHD the conserved state augments \((\rho,\rho\mathbf{u},E)\) with
-\(\mathbf{B}\), and the fluxes add magnetic-pressure, magnetic-tension, and
-induction terms. The Riemann fan contains fast magnetosonic, Alfven, slow
-magnetosonic, and contact/entropy families, not only acoustic waves and a
-contact \citep{toro2009}. In an MHD CFL estimate, the fast magnetosonic speed
-replaces the acoustic speed in Equation~\ref{eq:ch3-cfl-timestep}, while the
-slow and Alfven speeds depend on field direction. The magnetic field must also
-satisfy
+\(\mathbf{B}\), adding magnetic pressure, tension, and induction terms. Its
+Riemann fan has seven families: two fast magnetosonic, two Alfven, two slow
+magnetosonic, and one entropy/contact wave, making it more complex than Euler's
+three-wave HLLC fan \citep{toro2009}. With normal velocity \(u_n\) and fast,
+Alfven, slow speeds \(c_f, c_a, c_s\), the seven characteristic speeds are
+\(u_n-c_f,\ u_n-c_a,\ u_n-c_s,\ u_n,\ u_n+c_s,\ u_n+c_a,\ u_n+c_f\); see
+Fig.~\ref{fig:ch3-mhd-seven-wave-fan}.
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[>=latex,scale=0.9]
+  \draw[->,thick] (0,0) -- (-3.2, 1.6) node[left]  {$u_n-c_f$};
+  \draw[->,thick] (0,0) -- (-2.6, 1.9) node[left]  {$u_n-c_a$};
+  \draw[->,thick] (0,0) -- (-1.6, 2.1) node[above left] {$u_n-c_s$};
+  \draw[->,thick] (0,0) -- ( 0  , 2.3) node[above] {$u_n$};
+  \draw[->,thick] (0,0) -- ( 1.6, 2.1) node[above right] {$u_n+c_s$};
+  \draw[->,thick] (0,0) -- ( 2.6, 1.9) node[right] {$u_n+c_a$};
+  \draw[->,thick] (0,0) -- ( 3.2, 1.6) node[right] {$u_n+c_f$};
+  \draw[-] (-3.6,0) -- (3.6,0);
+  \node at (0,-0.3) {$x$};
+\end{tikzpicture}
+\caption{Seven-wave fan for ideal MHD: two fast magnetosonic, two Alfven, two
+slow magnetosonic waves, and an entropy mode.}
+\label{fig:ch3-mhd-seven-wave-fan}
+\end{figure}
+The magnetic field must satisfy
 \begin{equation}\label{eq:ch3-divB-zero}
   \nabla\cdot\mathbf{B}=0,
 \end{equation}
-at the continuous level. A finite-volume update does not preserve this
-constraint automatically, so non-zero discrete divergence can create spurious
-magnetic forces and distort wave speeds.
+at the continuous level, but a finite-volume update does not enforce this
+constraint automatically; discrete divergence can create spurious magnetic
+forces and distort wave speeds, motivating the divergence-control strategies
+surveyed in the literature \citep{toth_2000}.
 
 Dedner et al.'s hyperbolic cleaning approach \citep{dedner_2002} augments the
 induction equation with a scalar field \(\psi\):
@@ -506,9 +540,17 @@ induction equation with a scalar field \(\psi\):
 \end{equation}
 Here \(\psi\) carries divergence error, \(c_h\) is the cleaning-wave speed, and
 \(\tau\) is the damping time. Constrained transport \citep{evans_hawley_1988}
-instead preserves a staggered-mesh discrete divergence constraint. These MHD
-options only frame the later project: Report~1 evidence remains Euler-only,
-with exact or high-resolution references and matched precision/device
-comparisons. In ideal MHD, Roe-type and HLLD approximate Riemann solvers extend the HLL/HLLC family to the seven-wave fan; their selection forms part of the Report~2 numerical-method work. Ideal MHD will need separate tests of magnetic waves, energy
-coupling, and divergence control.
+instead preserves a staggered-mesh discrete divergence constraint. This is also
+why the Euler HLLC flux is not a direct full-MHD choice: its three-wave
+acoustic/contact model does not resolve the fast, Alfven, slow, and contact
+families, nor the discrete divergence constraint. HLL gives a simpler but more
+diffusive bound \citep{harten_lax_vanleer_1983}; HLLD \citep{miyoshi_kusano_2005}
+and Roe-type solvers aim to retain more MHD wave structure, while GLM-Dedner
+cleaning and constrained transport treat divergence error differently. These are Report~2 concerns.
+GPU-accelerated MUSCL--Hancock ideal-MHD solvers have been demonstrated in this
+setting \citep{bard_dorelli_2014}, but that is precedent for the later MHD
+extension rather than Report~1 validation evidence.
+Report~1 evidence remains Euler-only. The added magnetic pressure terms and
+near-degenerate wave speeds provide more branch and cancellation sites than
+Euler, so they require separate validation.
 % <<SECTION_6_END>>
