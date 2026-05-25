@@ -100,18 +100,7 @@ summaries and report-facing figures rather than raw grids.
 \end{algorithmic}
 \end{algorithm}
 
-The CUDA path uses separate kernels for boundary handling, face-state
-construction, flux evaluation, and conservative updates. Reconstruction,
-flux, and update kernels use \(16\times16\) thread blocks; boundary kernels
-use 128 threads; and the CFL kernel uses 256 threads with shared memory for
-the block-wise \(\Delta t\) reduction. MUSCL--Hancock reconstruction and
-update mainly use global memory and registers; shared memory is used for the
-CFL block reduction, not as a tiled stencil cache. This limits the GPU path
-and is not a claim of optimised stencil throughput. CPU and CUDA share the
-HLLC branch-rule sensitivity axis: near mixed-wave regions, branch choices can
-diverge within a warp even when no aggregate CPU--GPU saved-state divergence is
-observed. In the CUDA CFL stage, ordered comparisons make the selected
-$\Delta t$ independent of block order.
+The CUDA path decomposes the update into separate kernels for boundary handling, face-state construction, flux evaluation, conservative update, and a block-wise reduction for the CFL stage. The HLLC flux kernel (Algorithm~\ref{alg:hllc-flux-select}) is the principal warp-divergence site: in mixed-wave regions, threads within a warp can resolve to different branches of the wave-pattern test ($S_L \ge 0$ vs.\ $S_\ast \ge 0$ vs.\ $S_R \ge 0$), and the warp serialises the divergent paths rather than executing them in lock-step. CPU and CUDA therefore share the same HLLC branch-rule sensitivity axis: near mixed-wave cells, branch choices can diverge within a warp even when no aggregate CPU--GPU saved-state divergence is observed. The cell-major layout introduced earlier in this section is a CPU/GPU comparability choice---identical indexing on both sides---rather than a throughput-optimal structure-of-arrays design, so it constrains coalescing and bounds GPU throughput. Shared memory is used only for the CFL block reduction, not as a tiled stencil cache, leaving global-memory bandwidth as the dominant traffic for reconstruction, flux, and update. This is consistent with Table~\ref{tab:ch4-runtime-minimatrix}: the fp64 LW3 row, where GPU wall-clock sits close to CPU, matches memory-bound behaviour saturating fp64 bandwidth, while the fp32 LW3 row, where GPU is faster than CPU, is consistent with fp32 halving per-element traffic and freeing bandwidth headroom. In the CUDA CFL stage, ordered comparisons make the selected $\Delta t$ independent of block order.
 
 {\sloppy
 CPU sweep loops use OpenMP static schedules, giving fixed thread assignments.
