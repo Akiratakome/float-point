@@ -1,22 +1,28 @@
 % ************************** Thesis Abstract *****************************
 % Use `abstract' as an option in the document class to print only the titlepage and the abstract.
 \begin{abstract}
-Precision, hardware, and backend choices are examined for a stand-alone CPU/CUDA
-Euler HRSC code using a second-order finite-volume MUSCL--Hancock scheme with
-the HLLC Riemann solver. The validation suite covers Sod, Toro3, Toro5,
-Liska-Wendroff configuration 3 (LW3), and Liska-Wendroff configuration 12
-(LW12), spanning one- and two-dimensional ideal-gas Euler tests with exact or
-higher-resolution references; LW12 is compared with an \(800^2\) fp64 numerical
-reference. The experiments compare real fp32/fp64 builds, matched strict-HLLC
-CPU/GPU saved outputs, selected compiler, branch-rule and solver variations,
-and Verificarlo/MCA diagnostics, where \texttt{p32} is treated as virtual
-precision rather than IEEE fp32. Across the matched CPU/GPU saved-output set,
-final conservative states give \(L_1=0\), \(L_\infty=0\), and
-\(\mathrm{ULP}_{\max}=0\), with checkpoint equality limited to saved states.
-Direct fp32/fp64 gaps remain below the available reference scale in the tested
-cases; for LW12 at \(400^2\), the density reference-scaled ratio is
-\(1.30\times10^{-4}\). Selected implementation checks show O2/O3 bit-identity
-where tested, while fast-math perturbs non-stationary saved states. The result
-is a bounded Euler baseline for the later MHD precision and hardware study, not
-MHD validation.
+This report measures how precision and hardware/backend choices affect a
+stand-alone CPU/CUDA Euler high-resolution shock-capturing code that uses a
+second-order MUSCL--Hancock finite-volume scheme with the HLLC Riemann
+solver. Five test cases span one and two dimensions: Sod, Toro3, and Toro5
+against exact Riemann references, and Liska--Wendroff configurations~3 and
+12 against \(1600^2\) and \(800^2\) fp64 numerical references. The
+experimental matrix compares real fp32/fp64 builds, matched strict-HLLC
+CPU/GPU saved outputs, selected compiler, branch-rule, and solver
+variations, and Verificarlo Monte~Carlo arithmetic diagnostics.
+
+Three findings stand out. First, every matched within-binary strict-HLLC
+CPU/GPU comparison gives \(L_1=0\), \(L_\infty=0\), and
+\(\mathrm{ULP}_{\max}=0\) on the saved conservative state, including 40
+saved checkpoints across Sod, LW3, and LW12; equality is claimed only for
+saved states, not for unsaved intermediate values. Second, direct
+fp32/fp64 differences remain below the available reference or
+discretisation scale in every tested case, with the largest density
+reference-scaled ratio reaching \(1.30\times10^{-4}\) for LW12 at
+\(400^2\). Third, implementation sensitivity is axis-dependent: \texttt{-O2}
+and \texttt{-O3} are bit-identical where tested, while fast-math perturbs
+non-stationary saved states. Together these results form an auditable Euler
+baseline for the later MHD extension and identify where reduced precision
+remains safe, where implementation choices still require caution, and which
+axes the matched-binary discipline deliberately hides.
 \end{abstract}

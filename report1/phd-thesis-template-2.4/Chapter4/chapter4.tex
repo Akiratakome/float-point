@@ -267,12 +267,7 @@ two-dimensional image comparisons.}
 Table~\ref{tab:ch4-runtime-minimatrix} reports wall-clock timing metadata
 from one containerized CUDA 12.5 / GCC 13 environment (strict HLLC, five
 repeats per row); the fp64 LW3 row shows GPU $\approx$ CPU, so the rows are
-computational-cost context, not a portable timing result. The hardware
-environment for every reported run is fixed: Intel-class x86\_64 host CPU,
-NVIDIA RTX 4060 Laptop GPU (CUDA compute capability 8.9), CUDA toolkit
-12.5, NVIDIA driver from the same release, GCC 13 on Linux/WSL for Sod,
-LW3, and LW12, and MSVC Build Tools on Windows for Toro3 and Toro5. The
-CUDA path uses one GPU only, so cross-device portability is outside scope.
+computational-cost context, not a portable timing result.
 
 \begin{table}[htbp]
 \centering
@@ -332,51 +327,27 @@ bound only saved-output behaviour, not stage-by-stage identity.
 \label{sec:ch4-regression-harness}
 % <<SECTION_6_BEGIN>>
 A Python regression harness drives the validation matrix and turns each
-configuration into an auditable record. The brief asks for an explicit
-description of what testing framework will be used to ensure reproducibility
-and how compiler-flag and floating-point tolerance ranges will be explored;
-this section gives that description.
-
-\paragraph{Layout.} Three directories partition the work. The C++ entry point
-under \texttt{src/} is built by CMake; \texttt{scripts/regression/} carries
-the case-level drivers (\texttt{verify\_sod.py}, \texttt{verify\_toro.py},
-\texttt{report1\_1d\_feature\_validation.py},
-\texttt{run\_comparison.py}, \texttt{convergence.py}); and \texttt{tests/py/}
-holds \texttt{pytest} units that re-run those drivers on stored references
-and decide pass/fail.
-
-\paragraph{What is checked.} For one-dimensional cases, the harness reads
+configuration into an auditable record. The C++ entry point in \texttt{src/}
+is built by CMake; \texttt{scripts/regression/} carries case-level drivers,
+and \texttt{tests/py/} holds the \texttt{pytest} units that re-run those
+drivers on stored references. For one-dimensional cases, the harness reads
 \texttt{grid.bin} for the candidate run and the analytic exact Riemann
 solution at the same final time and grid, computes density, momentum, and
-energy \(L_1\), \(L_\infty\), and \(\mathrm{ULP}_{\max}\), and asserts that
-each metric is below a per-case tolerance recorded in the test source.
-\texttt{test\_report1\_1d\_feature\_validation.py} additionally checks the
-feature-band split reported in Table~\ref{tab:ch5-1d-feature-validation}.
-For two-dimensional cases, \texttt{run\_comparison.py} block-averages the
-high-resolution fp64 reference to the candidate grid and reports
-\(L_1\), \(L_\infty\), \(\mathrm{ULP}_{\max}\), and SSIM; the matched
-CPU/GPU pairs are byte-compared on \texttt{grid.bin} as well. Verificarlo
-runs go through a separate \texttt{precexp} pipeline whose unit tests
-(\texttt{test\_precexp\_*.py}) check manifest, configuration, and aggregation
-stages independently.
+energy $L_1$, $L_\infty$, and $\mathrm{ULP}_{\max}$, and asserts that each
+metric is below a per-case tolerance recorded in the test source. For
+two-dimensional cases, \texttt{run\_comparison.py} block-averages the
+high-resolution fp64 reference to the candidate grid and reports $L_1$,
+$L_\infty$, $\mathrm{ULP}_{\max}$, and SSIM; matched CPU/GPU pairs are
+byte-compared on \texttt{grid.bin}.
 
-\paragraph{How the axes are swept.} The compiler-flag, branch-rule,
-device, and precision axes are not hand-driven; each combination is a row
-in a configuration sweep loaded by \texttt{run\_comparison.py} or by the
-\texttt{precexp} driver. Each row records build label, compiler version,
-flags, precision, device, command line, \texttt{stdout}/\texttt{stderr}
-paths, and binary hash before the metrics are written, so a failed
-comparison can be rerun from its captured invocation. Per-case tolerances
-sit in the test source rather than in a global threshold file, so a
-tolerance change is a code change with version-controlled provenance.
-
-\paragraph{What pass/fail means.} A regression failure is one of three
-things: a metric assert above its stored tolerance, a missing artifact (no
-\texttt{grid.bin}, no exact-reference table), or a configuration mismatch
-(precision, device, or solver differing from the manifest). The matched
-CPU/GPU zero-drift table in Chapter~5 is therefore not a one-off
-measurement; it is the saved output of the harness re-run, and a future
-re-run that introduced a non-zero entry would fail
-\texttt{test\_float\_regression\_report\_device\_mode.py} on byte
-comparison.
+Compiler-flag, branch-rule, device, and precision axes are not hand-driven;
+each combination is a row in a configuration sweep loaded by
+\texttt{run\_comparison.py} or the \texttt{precexp} driver, with build
+label, compiler version, flags, precision, device, command line, and binary
+hash recorded before metrics are written. A regression failure is one of
+three things: a metric assert above its stored tolerance, a missing
+artifact, or a configuration mismatch (precision, device, or solver
+differing from the manifest), so the matched CPU/GPU zero-drift table in
+Chapter~5 is the saved output of the harness re-run, not a one-off
+measurement.
 % <<SECTION_6_END>>
