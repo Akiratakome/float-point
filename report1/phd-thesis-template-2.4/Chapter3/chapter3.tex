@@ -178,6 +178,29 @@ predicted states,
   \mathcal{R}\!\left(U_{i+1/2}^{L},U_{i+1/2}^{R}\right).
 \end{equation}
 The construction applies identically in the \(y\)-direction.
+
+\paragraph{Predecessors.}
+Godunov's first-order method advances piecewise-constant data through a
+Riemann-solver flux \citep{toro2009},
+\begin{equation}\label{eq:ch3-godunov}
+  U_i^{n+1}
+  = U_i^n
+  - \frac{\Delta t}{\Delta x}\bigl[\widehat F(U_i,U_{i+1}) - \widehat F(U_{i-1},U_i)\bigr],
+\end{equation}
+but the constant-state assumption caps accuracy at first order and smears
+contacts over \(\mathcal{O}(\Delta x)\) cells. The Lax--Wendroff scheme reaches
+second order through a centred update \citep{toro2009},
+\begin{equation}\label{eq:ch3-lax-wendroff}
+  U_i^{n+1}
+  = U_i^n
+  - \frac{\Delta t}{2\Delta x}(F_{i+1}-F_{i-1})
+  + \frac{\Delta t^{2}}{2\Delta x^{2}}\bigl[A_{i+1/2}(F_{i+1}-F_i) - A_{i-1/2}(F_i-F_{i-1})\bigr],
+\end{equation}
+with \(A=\partial F/\partial U\), yet without a limiter it oscillates near
+discontinuities. MUSCL--Hancock combines limited piecewise-linear
+reconstruction (replacing Godunov's constants) with a Riemann-solver flux
+(replacing LW's centred average), securing second-order smooth accuracy and
+TVD behaviour at discontinuities \citep{vanleer_1979}.
 % <<SECTION_2_END>>
 
 \section{HLLC and Rusanov Fluxes}
