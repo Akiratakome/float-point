@@ -58,11 +58,6 @@ saved binary grids and the metrics \(L_1\), \(L_\infty\),
 The simulation clock uses the compensated-summation update of Chapter~2; this
 applies only to the scalar time counter. Algorithms~\ref{alg:step-dispatch}
 and~\ref{alg:muscl-hancock} summarise dispatch and the per-cell predictor.
-Reproducibility follows the harness sequence: configure, build, run, measure,
-aggregate, and plot. Matrix runs copy the source configuration into a
-generated run directory, save stdout, stderr, binary path, precision, device,
-build label, command, and output path, and supply Chapter~5 with aggregated
-summaries and report-facing figures rather than raw grids.
 
 \begin{algorithm}
 \caption{Time-stepping loop with dimensional splitting and Kahan-compensated time accumulation}
@@ -200,16 +195,11 @@ fp32/fp64 comparisons against the chosen reference solution.
 % <<SECTION_4_BEGIN>>
 The validation set exercises one- and two-dimensional Euler problems under the
 same implementation axes. Sod provides the lower-severity exact-reference
-baseline~\citep{sod_1978}. Toro's tests supply the one-dimensional strong
-waves, and Liska and Wendroff's benchmark set supplies the two-dimensional
-quadrant Riemann problems~\citep{toro2009,
-liska_wendroff_2003}. The supersonic-wave requirement is met by four entries
-in this matrix: Toro3 has a right-running supersonic shock, Toro5 has
-colliding supersonic shocks, and LW3 and LW12 contain supersonic
-quadrant-interface shocks in Liska and Wendroff's initial states. Sod is
-retained as the lower-severity exact-reference baseline rather than as the main
-supersonic example. Table~\ref{tab:ch4-design-matrix} records this design
-coverage; Chapter~5 reports the measured values.
+baseline~\citep{sod_1978}; Toro's tests supply one-dimensional strong waves;
+Liska and Wendroff's benchmark set supplies the two-dimensional quadrant
+Riemann problems~\citep{toro2009, liska_wendroff_2003}. Four entries (Toro3,
+Toro5, LW3, LW12) carry supersonic shocks. Table~\ref{tab:ch4-design-matrix}
+records the design coverage; Chapter~5 reports the measured values.
 
 The scalar comparisons use field norms on the saved state: \(L_1\),
 \(L_\infty\), and \(\mathrm{ULP}_{\max}\), a scaled ULP ratio
