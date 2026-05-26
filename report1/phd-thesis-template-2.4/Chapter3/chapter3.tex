@@ -287,8 +287,7 @@ across \(S_K\) and may be written in closed form as
     +(S_\ast-u_K)\!\left[S_\ast+\dfrac{p_K}{\rho_K(S_K-u_K)}\right]
   \end{pmatrix},
 \end{equation}
-The scalar prefactor multiplies the whole vector; the fourth entry is the
-specific total-energy form. The contact pressure
+The scalar prefactor multiplies the whole vector; the fourth entry has units of energy density once the prefactor is included; the bracketed factor is total energy per unit mass plus the contact-pressure correction. The contact pressure
 \(p_\ast=p_K+\rho_K(S_K-u_K)(S_\ast-u_K)\) is equal on both sides of the contact.
 This is the part of HLLC that restores the contact wave missing from the
 two-wave HLL approximation discussed in the literature
@@ -454,7 +453,7 @@ digits before division by \(D_\ast\). The denominator has the same risk when
 \(\rho_L(S_L-u_L)\) and \(\rho_R(S_R-u_R)\) nearly balance. Cancellation in
 \(N_\ast\) or \(D_\ast\) can amplify rounded changes in the wave-speed estimate,
 and the amplified value may then enter a discontinuous branch selection
-\citep{toro2009}.
+\citep{toro2009}. When $N_\ast = 0$ exactly by symmetry (the degenerate case examined in Chapter 5 Section \emph{Toro Test 2 Branch Stability}), the relative perturbation in Equation~\ref{eq:ch3-sstar-perturbation} is undefined and the sign of the computed $S_\ast$ is set by accumulated rounding noise rather than by first-order linearisation.
 
 \paragraph{Method components and build switches.}
 Tables~\ref{tab:method-decision-points} and~\ref{tab:precision-macros}
