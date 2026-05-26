@@ -4,7 +4,7 @@
 
 \section{Precision Adequacy and Region-Aware Diagnostics}
 % <<SECTION_2_BEGIN>>
-The validation results give each precision and hardware difference a scale. Exact Riemann and high-resolution numerical references enter through Chapter~4 Equation~\eqref{eq:ch4-rref}, while matched CPU/GPU runs test saved outputs under a fixed within-case setup. For non-degenerate comparisons, direct IEEE fp32/fp64 final-state differences stay below the available reference or discretisation scale in both density and pressure. The largest reported density ratio, \(R_\rho \approx 1.30\times10^{-4}\) for Liska-Wendroff configuration 12 (LW12) at \(400^2\), occurs with a localised upper-right shock-interaction structure in Fig.~\ref{fig:ch5-lw12-precision-heatmap}. That localisation suggests sensitivity where reconstructed states feed HLLC wave-speed or flux decisions, without proving that a specific branch changed. The stationary-contact infinite ratio is degenerate (zero denominator). The following diagnostics locate precision pressure rather than introduce a separate IEEE-fp32 claim.
+The validation results give each precision and hardware difference a scale. Exact Riemann and high-resolution numerical references enter through Chapter~4 Equation~\eqref{eq:ch4-rref}, while matched CPU/GPU runs test saved outputs under a fixed within-case setup. For non-degenerate comparisons, direct IEEE fp32/fp64 final-state differences stay below the available reference or discretisation scale in both density and pressure. That localisation suggests sensitivity where reconstructed states feed HLLC wave-speed or flux decisions, without proving that a specific branch changed. The stationary-contact infinite ratio is degenerate (zero denominator). The following diagnostics locate precision pressure rather than introduce a separate IEEE-fp32 claim.
 
 The MCA toolchain and $n = 30$ seed sampling are defined in Chapter~4 Section~\emph{Precision and Hardware Variants}; the same ensemble idea is read off a one-dimensional Sod diagnostic before extending to LW3. Figure~\ref{fig:ch6-sigma-fp} then uses the \(\sigma_{\mathrm{FP}}\) local roundoff scale of Chapter~4 Section~4.3: for both HLLC and Rusanov, \(\sigma_{\mathrm{FP}}\) falls as virtual mantissa precision rises. Lower or similar Rusanov values are read as the combined effect of a different arithmetic path and extra diffusion smoothing gradients, not as an accuracy ranking or as reproducibility drift. The virtual-precision labels are diagnostic mantissa settings rather than IEEE storage formats (see Section~2.4).
 
@@ -17,7 +17,7 @@ The MCA toolchain and $n = 30$ seed sampling are defined in Chapter~4 Section~\e
 
 The loss-of-significance score LoSoS gives a complementary view of the same LW3 density samples. Figure~\ref{fig:ch6-losos-quantiles} reports sample quantiles rather than the worst cell: for HLLC the median LoSoS rises with virtual precision, while lower quantiles stay closer to the front-sensitive part of the field (Fig.~\ref{fig:ch6-losos-quantiles}). All MCA results in this chapter use $n = 30$ independent seeds per (precision, solver); the raw-field q05 / q25 / median quantiles are therefore distributional estimates within the sample-count guidance of~\citet{sohier_etal_2021}, not exploratory single-realisation snapshots.
 
-The required-significant-digits threshold \(s_{\mathrm{req}}\) turns LoSoS into a regional margin. Figure~\ref{fig:ch6-region-losos} plots available digits at \texttt{p32} minus \(s_{\mathrm{req}}\). For HLLC at \texttt{p32}, the smooth interior keeps a positive margin while the shock-front band is negative; the transition/contact band sits in between (Fig.~\ref{fig:ch6-region-losos}). The same pattern appears in Fig.~\ref{fig:ch6-noise-error}: for HLLC, the fraction of cells with MCA noise above the reference-error scale drops monotonically with virtual precision (Fig.~\ref{fig:ch6-noise-error}). This reading is consistent with the LW12 localisation in Chapter~5, but remains bounded to the tested precisions, cases, and LW3 MCA grid. At \texttt{p32}, the fraction of LW3 cells with MCA noise above the reference-error scale is $0\,\%$ for both HLLC and Rusanov, supporting \texttt{p32} as adequate for this LW3 case at the tested resolution. The \texttt{p8} curves are reported as a low-precision stress diagnostic only; the binary checkpoint header reaches $t \approx 0.3035$ while stderr stops at the requested $t = 0.3$, so \texttt{p8} quantiles must not be read as final-time equivalents to \texttt{p16} / \texttt{p32} / \texttt{p53}.
+The required-significant-digits threshold \(s_{\mathrm{req}}\) turns LoSoS into a regional margin. Figure~\ref{fig:ch6-region-losos} plots available digits at \texttt{p32} minus \(s_{\mathrm{req}}\). For HLLC at \texttt{p32}, the smooth interior keeps a positive margin while the shock-front band is negative; the transition/contact band sits in between (Fig.~\ref{fig:ch6-region-losos}). The same pattern appears in Fig.~\ref{fig:ch6-noise-error}: for both HLLC and Rusanov, the fraction of LW3 cells with MCA noise above the reference-error scale drops monotonically with virtual precision and reaches $0\,\%$ at \texttt{p32}, supporting \texttt{p32} as adequate for this LW3 case at the tested resolution. This reading is consistent with the LW12 localisation in Chapter~5 but remains bounded to the tested precisions, cases, and the LW3 MCA grid. The \texttt{p8} curves are reported as a low-precision stress diagnostic only; the binary checkpoint header reaches $t \approx 0.3035$ while stderr stops at the requested $t = 0.3$, so \texttt{p8} quantiles must not be read as final-time equivalents to \texttt{p16} / \texttt{p32} / \texttt{p53}.
 
 \begin{figure}[htbp]
 \centering
@@ -45,23 +45,11 @@ The required-significant-digits threshold \(s_{\mathrm{req}}\) turns LoSoS into 
 \end{figure}
 
 \paragraph{SNR framing.}
-The $\sigma_{\mathrm{FP}}$, LoSoS, $s_{\mathrm{req}}$, and noise-to-error
-views all reduce to a local signal-to-noise comparison. Defining a per-cell
-signal-to-noise ratio as the ratio of local reference error to MCA rounding
-noise,
+The $\sigma_{\mathrm{FP}}$, LoSoS, $s_{\mathrm{req}}$, and noise-to-error views all reduce to a local signal-to-noise comparison,
 \begin{equation}\label{eq:ch6-snr}
-  \mathrm{SNR}(\mathbf{x})
-  = \frac{|U_{\mathrm{fp64}}(\mathbf{x}) - U_{\mathrm{ref}}(\mathbf{x})|}{\sigma_{\mathrm{FP}}(\mathbf{x})},
+  \mathrm{SNR}(\mathbf{x}) = \frac{|U_{\mathrm{fp64}}(\mathbf{x}) - U_{\mathrm{ref}}(\mathbf{x})|}{\sigma_{\mathrm{FP}}(\mathbf{x})},
 \end{equation}
-the noise-to-error heatmap of Fig.~\ref{fig:ch6-noise-error} is the indicator
-$\mathrm{SNR}<1$ over the LW3 grid, while the required-digits threshold gives
-$s_{\mathrm{req}} \approx \log_{10}(\mathrm{SNR}^{-1}_{\mathrm{target}})$ when
-the target ratio is fixed across the field~\citep{sohier_etal_2021}.
-Figure~\ref{fig:ch6-region-snr} shows the same SNR view split by smooth,
-transition, and shock-front regions: precision-limited cells
-($\mathrm{SNR}<1$) concentrate where the limited reconstruction feeds the
-HLLC star-state algebra, and the precision-limited fraction shrinks
-monotonically from \texttt{p8} to \texttt{p32}.
+so Fig.~\ref{fig:ch6-region-snr} splits the same SNR view by smooth, transition, and shock-front regions: precision-limited cells ($\mathrm{SNR}<1$) concentrate where the limited reconstruction feeds the HLLC star-state algebra, and the precision-limited fraction shrinks monotonically from \texttt{p8} to \texttt{p32}~\citep{sohier_etal_2021}.
 
 \begin{figure}[htbp]
 \centering
@@ -77,7 +65,7 @@ dominant contributor at every level.}
 
 \section{Hardware and Implementation Sensitivity}
 % <<SECTION_3_BEGIN>>
-The matched strict-HLLC CPU/GPU evidence is a saved-output statement. At final time, Sod, Toro3, Toro5, Liska-Wendroff configuration 3 (LW3), and Liska-Wendroff configuration 12 (LW12) show no saved-state divergence between CPU and GPU in both fp32 and fp64, with \(L_1=0\), \(L_\infty=0\), and \(\mathrm{ULP}_{\max}=0\). Saved-checkpoint comparisons on Sod, LW3, and LW12 add the same zero-drift result for checkpoint files; Toro3 and Toro5 have final-output evidence only. These results do not establish equality of all intermediate stage values inside a time step, or equivalence across arbitrary compilers, devices, and build controls. The CSC strict-IEEE CPU-only vs CUDA-enabled \texttt{device=cpu} sanity check (Chapter~5 Section~\emph{Matched CPU/GPU Comparison}) further confirms that the CPU branch is not a CUDA-binary artefact under the tested strict cases.
+The matched strict-HLLC CPU/GPU evidence (Table~\ref{tab:ch5-cpu-gpu}) is a saved-output statement, with zero drift across all five cases on both saved final states and saved checkpoints. These results do not establish equality of all intermediate stage values inside a time step, or equivalence across arbitrary compilers, devices, and build controls. The CSC strict-IEEE CPU-only vs CUDA-enabled \texttt{device=cpu} sanity check (Chapter~5 Section~\emph{Matched CPU/GPU Comparison}) further confirms that the CPU branch is not a CUDA-binary artefact under the tested strict cases.
 
 The other axes show implementation or method sensitivity rather than a general hardware effect. In CPU double, the largest non-stationary compiler variation is O2 versus Ofast-fastmath for Toro3 and Toro5, while branch-rule entries test an implementation choice whose effect is smaller or absent in completing comparisons. The fp32 compiler matrix is precision sensitivity under compiler flags, not hardware evidence. HLLC versus Rusanov, limiter variation, and the shock-bubble packet are method-sensitivity checks supporting interpretation but not part of the five-case validation claim. The GPU flag probe bounds the zero-drift result: changing strict versus fast CUDA controls can change saved GPU states. Checkpoint histories show finite-time, case-dependent drift growth, supporting a bounded time-window reading rather than an extrapolated rate.
 % <<SECTION_3_END>>
