@@ -284,6 +284,9 @@ lw3\_n400 & fp32 & 2.717 & 2.418--4.306 & 1.873 & 1.827--1.939 \\
 (\texttt{ENABLE\_CUDA=ON}). Computational-cost context only.}
 \label{tab:ch4-runtime-minimatrix}
 \end{table}
+
+Quantitatively, the RTX 4060 Laptop GPU has a peak fp64 throughput of $\approx 0.24$~TFLOPS against $\approx 1$~TFLOPS for the i9-13900H using AVX2; the GPU $\approx$ CPU fp64 result is therefore consistent with consumer-fp64 throughput under the chosen memory layout rather than with a kernel-correctness anomaly. On the CSC strict-IEEE path (AMD EPYC host with an RTX 5090), the fp64 LW3 $N=400$ case runs in $8.53$~s on CPU and $0.57$~s on GPU as end-to-end solver timing, confirming that an fp64-capable GPU dominates when the hardware allows it.
+
 % <<SECTION_4_END>>
 
 \section{Reference-Solution Strategy}
