@@ -23,10 +23,7 @@ This design keeps the precision comparison to two storage formats,
 binary32 and binary64~\citep{ieee754_2019}. Higher-precision extensions, such
 as a Boost::Multiprecision route, are outside the Report 1 evidence scope.
 
-The toolchain boundary is part of the experimental design: Toro3 and Toro5 use
-Windows BuildTools; Sod, Liska-Wendroff configuration 3 (LW3), and
-Liska-Wendroff configuration 12 (LW12) use Linux/WSL; each CPU/GPU
-comparison stays within one matched binary/configuration.
+Toro3 and Toro5 were rerun on the CSC Linux strict-IEEE build for the matched CPU/GPU comparison reported in Chapter~5; Sod, LW3, and LW12 use Linux/WSL throughout. Each within-case CPU/GPU comparison stays within one matched binary, and the two toolchains are presented here as cross-hardware evidence (i9-13900H with RTX 4060 Laptop GPU, and an AMD EPYC host with RTX 5090 on CSC) rather than as a toolchain confound.
 
 Four design features make the comparison auditable: source-level \texttt{HRSC\_REAL} templating, the \texttt{ENABLE\_CUDA} build switch with runtime \texttt{device=cpu/gpu} selection, a Python regression harness, and matched-binary CPU/GPU outputs.
 % <<SECTION_1_END>>

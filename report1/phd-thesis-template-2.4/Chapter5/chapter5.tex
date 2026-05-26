@@ -305,15 +305,11 @@ LW12 & fp32, fp64 & 4 at $200^2$ and $400^2$ & 16 at $200^2$ and $400^2$, to $t=
 \end{tabular}
 \begin{minipage}{0.9\textwidth}
 \vspace{0.25em}
-\footnotesize\emph{Footnote.} Toro3/Toro5 were built with Windows BuildTools;
-Sod/LW3/LW12 were built with Linux/WSL; each within-case CPU/GPU comparison
-uses one matched binary pair, so the claim is limited to no observed saved-state
-divergence within that matched case, not across toolchains.
+\footnotesize\emph{Footnote.} Toro3 and Toro5 are reported here from the CSC Linux strict-IEEE rerun, with four saved checkpoints in fp64 and fp32 and $L_1 = L_\infty = \mathrm{ULP}_{\max} = 0$ between the CPU and GPU saved states. A separate sanity check on the same CSC build showed that the CPU-only strict binary and the CUDA-enabled strict binary with $\texttt{device=cpu}$ produce bit-identical Toro3 and Toro5 saved states in both fp64 and fp32, so the CPU branch is not an artefact of running CPU code through a CUDA-enabled binary. Identity is restricted to saved conservative states under strict IEEE for the tested cases.
 \end{minipage}
 \caption[Matched CPU/GPU strict-HLLC coverage]{Matched CPU/GPU strict-HLLC coverage. ``Zero drift'' means that every covered same-precision CPU/GPU comparison has
 $L_1=0$, $L_\infty=0$, and $\mathrm{ULP}_{\max}=0$ on the saved conservative
-state; for Toro3 and Toro5 the evidence is final-output only, while Sod, LW3,
-and LW12 also have saved-checkpoint comparisons.}
+state across all five cases (saved final output plus checkpoints).}
 \label{tab:ch5-cpu-gpu}
 \end{table}
 
@@ -339,10 +335,7 @@ controls perturbs the same saved states by a scaled ULP ratio of
 were inert. The zero-drift result is therefore a statement about what the
 matched strict build hides, not about whether the GPU is exercised.
 
-A CPU-only sanity check (WSL/GCC strict rerun of Toro3 and Toro5)
-matched the existing strict CPU outputs with zero drift; saved-checkpoint
-coverage is uneven by design (Sod, LW3, LW12 with checkpoints; Toro3, Toro5
-final output only).
+A separate sanity check on the CSC strict-IEEE build showed that the CPU-only binary and the CUDA-enabled binary with $\texttt{device=cpu}$ produce bit-identical Toro3 and Toro5 saved states in both fp64 and fp32; the CPU/GPU dispatch comparison is therefore not an artefact of running CPU code through a CUDA-enabled binary. The claim remains restricted to saved-state identity under strict IEEE for the tested cases.
 % <<SECTION_5_END>>
 
 \section{Compiler, Branch, Solver, and Drift-Growth Sensitivity}
