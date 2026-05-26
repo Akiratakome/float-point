@@ -574,9 +574,6 @@ while GLM-Dedner cleaning and constrained transport treat divergence error
 differently. Report~1 does not derive an MHD finite-volume update, discrete GLM
 source treatment, HLLD star states, or a divergence diagnostic; those are
 Report~2 implementation and validation tasks.
-GPU-accelerated MUSCL--Hancock ideal-MHD solvers have been demonstrated in this
-setting \citep{bard_dorelli_2014}, but that is precedent for the later MHD
-extension rather than Report~1 validation evidence.
 Report~1 evidence remains Euler-only. The added magnetic pressure terms and
 near-degenerate wave speeds provide more branch and cancellation sites than
 Euler, so they require separate validation.
