@@ -187,19 +187,16 @@ Verificarlo runs are diagnostic, not real fp32/fp64 runs. Following Parker's
 Monte Carlo arithmetic formulation~\citep{parker_1997} and Denis et al.'s
 Verificarlo tool~\citep{denis_etal_2016}, the solver is built through the
 MCA/virtual-precision toolchain in MCA mode with the random-rounding (RR)
-operator, and sampled with independent seeds. The virtual-precision labels
-\texttt{p8}, \texttt{p16}, \texttt{p32}, and \texttt{p53} are not IEEE
-binary storage formats (see Section~2.4). The per-configuration sample budget
-is deliberately small: two or three samples per virtual precision are not
-statistically defensible for confidence intervals or distributional quantiles,
-so Chapter~6 uses them only as spatial localisation diagnostics.
-For a primitive component \(q_j\), the sample standard deviation
-\(\sigma_{\mathrm{FP},j}=\operatorname{std}_k(q_j^{(k)})\) gives a local
-roundoff scale for comparison with field magnitude or local reference error.
-RAPTOR remains a possible
-future tool for automated mixed-precision source transformation; Report 1 does
-not present per-routine precision rewrites. Direct fp32 claims come only from
-real fp32/fp64 comparisons against the chosen reference solution.
+operator, and sampled with $n = 30$ independent seeds per (precision, solver)
+at virtual precisions \texttt{p8}, \texttt{p16}, \texttt{p32}, and \texttt{p53},
+for both HLLC and Rusanov. The sample count exceeds the minimum recommended by
+\citet{sohier_etal_2021} for the chosen significant-digits / confidence regime.
+For a primitive component $q_j$, the sample standard deviation
+$\sigma_{\mathrm{FP},j}=\operatorname{std}_k(q_j^{(k)})$ gives a local roundoff
+scale, used in Chapter~6 together with q05 / q25 / median spatial quantiles.
+The virtual-precision labels are diagnostic mantissa settings rather than IEEE
+storage formats (see Section~2.4); direct fp32 claims come only from real
+fp32/fp64 comparisons against the chosen reference solution.
 % <<SECTION_3_END>>
 
 \section{Test-Case Matrix and Metrics}
