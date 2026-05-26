@@ -9,7 +9,9 @@ two-dimensional Euler validation, direct fp32--fp64 differences, matched
 strict-HLLC CPU/GPU saved-output comparisons, and selected method or toolchain
 sensitivity probes. Precision claims are pairwise differences or
 reference-scaled ratios; CPU/GPU claims are restricted to saved conservative
-states.
+states. A periodic-boundary audit using the same finite-volume update path gave
+max relative drift \(\le 7.2\times10^{-14}\), checking telescoping conservation
+rather than benchmark accuracy.
 % <<SECTION_1_END>>
 
 \section{One-Dimensional Euler Validation}
@@ -160,12 +162,18 @@ four-shock case from \citet{liska_wendroff_2003}, with supersonic shock
 segments on all four quadrant interfaces. In the $N=400$ fp64 schlieren field,
 Fig.~\ref{fig:ch5-lw3-schlieren} shows a compact diamond-like shock interaction
 around the centre, with curved contact-like structures inside the shocked
-region. The reference comparisons use report-specific higher-resolution fp64
-runs, not exact or literature-converged solutions. Against the $1600^2$ numerical reference, the fp64 density $L_1$ error
+region. Against the report-specific $1600^2$ numerical reference, the fp64 density $L_1$ error
 decreases and SSIM increases between $N=200$ and $N=400$
-(Table~\ref{tab:ch5-2d-summary}); the same-resolution fp64--fp32
-conservative-state $L_1$ difference at $N=400$ remains well below the
-reference-scale density error.
+(Table~\ref{tab:ch5-2d-summary}). A self-convergence check gives $\rho$ $L_1$
+decreasing from $3.304289{\times}10^{-3}$ for 400-vs-800 to
+$2.392109{\times}10^{-3}$ for 800-vs-1600, with observed order about $0.47$;
+this supports a numerical-reference hierarchy, not an exact-solution proof.
+This is standard grid-refinement verification for problems without exact solutions \citep{liska_wendroff_2003,celik_etal_2008}, not a proof that the finest grid is exact.
+At $N=400$, the same-resolution fp32--fp64 density $L_1$ perturbation is
+$9.25{\times}10^{-5}$ of the same-grid density reference error and
+$1.39{\times}10^{-4}$ of the adjacent 400-vs-800 fp64 hierarchy error, so the
+precision result is a perturbation-scale claim, not an assertion that the
+$1600^2$ field is exact.
 
 Liska-Wendroff configuration 12 (LW12) is treated as a separate
 two-dimensional Riemann problem, not as a repeat of LW3. Its initial data
@@ -248,7 +256,7 @@ figure does not prove that a specific HLLC branch changed; no branch-count
 diagnostic is used here. Virtual-precision sensitivity maps appear in
 Chapter~6.
 
-Saved-checkpoint precision drift gives the same caution in time: for fp64--fp32
+Saved-state precision drift gives the same caution in time: for fp64--fp32
 HLLC outputs, final density $L_1$ drift ranges from
 $8.25\times10^{-8}$ for Sod to $2.56\times10^{-6}$ for Toro5, while Toro5
 pressure reaches $1.98\times10^{-4}$.
@@ -279,7 +287,7 @@ separately. All entries use \texttt{solver=hllc} and \texttt{STRICT\_IEEE=ON};
 the strict build disables fast-math and fused-operation shortcuts that would
 otherwise make a device comparison less controlled. The final-output
 comparison is byte-level for the saved \texttt{grid.bin} files, with $L_1$,
-$L_\infty$, and ULP metrics computed on the conservative state.
+$L_\infty$, and ULP-scaled ratios computed on the conservative state.
 
 \begin{table}[htbp]
 \centering
@@ -311,26 +319,22 @@ and LW12 also have saved-checkpoint comparisons.}
 
 All 14 final-output comparisons in Table~\ref{tab:ch5-cpu-gpu} are zero in
 \(L_1\), \(L_\infty\), and \(\mathrm{ULP}_{\max}\), as are the 40
-saved-checkpoint comparisons for Sod, LW3, and LW12. Three structural
-properties of the matched-binary configuration make this absence of
-saved-state divergence the expected outcome rather than a surprise:
+saved-checkpoint comparisons for Sod, LW3, and LW12. Three matched-binary
+properties make this absence of saved-state divergence expected:
 \begin{enumerate}
-  \item the comparison is restricted to saved conservative states produced
-        by matched strict-IEEE builds, in which fast-math reassociation,
-        FMA contraction, denormal flush-to-zero, and approximate division
-        and square root are all disabled on both the CPU and the CUDA path
+  \item saved conservative states come from matched strict-IEEE builds, with
+        fast-math reassociation, FMA contraction, denormal flush-to-zero, and
+        approximate division and square root disabled on both backends
         (Table~\ref{tab:ch4-strict-flags});
-  \item the conserved-state write-out path carries no floating-point
-        summation reduction, so the saved bytes are the result of the same
-        ordered local operations on either backend;
-  \item the global CFL selection in
-        Equation~\ref{eq:ch4-cfl-scan} is an ordered \(\max/\min\) over
-        cell-local wave-speed candidates, not an unordered sum, so the
-        chosen \(\Delta t\) does not depend on block, warp, or thread order.
+  \item the write-out path has no floating-point summation reduction, so saved
+        bytes follow the same ordered local operations on either backend;
+  \item global CFL selection in Equation~\ref{eq:ch4-cfl-scan} is an ordered
+        \(\max/\min\) over cell-local wave-speed candidates, not an unordered
+        sum, so \(\Delta t\) is independent of block, warp, or thread order.
 \end{enumerate}
 The GPU is nonetheless doing live arithmetic, not echoing CPU outputs: the
 CUDA flag probe below shows that switching from strict to fast-math CUDA
-controls perturbs the same saved states by up to
+controls perturbs the same saved states by a scaled ULP ratio of
 \(\mathrm{ULP}_{\max}\approx 30.7\) on LW3 fp32, impossible if the GPU path
 were inert. The zero-drift result is therefore a statement about what the
 matched strict build hides, not about whether the GPU is exercised.
@@ -396,9 +400,9 @@ arithmetic~\citep{ieee754_2019,goldberg_1991}. O2 and O3 are bit-identical for
 every tested case. Ofast+fast-math perturbs every non-stationary case, and the
 case ordering tracks the strong-wave structure: Toro5 has the largest
 final-time drift ($L_1=1.71\times10^{-4}$,
-$L_\infty=1.93\times10^{-2}$, $\mathrm{ULP}_{\max}\approx29.9$),
-Toro3 is next, the two-dimensional LW3 entry at $200^2$ cells sits in between, and the smooth
-Sod cases at $N=200$ and $N=400$ stay near a few fp32 ULPs.
+$L_\infty=1.93\times10^{-2}$, scaled $\mathrm{ULP}_{\max}\approx29.9$),
+Toro3 is next, LW3 at $200^2$ sits in between, and the smooth
+Sod cases at $N=200$ and $N=400$ stay near a few fp32 ratios.
 
 \begin{table}[htbp]
 \centering
@@ -423,15 +427,15 @@ $N=400$, Toro3 and Toro5 at $N=200$, and LW3 at $200^2$.}
 \label{tab:ch5-fp32-flags}
 \end{table}
 
-A GPU flag probe compares fast CUDA against strict CUDA outputs at the same
-case, precision, and grid. Sod fp64 at $N=200$ acquires
+A GPU flag probe compares fast against strict CUDA outputs at the same case,
+precision, and grid. Sod fp64 at $N=200$ acquires
 $L_1=2.89\times10^{-17}$, $L_\infty=3.66\times10^{-15}$,
 $\mathrm{ULP}_{\max}\approx6.6$; LW3 fp64 at $200^2$ reaches
 $\mathrm{ULP}_{\max}\approx23.3$; LW3 fp32 reaches
 $L_1=3.62\times10^{-7}$, $L_\infty=1.57\times10^{-5}$,
 $\mathrm{ULP}_{\max}\approx30.7$. Both sides are CUDA outputs, so this bounds
-the zero-drift result in Table~\ref{tab:ch5-cpu-gpu} to strict-IEEE,
-fast-math-off builds.
+Table~\ref{tab:ch5-cpu-gpu}'s zero-drift result to strict-IEEE, fast-math-off
+builds.
 
 A limiter probe gives a method-sensitivity scale, not reproducibility
 evidence. With CPU-fp64 HLLC at the same grid, switching from minbee to van
@@ -445,7 +449,7 @@ case, from 10\% to 100\% of each case duration, for the non-zero O2 versus
 Ofast+fast-math rows. Zero branch-rule rows are omitted from the log-scale
 plot and reported in Table~\ref{tab:ch5-variation} and the text instead. The
 largest visible absolute drifts are the pressure curves for Toro5 and Toro3,
-followed by Toro5 density; Sod, Toro2, and Toro4 remain lower. The comparison
+followed by Toro5 density; Sod and the lower-drift supporting Toro cases remain lower. The comparison
 is finite-time and checkpoint-based.
 
 \begin{figure}[htbp]
@@ -459,11 +463,11 @@ in Table~\ref{tab:ch5-variation} and the text.}
 \end{figure}
 % <<SECTION_6_END>>
 
-\section{Toro2 Branch Stability}
+\section{Toro Test 2 Branch Stability}
 % <<SECTION_7_BEGIN>>
-Under the same CPU--fp64 toolchain and default CFL, the baseline $\leq$ branch finishes Toro~123 in roughly $0.13$~s, while the strict $<$ branch does not produce a final \texttt{grid.bin} within the $600$~s wall-clock budget. The two branches differ only in a single comparison inside the HLLC dispatcher.
+With the same CPU--fp64 toolchain and CFL, the baseline $\leq$ branch finishes Toro Test 2, the symmetric near-vacuum problem, in roughly $0.13$~s, while the strict $<$ branch produces no valid final state. The branches differ only in one HLLC-dispatcher comparison.
 
-The mechanism is visible analytically. Toro~123 is the symmetric near-vacuum problem with $u_L = -2$, $u_R = +2$, $\rho_L = \rho_R = \rho$ and $p_L = p_R$, hence $a_L = a_R = a$. Substituting into Eq.~\ref{eq:ch3-sstar-decomp}, the pressure jump $p_R - p_L$ vanishes and the momentum-wave terms cancel pairwise, $\rho_L u_L (S_L - u_L) - \rho_R u_R (S_R - u_R) = 2\rho a - 2\rho a = 0$, so $N_\ast = 0$ exactly by symmetry. The denominator is $D_\ast = -2\rho a$, well-conditioned and bounded away from zero. Analytically $S_\ast = 0$ from Eq.~\ref{eq:ch3-hllc-sstar}, but the computed $N_\ast$ carries rounding noise, so the sign of the computed $S_\ast$ is set by that noise.
+The mechanism is analytic. Toro Test 2 has $u_L = -2$, $u_R = +2$, $\rho_L = \rho_R = \rho$ and $p_L = p_R$, hence $a_L = a_R = a$. Substituting into Eq.~\ref{eq:ch3-sstar-decomp}, the pressure jump $p_R - p_L$ vanishes and the momentum-wave terms cancel pairwise, $\rho_L u_L (S_L - u_L) - \rho_R u_R (S_R - u_R) = 2\rho a - 2\rho a = 0$, so $N_\ast = 0$ exactly by symmetry. The denominator is $D_\ast = -2\rho a$, well-conditioned and bounded away from zero. Analytically $S_\ast = 0$ from Eq.~\ref{eq:ch3-hllc-sstar}, but the computed $N_\ast$ carries rounding noise, so the sign of the computed $S_\ast$ is set by that noise.
 
-The $\leq$ branch routes the equality $S_\ast = 0$ to one fixed flux. The strict $<$ branch sees the rounded sign of $S_\ast$ flip between sub-steps and alternates between $F_{\ast L}$ and $F_{\ast R}$; repeated alternation drives flux-update inconsistency and CFL collapse. This is consistent with the observation, but the stage-by-stage trigger is not directly logged; a stage-resolved diagnostic is deferred to Report~2. The result is a single-case observation, not a systematic study.
+A stage-resolved diagnostic logs the trigger directly. At the central interface on step 0 it records $N_\ast = 0$, $D_\ast=-1.496663$ and $S_\ast=-0$. The baseline $\leq$ rule selects $F_{\ast L}$ and gives zero mass flux, but strict $<$ excludes both star inequalities at equality and falls through to $F_R$, giving mass flux $2.0$. After that first update the state dump reports $\min\rho=-0.164343$ at cell 99, so the missing final \texttt{grid.bin} is a downstream symptom of an immediate non-physical update, not merely timeout evidence. The conclusion remains single-case, but the failure trigger is logged.
 % <<SECTION_7_END>>

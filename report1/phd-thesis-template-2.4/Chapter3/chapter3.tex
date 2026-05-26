@@ -94,12 +94,10 @@ used below, following the standard treatments of \citet{toro2009} and
 Courant--Friedrichs--Lewy (CFL) condition on local acoustic wave speeds; the
 full formula is given in Section~\ref{sec:ch3-stability}.
 Equation~\ref{eq:fv-update} fixes the
-two-direction notation; the implementation applies this conservative update
-through alternating directional sweeps, described in Chapter~4. In two
-dimensions each sweep is a one-dimensional conservative update using the current
-cell averages; alternating the sweep order reduces a fixed ordering bias. The
-scheme is therefore dimensionally split, not an unsplit method with transverse
-flux corrections.
+two-direction notation; the implementation does not advance it as an unsplit
+transverse-flux scheme. Instead, Chapter~4 uses alternating directional sweeps:
+each two-dimensional step is built from one-dimensional conservative updates in
+\(x\) and \(y\), with alternating order to reduce fixed ordering bias.
 % <<SECTION_1_END>>
 
 \section{MUSCL-Hancock Reconstruction and Predictor Step}
@@ -112,8 +110,8 @@ extrema and spurious oscillations. A slope limiter suppresses these extrema
 while retaining second-order accuracy in smooth monotone regions. The
 reconstruction follows the MUSCL framework of van~Leer~\citep{vanleer_1979}, in
 the presentation of \citet{toro2009}. The reconstruction uses one-sided jumps
-and the minbee limiter (in Toro's nomenclature), written here in the
-component-wise minmod form used by the code: for conserved component \(k\),
+and Toro's minbee limiter function \(\Phi(r)\). For the jump orientation used
+by the code this gives the following component-wise limited jump:
 \begin{equation}\label{eq:ch3-minmod-sigma}
   \sigma_i^{(k)}
   =
@@ -131,10 +129,15 @@ where
 \end{equation}
 Equivalently, writing the one-sided jumps as
 \(\delta^- U_i^{(k)} = \bar U_i^{(k),n}-\bar U_{i-1}^{(k),n}\) and
-\(\delta^+ U_i^{(k)} = \bar U_{i+1}^{(k),n}-\bar U_i^{(k),n}\), one has
-\(\sigma_i^{(k)} = \Phi(r_i^{(k)})\,\delta^+ U_i^{(k)}\) with
-\(\Phi(r) = \max(0, \min(1, r))\) for
-\(r_i^{(k)} = \delta^- U_i^{(k)} / \delta^+ U_i^{(k)}\).
+\(\delta^+ U_i^{(k)} = \bar U_{i+1}^{(k),n}-\bar U_i^{(k),n}\),
+\begin{equation}\label{eq:ch3-minbee-function}
+  \sigma_i^{(k)} = \Phi(r_i^{(k)})\,\delta^+ U_i^{(k)},\qquad
+  \Phi(r) = \max(0, \min(1, r)),\qquad
+  r_i^{(k)} = \frac{\delta^- U_i^{(k)}}{\delta^+ U_i^{(k)}} .
+\end{equation}
+\(\Phi\) is Toro's minbee function; Eq.~\eqref{eq:ch3-minmod-sigma} is its
+limited-jump implementation here, not a claim that all minbee and minmod
+limiter forms are interchangeable.
 Minbee is a diffusive Total Variation Diminishing (TVD) limiter, so small
 perturbations may be damped. For a scalar conservation law a TVD scheme cannot
 increase the discrete total variation in time and so cannot generate spurious
@@ -284,16 +287,18 @@ across \(S_K\) and may be written in closed form as
     +(S_\ast-u_K)\!\left[S_\ast+\dfrac{p_K}{\rho_K(S_K-u_K)}\right]
   \end{pmatrix},
 \end{equation}
-with the contact pressure
-\(p_\ast=p_K+\rho_K(S_K-u_K)(S_\ast-u_K)\) equal on both sides of the contact.
+The scalar prefactor multiplies the whole vector; the fourth entry is the
+specific total-energy form. The contact pressure
+\(p_\ast=p_K+\rho_K(S_K-u_K)(S_\ast-u_K)\) is equal on both sides of the contact.
 This is the part of HLLC that restores the contact wave missing from the
-two-wave HLL approximation discussed by \citet{toro_spruce_speares_1994} and
-\citet{toro2009}. The exact choice of strict or non-strict
+two-wave HLL approximation discussed in the literature
+\citep{toro_spruce_speares_1994,batten_etal_1997,toro2009}. The exact choice of strict or non-strict
 inequality at zero is a precision-sensitive implementation decision and is
 discussed separately in Section~\ref{sec:precision-sensitive-decisions}.
 
-Rusanov is used later as a controlled method comparator, not as the main
-validation method or as an accuracy recommendation. It changes only the
+Rusanov, also called the local Lax--Friedrichs flux, is used later as a
+controlled method comparator, not as the main validation method or as an
+accuracy recommendation. It changes only the
 interface flux inside the same MUSCL--Hancock update, leaving reconstruction and
 time integration fixed, so the comparison isolates the contact-wave, branch, and
 arithmetic path introduced by HLLC. The flux replaces the contact-resolving HLLC
@@ -340,12 +345,14 @@ Courant numbers in the two coordinate directions are
 \end{equation}
 Substituting Equation~\ref{eq:ch3-cfl-timestep} into
 Equation~\ref{eq:ch3-courant-numbers} gives
-\(\max_{ij}\max(\nu_{x,ij},\nu_{y,ij})\le C_{\mathrm{CFL}}\) directly. The
-implemented update is dimensionally split: Equation~\ref{eq:fv-update} is
-applied as successive one-dimensional sweeps in \(x\) and \(y\). The working
-role of \(C_{\mathrm{CFL}}\) is therefore a safety factor on the local acoustic
-wave-speed restriction, not a universal stability constant
-\citep{toro2009,leveque_2002}.
+\(\max_{ij}\max(\nu_{x,ij},\nu_{y,ij})\le C_{\mathrm{CFL}}\) directly, so the
+formula is the split-update per-direction restriction. The implementation then
+applies Equation~\ref{eq:fv-update} as successive one-dimensional sweeps in
+\(x\) and \(y\); \(C_{\mathrm{CFL}}\) is a local acoustic wave-speed safety
+factor, not a universal stability constant \citep{toro2009,leveque_2002}. This
+report does not use the split form to claim a global unsplit
+or Strang-split second-order-in-time theorem; Chapter~5 demonstrates observed
+two-dimensional benchmark agreement against numerical references instead.
 
 For a scalar monotone first-order scheme, a TVD argument gives a direct
 Courant-number restriction. MUSCL-Hancock uses second-order reconstruction and a
@@ -354,7 +361,7 @@ nonsmooth data. The limiter makes the reconstruction nonlinear, so the local
 order is not uniform across the grid. In smooth monotone regions the
 piecewise-linear data and Hancock predictor give the expected second-order
 truncation behaviour. At extrema, shocks, contacts, and rarefaction edges the
-minbee limiter, written in minmod form above, can set or reduce the slope,
+minbee limiter, implemented by Eq.~\eqref{eq:ch3-minmod-sigma}, can set or reduce the slope,
 moving the local update towards a first-order Godunov step
 \citep{vanleer_1979,toro2009}.
 
@@ -370,8 +377,10 @@ or updated states outside this admissible set even when the conservative update
 is algebraically well defined. HLLC wave-speed estimates and limiter decisions
 therefore act together with the CFL choice: they determine not only linear
 stability, but also whether the intermediate states used in the Riemann solve
-remain physically meaningful. No general positivity proof is claimed here; the
-CFL and limiter choices are treated as part of the controlled numerical method.
+remain physically meaningful. Batten-type HLLC wave-speed choices support
+robustness and admissibility \citep{batten_etal_1997}, but no explicit
+positivity limiter or general positivity proof is claimed here; the CFL and
+limiter choices are treated as part of the controlled numerical method.
 % <<SECTION_4_END>>
 
 \section{Precision-Sensitive Decision Points}
@@ -554,14 +563,18 @@ induction equation with a scalar field \(\psi\):
   \partial_t \psi + c_h^2\nabla\cdot\mathbf{B} = -\psi/\tau .
 \end{equation}
 Here \(\psi\) carries divergence error, \(c_h\) is the cleaning-wave speed, and
-\(\tau\) is the damping time. Constrained transport \citep{evans_hawley_1988}
+\(\tau=c_p^2/c_h^2\) is the damping time, so \(-\psi/\tau\) matches
+\(-(c_h^2/c_p^2)\psi\) in Dedner's parameterisation. Constrained transport \citep{evans_hawley_1988}
 instead preserves a staggered-mesh discrete divergence constraint. This is also
 why the Euler HLLC flux is not a direct full-MHD choice: its three-wave
 acoustic/contact model does not resolve the fast, Alfven, slow, and contact
 families, nor the discrete divergence constraint. HLL gives a simpler but more
 diffusive bound \citep{harten_lax_vanleer_1983}; HLLD \citep{miyoshi_kusano_2005}
-and Roe-type solvers aim to retain more MHD wave structure, while GLM-Dedner
-cleaning and constrained transport treat divergence error differently. These are Report~2 concerns.
+and Roe-type solvers \citep{roe_1981} aim to retain more MHD wave structure,
+while GLM-Dedner cleaning and constrained transport treat divergence error
+differently. Report~1 does not derive an MHD finite-volume update, discrete GLM
+source treatment, HLLD star states, or a divergence diagnostic; those are
+Report~2 implementation and validation tasks.
 GPU-accelerated MUSCL--Hancock ideal-MHD solvers have been demonstrated in this
 setting \citep{bard_dorelli_2014}, but that is precedent for the later MHD
 extension rather than Report~1 validation evidence.

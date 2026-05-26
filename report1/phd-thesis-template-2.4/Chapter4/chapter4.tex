@@ -5,7 +5,7 @@
 \section{Implementation Route and Comparability Principle}
 \label{sec:implementation-route}
 % <<SECTION_1_BEGIN>>
-Report~1 uses a stand-alone CPU/CUDA Euler implementation. The brief permits this, and source-level control of the precision-sensitive decision points enumerated in Section~\ref{sec:precision-sensitive-decisions} (FMA contraction, HLLC branch rule, fast-math reassociation) is easier than through a framework's flux abstraction. The real type is selected at configuration time and is then used as the single scalar type in the solver:
+Report~1 uses a stand-alone CPU/CUDA Euler implementation as a scope choice: it makes the scalar type explicit, permits direct CPU/CUDA dispatch, preserves stable binary outputs, and keeps uniform-grid validation separate from AMR/MPI attribution questions. The real type is selected at configuration time and is then used as the single scalar type in the solver:
 
 \begin{center}
 \begin{tabular}{lll}
@@ -84,7 +84,7 @@ summaries and report-facing figures rather than raw grids.
     \Else
       \State $U \gets \textsc{XSweep}(U, \Delta t)$ \Comment{1D}
     \EndIf
-    \State $(t, c) \gets \textsc{KahanAdd}(t, \Delta t, c)$ \Comment{compensated summation~\citep{higham_2002}}
+    \State $(t, c) \gets \textsc{KahanAdd}(t, \Delta t, c)$ \Comment{compensated summation~\citep{kahan_1965,higham_2002}}
     \State $n_{\mathrm{step}} \gets n_{\mathrm{step}} + 1$
   \EndWhile
   \State \Return $U$
@@ -110,7 +110,7 @@ summaries and report-facing figures rather than raw grids.
 \end{algorithmic}
 \end{algorithm}
 
-The CUDA path decomposes the update into separate kernels for boundary handling, face-state construction, flux evaluation, conservative update, and a block-wise reduction for the CFL stage. The HLLC flux kernel (Algorithm~\ref{alg:hllc-flux-select}) is the principal warp-divergence site: in mixed-wave regions, threads within a warp can resolve to different branches of the wave-pattern test ($S_L \ge 0$ vs.\ $S_\ast \ge 0$ vs.\ $S_R \ge 0$), and the warp serialises the divergent paths rather than executing them in lock-step. CPU and CUDA therefore share the same HLLC branch-rule sensitivity axis: near mixed-wave cells, branch choices can diverge within a warp even when no aggregate CPU--GPU saved-state divergence is observed. The cell-major layout introduced earlier in this section is a CPU/GPU comparability choice---identical indexing on both sides---rather than a throughput-optimal structure-of-arrays design, so it constrains coalescing and bounds GPU throughput. Shared memory is used only for the CFL block reduction, not as a tiled stencil cache, leaving global-memory bandwidth as the dominant traffic for reconstruction, flux, and update. This is consistent with Table~\ref{tab:ch4-runtime-minimatrix}: the fp64 LW3 row, where GPU wall-clock sits close to CPU, matches memory-bound behaviour saturating fp64 bandwidth, while the fp32 LW3 row, where GPU is faster than CPU, is consistent with fp32 halving per-element traffic and freeing bandwidth headroom. In the CUDA CFL stage, ordered comparisons make the selected $\Delta t$ independent of block order.
+The CUDA path decomposes the update into separate kernels for boundary handling, face-state construction, flux evaluation, conservative update, and a block-wise CFL reduction. The HLLC flux kernel (Algorithm~\ref{alg:hllc-flux-select}) is the principal warp-divergence site: in mixed-wave regions, threads within a warp can take different wave-pattern branches ($S_L \ge 0$ vs.\ $S_\ast \ge 0$ vs.\ $S_R \ge 0$), so CPU and CUDA share the same branch-rule sensitivity axis. The cell-major layout is a CPU/GPU comparability choice---identical indexing on both sides---rather than a throughput-optimal structure-of-arrays design. Shared memory is used only for the CFL block reduction, not as a tiled stencil cache. Table~\ref{tab:ch4-runtime-minimatrix} is consistent with fp64 speedup being limited by consumer-GPU fp64 throughput plus the current memory/layout choices, while the fp32 LW3 row shows a faster GPU run under the same caveats. In the CUDA CFL stage, ordered comparisons make the selected $\Delta t$ independent of block order.
 
 {\sloppy
 CPU sweep loops use OpenMP static schedules, giving fixed thread assignments.
@@ -189,9 +189,10 @@ Verificarlo tool~\citep{denis_etal_2016}, the solver is built through the
 MCA/virtual-precision toolchain in MCA mode with the random-rounding (RR)
 operator, and sampled with independent seeds. The virtual-precision labels
 \texttt{p8}, \texttt{p16}, \texttt{p32}, and \texttt{p53} are not IEEE
-binary storage formats (see Section~2.4). By design the per-configuration
-sample budget is small, so Chapter~5 reads these as a rounding-sensitivity
-probe rather than a converged distribution.
+binary storage formats (see Section~2.4). The per-configuration sample budget
+is deliberately small: two or three samples per virtual precision are not
+statistically defensible for confidence intervals or distributional quantiles,
+so Chapter~6 uses them only as spatial localisation diagnostics.
 For a primitive component \(q_j\), the sample standard deviation
 \(\sigma_{\mathrm{FP},j}=\operatorname{std}_k(q_j^{(k)})\) gives a local
 roundoff scale for comparison with field magnitude or local reference error.
@@ -217,9 +218,14 @@ supersonic example. Table~\ref{tab:ch4-design-matrix} records this design
 coverage; Chapter~5 reports the measured values.
 
 The scalar comparisons use field norms on the saved state: \(L_1\),
-\(L_\infty\), and \(\mathrm{ULP}_{\max}\). For two-dimensional density images,
-SSIM measures image-structure similarity; values near 1 indicate closer
-agreement with the reference image. Precision adequacy uses the
+\(L_\infty\), and \(\mathrm{ULP}_{\max}\), a scaled ULP ratio
+\(L_\infty/(\epsilon\,\mathrm{maxabs})\), not an integer
+adjacent-float distance. For two-dimensional density images, SSIM
+(\texttt{\detokenize{skimage.metrics.structural_similarity}},
+\texttt{\detokenize{gaussian_weights=True}}, \texttt{sigma=1.5},
+\texttt{\detokenize{data_range=max(reference)-min(reference)}})
+measures image-structure similarity; values near 1 indicate closer agreement
+with the reference image. Precision adequacy uses the
 reference-scaled ratio
 \begin{equation}\label{eq:ch4-rref}
 R_{\mathrm{ref}} =
@@ -262,9 +268,10 @@ two-dimensional image comparisons.}
 \end{table}
 
 Table~\ref{tab:ch4-runtime-minimatrix} reports wall-clock timing metadata
-from one containerized CUDA 12.5 / GCC 13 environment (strict HLLC, five
-repeats per row); the fp64 LW3 row shows GPU $\approx$ CPU, so the rows are
-computational-cost context, not a portable timing result.
+from the local Intel Core i9-13900H host and NVIDIA RTX 4060 Laptop GPU in a
+containerized CUDA 12.5/GCC 13 environment (strict HLLC, five repeats per row);
+the fp64 LW3 row shows GPU \(\approx\) CPU, so the rows are computational-cost
+context, not a portable timing result.
 
 \begin{table}[htbp]
 \centering
@@ -301,6 +308,8 @@ The reference self-convergence summary checks LW3 \(400^2\)-against-\(800^2\)
 and \(800^2\)-against-\(1600^2\), supporting the \(1600^2\) field as a
 higher-resolution numerical reference; no analogous \(1600^2\) row is claimed
 for LW12.
+The LW3 \(1600^2\) reference is a CSC RTX 5090 strict-HLLC GPU reference
+candidate with CPU/GPU preflight support, not a CPU-equivalent proof.
 
 The lower-grid two-dimensional comparisons map these high-resolution
 references to the candidate grid before metrics are computed. The conserved
@@ -330,8 +339,8 @@ and \texttt{tests/py/} holds the \texttt{pytest} units that re-run those
 drivers on stored references. For one-dimensional cases, the harness reads
 \texttt{grid.bin} for the candidate run and the analytic exact Riemann
 solution at the same final time and grid, computes density, momentum, and
-energy $L_1$, $L_\infty$, and $\mathrm{ULP}_{\max}$, and asserts that each
-metric is below a per-case tolerance recorded in the test source. For
+energy $L_1$, $L_\infty$, and scaled $\mathrm{ULP}_{\max}$, and asserts that
+each metric is below a per-case tolerance recorded in the test source. For
 two-dimensional cases, \texttt{run\_comparison.py} block-averages the
 high-resolution fp64 reference to the candidate grid and reports $L_1$,
 $L_\infty$, $\mathrm{ULP}_{\max}$, and SSIM; matched CPU/GPU pairs are

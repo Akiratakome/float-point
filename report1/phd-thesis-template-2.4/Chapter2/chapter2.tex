@@ -77,19 +77,19 @@ where \(\mathbf{u}\) is velocity, \(E\) is the total gas, kinetic, and magnetic
 energy density, and \(p_t=p+\lvert\mathbf{B}\rvert^2/2\) is the total pressure.
 The final flux row is the conservative induction equation for \(\mathbf{B}\).
 The constraint \(\nabla\cdot\mathbf{B}=0\) states that the magnetic field is
-solenoidal. If numerical divergence is allowed to grow, the computed magnetic
-force and MHD wave propagation can be polluted by non-physical monopole error.
-Report 1 does not implement or validate MHD; for Report~2, the candidate
-numerical choices fall into two families surveyed by \citet{toth_2000}:
-hyperbolic divergence cleaning of Dedner-type \citep{dedner_2002}, which
-augments the induction equation with a scalar transport that carries
-divergence error away, and constrained transport \citep{evans_hawley_1988},
-which preserves a discrete staggered-mesh divergence constraint by
-construction. The corresponding MHD Riemann solver candidate is the
-multi-state HLLD scheme \citep{miyoshi_kusano_2005}, which retains the fast
-and Alfv\'en waves missing from a direct Euler-HLLC reuse. A GPU-accelerated
-MUSCL--Hancock ideal-MHD precedent is provided by \citet{bard_dorelli_2014}.
-Eight-wave formulations \citep{powell_1999} provide an alternative MHD HRSC framework with built-in cleaning, noted here for the Report~2 MHD extension.
+solenoidal. Brackbill and Barnes showed that nonzero numerical divergence
+introduces magnetic-monopole forces into the momentum balance, so divergence
+control is not only a cosmetic field-cleaning issue~\citep{brackbill_barnes_1980}.
+Report~1 does not implement or validate MHD; for Report~2, the main choices are
+constrained transport, which preserves a staggered discrete divergence
+constraint~\citep{evans_hawley_1988}, Dedner/GLM cleaning, which transports and
+damps divergence error through an added scalar field~\citep{dedner_2002}, and
+Powell eight-wave source terms, which advect divergence error with the flow but
+sacrifice strict conservation across shocks~\citep{powell_1999,toth_2000}.
+These cell-centred cleaning approaches are related, but Powell and Dedner are
+not identical formulations. The corresponding Riemann-solver candidate is
+HLLD~\citep{miyoshi_kusano_2005}; Bard and Dorelli provide a GPU
+MUSCL--Hancock ideal-MHD precedent~\citep{bard_dorelli_2014}.
 % <<SECTION_2_END>>
 
 \section{HRSC and Benchmark Literature}
@@ -112,9 +112,8 @@ solver can be checked before precision and hardware effects are interpreted.
 Sod's shock tube and Toro's one-dimensional Riemann problems are standard
 sources for shocks, contacts, and rarefactions in a controlled setting
 \citep{sod_1978,toro2009}. Liska and Wendroff's two-dimensional Euler Riemann
-configurations extend this role to interacting waves and multidimensional
-structure without requiring the background chapter to catalogue individual test
-cases \citep{liska_wendroff_2003}.
+configurations extend this benchmark role to interacting waves and
+multidimensional structure \citep{liska_wendroff_2003}.
 % <<SECTION_3_END>>
 
 \section{Floating-Point Arithmetic and Reproducibility}
@@ -132,10 +131,11 @@ the spacing between adjacent representable numbers; later
 by relative norms.
 
 The key difficulty is non-associativity, with a related hazard of catastrophic
-cancellation: subtraction of nearly-equal quantities loses leading digits and
-inflates the relative error. In binary64, \((10^{-18}+1)-1\) rounds the small
-increment away and returns zero, whereas \(10^{-18}+(1-1)\) returns
-\(10^{-18}\). Such changes alter wave speeds, limiters, fluxes, and later steps. Compensated (Kahan) summation tracks lost low-order bits in a
+cancellation: subtracting nearly equal quantities can lose leading digits and
+inflate relative error. Sterbenz's lemma gives the narrow exact case: for
+positive floating-point \(x\) and \(y\), \(x-y\) is exact when
+\(y/2 \le x \le 2y\). Outside such structure, evaluation order can alter wave
+speeds, limiters, fluxes, and later steps. Compensated (Kahan) summation tracks lost low-order bits in a
 correction term, recovering near full precision in long accumulations;
 Algorithm~1 uses it for the simulation-time counter. The report measures the size and location of these effects rather than
 assuming harmlessness.
@@ -151,7 +151,9 @@ control this source of variation, but they must be designed explicitly rather
 than assumed from the mathematical expression \citep{demmel_nguyen_2013}. CUDA
 devices follow IEEE-754 and expose fused multiply-add (FMA), which aids
 accuracy and throughput but shifts bit patterns relative to a non-FMA CPU
-build \citep{whitehead_fitflorea_2011}. Comparison order can also matter for tied
+build \citep{whitehead_fitflorea_2011}. Subnormals provide gradual underflow
+below the normal range; flush-to-zero disables it, so strict CUDA runs later
+set \texttt{--ftz=false}. Comparison order can also matter for tied
 or nearly tied candidates. CFD precision studies such as Brogi et al.'s
 OpenFOAM work show why reduced or mixed precision must be validated case by
 case \citep{brogi_etal_2024}. This report also uses Verificarlo, which
