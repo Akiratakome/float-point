@@ -78,11 +78,6 @@ $p_{400\to800}=\log_2(E_{400}/E_{800})$.}
 \label{tab:ch5-1d-exact-convergence}
 \end{table}
 
-Table~\ref{tab:ch5-1d-feature-validation} gives a narrower check on the
-plotted one-dimensional profiles. At $N=800$, the main contacts and shocks are
-located within about one cell, while the density error is larger inside narrow
-discontinuity bands than in the remaining cells.
-
 \begin{table}[htbp]
 \centering
 \footnotesize
@@ -168,7 +163,6 @@ decreases and SSIM increases between $N=200$ and $N=400$
 decreasing from $3.304289{\times}10^{-3}$ for 400-vs-800 to
 $2.392109{\times}10^{-3}$ for 800-vs-1600, with observed order about $0.47$;
 this supports a numerical-reference hierarchy, not an exact-solution proof.
-This is standard grid-refinement verification for problems without exact solutions \citep{liska_wendroff_2003,celik_etal_2008}, not a proof that the finest grid is exact.
 At $N=400$, the same-resolution fp32--fp64 density $L_1$ perturbation is
 $9.25{\times}10^{-5}$ of the same-grid density reference error and
 $1.39{\times}10^{-4}$ of the adjacent 400-vs-800 fp64 hierarchy error, so the
@@ -390,15 +384,7 @@ same qualitative separation and is not repeated in the main text.}
 \label{fig:ch5-hllc-rusanov}
 \end{figure}
 
-The fp32 compiler matrix in Table~\ref{tab:ch5-fp32-flags} shows the same
-qualitative split between optimisation level and fast-math in binary32
-arithmetic~\citep{ieee754_2019,goldberg_1991}. O2 and O3 are bit-identical for
-every tested case. Ofast+fast-math perturbs every non-stationary case, and the
-case ordering tracks the strong-wave structure: Toro5 has the largest
-final-time drift ($L_1=1.71\times10^{-4}$,
-$L_\infty=1.93\times10^{-2}$, scaled $\mathrm{ULP}_{\max}\approx29.9$),
-Toro3 is next, LW3 at $200^2$ sits in between, and the smooth
-Sod cases at $N=200$ and $N=400$ stay near a few fp32 ratios.
+The fp32 compiler matrix in Table~\ref{tab:ch5-fp32-flags} shows the same qualitative split: O2 vs O3 is bit-identical, while Ofast+fast-math perturbs every non-stationary case, with the case ordering tracking strong-wave structure~\citep{ieee754_2019,goldberg_1991}.
 
 \begin{table}[htbp]
 \centering
