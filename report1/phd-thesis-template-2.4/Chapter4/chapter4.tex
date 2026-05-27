@@ -38,7 +38,7 @@ Toro3 and Toro5 were rerun on the CSC Linux strict-IEEE build for the matched CP
 
 \section{Algorithmic Structure of the Implementation}
 % <<SECTION_2_BEGIN>>
-The executable reads the configuration, selects the initial condition, boundary modes, flux solver, and device. It then dispatches to the CPU solver or to CUDA when \texttt{ENABLE\_CUDA} is present. The conservative array is cell-major,
+The executable reads the configuration and picks up the initial condition, boundary modes, flux solver, and device, then dispatches to the CPU solver or to CUDA when \texttt{ENABLE\_CUDA} is present. The conservative array is cell-major,
 \texttt{((j+ng)*nx\_total + (i+ng))*NVars + var}, with four Euler variables contiguous per cell. CPU loops and GPU kernels use the same indexing and boundary rules, a comparability choice that lines up both paths rather than matching a throughput-optimal structure-of-arrays design. Each step fills ghost cells and applies directional MUSCL--Hancock sweeps with HLLC or Rusanov fluxes~\citep{toro2009}.
 
 The CFL scan computes

@@ -138,7 +138,7 @@ field that fixes the power-of-two scale, and a \emph{significand} field that
 carries the leading binary digits. The IEEE-754 unbiased exponent $e$ is
 recovered from the stored value by subtracting the format-specific bias. Under round-to-nearest arithmetic, binary32 has a 24-bit significand and a normal unbiased exponent range $e \in [-126, +127]$, while binary64 has a 53-bit significand and a normal unbiased exponent range $e \in [-1022, +1023]$ \citep{ieee754_2019,goldberg_1991}. The corresponding
 unit roundoff is about \(2^{-24}\) and \(2^{-53}\), respectively
-\citep{higham_2002}; this is a local scale, not a solution-error bound for a
+\citep{higham_2002}; the roundoff bound is a local scale, not a solution-error bound for a
 nonlinear time-dependent HRSC calculation. A unit in the last place (ULP) is
 the spacing between adjacent representable numbers; later
 \(\mathrm{ULP}_{\max}\) tables use it to expose bit-level differences hidden
@@ -202,7 +202,7 @@ exercised here.
 
 \section{Verificarlo and Monte Carlo Arithmetic}
 % <<SECTION_VERIFICARLO_BEGIN>>
-The reproducibility experiments use Verificarlo, an open-source LLVM-based instrumentation tool developed by Denis, Castro Lopez, Petit, F\`evre, Lamotte and collaborators \citep{denis_etal_2016}. It replaces individual floating-point operations with instrumented variants at compile time. The resulting instrumented binary can probe rounding sensitivity without touching the application source. The tool covers binary32 and binary64 inputs and exposes its instrumentation through a drop-in compiler wrapper called \texttt{verificarlo-c} / \texttt{verificarlo-c++}.
+The reproducibility experiments use Verificarlo, an open-source LLVM-based instrumentation tool developed by Denis, Castro Lopez, Petit, F\`evre, Lamotte and collaborators \citep{denis_etal_2016}. It swaps individual floating-point operations for instrumented variants at compile time, and the resulting binary can probe rounding sensitivity without touching application source. The tool covers binary32 and binary64 inputs and exposes its instrumentation through a drop-in compiler wrapper called \texttt{verificarlo-c} / \texttt{verificarlo-c++}.
 
 Verificarlo's diagnostic engine is Monte Carlo Arithmetic, introduced by \citet{parker_1997}. MCA replaces each rounded operation with a perturbed variant drawn from one of three operators: random rounding (RR) perturbs only the output, MCA perturbs both input and output, and precision bounding (PB) perturbs only the inputs. Each operator targets a chosen virtual mantissa width $t$, so a single binary can be sampled at $t \in \{8, 16, 32, 53\}$ without recompilation between samples. The distribution-free sample-count rule of \citet{sohier_etal_2021} is $n_{\min} = \lceil \log(1-c)/\log(p)\rceil$ for probability level $p$ and confidence $c$, and ships with the \texttt{significantdigits} Python package used downstream.
 

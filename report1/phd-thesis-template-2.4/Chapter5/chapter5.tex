@@ -270,8 +270,8 @@ LW12 & fp32, fp64 & 4 at $200^2$ and $400^2$ & 16 at $200^2$ and $400^2$, to $t=
 
 All 14 final-output comparisons in Table~\ref{tab:ch5-cpu-gpu} are zero in
 \(L_1\), \(L_\infty\), and \(\mathrm{ULP}_{\max}\), as are the
-saved-checkpoint comparisons listed in the table. Three matched-binary
-properties make this absence of saved-state divergence expected:
+saved-checkpoint comparisons in the table. Three matched-binary
+properties make the absence of saved-state divergence expected:
 \begin{enumerate}
   \item saved conservative states come from matched strict-IEEE builds, with
         fast-math reassociation, FMA contraction, denormal flush-to-zero, and
@@ -319,7 +319,7 @@ HLLC vs Rusanov & LW3, $200^2$ & 8.58e-3 & 1.45 \\
 \label{tab:ch5-variation}
 \end{table}
 
-The zero O2--O3 comparison shows that changing optimisation level alone did not
+O2 versus O3 is bit-identical: changing optimisation level alone did not
 alter the saved final state in the tested IEEE builds. The branch-rule axis
 is zero for the one-dimensional cases (Sod, stationary contact, Toro3, Toro5)
 and only roundoff-scale for LW3. Toro 2 is treated separately as the

@@ -310,7 +310,7 @@ structure by a centred flux plus scalar dissipation,
   \qquad
   S_{\max}=\max\left(|u_L|+a_L,\ |u_R|+a_R\right).
 \end{equation}
-Rusanov has no contact-wave branch and stronger numerical diffusion than HLLC \citep{harten_lax_vanleer_1983,toro2009}. The HLLC/Rusanov comparison in Chapter~5 therefore isolates the contact-resolving path rather than ranking accuracy.
+Rusanov has no contact-wave branch and stronger numerical diffusion than HLLC \citep{harten_lax_vanleer_1983,toro2009}. The HLLC/Rusanov comparison in Chapter~5 therefore isolates the contact-resolving path; it does not rank accuracy.
 % <<SECTION_3_END>>
 
 \section{Stability, Limiting, and Positivity}
@@ -431,7 +431,7 @@ logical test
   \qquad\hbox{or}\qquad
   S_L < 0 < S_\ast
 \end{equation}
-may only affect results when one of the computed wave speeds is very close to
+affects results only when one of the computed wave speeds sits very close to
 zero. Exact arithmetic distinguishes the two versions only at equality, but the
 computed sign of \(\widehat S_\ast\) is a quotient,
 \begin{equation}\label{eq:ch3-sstar-decomp}
