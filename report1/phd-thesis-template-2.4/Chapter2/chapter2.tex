@@ -76,20 +76,34 @@ with magnetic permeability set to one, a compact ideal-MHD conservation form is
 where \(\mathbf{u}\) is velocity, \(E\) is the total gas, kinetic, and magnetic
 energy density, and \(p_t=p+\lvert\mathbf{B}\rvert^2/2\) is the total pressure.
 The final flux row is the conservative induction equation for \(\mathbf{B}\).
+\paragraph{Physical meaning of the MHD wave speeds.}
+With the field decomposed into components parallel and perpendicular to the propagation direction, the Alfv\'en speed $c_A = |B_\parallel|/\sqrt{\rho}$ is the propagation speed of incompressible transverse magnetic perturbations along the field. The fast magnetosonic and slow magnetosonic speeds $c_f, c_s$ are the bounding compressible waves that mix gas-pressure and magnetic-pressure restoring forces, with $c_f \ge \max(a, c_A) \ge c_s$. The entropy/contact mode advects with the bulk flow at speed $u_n$ \citep{toro2009,miyoshi_kusano_2005}.
+
+\paragraph{Euler-vs-MHD structural difference.}
+Ideal MHD is not strictly hyperbolic: fast and Alfv\'en wave speeds coincide when the transverse field $B_\perp$ vanishes, and slow and Alfv\'en coincide when the parallel field $B_\parallel$ vanishes. These degeneracies break the clean three-wave HLLC picture inherited from Euler. The seven-wave fan shown in Chapter~3 Section~\emph{Extension to Ideal MHD} assumes the non-degenerate case \citep{brio_wu_1988}.
+
 The constraint \(\nabla\cdot\mathbf{B}=0\) states that the magnetic field is
 solenoidal. Brackbill and Barnes showed that nonzero numerical divergence
 introduces magnetic-monopole forces into the momentum balance, so divergence
 control is not only a cosmetic field-cleaning issue~\citep{brackbill_barnes_1980}.
-Report~1 does not implement or validate MHD; for Report~2, the main choices are
-constrained transport, which preserves a staggered discrete divergence
-constraint~\citep{evans_hawley_1988}, Dedner/GLM cleaning, which transports and
-damps divergence error through an added scalar field~\citep{dedner_2002}, and
-Powell eight-wave source terms, which advect divergence error with the flow but
-sacrifice strict conservation across shocks~\citep{powell_1999,toth_2000}.
-These cell-centred cleaning approaches are related, but Powell and Dedner are
-not identical formulations. The corresponding Riemann-solver candidate is
-HLLD~\citep{miyoshi_kusano_2005}; Bard and Dorelli provide a GPU
-MUSCL--Hancock ideal-MHD precedent~\citep{bard_dorelli_2014}.
+Cell-centred and staggered formulations split the design space for $\nabla \cdot \mathbf{B}$ control. Constrained transport keeps the divergence at machine zero on a staggered mesh, while hyperbolic cleaning and the eight-wave source approach work on the same cell-centred grid as the gas variables. Table~\ref{tab:ch2-divB-comparison} summarises the trade-offs.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Scheme & Divergence treatment & Mesh requirement & Trade-off \\
+\midrule
+Constrained transport \citep{evans_hawley_1988} & Discrete divergence preserved at machine zero by face-centred update & Staggered mesh; field components live on cell faces & Mesh staggering complicates AMR, interpolation, and ghost-cell handling \\ \addlinespace
+Hyperbolic cleaning / GLM \citep{dedner_2002} & Divergence error transported and damped through an auxiliary scalar field $\psi$ & Cell-centred; standard finite-volume mesh & Divergence error never strictly zero; cleaning wave speed $c_h$ adds a CFL constraint \\ \addlinespace
+Powell eight-wave \citep{powell_1999,toth_2000} & Divergence error advected with the bulk flow via added source terms & Cell-centred; standard finite-volume mesh & Strict conservation is sacrificed across strong shocks \\
+\bottomrule
+\end{tabularx}
+\caption[Divergence-control approaches for ideal MHD]{Divergence-control approaches for ideal MHD: constrained transport, hyperbolic (Dedner/GLM) cleaning, and Powell eight-wave source terms. Cell-centred (Dedner, Powell) and staggered (CT) split the design space; each scheme accepts a different trade between exact divergence zero, mesh complexity, and conservation across shocks.}
+\label{tab:ch2-divB-comparison}
+\end{table}
+HLLD remains the Report~2 Riemann-solver candidate~\citep{miyoshi_kusano_2005}; Bard and Dorelli provide a GPU MUSCL--Hancock ideal-MHD precedent~\citep{bard_dorelli_2014}.
 % <<SECTION_2_END>>
 
 \section{HRSC and Benchmark Literature}
