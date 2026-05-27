@@ -50,3 +50,5 @@ test_err.txt
 
 # PDFs
 *.pdf
+# but allow report1 figure PDFs (P2: graphicx prefers .pdf over .png)
+!report1/phd-thesis-template-2.4/Figs/report1/*.pdf
