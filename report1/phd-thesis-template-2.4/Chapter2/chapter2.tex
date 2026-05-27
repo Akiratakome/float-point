@@ -141,12 +141,10 @@ Conservation now lives at face level: shared faces contribute equal and opposite
 % <<SECTION_4_BEGIN>>
 A floating-point number is stored as a sign bit, an integer-encoded
 \emph{exponent} that fixes the power-of-two scale, and a \emph{significand}
-that carries the leading binary digits of the value. The field widths chosen
-by the format set both the relative precision and the dynamic range available
-to the update. In round-to-nearest arithmetic, binary32 has a 24-bit
-significand and normal exponent range \(-126\) to \(+127\), while binary64 has
-a 53-bit significand and normal exponent range \(-1022\) to \(+1023\)
-\citep{ieee754_2019,goldberg_1991}. The corresponding
+that carries the leading binary digits of the value. The number stored is
+encoded as a sign bit, a biased exponent field, and a significand field; the
+IEEE-754 unbiased exponent $e$ is recovered from the stored value by subtracting
+the format-specific bias. Under round-to-nearest arithmetic, binary32 has a 24-bit significand and a normal unbiased exponent range $e \in [-126, +127]$, while binary64 has a 53-bit significand and a normal unbiased exponent range $e \in [-1022, +1023]$ \citep{ieee754_2019,goldberg_1991}. The corresponding
 unit roundoff is about \(2^{-24}\) and \(2^{-53}\), respectively
 \citep{higham_2002}; this is a local scale, not a solution-error bound for a
 nonlinear time-dependent HRSC calculation. A unit in the last place (ULP) is
@@ -173,7 +171,14 @@ or warp scheduling and atomic reductions can change the accumulation tree; the
 solver comparisons below avoid summation-order claims unless an ordered max/min
 or saved-state metric supports them. Reproducible summation algorithms can
 control this source of variation, but they must be designed explicitly rather
-than assumed from the mathematical expression \citep{demmel_nguyen_2013}. CUDA
+than assumed from the mathematical expression \citep{demmel_nguyen_2013}.
+Parallel reductions inherit this sensitivity directly: warp reductions, OpenMP
+\texttt{reduction(+)}, and \texttt{MPI\_Reduce} all combine partial sums in an
+order set by thread count, block size, or NUMA topology, so the same input can
+produce different bit patterns across runs \citep{collange_etal_2015}.
+Reproducible reductions need an explicit construction, exemplified by
+ReproBLAS-style pre-rounded splits \citep{demmel_nguyen_2013} and the
+interval-arithmetic approach of \citet{revol_theveny_2014}. CUDA
 devices follow IEEE-754 and expose fused multiply-add (FMA), which aids
 accuracy and throughput but shifts bit patterns relative to a non-FMA CPU
 build \citep{whitehead_fitflorea_2011}. Subnormals provide gradual underflow
@@ -183,7 +188,10 @@ or nearly tied candidates. CFD precision studies such as Brogi et al.'s
 OpenFOAM work show why reduced or mixed precision must be validated case by
 case \citep{brogi_etal_2024}. This report also uses Verificarlo, which
 implements Monte Carlo arithmetic (MCA) by perturbing floating-point operations
-to estimate rounding sensitivity \citep{parker_1997,denis_etal_2016}.
+to estimate rounding sensitivity \citep{parker_1997,denis_etal_2016}. A
+Kulisch-style exact accumulator instead stores the full-precision partial sum in
+a wide fixed-point register, eliminating rounding inside the reduction at the
+cost of register width \citep{kulisch_2013}; the present solver does not use one.
 
 \paragraph{Virtual precision versus IEEE binary32.}
 Verificarlo's MCA-RR operator (introduced in
@@ -197,7 +205,10 @@ are not interchangeable: \texttt{p32} probes rounding sensitivity at a
 virtual mantissa width, whereas IEEE fp32 is a storage and arithmetic
 format used in actual production runs. Wherever this report quantifies an
 fp32 effect, the numbers come from a real \texttt{HRSC\_REAL=float} build,
-not a \texttt{p32} sample.
+not a \texttt{p32} sample. Higher-precision routes --
+\texttt{Boost.Multiprecision}, \texttt{MPFR}, software fp128 -- are surveyed by
+\citet{bailey_borwein_borwein_2015} and provide a path beyond binary64 not
+exercised here.
 % <<SECTION_4_END>>
 
 \section{Verificarlo and Monte Carlo Arithmetic}
