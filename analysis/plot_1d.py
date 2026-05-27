@@ -6,14 +6,37 @@ Usage: python analysis/plot_1d.py output/sod.bin --gamma 1.4 --x0 0.5 --t-end 0.
        --title "Sod Shock Tube" -o output/sod_plot.png
 """
 import argparse
-import numpy as np
-import matplotlib.pyplot as plt
+import os
+import struct
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from scripts.verify_toro import exact_riemann
-from analysis.compare import read_binary
+import numpy as np
+import matplotlib.pyplot as plt
+
+_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_ROOT))
+sys.path.insert(0, str(_ROOT / "scripts" / "regression"))
+sys.path.insert(0, str(_ROOT / "scripts" / "figures"))
+from verify_toro import exact_riemann  # noqa: E402
+from _style import PALETTE, apply, save_pair  # noqa: E402
+
+apply()
+
+
+def read_binary(filename):
+    """Read HRSC binary file with 64-byte header. Returns
+    (data[ny,nx,nvars], nx, ny, nvars, time, dx, dy)."""
+    with open(filename, "rb") as f:
+        header = f.read(64)
+        magic = header[0:4].decode("ascii")
+        if magic != "HRSC":
+            raise ValueError(f"Bad magic: {magic!r}, expected 'HRSC'")
+        nx, ny, nvars, prec_tag = struct.unpack("<4i", header[4:20])
+        time, dx, dy = struct.unpack("<3d", header[20:44])
+        dtype = "<f4" if prec_tag == 4 else "<f8"
+        data = np.fromfile(f, dtype=dtype).reshape(ny, nx, nvars)
+    return data, nx, ny, nvars, time, dx, dy
 
 
 def main():
@@ -31,6 +54,9 @@ def main():
     parser.add_argument("--title", type=str, default="1D Riemann Problem")
     parser.add_argument("-o", "--output", type=str, default=None,
                         help="Output PNG path (default: show interactively)")
+    parser.add_argument("--save-pair", type=str, default=None,
+                        help="If set, treat value as <outdir>/<stem> and call save_pair() "
+                             "to write both PDF and PNG via the report1 _style helper.")
     args = parser.parse_args()
 
     data, nx, ny, nvars, time, dx, dy = read_binary(args.binfile)
@@ -60,15 +86,20 @@ def main():
         (axes[1], "Velocity", u_num, u_ex),
         (axes[2], "Pressure", p_num, p_ex),
     ]:
-        ax.plot(x_exact, ex, "k-", lw=1.2, label="Exact")
-        ax.plot(x, num, "ro", ms=2.0, alpha=0.5, label="Numerical")
+        ax.plot(x_exact, ex, color=PALETTE["ref"], lw=1.2, label="Exact")
+        ax.plot(x, num, "o", color=PALETTE["accent"], ms=2.0, alpha=0.55, label="Numerical")
         ax.set_title(title)
         ax.set_xlabel("x")
         ax.legend(fontsize=8)
         ax.grid(True, alpha=0.3)
 
     plt.tight_layout(rect=[0, 0, 1, 0.93])
-    if args.output:
+    if args.save_pair:
+        outdir = os.path.dirname(args.save_pair) or "."
+        stem = os.path.basename(args.save_pair)
+        save_pair(fig, stem, outdir)
+        print(f"Saved pair: {outdir}/{stem}.{{pdf,png}}")
+    elif args.output:
         plt.savefig(args.output, dpi=150, bbox_inches="tight")
         print(f"Saved: {args.output}")
     else:
