@@ -59,6 +59,47 @@ marked 'low confidence' for a reason) and do NOT improvise additional cuts."
 All borderline-list items (B.1–B.7) untouched — they require explicit user
 sign-off.
 
+## Follow-up: user-approved P3 + B.1 cuts (2026-05-28)
+
+After escalation, user approved seven P3 items plus B.1. Pre-cut body count: 7968.
+Expected savings per audit: −143 words → expected 7825 (5 above safety target,
+under 7850 hard cap).
+
+| # | File | Lines touched | Action | Est Δ | Status |
+|---|---|---|---|---|---|
+| P3.1 | Abstract/abstract.tex | 24–26 | deleted closing "auditable Euler baseline … caveats" sentence | −20 | executed |
+| P3.2 | Chapter3/chapter3.tex | 554–561 | replaced two-sentence \(\nabla\cdot\mathbf{B}=0\) pair with single pointer sentence (equation retained) | −20 | executed |
+| P3.3 | Chapter4/chapter4.tex | 188–190 | dropped "; Chapter~5 reports the measured values" clause | −15 | executed |
+| P3.4 | Chapter6/chapter6.tex | 7 | deleted "validation results give each precision and hardware difference a scale." transition | −15 | executed |
+| P3.5 | Chapter5/chapter5.tex | 384–386 | compressed `\subsection*{Time-resolved drift}` opener to single sentence | −12 | executed |
+| P3.6 | Chapter4/chapter4.tex | 8 | compressed §Implementation Route opener four-feature enumeration | −20 | executed |
+| P3.7 | Chapter4/chapter4.tex | 210–211 | deleted third matched-binary scope-rule restatement | −17 | executed |
+| B.1  | Chapter2/chapter2.tex | 180–183 | deleted Verificarlo/MCA Parker+Denis sentence (duplicated by §2.5) | −24 | executed |
+
+## Follow-up build verification
+
+- pdflatex passes (1+bibtex+2+3) without Fatal, ! error, or undefined references.
+- texcount post-cuts: **Words in text: 7858** (Δ from 7968 = −110 actual vs −143 audit estimate).
+
+## Follow-up status
+
+- Body word count 7858 is **8 words over the 7850 hard cap**, 38 over the
+  7820 safety target. Actual savings ran ~77% of audit estimate (same ratio
+  pattern as the P1+P2 batch). The audit's "Proposed words" column consistently
+  underestimates how much LaTeX overhead replacement sentences carry once
+  forward-references, citation keys, and \ref{} labels are preserved.
+- Per the user's "MUST NOT be touched" list and explicit no-improvisation
+  procedure, no additional cuts attempted. **Reporting back to user for sign-off
+  on either (a) one further small trim or (b) acceptance with 8-word cap
+  overage.**
+
+## Numerical spot-check (post-follow-up, all PASS)
+
+- LW12 reference-scaled ratio `1.30\times10^{-4}` present (Abstract; Chapter5).
+- Sod 1D fp64 $E_{100}$ value `6.681007e-3` present (Chapter5).
+- Matched CPU/GPU `L_1 = L_\infty = \mathrm{ULP}_{\max} = 0` line preserved.
+- LoSoS / $s_{\mathrm{req}}$ / $\sigma_{\mathrm{FP}}$ Ch6 definitional sentences intact.
+
 ## Build verification
 
 - pdflatex passes (1+bibtex+2+3) all exit 0, output 68 pages.

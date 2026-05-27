@@ -5,7 +5,7 @@
 \section{Implementation Route and Comparability Principle}
 \label{sec:implementation-route}
 % <<SECTION_1_BEGIN>>
-Report~1 uses a stand-alone CPU/CUDA Euler implementation as a scope choice: it makes the scalar type explicit, permits direct CPU/CUDA dispatch, preserves stable binary outputs, and keeps uniform-grid validation separate from AMR/MPI attribution questions. The real type is selected at configuration time and is then used as the single scalar type in the solver:
+Report~1 uses a stand-alone CPU/CUDA Euler implementation; the compile-time options below set the precision and CUDA dispatch axes. The real type is selected at configuration time and is then used as the single scalar type in the solver:
 
 \begin{center}
 \begin{tabular}{lll}
@@ -186,8 +186,7 @@ baseline~\citep{sod_1978}; Toro's tests supply one-dimensional strong waves;
 Liska and Wendroff's benchmark set supplies the two-dimensional quadrant
 Riemann problems~\citep{toro2009, liska_wendroff_2003}. The four
 supersonic-shock entries (Toro3, Toro5, LW3, LW12) carry the design
-coverage in Table~\ref{tab:ch4-design-matrix}; Chapter~5 reports the measured
-values.
+coverage in Table~\ref{tab:ch4-design-matrix}.
 
 The scalar comparisons use saved-state field norms: \(L_1\),
 \(L_\infty\), and \(\mathrm{ULP}_{\max}\), a scaled ULP ratio
@@ -207,8 +206,6 @@ R_{\mathrm{ref}} =
 A value below 1 means that the fp32--fp64 gap is below the chosen
 reference/discretisation scale; values near or above 1 mean that it is
 comparable to, or larger than, that scale.
-CPU/GPU entries are matched-binary comparisons under the device-selection rule
-of Section~\ref{sec:implementation-route}.
 
 \begin{table}[htbp]
 \centering

@@ -551,14 +551,11 @@ ideal MHD the conserved state augments \((\rho,\rho\mathbf{u},E)\) with
 slow magnetosonic waves, and an entropy mode. Fast magnetosonic waves are drawn in deep blue, Alfven in cyan-green, slow magnetosonic in orange, and the central entropy/contact mode in grey.}
 \label{fig:ch3-mhd-seven-wave-fan}
 \end{figure}
-The magnetic field must satisfy
+The finite-volume update does not preserve
 \begin{equation}\label{eq:ch3-divB-zero}
-  \nabla\cdot\mathbf{B}=0,
+  \nabla\cdot\mathbf{B}=0
 \end{equation}
-at the continuous level, but a finite-volume update does not enforce this
-constraint automatically; discrete divergence can create spurious magnetic
-forces and distort wave speeds, motivating the divergence-control strategies
-surveyed in the literature \citep{toth_2000}.
+automatically; the cell-centred and staggered approaches in Chapter~2 Table~\ref{tab:ch2-divB-comparison} are the candidate divergence-control responses.
 
 HLLD~\citep{miyoshi_kusano_2005} and Roe-type solvers~\citep{roe_1981} retain more MHD wave structure than HLLC, while GLM-Dedner cleaning~\citep{dedner_2002} and constrained transport~\citep{evans_hawley_1988} treat divergence error differently (see Chapter~2 Table~\ref{tab:ch2-divB-comparison}).
 % <<SECTION_6_END>>

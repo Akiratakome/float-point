@@ -177,9 +177,7 @@ below the normal range; flush-to-zero disables it, so strict CUDA runs later
 set \texttt{--ftz=false}. Comparison order can also matter for tied
 or nearly tied candidates. CFD precision studies such as Brogi et al.'s
 OpenFOAM work show why reduced or mixed precision must be validated case by
-case \citep{brogi_etal_2024}. This report also uses Verificarlo, which
-implements Monte Carlo arithmetic (MCA) by perturbing floating-point operations
-to estimate rounding sensitivity \citep{parker_1997,denis_etal_2016}. A
+case \citep{brogi_etal_2024}. A
 Kulisch-style exact accumulator instead stores the full-precision partial sum in
 a wide fixed-point register, eliminating rounding inside the reduction at the
 cost of register width \citep{kulisch_2013}; the present solver does not use one.
