@@ -118,11 +118,14 @@ multidimensional structure \citep{liska_wendroff_2003}.
 
 \section{Floating-Point Arithmetic and Reproducibility}
 % <<SECTION_4_BEGIN>>
-IEEE floating-point arithmetic uses finite significand and exponent fields, so
-the update is not evaluated over the real numbers. In round-to-nearest
-arithmetic, binary32 has a 24-bit significand and normal exponent range roughly
-\(-126\) to \(+127\), while binary64 has a 53-bit significand and range
-\(-1022\) to \(+1023\) \citep{ieee754_2019,goldberg_1991}. The corresponding
+A floating-point number is stored as a sign bit, an integer-encoded
+\emph{exponent} that fixes the power-of-two scale, and a \emph{significand}
+that carries the leading binary digits of the value. The field widths chosen
+by the format set both the relative precision and the dynamic range available
+to the update. In round-to-nearest arithmetic, binary32 has a 24-bit
+significand and normal exponent range \(-126\) to \(+127\), while binary64 has
+a 53-bit significand and normal exponent range \(-1022\) to \(+1023\)
+\citep{ieee754_2019,goldberg_1991}. The corresponding
 unit roundoff is about \(2^{-24}\) and \(2^{-53}\), respectively
 \citep{higham_2002}; this is a local scale, not a solution-error bound for a
 nonlinear time-dependent HRSC calculation. A unit in the last place (ULP) is
@@ -132,11 +135,12 @@ by relative norms.
 
 The key difficulty is non-associativity, with a related hazard of catastrophic
 cancellation: subtracting nearly equal quantities can lose leading digits and
-inflate relative error. Sterbenz's lemma gives the narrow exact case: for
+inflate relative error. Sterbenz's lemma~\citep{sterbenz_1974} gives the narrow exact case: for
 positive floating-point \(x\) and \(y\), \(x-y\) is exact when
 \(y/2 \le x \le 2y\). Outside such structure, evaluation order can alter wave
 speeds, limiters, fluxes, and later steps. Compensated (Kahan) summation tracks lost low-order bits in a
-correction term, recovering near full precision in long accumulations;
+correction term, recovering near full precision in long accumulations
+\citep{kahan_1965,higham_2002};
 Algorithm~1 uses it for the simulation-time counter. The report measures the size and location of these effects rather than
 assuming harmlessness.
 
@@ -161,10 +165,10 @@ implements Monte Carlo arithmetic (MCA) by perturbing floating-point operations
 to estimate rounding sensitivity \citep{parker_1997,denis_etal_2016}.
 
 \paragraph{Virtual precision versus IEEE binary32.}
-Verificarlo's \texttt{p8}, \texttt{p16}, \texttt{p32}, and \texttt{p53}
-settings are virtual mantissa precisions used by the MCA-RR operator, which
-draws an independent random rounding for every elementary floating-point
-operation. An IEEE binary32 run, by contrast, stores every value with a
+Verificarlo's MCA-RR operator (introduced in
+Section~\emph{Verificarlo and Monte Carlo Arithmetic}) draws an independent
+random rounding per elementary operation, sampled at virtual mantissa widths.
+An IEEE binary32 run, by contrast, stores every value with a
 fixed 24-bit significand and rounds each operation deterministically under
 round-to-nearest-even semantics \citep{ieee754_2019}. The two differ in
 both the rounding rule and the noise model, so \texttt{p32} and IEEE fp32
