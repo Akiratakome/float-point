@@ -116,6 +116,13 @@ configurations extend this benchmark role to interacting waves and
 multidimensional structure \citep{liska_wendroff_2003}.
 % <<SECTION_3_END>>
 
+\section{Finite-Volume Derivation Overview}
+% <<SECTION_FV_BEGIN>>
+A scalar conservation law $\partial_t U + \partial_x F(U) = 0$ becomes a finite-volume scheme through one integration. Pick a control cell $C_i = [x_{i-1/2}, x_{i+1/2}]$ and a step $[t^n, t^{n+1}]$, integrate the law over the rectangle, and apply the divergence theorem on the flux term. The result is the cell-average update $\bar U_i^{n+1} = \bar U_i^n - (\Delta t/\Delta x)(\widehat F_{i+1/2} - \widehat F_{i-1/2})$, where $\bar U_i^n$ is the spatial average over $C_i$ at $t^n$ and $\widehat F_{i \pm 1/2}$ is the time-averaged interface flux \citep{toro2009,leveque_2002}.
+
+Conservation now lives at face level: shared faces contribute equal and opposite fluxes to adjacent cells, so summing the update collapses interior exchanges and leaves only boundary contributions. The interface flux $\widehat F$ comes from a local Riemann problem at the cell boundary. The three knobs the rest of this report varies sit inside this picture --- the reconstruction order, the Riemann solver, and the time integrator. The two-dimensional extension, operator splitting, and the explicit MUSCL--Hancock predictor land in Chapter~3 Section~\emph{Finite-Volume Update}.
+% <<SECTION_FV_END>>
+
 \section{Floating-Point Arithmetic and Reproducibility}
 % <<SECTION_4_BEGIN>>
 A floating-point number is stored as a sign bit, an integer-encoded
