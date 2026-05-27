@@ -357,21 +357,26 @@ here only as named experimental axes.
 \begin{table}[htbp]
 \centering
 \small
-\begin{tabular}{@{}p{0.28\textwidth}p{0.25\textwidth}p{0.15\textwidth}p{0.15\textwidth}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.28\textwidth}>{\raggedright\arraybackslash}p{0.25\textwidth} S[table-format=1.2e-2] S[table-format=1.2e-2]@{}}
 \toprule
-Comparison & reported evidence & $L_1$ & $L_\infty$ \\
-\midrule
-HLLC branch, $\leq$ vs $<$ & Sod, stationary contact, Toro3, Toro5 = 0; LW3, $200^2$ & $5.03\times10^{-16}$ & $2.04\times10^{-14}$ \\
-O2 vs O3 & all tested entries & $0$ & $0$ \\
-O2 vs Ofast+fast-math & Toro5, $N=200$ & $4.57\times10^{-13}$ & $7.41\times10^{-11}$ \\
-HLLC vs Rusanov & LW3, $200^2$ & $8.58\times10^{-3}$ & $1.45$ \\
+Comparison & reported evidence & {$L_1$} & {$L_\infty$} \\
+\itshape axis & \itshape case/grid & {\itshape CPU fp64} & {\itshape CPU fp64} \\
+\midrule \addlinespace[2pt]
+HLLC branch, $\leq$ vs $<$ & Sod, stationary contact, Toro3, Toro5 = 0; LW3, $200^2$ & 5.03e-16 & 2.04e-14 \\
+O2 vs O3 & all tested entries & 0 & 0 \\
+O2 vs Ofast+fast-math & Toro5, $N=200$ & 4.57e-13 & 7.41e-11 \\
+HLLC vs Rusanov & LW3, $200^2$ & 8.58e-3 & 1.45 \\
 \bottomrule
 \end{tabular}
-\caption{Final-time CPU-fp64 variation metrics on the conservative state.
-The table reports representative verified comparisons: the largest non-zero
-branch-rule entry, the zero O2--O3 result across the tested entries, the
-largest compiler-flag drift, and the largest available HLLC--Rusanov method
-difference.}
+\caption[Final-time CPU-fp64 variation metrics on the conservative state]{\textbf{Final-time CPU-fp64 variation metrics on the conservative state.}
+  The table reports representative verified comparisons: the largest non-zero
+  branch-rule entry, the zero O2--O3 result across the tested entries, the
+  largest compiler-flag drift, and the largest available HLLC--Rusanov method
+  difference; compiler switches are listed in Chapter~4 and used here only as
+  named experimental axes.
+  \emph{Branch and optimisation-level axes are at roundoff or below, fast-math
+  reassociation dominates compiler drift, and the HLLC--Rusanov gap is a
+  method effect, not reproducibility.}}
 \label{tab:ch5-variation}
 \end{table}
 
@@ -395,23 +400,26 @@ The fp32 compiler matrix in Table~\ref{tab:ch5-fp32-flags} shows the same qualit
 \begin{table}[htbp]
 \centering
 \small
-\begin{tabular}{@{}llccc@{}}
+\begin{tabular}{@{}ll S[table-format=1.2e-2] S[table-format=1.2e-2] S[table-format=2.2]@{}}
 \toprule
-Case & fp32 comparison & $L_1$ & $L_\infty$ & $\mathrm{ULP}_{\max}$ \\
-\midrule
-Sod, $N=200$ & O2 vs O3 & $0$ & $0$ & 0 \\
-Sod, $N=200$ & O2 vs Ofast+fast-math & $9.34\times10^{-8}$ & $1.19\times10^{-6}$ & 4.00 \\
-Sod, $N=400$ & O2 vs Ofast+fast-math & $9.90\times10^{-8}$ & $1.43\times10^{-6}$ & 4.80 \\
-Toro3, $N=200$ & O2 vs O3 & $0$ & $0$ & 0 \\
-Toro3, $N=200$ & O2 vs Ofast+fast-math & $6.78\times10^{-5}$ & $2.81\times10^{-3}$ & 9.42 \\
-Toro5, $N=200$ & O2 vs Ofast+fast-math & $1.71\times10^{-4}$ & $1.93\times10^{-2}$ & 29.9 \\
-LW3, $200^2$ & O2 vs Ofast+fast-math & $3.52\times10^{-7}$ & $1.20\times10^{-5}$ & 23.5 \\
+Case & fp32 comparison & {$L_1$} & {$L_\infty$} & {$\mathrm{ULP}_{\max}$} \\
+\itshape case/grid & \itshape flag pair & {\itshape final state} & {\itshape final state} & {\itshape scaled} \\
+\midrule \addlinespace[2pt]
+Sod, $N=200$   & O2 vs O3             & 0       & 0       & 0    \\
+Sod, $N=200$   & O2 vs Ofast+fast-math & 9.34e-8 & 1.19e-6 & 4.00 \\
+Sod, $N=400$   & O2 vs Ofast+fast-math & 9.90e-8 & 1.43e-6 & 4.80 \\
+Toro3, $N=200$ & O2 vs O3             & 0       & 0       & 0    \\
+Toro3, $N=200$ & O2 vs Ofast+fast-math & 6.78e-5 & 2.81e-3 & 9.42 \\
+Toro5, $N=200$ & O2 vs Ofast+fast-math & 1.71e-4 & 1.93e-2 & 29.9 \\
+LW3, $200^2$   & O2 vs Ofast+fast-math & 3.52e-7 & 1.20e-5 & 23.5 \\
 \bottomrule
 \end{tabular}
-\caption{fp32 CPU compiler-flag matrix for final HLLC outputs. O2 vs O3
-comparisons are reported once per case where checked and are zero throughout;
-the Ofast+fast-math entries are reported per case. The table covers Sod at $N=200$ and
-$N=400$, Toro3 and Toro5 at $N=200$, and LW3 at $200^2$.}
+\caption[fp32 CPU compiler-flag matrix for final HLLC outputs]{\textbf{fp32 CPU compiler-flag matrix for final HLLC outputs.}
+  O2 vs O3 comparisons are reported once per case where checked and are zero
+  throughout; the Ofast+fast-math entries are reported per case, covering Sod
+  at $N=200$ and $N=400$, Toro3 and Toro5 at $N=200$, and LW3 at $200^2$.
+  \emph{O2--O3 is bit-identical, while Ofast+fast-math perturbs every
+  non-stationary case, with the strongest drift tracking strong-wave structure.}}
 \label{tab:ch5-fp32-flags}
 \end{table}
 
