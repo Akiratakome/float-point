@@ -178,3 +178,12 @@ format used in actual production runs. Wherever this report quantifies an
 fp32 effect, the numbers come from a real \texttt{HRSC\_REAL=float} build,
 not a \texttt{p32} sample.
 % <<SECTION_4_END>>
+
+\section{Verificarlo and Monte Carlo Arithmetic}
+% <<SECTION_VERIFICARLO_BEGIN>>
+Verificarlo is an open-source LLVM-based instrumentation tool developed by Denis, Castro Lopez, Petit, F\`evre, Lamotte and collaborators \citep{denis_etal_2016}. It replaces individual floating-point operations with instrumented variants at compile time, so the resulting binary can probe rounding sensitivity without touching the application source. The tool covers binary32 and binary64 inputs and exposes its instrumentation through a drop-in compiler wrapper called \texttt{verificarlo-c} / \texttt{verificarlo-c++}.
+
+Verificarlo's diagnostic engine is Monte Carlo Arithmetic, introduced by \citet{parker_1997}. MCA replaces each rounded operation with a perturbed variant drawn from one of three operators: random rounding (RR) perturbs only the output, MCA perturbs both input and output, and precision bounding (PB) perturbs only the inputs. Each operator targets a chosen virtual mantissa width $t$, so a single binary can be sampled at $t \in \{8, 16, 32, 53\}$ without recompilation between samples. The distribution-free sample-count rule of \citet{sohier_etal_2021} is $n_{\min} = \lceil \log(1-c)/\log(p)\rceil$ for probability level $p$ and confidence $c$, and ships with the \texttt{significantdigits} Python package used downstream.
+
+This report uses MCA-RR at $t \in \{8, 16, 32, 53\}$ with $n=30$ seeds per (precision, solver) configuration. The \texttt{significantdigits} package supplies the loss-of-significance score used in Chapter~6. Note that \texttt{libinterflop}, the runtime library Verificarlo loads, exposes a non-thread-safe PRNG, so MCA runs are serial in this report. Chapter~4 Section~\emph{Precision and Hardware Variants} applies these settings to LW3 density.
+% <<SECTION_VERIFICARLO_END>>
