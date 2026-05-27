@@ -72,12 +72,12 @@ Substitution gives the conservative flux-difference update
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[>=latex,scale=1.0]
-  \draw (-1.6,-1.2) rectangle (1.6,1.2);
+  \draw[draw=fpDarkBlue,fill=fpDarkBlue!10,line width=1.2pt] (-1.6,-1.2) rectangle (1.6,1.2);
   \node at (0,0) {$\bar U_{ij}^n$};
-  \draw[->,thick] (-2.4, 0) -- (-1.65,0) node[midway,above] {$\widehat F_{i-\tfrac{1}{2},j}$};
-  \draw[->,thick] ( 1.65, 0) -- ( 2.4, 0) node[midway,above] {$\widehat F_{i+\tfrac{1}{2},j}$};
-  \draw[->,thick] ( 0,-2.0) -- ( 0,-1.25) node[midway,right] {$\widehat G_{i,j-\tfrac{1}{2}}$};
-  \draw[->,thick] ( 0, 1.25) -- ( 0, 2.0) node[midway,right] {$\widehat G_{i,j+\tfrac{1}{2}}$};
+  \draw[->,draw=fpDarkBlue,line width=1.2pt] (-2.4, 0) -- (-1.65,0) node[midway,above] {$\widehat F_{i-\tfrac{1}{2},j}$};
+  \draw[->,draw=fpDarkBlue,line width=1.2pt] ( 1.65, 0) -- ( 2.4, 0) node[midway,above] {$\widehat F_{i+\tfrac{1}{2},j}$};
+  \draw[->,draw=fpDarkBlue,line width=1.2pt] ( 0,-2.0) -- ( 0,-1.25) node[midway,right] {$\widehat G_{i,j-\tfrac{1}{2}}$};
+  \draw[->,draw=fpDarkBlue,line width=1.2pt] ( 0, 1.25) -- ( 0, 2.0) node[midway,right] {$\widehat G_{i,j+\tfrac{1}{2}}$};
 \end{tikzpicture}
 \caption{Finite-volume conservative update: the cell average $\bar U_{ij}^n$
 evolves by the difference of interface fluxes $\widehat F_{i\pm\tfrac{1}{2},j}$ in
@@ -235,14 +235,14 @@ and
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[>=latex,scale=1.1]
-  \draw[->] (-3.2,0) -- (3.2,0) node[right] {$x$};
-  \draw[->] (0,-0.2) -- (0,2.6) node[above] {$t$};
-  \draw[thick] (0,0) -- (-2.6,2.4) node[above left] {$S_L$};
-  \draw[thick] (0,0) -- (2.6,2.4)  node[above right] {$S_R$};
-  \draw[thick,dashed] (0,0) -- (0.55,2.4) node[above] {$S_\ast$};
+  \draw[->,draw=fpGray,line width=0.6pt] (-3.2,0) -- (3.2,0) node[right] {$x$};
+  \draw[->,draw=fpGray,line width=0.6pt] (0,-0.2) -- (0,2.6) node[above] {$t$};
+  \draw[draw=fpDarkBlue,line width=1.2pt] (0,0) -- (-2.6,2.4) node[above left] {$S_L$};
+  \draw[draw=fpDarkBlue,line width=1.2pt] (0,0) -- (2.6,2.4)  node[above right] {$S_R$};
+  \draw[draw=fpGray,line width=1.2pt,dashed] (0,0) -- (0.55,2.4) node[above,text=fpOrange] {$S_\ast$};
   \node at (-2.0,1.0) {$U_L$};
-  \node at (-0.8,1.6) {$U_{\ast L}$};
-  \node at ( 1.2,1.6) {$U_{\ast R}$};
+  \node[text=fpOrange] at (-0.8,1.6) {$U_{\ast L}$};
+  \node[text=fpOrange] at ( 1.2,1.6) {$U_{\ast R}$};
   \node at ( 2.0,1.0) {$U_R$};
 \end{tikzpicture}
 \caption{HLLC interface fan: $S_L, S_\ast, S_R$ separate $U_L, U_{\ast L}, U_{\ast R}, U_R$. The sign of these three speeds selects the flux branch (Eq.~\eqref{eq:ch3-hllc-fluxselect}).}
@@ -401,10 +401,9 @@ map: primitive recovery, sound-speed evaluation, wave-speed estimates, star-stat
 construction, and flux differences each introduce small perturbations. Some
 intermediate quantities are sufficiently accurate in binary64 but insufficiently
 so in binary32, and HLLC comparisons mean rounded operands can change which
-algebraic formula is sampled at an interface. FMA accuracy also depends on
-hardware and compiler choices: a CPU FMA typically rounds once after a
-higher-precision intermediate, while a GPU FMA can remain at the working
-precision throughout \citep{ieee754_2019,higham_2002}.
+algebraic formula is sampled at an interface. FMA contraction can change two
+rounded operations into one fused rounded operation; compiler and device flags
+determine whether contraction occurs \citep{ieee754_2019,higham_2002}.
 
 \paragraph{Primitive recovery.}
 Recovered pressure follows
@@ -529,14 +528,14 @@ Fig.~\ref{fig:ch3-mhd-seven-wave-fan}.
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[>=latex,scale=0.9]
-  \draw[->,thick] (0,0) -- (-3.2, 1.6) node[left]  {$u_n-c_f$};
-  \draw[->,thick] (0,0) -- (-2.6, 1.9) node[left]  {$u_n-c_a$};
-  \draw[->,thick] (0,0) -- (-1.6, 2.1) node[above left] {$u_n-c_s$};
-  \draw[->,thick] (0,0) -- ( 0  , 2.3) node[above] {$u_n$};
-  \draw[->,thick] (0,0) -- ( 1.6, 2.1) node[above right] {$u_n+c_s$};
-  \draw[->,thick] (0,0) -- ( 2.6, 1.9) node[right] {$u_n+c_a$};
-  \draw[->,thick] (0,0) -- ( 3.2, 1.6) node[right] {$u_n+c_f$};
-  \draw[-] (-3.6,0) -- (3.6,0);
+  \draw[->,draw=fpDarkBlue,line width=1.2pt] (0,0) -- (-3.2, 1.6) node[left]  {$u_n-c_f$};
+  \draw[->,draw=fpCyanGreen,line width=1.2pt] (0,0) -- (-2.6, 1.9) node[left]  {$u_n-c_a$};
+  \draw[->,draw=fpOrange,line width=1.2pt] (0,0) -- (-1.6, 2.1) node[above left] {$u_n-c_s$};
+  \draw[->,draw=fpGray,line width=1.2pt] (0,0) -- ( 0  , 2.3) node[above] {$u_n$};
+  \draw[->,draw=fpOrange,line width=1.2pt] (0,0) -- ( 1.6, 2.1) node[above right] {$u_n+c_s$};
+  \draw[->,draw=fpCyanGreen,line width=1.2pt] (0,0) -- ( 2.6, 1.9) node[right] {$u_n+c_a$};
+  \draw[->,draw=fpDarkBlue,line width=1.2pt] (0,0) -- ( 3.2, 1.6) node[right] {$u_n+c_f$};
+  \draw[-,draw=fpGray,line width=0.6pt] (-3.6,0) -- (3.6,0);
   \node at (0,-0.3) {$x$};
 \end{tikzpicture}
 \caption{Seven-wave fan for ideal MHD: two fast magnetosonic, two Alfven, two
