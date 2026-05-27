@@ -87,7 +87,7 @@ The CFL coefficient is fixed per case: $C_{\mathrm{CFL}} = 0.8$ for 1D tests, $0
 \end{algorithm}
 
 \begin{algorithm}
-\caption{MUSCL--Hancock face-state construction for one cell, one direction}
+\caption[MUSCL--Hancock face-state construction]{MUSCL--Hancock face-state construction for one cell, one direction}
 \label{alg:muscl-hancock}
 \begin{algorithmic}[1]
 \Function{ReconstructFaces}{$\bar U_{i-1}^{n}, \bar U_i^{n}, \bar U_{i+1}^{n}, \Delta x, \Delta t$}
@@ -117,7 +117,7 @@ Algorithm~\ref{alg:hllc-flux-select} expands the HLLC interface flux; the
 strict-inequality variant tested in Section~\ref{sec:precision-sensitive-decisions}
 flips each branch comparator.
 \begin{algorithm}
-\caption{HLLC interface flux selection (one face)}
+\caption[HLLC interface flux selection]{HLLC interface flux selection (one face)}
 \label{alg:hllc-flux-select}
 \begin{algorithmic}[1]
 \Function{HllcFlux}{$U_L, U_R$}
