@@ -488,7 +488,7 @@ experiments.}
 \end{table}
 
 \paragraph{Strict-inequality branch rule.}
-The macro \texttt{RIEMANN\_STRICT\_INEQUALITY} toggles the HLLC branch dispatcher between the baseline non-strict comparator (\(\le\)) and the strict variant (\(<\)) at the wave-speed-near-zero boundary. The code reads the macro in \texttt{src/euler/hllc.hpp} (Listing~\ref{lst:strict-ineq}). Flipping it changes one comparator per branch decision and otherwise leaves the flux algebra untouched. Chapter~5 Section~\emph{Toro Test 2 Branch Stability} analyses the downstream consequence.
+The macro \texttt{RIEMANN\_STRICT\_INEQUALITY} toggles the HLLC dispatcher between $\le$ (baseline) and $<$ (strict) at the wave-speed-near-zero boundary, in \texttt{src/euler/hllc.hpp} (Listing~\ref{lst:strict-ineq}). The flip changes one comparator per branch decision; the flux algebra is otherwise untouched. Chapter~5 Section~\emph{Toro Test 2 Branch Stability} analyses the downstream consequence.
 
 %TC:ignore
 \begin{lstlisting}[style=fpListing,

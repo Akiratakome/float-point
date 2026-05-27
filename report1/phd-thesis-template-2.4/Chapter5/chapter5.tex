@@ -45,6 +45,7 @@ cells. These $L_1$ orders line up with near-first-order MUSCL behaviour on shock
 \begin{table}[htbp]
 \centering
 \small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}l S[table-format=1.6e-1] S[table-format=1.6e-1] S[table-format=1.6e-1] S[table-format=1.6e-1] S[table-format=1.2] S[table-format=1.6e-1]@{}}
 \toprule
 Case & {fp64 $E_{100}$} & {fp64 $E_{200}$} & {fp64 $E_{400}$} & {fp64 $E_{800}$}
@@ -56,7 +57,8 @@ Sod   & 6.681007e-3 & 3.745822e-3 & 2.140921e-3 & 1.234421e-3 & 0.79 & 1.234428e
 Toro3 & 1.474800e-1 & 9.442646e-2 & 4.948653e-2 & 2.921703e-2 & 0.76 & 2.921700e-2 \\
 Toro5 & 4.890513e-1 & 2.782433e-1 & 1.660304e-1 & 1.059952e-1 & 0.65 & 1.059956e-1 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \caption[One-dimensional exact-reference density convergence]{\textbf{One-dimensional exact-reference density convergence.}
   $E_N=\|\rho_N-\rho_{\mathrm{exact}}\|_1$ and $p_{400\to800}=\log_2(E_{400}/E_{800})$.
   \emph{Sub-quadratic orders reflect the first-order contribution of discontinuities.}}
@@ -66,6 +68,7 @@ Toro5 & 4.890513e-1 & 2.782433e-1 & 1.660304e-1 & 1.059952e-1 & 0.65 & 1.059956e
 \begin{table}[htbp]
 \centering
 \small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}l S[table-format=1.6e-2] S[table-format=1.6e-2] S[table-format=1.6e-2] S[table-format=1.6e-2] S[table-format=1.3]@{}}
 \toprule
 Case & {contact error} & {max shock error} & {smooth $\rho$ $L_1$}
@@ -77,7 +80,8 @@ Sod   & 6.131550e-4 & 7.110670e-4 & 5.233393e-4 & 7.110821e-4 & 0.030 \\
 Toro3 & 1.080583e-3 & 2.895564e-4 & 3.772028e-3 & 2.544500e-2 & 0.030 \\
 Toro5 & 8.578956e-4 & 1.357872e-4 & 1.629793e-2 & 8.969731e-2 & 0.045 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \caption[One-dimensional feature-location and density-error split]{\textbf{One-dimensional feature-location and density-error split (fp64, $N=800$).}
   Discontinuity band is within six cells of the exact contact and shock positions; rarefaction fans excluded.}
 \label{tab:ch5-1d-feature-validation}
@@ -400,11 +404,10 @@ in Table~\ref{tab:ch5-variation} and the text.}
 
 \section{Toro Test 2 Branch Stability}
 % <<SECTION_7_BEGIN>>
-Toro Test 2 is the symmetric near-vacuum problem. With the same CPU--fp64
+Toro Test 2 is the symmetric near-vacuum problem, the near-zero-wave-speed case from Chapter~3 Section~\emph{Precision-Sensitive Decision Points}. With the same CPU--fp64
 toolchain and CFL, the baseline $\leq$ branch finishes it in roughly
-$0.13$~s, while the strict $<$ branch produces no valid final state. The
-first-step negative-density failure is analysed below. The branches differ
-only in one HLLC-dispatcher comparison.
+$0.13$~s; the strict $<$ branch produces no valid final state. The
+first-step negative-density failure (one HLLC-dispatcher comparator apart) is analysed below.
 
 The mechanism is analytic. Toro Test 2 has $u_L = -2$, $u_R = +2$, $\rho_L = \rho_R = \rho$ and $p_L = p_R$, hence $a_L = a_R = a$. Substituting into Eq.~\ref{eq:ch3-sstar-decomp}, the pressure jump $p_R - p_L$ vanishes and the momentum-wave terms cancel pairwise, $\rho_L u_L (S_L - u_L) - \rho_R u_R (S_R - u_R) = 2\rho a - 2\rho a = 0$, so $N_\ast = 0$ exactly by symmetry. The denominator is $D_\ast = -2\rho a$, well-conditioned and bounded away from zero. Analytically $S_\ast = 0$ from Eq.~\ref{eq:ch3-hllc-sstar}, but the computed $N_\ast$ carries rounding noise, so the sign of the computed $S_\ast$ is set by that noise.
 

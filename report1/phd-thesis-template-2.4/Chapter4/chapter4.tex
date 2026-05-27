@@ -300,10 +300,10 @@ bound only saved-output behaviour, not stage-by-stage identity.
 \section{Regression and Reproducibility Harness}
 \label{sec:ch4-regression-harness}
 % <<SECTION_6_BEGIN>>
-Each validation configuration becomes an auditable record. CMake builds the C++
+A Python regression harness drives the validation matrix; every configuration leaves an auditable record. CMake builds the C++
 entry point in \texttt{src/}, \texttt{scripts/regression/} carries case-level
 drivers, and \texttt{tests/py/} holds the \texttt{pytest} units that re-run those
-drivers on stored references. For one-dimensional cases, the harness reads
+drivers on stored references (exact 1D Riemann and high-resolution fp64 fields, both defined in Section~\emph{Reference-Solution Strategy}). For one-dimensional cases, the harness reads
 \texttt{grid.bin} for the candidate run and the analytic exact Riemann
 solution at the same final time and grid, computes density, momentum, and
 energy $L_1$, $L_\infty$, and scaled $\mathrm{ULP}_{\max}$, and asserts that
