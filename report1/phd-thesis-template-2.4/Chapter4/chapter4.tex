@@ -40,34 +40,16 @@ Four design features make the comparison auditable: source-level \texttt{HRSC\_R
 
 \section{Algorithmic Structure of the Implementation}
 % <<SECTION_2_BEGIN>>
-The executable reads the configuration, selects initial condition, boundary
-modes, flux solver, and device, then dispatches to the CPU solver or to CUDA,
-available only in binaries built with \texttt{ENABLE\_CUDA}. Each step
-fills ghost cells, chooses a CFL-limited time step, applies directional
-MUSCL--Hancock sweeps with HLLC or Rusanov fluxes~\citep{toro2009}, and updates
-time.
+The executable reads the configuration, selects initial condition, boundary modes, flux solver, and device, then dispatches to the CPU solver or to CUDA when \texttt{ENABLE\_CUDA} is present. The conservative array is cell-major,
+\texttt{((j+ng)*nx\_total + (i+ng))*NVars + var}, with four Euler variables contiguous per cell. CPU loops and GPU kernels use the same indexing and boundary rules, a comparability choice that lines up both paths rather than matching a throughput-optimal structure-of-arrays design. Each step fills ghost cells and applies directional MUSCL--Hancock sweeps with HLLC or Rusanov fluxes~\citep{toro2009}.
 
-The conservative array is cell-major:
-\texttt{((j+ng)*nx\_total + (i+ng))*NVars + var}, with the four Euler variables
-contiguous per cell. This array-of-structures-like layout gives CPU loops and
-GPU kernels the same indexing and boundary rules; it is for comparability, not
-a throughput-optimal GPU alternative to a structure-of-arrays design. The CFL
-scan computes
+The CFL scan computes
 \begin{equation}\label{eq:ch4-cfl-scan}
   \Delta t = C_{\mathrm{CFL}}
   \min\left(\frac{\Delta x}{\max_{i,j}(|u|+c)},
              \frac{\Delta y}{\max_{i,j}(|v|+c)}\right),
 \end{equation}
-then clips the result to the requested final time. Equation~\ref{eq:ch4-cfl-scan}
-is an ordered max/min reduction, not an unordered floating-point summation, so
-the selected \(\Delta t\) does not depend on reduction order. The
-conserved-state write path emits raw binary conservative-state grids and
-contains no floating-point summation reduction; CPU/GPU comparisons read these
-saved binary grids and the metrics \(L_1\), \(L_\infty\),
-\(\mathrm{ULP}_{\max}\) are computed from them, not from rounded text output.
-The simulation clock uses the compensated-summation update of Chapter~2; this
-applies only to the scalar time counter. Algorithms~\ref{alg:step-dispatch}
-and~\ref{alg:muscl-hancock} summarise dispatch and the per-cell predictor.
+then clips the result to the requested final time. Equation~\ref{eq:ch4-cfl-scan} is an ordered max/min reduction, not an unordered floating-point summation, so reduction order does not change \(\Delta t\). The write path emits raw binary conservative-state grids and contains no floating-point summation reduction; CPU/GPU metrics \(L_1\), \(L_\infty\), and \(\mathrm{ULP}_{\max}\) come from those saved grids, not rounded text output. The simulation clock uses the Kahan-compensated scalar time counter from Chapter~2. Algorithms~\ref{alg:step-dispatch} and~\ref{alg:muscl-hancock} summarise dispatch and the per-cell predictor.
 
 \begin{algorithm}
 \caption[Time-stepping loop with dimensional splitting]{\textbf{Time-stepping loop with dimensional splitting and Kahan-compensated time accumulation.}
@@ -114,18 +96,8 @@ The CFL coefficient is fixed per case: $C_{\mathrm{CFL}} = 0.8$ for 1D tests, $0
 \end{algorithmic}
 \end{algorithm}
 
-The CUDA path decomposes the update into separate kernels for boundary handling, face-state construction, flux evaluation, conservative update, and a block-wise CFL reduction. The HLLC flux kernel (Algorithm~\ref{alg:hllc-flux-select}) is the principal warp-divergence site: in mixed-wave regions, threads within a warp can take different wave-pattern branches ($S_L \ge 0$ vs.\ $S_\ast \ge 0$ vs.\ $S_R \ge 0$), so CPU and CUDA share the same branch-rule sensitivity axis. The cell-major layout is a CPU/GPU comparability choice---identical indexing on both sides---rather than a throughput-optimal structure-of-arrays design. Shared memory is used only for the CFL block reduction, not as a tiled stencil cache. Table~\ref{tab:ch4-runtime-minimatrix} also shows a faster fp32 LW3 GPU run. In the CUDA CFL stage, ordered comparisons make the selected $\Delta t$ independent of block order. The CFL coefficient is fixed per case: $C_{\mathrm{CFL}} = 0.8$ for the one-dimensional shock-tube tests, $C_{\mathrm{CFL}} = 0.5$ for LW3, and $C_{\mathrm{CFL}} = 0.4$ for LW12.
-
 {\sloppy
-CPU sweep loops use OpenMP static schedules, giving fixed thread assignments.
-The CPU CFL scan uses \texttt{reduction(max:\dots)} over wave-speed candidates,
-a deterministic comparison, not a floating-point sum. Verificarlo MCA runs are
-serial because the \texttt{libinterflop} PRNG is not thread-safe. MPI is not
-used, so comparisons exclude inter-process ordering.\par}
-
-Algorithm~\ref{alg:hllc-flux-select} expands the HLLC interface flux; the
-strict-inequality variant tested in Section~\ref{sec:precision-sensitive-decisions}
-flips each branch comparator.
+The CUDA path decomposes the update into boundary, face-state, flux, conservative-update, and block-wise CFL kernels. The HLLC flux kernel (Algorithm~\ref{alg:hllc-flux-select}) is the principal warp-divergence site: in mixed-wave regions, threads within a warp can take different branches ($S_L \ge 0$ vs.\ $S_\ast \ge 0$ vs.\ $S_R \ge 0$), so CPU and CUDA share the same branch-rule sensitivity axis. Shared memory is used only for the CFL block reduction, and ordered comparisons make CUDA \(\Delta t\) independent of block order. CPU sweep loops use OpenMP static schedules, giving fixed thread assignments; \texttt{reduction(max:\dots)} over wave-speed candidates is a deterministic comparison, not a floating-point sum. The fixed CFL coefficients sit at $0.8$ for one-dimensional shock tubes, $0.5$ for LW3, and $0.4$ for LW12; Table~\ref{tab:ch4-runtime-minimatrix} also shows a faster fp32 LW3 GPU run. Verificarlo MCA runs are serial because the \texttt{libinterflop} PRNG is not thread-safe. MPI is not used, so comparisons exclude inter-process ordering. Algorithm~\ref{alg:hllc-flux-select} expands the HLLC interface flux, and the strict-inequality variant tested in Section~\ref{sec:precision-sensitive-decisions} flips each branch comparator.\par}
 \begin{algorithm}
 \caption[HLLC interface flux selection]{HLLC interface flux selection (one face)}
 \label{alg:hllc-flux-select}
