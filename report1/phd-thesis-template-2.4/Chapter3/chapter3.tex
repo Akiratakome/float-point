@@ -2,7 +2,7 @@
 
 \chapter{Numerical Method}
 
-This chapter fixes the finite-volume MUSCL--Hancock method used in Chapter~5.
+Chapter~5 uses the finite-volume MUSCL--Hancock method fixed here.
 Chapter~4 then varies precision, backend, compiler flags, and selected branch
 rules around this fixed update.
 
@@ -287,7 +287,7 @@ across \(S_K\) and may be written in closed form as
     +(S_\ast-u_K)\!\left[S_\ast+\dfrac{p_K}{\rho_K(S_K-u_K)}\right]
   \end{pmatrix},
 \end{equation}
-The scalar prefactor multiplies the whole vector; the fourth entry has units of energy density once the prefactor is included; the bracketed factor is total energy per unit mass plus the contact-pressure correction. The contact pressure
+The scalar prefactor multiplies the whole vector. The fourth entry has units of energy density once the prefactor is included; the bracketed factor is total energy per unit mass plus the contact-pressure correction. The contact pressure
 \(p_\ast=p_K+\rho_K(S_K-u_K)(S_\ast-u_K)\) is equal on both sides of the contact.
 This is the part of HLLC that restores the contact wave missing from the
 two-wave HLL approximation discussed in the literature
@@ -310,7 +310,7 @@ structure by a centred flux plus scalar dissipation,
   \qquad
   S_{\max}=\max\left(|u_L|+a_L,\ |u_R|+a_R\right).
 \end{equation}
-Rusanov has no contact-wave branch and stronger numerical diffusion than HLLC \citep{harten_lax_vanleer_1983,toro2009}, which makes the HLLC/Rusanov comparison in Chapter~5 an isolation of the contact-resolving path rather than an accuracy ranking.
+Rusanov has no contact-wave branch and stronger numerical diffusion than HLLC \citep{harten_lax_vanleer_1983,toro2009}. The HLLC/Rusanov comparison in Chapter~5 therefore isolates the contact-resolving path rather than ranking accuracy.
 % <<SECTION_3_END>>
 
 \section{Stability, Limiting, and Positivity}
@@ -350,7 +350,7 @@ applies Equation~\ref{eq:fv-update} as successive one-dimensional sweeps in
 \(x\) and \(y\); \(C_{\mathrm{CFL}}\) is a local acoustic wave-speed safety
 factor, not a universal stability constant \citep{toro2009,leveque_2002}. This
 report does not use the split form to claim a global unsplit
-or Strang-split second-order-in-time theorem; Chapter~5 demonstrates observed
+or Strang-split second-order-in-time theorem; Chapter~5 shows observed
 two-dimensional benchmark agreement against numerical references instead.
 
 For a scalar monotone first-order scheme, a TVD argument gives a direct
@@ -452,7 +452,7 @@ digits before division by \(D_\ast\). The denominator has the same risk when
 \(\rho_L(S_L-u_L)\) and \(\rho_R(S_R-u_R)\) nearly balance. Cancellation in
 \(N_\ast\) or \(D_\ast\) can amplify rounded changes in the wave-speed estimate,
 and the amplified value may then enter a discontinuous branch selection
-\citep{toro2009}. When $N_\ast = 0$ exactly by symmetry (the degenerate case examined in Chapter 5 Section \emph{Toro Test 2 Branch Stability}), the relative perturbation in Equation~\ref{eq:ch3-sstar-perturbation} is undefined and the sign of the computed $S_\ast$ is set by accumulated rounding noise rather than by first-order linearisation.
+\citep{toro2009}. When $N_\ast = 0$ exactly by symmetry, the relative perturbation in Equation~\ref{eq:ch3-sstar-perturbation} is undefined. This is the degenerate case examined in Chapter 5 Section \emph{Toro Test 2 Branch Stability}, where accumulated rounding noise sets the sign of the computed $S_\ast$ rather than first-order linearisation.
 
 \paragraph{Method components and build switches.}
 Tables~\ref{tab:method-decision-points} and~\ref{tab:precision-macros}
@@ -488,7 +488,7 @@ experiments.}
 \end{table}
 
 \paragraph{Strict-inequality branch rule.}
-The macro \texttt{RIEMANN\_STRICT\_INEQUALITY} toggles the HLLC branch dispatcher between the baseline non-strict comparator (\(\le\)) and the strict variant (\(<\)) at the wave-speed-near-zero boundary. The macro is read in \texttt{src/euler/hllc.hpp} (Listing~\ref{lst:strict-ineq}); flipping it changes one comparator per branch decision and otherwise leaves the flux algebra untouched. The downstream consequence is analysed in Chapter~5 Section~\emph{Toro Test 2 Branch Stability}.
+The macro \texttt{RIEMANN\_STRICT\_INEQUALITY} toggles the HLLC branch dispatcher between the baseline non-strict comparator (\(\le\)) and the strict variant (\(<\)) at the wave-speed-near-zero boundary. The code reads the macro in \texttt{src/euler/hllc.hpp} (Listing~\ref{lst:strict-ineq}). Flipping it changes one comparator per branch decision and otherwise leaves the flux algebra untouched. Chapter~5 Section~\emph{Toro Test 2 Branch Stability} analyses the downstream consequence.
 
 %TC:ignore
 \begin{lstlisting}[style=fpListing,
@@ -578,10 +578,10 @@ induction equation with a scalar field \(\psi\):
 Here \(\psi\) carries divergence error, \(c_h\) is the cleaning-wave speed, and
 \(\tau=c_p^2/c_h^2\) is the damping time, so \(-\psi/\tau\) matches
 \(-(c_h^2/c_p^2)\psi\) in Dedner's parameterisation. Constrained transport \citep{evans_hawley_1988}
-instead preserves a staggered-mesh discrete divergence constraint. This is also
+instead preserves a staggered-mesh discrete divergence constraint. That is also
 why the Euler HLLC flux is not a direct full-MHD choice: its three-wave
 acoustic/contact model does not resolve the fast, Alfven, slow, and contact
-families, nor the discrete divergence constraint. HLL gives a simpler but more
+families. It also does not address the discrete divergence constraint. HLL gives a simpler but more
 diffusive bound \citep{harten_lax_vanleer_1983}; HLLD \citep{miyoshi_kusano_2005}
 and Roe-type solvers \citep{roe_1981} aim to retain more MHD wave structure,
 while GLM-Dedner cleaning and constrained transport treat divergence error
