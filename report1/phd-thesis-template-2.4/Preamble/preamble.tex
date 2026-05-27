@@ -98,14 +98,32 @@
 \definecolor{fpOrange}{HTML}{E76F51}     % fp32, highlight
 \definecolor{fpGray}{HTML}{6C757D}       % reference, neutral
 
-% siunitx alignment for tables
+% siunitx alignment for tables -- scientific-notation output for review 4
 \sisetup{
   table-format            = 1.3e-2,
   table-number-alignment  = center,
+  scientific-notation     = true,
   exponent-product        = \times,
-  output-exponent-marker  = \ensuremath{\mathrm{e}},
+  output-exponent-marker  = {},
   detect-weight           = true,
   detect-family           = true,
+}
+
+% Code listings for review 4
+\usepackage{listings}
+\lstdefinestyle{fpListing}{
+  basicstyle       = \ttfamily\footnotesize,
+  keywordstyle     = \color{fpDarkBlue}\bfseries,
+  commentstyle     = \color{fpGray}\itshape,
+  stringstyle      = \color{fpCyanGreen},
+  showstringspaces = false,
+  frame            = lines,
+  framerule        = 0.4pt,
+  rulecolor        = \color{fpGray},
+  numbers          = none,
+  captionpos       = b,
+  breaklines       = true,
+  language         = C++,
 }
 
 % Caption style (three-segment lead-in)
