@@ -5,13 +5,7 @@
 \section{Compressible Euler Equations}
 % <<SECTION_1_BEGIN>>
 The Report 1 validation cases use the compressible Euler equations for an
-ideal gas. These equations form a suitable first system because they contain
-the wave features that a shock-capturing code must resolve, including shocks,
-contact discontinuities, and rarefactions, while retaining well documented
-Riemann-problem and two-dimensional benchmark references
-\citep{toro2009,liska_wendroff_2003}. Magnetic-field effects are therefore
-left as project context until the Euler precision and hardware comparisons
-have an auditable baseline.
+ideal gas. Their wave structure (shocks, contacts, rarefactions) and benchmark coverage \citep{toro2009,liska_wendroff_2003} make them the validation target. Magnetic-field effects are left as project context until the Euler precision and hardware comparisons have an auditable baseline.
 
 In two space dimensions the conservative form is
 \begin{equation}
@@ -158,8 +152,7 @@ positive floating-point \(x\) and \(y\), \(x-y\) is exact when
 speeds, limiters, fluxes, and later steps. Compensated (Kahan) summation tracks lost low-order bits in a
 correction term, recovering near full precision in long accumulations
 \citep{kahan_1965,higham_2002};
-Algorithm~1 uses it for the simulation-time counter. The report measures the size and location of these effects rather than
-assuming harmlessness.
+Algorithm~1 uses it for the simulation-time counter.
 
 Compiler and device choices add variation. Ordinary \texttt{-O3} can change
 instruction selection, but fast-math or \texttt{-Ofast} can permit

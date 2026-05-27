@@ -15,7 +15,7 @@ The MCA toolchain is defined in Chapter~2 Section~\emph{Verificarlo and Monte Ca
 \label{fig:ch6-sigma-fp}
 \end{figure}
 
-The loss-of-significance score LoSoS gives a complementary view of the same LW3 density samples. Figure~\ref{fig:ch6-losos-quantiles} reports sample quantiles rather than the worst cell. For HLLC the median LoSoS rises with virtual precision, while lower quantiles stay closer to the front-sensitive part of the field (Fig.~\ref{fig:ch6-losos-quantiles}). All MCA results here use $n = 30$ independent seeds per (precision, solver). The raw-field q05 / q25 / median quantiles are therefore distributional estimates within the \(p=90\%\), \(c=95.8\%\) sample-count regime stated in Chapter~4, not exploratory single-realisation snapshots.
+The loss-of-significance score LoSoS gives a complementary view of the same LW3 density samples. Figure~\ref{fig:ch6-losos-quantiles} reports sample quantiles rather than the worst cell. For HLLC the median LoSoS rises with virtual precision, while lower quantiles stay closer to the front-sensitive part of the field (Fig.~\ref{fig:ch6-losos-quantiles}). These quantiles are distributional estimates within the $n=30$ regime defined in Chapter~4 Section~\emph{Precision and Hardware Variants}.
 
 The required-significant-digits threshold \(s_{\mathrm{req}}\) --- the number of significant digits a downstream consumer needs at the chosen reference-error scale --- turns LoSoS into a regional margin.
 Figure~\ref{fig:ch6-region-losos} plots available digits at \texttt{p32} minus \(s_{\mathrm{req}}\). For HLLC at \texttt{p32}, the smooth interior keeps a positive margin while the shock-front band is negative; the transition/contact band sits in between (Fig.~\ref{fig:ch6-region-losos}). The noise-to-reference-error diagnostic in Fig.~\ref{fig:ch6-noise-error} gives a scale-normalised view. For both HLLC and Rusanov, the LW3 precision-limited cell fraction drops monotonically with virtual precision and reaches $0\,\%$ at \texttt{p32}. By this diagnostic, virtual \texttt{p32} MCA noise sits below the chosen reference-error threshold for LW3 at this resolution; this is not an IEEE fp32 adequacy claim. This reading is consistent with the Chapter~5 reference-scaled evidence but remains bounded to the tested precisions, cases, and the LW3 MCA grid. The \texttt{p8} curves are low-precision stress diagnostics; the final-time caveat is listed in Section~\ref{sec:ch6-limits}.
@@ -91,19 +91,14 @@ The scope caveats are evidence-specific:
         GPU and CSC AMD EPYC/RTX 5090 paths as bounded cross-toolchain/hardware
         evidence; portable behavior across arbitrary devices is not claimed.
   \item Verificarlo \texttt{p32} is a virtual mantissa precision, distinct
-        from IEEE binary32; the $n = 30$ MCA diagnostics support the
+        from IEEE binary32; the $n=30$ MCA diagnostics support the
         \(p=90\%\), \(c=95.8\%\) sample-count reading stated in Chapter~4, not a
-        \(p=99\%\), \(c=95\%\) claim. They support sample-quantile reading at
-        \texttt{p16}, \texttt{p32}, and \texttt{p53}, while \texttt{p8}
-        is a low-precision stress diagnostic only because final-time alignment
-        is approximate (the binary checkpoint header reaches $t \approx 0.3035$
-        while stderr stops at the requested $t = 0.3$).
+        \(p=99\%\), \(c=95\%\) claim. \texttt{p8} is a low-precision stress
+        diagnostic only.
   \item Toro Test 2 with the strict \(<\) HLLC branch is a single-case
         diagnostic: the first-step equality fall-through is logged, but no
         systematic branch-rule study is claimed.
 \end{enumerate}
-The validated scope is ideal-gas Euler only: matched CPU/GPU evidence covers
-five selected cases, and no MHD validation is claimed.
 
 Report~2 will extend the Chapter~5 drift-time-series to the MHD test set.
 There chaotic dynamics motivate Lyapunov-type long-time separation

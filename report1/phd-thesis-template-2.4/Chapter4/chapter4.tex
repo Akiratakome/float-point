@@ -34,7 +34,6 @@ binary32 and binary64~\citep{ieee754_2019}. Boost.Multiprecision-style higher pr
 
 Toro3 and Toro5 were rerun on the CSC Linux strict-IEEE build for the matched CPU/GPU comparison reported in Chapter~5. Matched CPU/GPU saved-state comparisons for Sod, LW3, and LW12 use local Linux/WSL paths; the CSC RTX 5090 path also supports the LW3 high-resolution reference/preflight where stated. Each within-case CPU/GPU comparison stays within one matched binary. The available local i9-13900H/RTX 4060 Laptop GPU and CSC AMD EPYC/RTX 5090 paths provide bounded cross-toolchain/hardware evidence, not portable behavior across arbitrary devices.
 
-Four design features make the comparison auditable: source-level \texttt{HRSC\_REAL} templating, the \texttt{ENABLE\_CUDA} build switch with runtime \texttt{device=cpu/gpu} selection, a Python regression harness, and matched-binary CPU/GPU outputs.
 % <<SECTION_1_END>>
 
 \section{Algorithmic Structure of the Implementation}
@@ -96,7 +95,7 @@ The CFL coefficient is fixed per case: $C_{\mathrm{CFL}} = 0.8$ for 1D tests, $0
 \end{algorithm}
 
 {\sloppy
-The CUDA path decomposes the update into boundary, face-state, flux, conservative-update, and block-wise CFL kernels. The HLLC flux kernel (Algorithm~\ref{alg:hllc-flux-select}) is the main warp-divergence site: in mixed-wave regions, threads within a warp can take different branches ($S_L \ge 0$ vs.\ $S_\ast \ge 0$ vs.\ $S_R \ge 0$). CPU and CUDA therefore share the same branch-rule sensitivity axis. Shared memory is used only for the CFL block reduction, and ordered comparisons make CUDA \(\Delta t\) independent of block order. CPU sweep loops use OpenMP static schedules, giving fixed thread assignments; \texttt{reduction(max:\dots)} over wave-speed candidates is a deterministic comparison, not a floating-point sum. The fixed CFL coefficients sit at $0.8$ for one-dimensional shock tubes, $0.5$ for LW3, and $0.4$ for LW12; Table~\ref{tab:ch4-runtime-minimatrix} also shows a faster fp32 LW3 GPU run. Verificarlo MCA runs are serial because the \texttt{libinterflop} PRNG is not thread-safe. MPI is not used, so comparisons exclude inter-process ordering. Algorithm~\ref{alg:hllc-flux-select} expands the HLLC interface flux, and the strict-inequality variant tested in Section~\ref{sec:precision-sensitive-decisions} flips each branch comparator.\par}
+The CUDA path decomposes the update into boundary, face-state, flux, conservative-update, and block-wise CFL kernels. The HLLC flux kernel (Algorithm~\ref{alg:hllc-flux-select}) is the main warp-divergence site: in mixed-wave regions, threads within a warp can take different branches ($S_L \ge 0$ vs.\ $S_\ast \ge 0$ vs.\ $S_R \ge 0$). CPU and CUDA therefore share the same branch-rule sensitivity axis. Shared memory is used only for the CFL block reduction, and ordered comparisons make CUDA \(\Delta t\) independent of block order. CPU sweep loops use OpenMP static schedules, giving fixed thread assignments; \texttt{reduction(max:\dots)} over wave-speed candidates is a deterministic comparison, not a floating-point sum. The fixed CFL coefficients sit at $0.8$ for one-dimensional shock tubes, $0.5$ for LW3, and $0.4$ for LW12; Table~\ref{tab:ch4-runtime-minimatrix} also shows a faster fp32 LW3 GPU run. MPI is not used, so comparisons exclude inter-process ordering.\par}
 \begin{algorithm}
 \caption[HLLC interface flux selection]{HLLC interface flux selection (one face)}
 \label{alg:hllc-flux-select}
@@ -156,9 +155,7 @@ faster approximate sequence \\
 \label{tab:ch4-strict-flags}
 \end{table}
 
-Compiler optimisation and the HLLC wave-speed branch rule are separate from the
-strict device comparison in Table~\ref{tab:ch4-strict-flags}, which defines the
-build controls for the saved CPU/GPU state comparisons reported in Chapter~5.
+Compiler and branch-rule axes sit outside Table~\ref{tab:ch4-strict-flags}.
 
 Verificarlo runs are diagnostic, not real fp32/fp64 runs. The solver uses Parker's Monte
 Carlo arithmetic formulation~\citep{parker_1997} and Denis et al.'s Verificarlo
@@ -178,9 +175,7 @@ would require \(n_{\min}=299\) observations.
 For a primitive component $q_j$, the sample standard deviation
 $\sigma_{\mathrm{FP},j}=\operatorname{std}_k(q_j^{(k)})$ gives a local roundoff
 scale used in Chapter~6 with q05 / q25 / median spatial quantiles.
-The virtual-precision labels are diagnostic mantissa settings rather than IEEE
-storage formats (see Section~2.4); direct fp32 claims come only from real
-fp32/fp64 comparisons against the chosen reference solution.
+Direct fp32 claims come only from real fp32/fp64 comparisons; see Chapter~2 Section~\emph{Floating-Point Arithmetic and Reproducibility}.
 % <<SECTION_3_END>>
 
 \section{Test-Case Matrix and Metrics}
@@ -211,8 +206,7 @@ R_{\mathrm{ref}} =
 \end{equation}
 A value below 1 means that the fp32--fp64 gap is below the chosen
 reference/discretisation scale; values near or above 1 mean that it is
-comparable to, or larger than, that scale. If the denominator is zero, the
-comparison is degenerate, not a finite adequacy ratio.
+comparable to, or larger than, that scale.
 CPU/GPU entries are matched-binary comparisons under the device-selection rule
 of Section~\ref{sec:implementation-route}.
 
@@ -267,7 +261,7 @@ lw3\_n400 & fp32 & 2.717 & 2.418--4.306 & 1.873 & 1.827--1.939 \\
 \label{tab:ch4-runtime-minimatrix}
 \end{table}
 
-The RTX 4060 Laptop GPU has a peak fp64 throughput of $\approx 0.24$~TFLOPS against $\approx 1$~TFLOPS for the i9-13900H using AVX2. The GPU $\approx$ CPU fp64 result is therefore consistent with consumer-fp64 throughput under the chosen memory layout, not with a kernel-correctness anomaly. On the CSC strict-IEEE path (AMD EPYC host with an RTX 5090), the fp64 LW3 $N=400$ strict-IEEE case runs in $8.53$~s on CPU and $0.57$~s on GPU as end-to-end solver timing. This is an LW3 path-specific timing comparison, not a claim about all fp64 GPU hardware.
+The RTX 4060 Laptop GPU has a peak fp64 throughput of $\approx 0.24$~TFLOPS against $\approx 1$~TFLOPS for the i9-13900H using AVX2. The GPU $\approx$ CPU fp64 result is therefore consistent with consumer-fp64 throughput under the chosen memory layout, not with a kernel-correctness anomaly. On the CSC strict-IEEE path (AMD EPYC host with an RTX 5090), the fp64 LW3 $N=400$ strict-IEEE case runs in $8.53$~s on CPU and $0.57$~s on GPU as end-to-end solver timing.
 
 % <<SECTION_4_END>>
 

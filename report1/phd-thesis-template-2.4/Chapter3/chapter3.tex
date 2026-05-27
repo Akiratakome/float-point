@@ -533,13 +533,7 @@ discussed above.}
 % <<SECTION_6_BEGIN>>
 Report~1 uses Euler, the hydrodynamic limit of the later ideal-MHD problem. In
 ideal MHD the conserved state augments \((\rho,\rho\mathbf{u},E)\) with
-\(\mathbf{B}\), adding magnetic pressure, tension, and induction terms. Its
-Riemann fan has seven families: two fast magnetosonic, two Alfven, two slow
-magnetosonic, and one entropy/contact wave, making it more complex than Euler's
-three-wave HLLC fan \citep{toro2009}. With normal velocity \(u_n\) and fast,
-Alfven, slow speeds \(c_f, c_a, c_s\), the seven characteristic speeds are
-\(u_n-c_f,\ u_n-c_a,\ u_n-c_s,\ u_n,\ u_n+c_s,\ u_n+c_a,\ u_n+c_f\); see
-Fig.~\ref{fig:ch3-mhd-seven-wave-fan}.
+\(\mathbf{B}\), adding magnetic pressure, tension, and induction terms. The Riemann fan has seven families (Fig.~\ref{fig:ch3-mhd-seven-wave-fan}); Chapter~2 Section~\emph{Ideal-MHD Project Context} gives the wave-speed physical meaning.
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[>=latex,scale=0.9]
@@ -566,29 +560,5 @@ constraint automatically; discrete divergence can create spurious magnetic
 forces and distort wave speeds, motivating the divergence-control strategies
 surveyed in the literature \citep{toth_2000}.
 
-Dedner et al.'s hyperbolic cleaning approach \citep{dedner_2002} augments the
-induction equation with a scalar field \(\psi\):
-\begin{equation}\label{eq:ch3-dedner-cleaning}
-  \partial_t \mathbf{B}
-  + \nabla\cdot(\mathbf{u}\mathbf{B}-\mathbf{B}\mathbf{u})
-  + \nabla\psi = 0,
-  \qquad
-  \partial_t \psi + c_h^2\nabla\cdot\mathbf{B} = -\psi/\tau .
-\end{equation}
-Here \(\psi\) carries divergence error, \(c_h\) is the cleaning-wave speed, and
-\(\tau=c_p^2/c_h^2\) is the damping time, so \(-\psi/\tau\) matches
-\(-(c_h^2/c_p^2)\psi\) in Dedner's parameterisation. Constrained transport \citep{evans_hawley_1988}
-instead preserves a staggered-mesh discrete divergence constraint. That is also
-why the Euler HLLC flux is not a direct full-MHD choice: its three-wave
-acoustic/contact model does not resolve the fast, Alfven, slow, and contact
-families. It also does not address the discrete divergence constraint. HLL gives a simpler but more
-diffusive bound \citep{harten_lax_vanleer_1983}; HLLD \citep{miyoshi_kusano_2005}
-and Roe-type solvers \citep{roe_1981} aim to retain more MHD wave structure,
-while GLM-Dedner cleaning and constrained transport treat divergence error
-differently. Report~1 does not derive an MHD finite-volume update, discrete GLM
-source treatment, HLLD star states, or a divergence diagnostic; those are
-Report~2 implementation and validation tasks.
-Report~1 evidence remains Euler-only. The added magnetic pressure terms and
-near-degenerate wave speeds provide more branch and cancellation sites than
-Euler, so they require separate validation.
+HLLD~\citep{miyoshi_kusano_2005} and Roe-type solvers~\citep{roe_1981} retain more MHD wave structure than HLLC, while GLM-Dedner cleaning~\citep{dedner_2002} and constrained transport~\citep{evans_hawley_1988} treat divergence error differently (see Chapter~2 Table~\ref{tab:ch2-divB-comparison}).
 % <<SECTION_6_END>>
