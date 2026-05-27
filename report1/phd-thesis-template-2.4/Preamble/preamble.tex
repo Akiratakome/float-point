@@ -90,6 +90,38 @@
 % *********************************** SI Units *********************************
 \usepackage{siunitx} % use this package module for SI units
 
+% ============== Report 1 figure/table polish style ==============
+% 4-color palette (review.md §6 + spec §2.1)
+\usepackage{xcolor}
+\definecolor{fpDarkBlue}{HTML}{1F4E79}   % fp64, CPU, HLLC
+\definecolor{fpCyanGreen}{HTML}{2A9D8F}  % GPU, secondary
+\definecolor{fpOrange}{HTML}{E76F51}     % fp32, highlight
+\definecolor{fpGray}{HTML}{6C757D}       % reference, neutral
+
+% siunitx alignment for tables
+\sisetup{
+  table-format            = 1.3e-2,
+  table-number-alignment  = center,
+  exponent-product        = \times,
+  output-exponent-marker  = \ensuremath{\mathrm{e}},
+  detect-weight           = true,
+  detect-family           = true,
+}
+
+% Caption style (three-segment lead-in)
+% Note: caption package already loaded at top of preamble with
+% [labelsep=space,tableposition=top]; we only adjust via \captionsetup here
+% to avoid an Option clash.
+\captionsetup{font=small,labelfont=bf,labelsep=period,%
+              justification=justified,singlelinecheck=false}
+\captionsetup[table]{position=top,skip=4pt}
+\captionsetup[figure]{position=bottom,skip=6pt}
+\captionsetup[subfigure]{labelformat=parens,labelsep=space,font=footnotesize}
+
+% Prefer PDF over PNG for figure inclusion
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
+% =================================================================
+
 
 % ******************************* Line Spacing *********************************
 
