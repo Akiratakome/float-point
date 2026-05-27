@@ -9,8 +9,11 @@ Usage in any plot_*.py:
 Palette references review.md §6 / spec §2.2.
 """
 import matplotlib as mpl
+import os
 from cycler import cycler
 
+# Multiple semantic keys share colors by design — see spec §2.2.
+# fp64/cpu/hllc all map to deep blue; gray/rusanov both map to neutral grey.
 PALETTE = {
     "fp64":    "#1F4E79",
     "fp32":    "#E76F51",
@@ -53,7 +56,6 @@ def apply():
 
 def save_pair(fig, stem, outdir):
     """Save both PDF (preferred) and PNG (backup) so LaTeX graphicx picks PDF."""
-    import os
     os.makedirs(outdir, exist_ok=True)
-    fig.savefig(f"{outdir}/{stem}.pdf")
-    fig.savefig(f"{outdir}/{stem}.png", dpi=200)
+    fig.savefig(os.path.join(outdir, f"{stem}.pdf"))
+    fig.savefig(os.path.join(outdir, f"{stem}.png"), dpi=200)
