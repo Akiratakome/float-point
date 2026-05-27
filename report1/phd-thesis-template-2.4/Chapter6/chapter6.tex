@@ -11,7 +11,7 @@ The MCA toolchain and $n = 30$ seed sampling are defined in Chapter~4 Section~\e
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.72\textwidth]{Figs/report1/sigma_fp_vs_precision}
-\caption{MCA-estimated \(\sigma_{\mathrm{FP},L_1}\) for LW3 density: the spatial mean of the per-cell sample standard deviation across the seed ensemble. The roundoff scale decreases with virtual precision for both HLLC and Rusanov; differences between the curves reflect method variation (different arithmetic path; Rusanov's extra diffusion smooths gradients), so lower or similar \(\sigma_{\mathrm{FP},L_1}\) is not an accuracy ranking. Values near $10^{-11}$ at \texttt{p53} approach the fp64 noise floor and bound rather than measure the rounding scale at that precision.}
+\caption[MCA-estimated $\sigma_{\mathrm{FP},L_1}$ for LW3 density]{MCA-estimated \(\sigma_{\mathrm{FP},L_1}\) for LW3 density: the spatial mean of the per-cell sample standard deviation across the $n=30$ seed ensemble. HLLC in deep blue, Rusanov in grey. The roundoff scale decreases with virtual precision for both HLLC and Rusanov; differences between the curves reflect method variation (different arithmetic path; Rusanov's extra diffusion smooths gradients), so lower or similar \(\sigma_{\mathrm{FP},L_1}\) is not an accuracy ranking. Values near $10^{-11}$ at \texttt{p53} approach the fp64 noise floor and bound rather than measure the rounding scale at that precision.}
 \label{fig:ch6-sigma-fp}
 \end{figure}
 
@@ -33,14 +33,14 @@ The required-significant-digits threshold \(s_{\mathrm{req}}\) turns LoSoS into 
   \caption{Region-aware margin at virtual precision \texttt{p32}.}
   \label{fig:ch6-region-losos}
 \end{subfigure}
-\caption{LoSoS for LW3 density under MCA: sample-quantile view (left) and region-aware margin against $s_{\mathrm{req}}$ at virtual precision \texttt{p32} (right).}
+\caption[LoSoS quantile and region-aware margin for LW3 density]{LoSoS for LW3 density under MCA at $n=30$ seeds: sample-quantile view (left, q05/q25/median over the seed ensemble) and region-aware margin against the required-significant-digits threshold $s_{\mathrm{req}}$ at virtual precision \texttt{p32} (right, split by smooth / transition / shock-front regions).}
 \label{fig:ch6-losos-combined}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{Figs/report1/noise_to_error_ratio_heatmap_grid_rho}
-\caption{Spatial noise-to-reference-error ratio for LW3 density across Verificarlo virtual precisions. Regions where MCA noise exceeds the reference-error scale shrink as virtual precision increases.}
+\caption[Spatial noise-to-reference-error ratio for LW3 density]{Spatial noise-to-reference-error ratio $\eta(\mathbf{x}) = \sigma_{\mathrm{FP}}(\mathbf{x}) / |U_{\mathrm{fp64}}(\mathbf{x}) - U_{\mathrm{ref}}(\mathbf{x})|$ for LW3 density across Verificarlo virtual precisions \texttt{p8}, \texttt{p16}, \texttt{p32}; brighter colours mark larger $\eta$. Regions where MCA noise exceeds the reference-error scale shrink as virtual precision increases.}
 \label{fig:ch6-noise-error}
 \end{figure}
 
