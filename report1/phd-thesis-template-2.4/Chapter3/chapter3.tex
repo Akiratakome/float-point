@@ -79,10 +79,10 @@ Substitution gives the conservative flux-difference update
   \draw[->,draw=fpDarkBlue,line width=1.2pt] ( 0,-2.0) -- ( 0,-1.25) node[midway,right] {$\widehat G_{i,j-\tfrac{1}{2}}$};
   \draw[->,draw=fpDarkBlue,line width=1.2pt] ( 0, 1.25) -- ( 0, 2.0) node[midway,right] {$\widehat G_{i,j+\tfrac{1}{2}}$};
 \end{tikzpicture}
-\caption{Finite-volume conservative update: the cell average $\bar U_{ij}^n$
+\caption[Finite-volume conservative update on a 2D cell]{Finite-volume conservative update: the cell average $\bar U_{ij}^n$
 evolves by the difference of interface fluxes $\widehat F_{i\pm\tfrac{1}{2},j}$ in
 $x$ and $\widehat G_{i,j\pm\tfrac{1}{2}}$ in $y$, following
-Equation~\ref{eq:fv-update}.}
+Equation~\ref{eq:fv-update}. Arrows in deep blue indicate flux directions on the four cell faces.}
 \label{fig:ch3-fv-cell}
 \end{figure}
 Fig.~\ref{fig:ch3-fv-cell} sketches the four interface fluxes in this update.
@@ -245,7 +245,7 @@ and
   \node[text=fpOrange] at ( 1.2,1.6) {$U_{\ast R}$};
   \node at ( 2.0,1.0) {$U_R$};
 \end{tikzpicture}
-\caption{HLLC interface fan: $S_L, S_\ast, S_R$ separate $U_L, U_{\ast L}, U_{\ast R}, U_R$. The sign of these three speeds selects the flux branch (Eq.~\eqref{eq:ch3-hllc-fluxselect}).}
+\caption[HLLC interface wave fan]{HLLC interface fan: $S_L, S_\ast, S_R$ separate $U_L, U_{\ast L}, U_{\ast R}, U_R$. The sign of these three speeds selects the flux branch (Eq.~\eqref{eq:ch3-hllc-fluxselect}). Outer acoustic waves $S_L, S_R$ are drawn in deep blue; the contact $S_\ast$ and star states $U_{\ast L}, U_{\ast R}$ are highlighted in orange.}
 \label{fig:hllc-fan}
 \end{figure}
 
@@ -538,8 +538,8 @@ Fig.~\ref{fig:ch3-mhd-seven-wave-fan}.
   \draw[-,draw=fpGray,line width=0.6pt] (-3.6,0) -- (3.6,0);
   \node at (0,-0.3) {$x$};
 \end{tikzpicture}
-\caption{Seven-wave fan for ideal MHD: two fast magnetosonic, two Alfven, two
-slow magnetosonic waves, and an entropy mode.}
+\caption[Seven-wave fan for ideal MHD]{Seven-wave fan for ideal MHD: two fast magnetosonic, two Alfven, two
+slow magnetosonic waves, and an entropy mode. Fast magnetosonic waves are drawn in deep blue, Alfven in cyan-green, slow magnetosonic in orange, and the central entropy/contact mode in grey.}
 \label{fig:ch3-mhd-seven-wave-fan}
 \end{figure}
 The magnetic field must satisfy
