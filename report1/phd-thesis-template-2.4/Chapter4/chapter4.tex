@@ -60,12 +60,9 @@ applies only to the scalar time counter. Algorithms~\ref{alg:step-dispatch}
 and~\ref{alg:muscl-hancock} summarise dispatch and the per-cell predictor.
 
 \begin{algorithm}
-\caption[Time-stepping loop with dimensional splitting]{\textbf{Time-stepping loop with
-dimensional splitting and Kahan-compensated time accumulation.}
-The CFL coefficient is fixed per case: $C_{\mathrm{CFL}} = 0.8$ for 1D tests, $0.5$ for LW3,
-$0.4$ for LW12. \emph{Step parity alternates X/Y sweep order to symmetrise the
-splitting; Kahan compensation removes catastrophic cancellation in
-$t \gets t + \Delta t$.}}
+\caption[Time-stepping loop with dimensional splitting]{\textbf{Time-stepping loop with dimensional splitting and Kahan-compensated time accumulation.}
+The CFL coefficient is fixed per case: $C_{\mathrm{CFL}} = 0.8$ for 1D tests, $0.5$ for LW3, $0.4$ for LW12.
+\emph{Step parity symmetrises X/Y sweep order.}}
 \label{alg:step-dispatch}
 \begin{algorithmic}[1]
 \Function{AdvanceToFinalTime}{$U^{0}, t_{\mathrm{end}}, C_{\mathrm{CFL}}$}
@@ -173,11 +170,8 @@ faster approximate sequence \\
 \bottomrule
 \end{tabularx}
 \caption[Strict floating-point controls for matched CPU/GPU builds]{\textbf{Strict floating-point controls for matched CPU/GPU builds.}
-  Compiler and CUDA flags applied on both backends when \texttt{STRICT\_IEEE=ON};
-  each option removes a transformation that would otherwise make a same-precision
-  device comparison less controlled.
-  \emph{The flag set yields identical IEEE-style semantics on both backends,
-  enabling the saved-state zero-drift comparisons of Chapter~5.}}
+  Flags applied on both backends when \texttt{STRICT\_IEEE=ON}.
+  \emph{Removes transformations that weaken IEEE semantics.}}
 \label{tab:ch4-strict-flags}
 \end{table}
 
@@ -260,12 +254,8 @@ LW12 & 2D & Liska--Wendroff configuration 12: two shock segments and two contact
 \bottomrule
 \end{tabularx}
 \caption[Experimental-design matrix for the Report~1 Euler validation suite]{\textbf{Experimental-design matrix for the Report~1 Euler validation suite.}
-  Each row pairs a benchmark case with its reference solution and the axes
-  exercised against it; quantitative metrics are \(L_1\), \(L_\infty\),
-  \(\mathrm{ULP}_{\max}\), reference-scaled ratios, and SSIM for the
-  two-dimensional image comparisons.
-  \emph{The matrix fixes the case/reference pairing used by every quantitative
-  comparison reported in Chapter~5.}}
+  Metrics: \(L_1\), \(L_\infty\), \(\mathrm{ULP}_{\max}\), reference-scaled ratios, and SSIM for 2D image comparisons.
+  \emph{Fixes the case/reference pairing used in Chapter~5.}}
 \label{tab:ch4-design-matrix}
 \end{table}
 
@@ -289,14 +279,9 @@ lw3\_n400 & fp64 & 2.554 & 2.039--3.299 & 2.651 & 2.500--3.199 \\
 lw3\_n400 & fp32 & 2.717 & 2.418--4.306 & 1.873 & 1.827--1.939 \\
 \bottomrule
 \end{tabular}
-\caption[Runtime mini-matrix]{\textbf{Runtime mini-matrix on the local Intel
-  Core~i9-13900H host with NVIDIA RTX~4060 Laptop GPU.}
-  Median and min--max wall-clock seconds across five repeats per entry under
-  \texttt{ENABLE\_CUDA=ON} with the strict-IEEE HLLC build of
-  Table~\ref{tab:ch4-strict-flags}; entries are computational-cost context,
-  not a portable timing claim.
-  \emph{Consumer-fp64 throughput leaves the fp64 LW3 run at GPU~\(\approx\)~CPU,
-  while fp32 LW3 is measurably faster on the GPU.}}
+\caption[Runtime mini-matrix]{\textbf{Runtime mini-matrix on i9-13900H~/~RTX~4060 Laptop GPU.}
+  Median and min--max wall-clock seconds, five repeats per entry, strict-IEEE HLLC under \texttt{ENABLE\_CUDA=ON}; computational-cost context only.
+  \emph{fp64 LW3 GPU~\(\approx\)~CPU; fp32 LW3 faster on GPU.}}
 \label{tab:ch4-runtime-minimatrix}
 \end{table}
 
