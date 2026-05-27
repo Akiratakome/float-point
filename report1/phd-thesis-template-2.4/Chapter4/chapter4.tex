@@ -19,9 +19,19 @@ Configuration choice & Compile-time definition & Report role \\
 \end{tabular}
 \end{center}
 
+\begin{lstlisting}[style=fpListing,
+  caption={Compile-time precision selection (\texttt{src/main.cpp}). The build system sets \texttt{HRSC\_REAL} via \texttt{-DFLOAT\_PRECISION=float|double}; every solver object in the main translation unit then uses the single \texttt{Real} alias.},
+  label=lst:hrsc-real]
+#ifndef HRSC_REAL
+#define HRSC_REAL double   // fallback if built without PrecisionConfig
+#endif
+
+using Real = HRSC_REAL;
+\end{lstlisting}
+
 This design keeps the precision comparison to two storage formats,
 binary32 and binary64~\citep{ieee754_2019}. Higher-precision extensions, such
-as a Boost::Multiprecision route, are outside the Report 1 evidence scope.
+as a Boost.Multiprecision route \citep{maddock_boost_multiprecision}, are outside the Report~1 evidence scope.
 
 Toro3 and Toro5 were rerun on the CSC Linux strict-IEEE build for the matched CPU/GPU comparison reported in Chapter~5. Matched CPU/GPU saved-state comparisons for Sod, LW3, and LW12 use local Linux/WSL paths; the CSC RTX 5090 path also supports the LW3 high-resolution reference/preflight where stated. Each within-case CPU/GPU comparison stays within one matched binary. The available local i9-13900H/RTX 4060 Laptop GPU and CSC AMD EPYC/RTX 5090 paths provide bounded cross-toolchain/hardware evidence, not portable behavior across arbitrary devices.
 
