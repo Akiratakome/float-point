@@ -291,7 +291,7 @@ The scalar prefactor multiplies the whole vector; the fourth entry has units of 
 \(p_\ast=p_K+\rho_K(S_K-u_K)(S_\ast-u_K)\) is equal on both sides of the contact.
 This is the part of HLLC that restores the contact wave missing from the
 two-wave HLL approximation discussed in the literature
-\citep{toro_spruce_speares_1994,batten_etal_1997,toro2009}. The exact choice of strict or non-strict
+\citep{einfeldt_1988,toro_spruce_speares_1994,batten_etal_1997,toro2009}. The exact choice of strict or non-strict
 inequality at zero is a precision-sensitive implementation decision and is
 discussed separately in Section~\ref{sec:precision-sensitive-decisions}.
 
@@ -487,6 +487,21 @@ experiments.}
 \label{tab:method-decision-points}
 \end{table}
 
+\paragraph{Strict-inequality branch rule.}
+The macro \texttt{RIEMANN\_STRICT\_INEQUALITY} toggles the HLLC branch dispatcher between the baseline non-strict comparator (\(\le\)) and the strict variant (\(<\)) at the wave-speed-near-zero boundary. The macro is read in \texttt{src/euler/hllc.hpp} (Listing~\ref{lst:strict-ineq}); flipping it changes one comparator per branch decision and otherwise leaves the flux algebra untouched. The downstream consequence is analysed in Chapter~5 Section~\emph{Toro Test 2 Branch Stability}.
+
+%TC:ignore
+\begin{lstlisting}[style=fpListing,
+  caption={HLLC branch dispatcher: baseline ($\le$) vs strict ($<$) selected at compile time by \texttt{RIEMANN\_STRICT\_INEQUALITY} (\texttt{src/euler/hllc.hpp}, first of two parallel blocks).},
+  label=lst:strict-ineq]
+#ifdef RIEMANN_STRICT_INEQUALITY
+    if (SL < Real(0) && Real(0) < S_star) {
+#else
+    if (SL <= Real(0) && Real(0) <= S_star) {
+#endif
+\end{lstlisting}
+%TC:endignore
+
 \begin{table}[htbp]
 \centering
 \small
@@ -496,7 +511,7 @@ experiments.}
 Macro & Build effect & Tested in \\
 \midrule
 \texttt{RIEMANN\_STRICT\_INEQUALITY} & Selects the strict \(<\) HLLC branch rule
-in place of the default \(\le\). & Chapter~5 wave-speed branch variation. \\
+shown in Listing~\ref{lst:strict-ineq}. & Chapter~5 wave-speed branch variation. \\
 \addlinespace
 \texttt{STRICT\_IEEE} & Pins IEEE rounding on CPU and CUDA by disabling FMA
 contraction, fast-math reassociation, flush-to-zero, and approximate division
