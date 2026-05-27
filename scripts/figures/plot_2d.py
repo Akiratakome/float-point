@@ -21,7 +21,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from io_helper import IDX_E, IDX_RHO, IDX_RHOU, IDX_RHOV, read_binary  # noqa: E402
+from _style import SEQUENTIAL_CMAP, apply, save_pair  # noqa: E402
+
+apply()
 
 GAMMA_DEFAULT = 1.4
 SUPPORTED_FIELDS = ("rho", "p", "vmag", "schlieren")
@@ -67,10 +71,12 @@ def render_field(
     vmin: float | None,
     vmax: float | None,
     title: str | None,
+    save_pair_outdir: Path | None = None,
 ) -> None:
     height = max(3.0, 8.0 * header.ny / max(header.nx, 1))
     fig, ax = plt.subplots(figsize=(8, height))
     extent = [0, header.nx * header.dx, 0, header.ny * header.dy]
+    field_label = "density schlieren" if field == "schlieren" else field
     im = ax.imshow(
         arr2d,
         origin="lower",
@@ -82,11 +88,15 @@ def render_field(
     )
     ax.set_xlabel("x")
     ax.set_ylabel("y")
-    ax.set_title(title if title is not None else f"{out_path.stem} ({field})")
-    fig.colorbar(im, ax=ax, label=field)
+    if title is not None:
+        ax.set_title(title)
+    fig.colorbar(im, ax=ax, label=field_label)
     fig.tight_layout()
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=120)
+    if save_pair_outdir is not None:
+        save_pair(fig, out_path.stem, str(save_pair_outdir))
+    else:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(out_path, dpi=120)
     plt.close(fig)
 
 
@@ -108,10 +118,17 @@ def _parse_args() -> argparse.Namespace:
         required=True,
         help="Output PNG path; later fields append '_<field>' to the stem",
     )
-    parser.add_argument("--cmap", default="viridis")
+    parser.add_argument("--cmap", default=SEQUENTIAL_CMAP)
     parser.add_argument("--vmin", type=float, default=None)
     parser.add_argument("--vmax", type=float, default=None)
     parser.add_argument("--title", default=None)
+    parser.add_argument(
+        "--save-pair",
+        type=Path,
+        default=None,
+        help="If set, save both PDF and PNG via _style.save_pair to this directory. "
+             "The stem is derived from --out (and per-field suffix). Overrides direct savefig.",
+    )
     parser.add_argument(
         "--gamma",
         type=float,
@@ -141,8 +158,12 @@ def main() -> None:
             vmin=args.vmin,
             vmax=args.vmax,
             title=args.title,
+            save_pair_outdir=args.save_pair,
         )
-        print(f"wrote {out_path}")
+        if args.save_pair is not None:
+            print(f"wrote pair {args.save_pair}/{out_path.stem}.{{pdf,png}}")
+        else:
+            print(f"wrote {out_path}")
 
 
 if __name__ == "__main__":
