@@ -2,6 +2,15 @@
 
 \chapter{Introduction}
 
+\section{Physical Applications and Reproducibility}
+% <<SECTION_NEW_BEGIN>>
+Compressible-Euler and HRSC methods underpin engineering and scientific calculations across several settings. External aerodynamics rely on them for supersonic intakes and hypersonic re-entry vehicles; turbomachinery analysis uses them to capture shocks inside transonic compressor and turbine cascades; inertial-confinement fusion modelling needs them at strongly imploding interfaces; astrophysical simulations of jets and shock--bubble interactions sit on the same numerical core~\citep{liska_wendroff_2003,bard_dorelli_2014}. Each of these consumers runs design loops or operating-envelope sweeps that need both fast and accurate solutions.
+
+%
+
+The implementation choices behind those solutions vary between research groups, hardware vendors, and compiler toolchains. Two binary builds of the same algorithm can disagree from precision, FMA contraction, reduction ordering, or branch-rule choices near zero wave speeds. That variability is the question Report 1 quantifies on a controlled Euler validation suite (see Section~\emph{Report Scope and Contribution}).
+% <<SECTION_NEW_END>>
+
 \section{Context: HRSC Schemes for Discontinuous Compressible Flows}
 % <<SECTION_1_BEGIN>>
 Compressible HRSC methods evolve conserved cell averages with Riemann-solver fluxes, capturing shocks and contact discontinuities without tracking them explicitly~\citep{toro2009}. The same features that make these methods useful also make their precision and backend reproducibility worth measuring.
@@ -9,7 +18,7 @@ Compressible HRSC methods evolve conserved cell averages with Riemann-solver flu
 
 \section{Precision and Hardware Reproducibility Problem}
 % <<SECTION_2_BEGIN>>
-For such schemes, reproducibility is not guaranteed by the statement of the finite-volume algorithm alone. Two runs may use the same reconstruction, Riemann solver, and time step, but differ because binary32 and binary64 round quantities differently, because the compiler fuses operations or reassociates expressions, or because device arithmetic and parallel ordering change the sequence of rounded operations \citep{goldberg_1991,ieee754_2019}. These mechanisms matter in CFD because shock-capturing updates contain branch thresholds, limiter switching, and cancellation in flux or star-state terms near discontinuities. Recent CFD studies therefore treat reduced or mixed precision as case-dependent: Brogi et al. report OpenFOAM evidence across CFD workloads, while Wang, Xia, and Chen study a heterogeneous hybrid-precision finite-volume method for compressible flow, set against the wider linear-algebra mixed-precision literature surveyed by \citet{higham_mary_2022} \citep{brogi_etal_2024,wang_xia_chen_2025}. These papers motivate validation on the present solver and test matrix; they do not establish fp32 suitability here. CUDA, the NVIDIA GPU programming model and backend used in this project, can differ from CPU backends in fp32/fp64 throughput and arithmetic behaviour and can also vary between GPU devices, so this report measures those effects rather than assuming reproducibility across hardware. Direct fp32 claims in this report come from real fp32/fp64 runs, not from Verificarlo virtual-precision diagnostics (see Section~2.4).
+For such schemes, reproducibility is not guaranteed by the finite-volume algorithm alone. Two runs may use the same reconstruction, Riemann solver, and time step, but differ because binary32 and binary64 round quantities differently, because the compiler fuses operations or reassociates expressions, or because device arithmetic and parallel ordering change the sequence of rounded operations \citep{goldberg_1991,ieee754_2019}. These mechanisms matter in CFD because shock-capturing updates contain branch thresholds, limiter switching, and cancellation in flux or star-state terms near discontinuities. Recent CFD studies therefore treat reduced or mixed precision as case-dependent: Brogi et al. report OpenFOAM evidence across CFD workloads, while Wang, Xia, and Chen study a heterogeneous hybrid-precision finite-volume method for compressible flow, set against the wider linear-algebra mixed-precision literature surveyed by \citet{higham_mary_2022} \citep{brogi_etal_2024,wang_xia_chen_2025}. These papers motivate validation on the present solver and test matrix; they do not establish fp32 suitability here. CUDA, the NVIDIA GPU backend used in this project, can differ from CPU backends in fp32/fp64 throughput and arithmetic behaviour and can also vary between GPU devices, so this report measures those effects rather than assuming reproducibility across hardware. Direct fp32 claims in this report come from real fp32/fp64 runs, not from Verificarlo virtual-precision diagnostics (see Section~2.4).
 % <<SECTION_2_END>>
 
 \section{Report Scope and Contribution}
