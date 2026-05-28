@@ -40,3 +40,4 @@ thesis.run.xml*
 *run.xml*
 *.latexmkrc*
 *_latexmk*
+*.ps
