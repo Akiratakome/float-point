@@ -109,9 +109,9 @@ contacts an unlimited piecewise-linear reconstruction can introduce new local
 extrema and spurious oscillations. A slope limiter suppresses these extrema
 while retaining second-order accuracy in smooth monotone regions. The
 reconstruction follows the MUSCL framework of van~Leer~\citep{vanleer_1979}, in
-the presentation of \citet{toro2009}. The reconstruction uses one-sided jumps
-and Toro's minbee limiter function \(\Phi(r)\). For the jump orientation used
-by the code this gives the following component-wise limited jump:
+the presentation of \citet{toro2009}. The implemented limiter is minmod, applied
+to one-sided jumps. For the jump orientation used by the code this gives the
+following component-wise limited jump:
 \begin{equation}\label{eq:ch3-minmod-sigma}
   \sigma_i^{(k)}
   =
@@ -130,15 +130,13 @@ where
 Equivalently, writing the one-sided jumps as
 \(\delta^- U_i^{(k)} = \bar U_i^{(k),n}-\bar U_{i-1}^{(k),n}\) and
 \(\delta^+ U_i^{(k)} = \bar U_{i+1}^{(k),n}-\bar U_i^{(k),n}\),
-\begin{equation}\label{eq:ch3-minbee-function}
+\begin{equation}\label{eq:ch3-minmod-function}
   \sigma_i^{(k)} = \Phi(r_i^{(k)})\,\delta^+ U_i^{(k)},\qquad
   \Phi(r) = \max(0, \min(1, r)),\qquad
   r_i^{(k)} = \frac{\delta^- U_i^{(k)}}{\delta^+ U_i^{(k)}} .
 \end{equation}
-\(\Phi\) is Toro's minbee function; Eq.~\eqref{eq:ch3-minmod-sigma} is its
-limited-jump implementation here, not a claim that all minbee and minmod
-limiter forms are interchangeable.
-Minbee is a diffusive Total Variation Diminishing (TVD) limiter, so small
+The \(r\)-form \(\Phi(r) = \max(0,\min(1,r))\) is the symmetric-limiter form of minmod \citep{toro2009}; it is equivalent to Eq.~\ref{eq:ch3-minmod-sigma} on the present one-sided jumps. The C++ source calls the helper \texttt{minbee} as an alias for this minmod definition; the name should not be read as Toro's WAF minbee, which is a different formula.
+Minmod is a diffusive Total Variation Diminishing (TVD) limiter, so small
 perturbations may be damped. For a scalar conservation law a TVD scheme cannot
 increase the discrete total variation in time and so cannot generate spurious
 extrema; for the nonlinear Euler system this property is heuristic rather than
@@ -350,7 +348,7 @@ nonsmooth data. The limiter makes the reconstruction nonlinear, so the local
 order is not uniform across the grid. In smooth monotone regions the
 piecewise-linear data and Hancock predictor give the expected second-order
 truncation behaviour. At extrema, shocks, contacts, and rarefaction edges the
-minbee limiter, implemented by Eq.~\eqref{eq:ch3-minmod-sigma}, can set or reduce the slope,
+minmod limiter, implemented by Eq.~\eqref{eq:ch3-minmod-sigma}, can set or reduce the slope,
 moving the local update towards a first-order Godunov step
 \citep{vanleer_1979,toro2009}.
 

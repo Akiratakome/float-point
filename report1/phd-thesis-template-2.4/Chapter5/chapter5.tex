@@ -219,10 +219,11 @@ localised LW12 difference
 in Fig.~\ref{fig:ch5-lw12-precision-heatmap} is consistent with precision
 sensitivity in the steep pressure and density gradients of the upper-right
 shock-interaction region. Those gradients drive extrema in local wave-speed
-estimates, which enter the HLLC star-state and flux algebra of Chapter~3. The
-figure does not prove that a specific HLLC branch changed; no branch-count
-diagnostic is used here. Virtual-precision sensitivity maps appear in
-Chapter~6.
+estimates, which enter the HLLC star-state and flux algebra of Chapter~3.
+Attributing the pattern to a specific HLLC branch flip would need the same
+first-step branch-count trace used for Toro2 in Section~\ref{sec:toro2-branch},
+extended to 2D; the virtual-precision sensitivity maps in Chapter~6 take this
+forward.
 
 \begin{figure}[htbp]
 \centering
@@ -384,7 +385,7 @@ Table~\ref{tab:ch5-cpu-gpu}'s zero-drift result to strict-IEEE, fast-math-off
 builds.
 
 A limiter probe gives a method-sensitivity scale, not reproducibility
-evidence. With CPU-fp64 HLLC at the same grid, switching from minbee to van
+evidence. With CPU-fp64 HLLC at the same grid, switching from minmod to van
 Leer gives $L_1=9.21\times10^{-4}$ for Sod, $1.71$ for Toro3, $1.39$ for
 Toro5, and $3.09\times10^{-3}$ for LW3 at $200^2$.
 
