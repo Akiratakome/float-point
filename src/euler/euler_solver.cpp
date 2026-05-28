@@ -12,6 +12,7 @@
 // Explicit instantiations at end of file: float and double only.
 
 #include "euler/euler_solver.hpp"
+#include "euler/hllc_trace.hpp"
 
 #ifdef HRSC_ENABLE_PROFILING
 #include "utils/timer.hpp"
@@ -19,13 +20,60 @@
 
 namespace hrsc {
 
+template <typename Real, typename Ptr>
+static void muscl_hancock_x_with_limiter(
+    LimiterScheme limiter,
+    GridViewBase<Real, EulerNVars, Ptr> grid, int i, int j,
+    Real dt, Real gamma,
+    Vec<Real, EulerNVars>& q_left, Vec<Real, EulerNVars>& q_right)
+{
+    switch (limiter) {
+        case LimiterScheme::Minbee:
+            muscl_hancock_x(grid, i, j, dt, gamma, q_left, q_right, MinbeeLimiter{});
+            break;
+        case LimiterScheme::VanLeer:
+            muscl_hancock_x(grid, i, j, dt, gamma, q_left, q_right, VanLeerLimiter{});
+            break;
+        case LimiterScheme::Superbee:
+            muscl_hancock_x(grid, i, j, dt, gamma, q_left, q_right, SuperbeeLimiter{});
+            break;
+        case LimiterScheme::VanAlbada:
+            muscl_hancock_x(grid, i, j, dt, gamma, q_left, q_right, VanAlbadaLimiter{});
+            break;
+    }
+}
+
+template <typename Real, typename Ptr>
+static void muscl_hancock_y_with_limiter(
+    LimiterScheme limiter,
+    GridViewBase<Real, EulerNVars, Ptr> grid, int i, int j,
+    Real dt, Real gamma,
+    Vec<Real, EulerNVars>& q_bottom, Vec<Real, EulerNVars>& q_top)
+{
+    switch (limiter) {
+        case LimiterScheme::Minbee:
+            muscl_hancock_y(grid, i, j, dt, gamma, q_bottom, q_top, MinbeeLimiter{});
+            break;
+        case LimiterScheme::VanLeer:
+            muscl_hancock_y(grid, i, j, dt, gamma, q_bottom, q_top, VanLeerLimiter{});
+            break;
+        case LimiterScheme::Superbee:
+            muscl_hancock_y(grid, i, j, dt, gamma, q_bottom, q_top, SuperbeeLimiter{});
+            break;
+        case LimiterScheme::VanAlbada:
+            muscl_hancock_y(grid, i, j, dt, gamma, q_bottom, q_top, VanAlbadaLimiter{});
+            break;
+    }
+}
+
 template <typename Real>
 EulerSolver<Real>::EulerSolver(int nx, int ny, Real dx, Real dy,
                                Real xmin, Real ymin,
                                Real gamma, Real cfl, TimeReal t_end,
                                FluxScheme flux,
                                BoundaryType bc_x,
-                               BoundaryType bc_y)
+                               BoundaryType bc_y,
+                               LimiterScheme limiter)
     : m_grid(nx, ny),
       m_xmin(xmin),
       m_ymin(ymin),
@@ -36,6 +84,7 @@ EulerSolver<Real>::EulerSolver(int nx, int ny, Real dx, Real dy,
       m_kahan_c(TimeReal(0)),
       m_step(0),
       m_flux(flux),
+      m_limiter(limiter),
       m_bc_x(bc_x),
       m_bc_y(bc_y)
 {
@@ -48,8 +97,9 @@ EulerSolver<Real>::EulerSolver(int nx, Real dx, Real xmin,
                                Real gamma, Real cfl, TimeReal t_end,
                                FluxScheme flux,
                                BoundaryType bc_x,
-                               BoundaryType bc_y)
-    : EulerSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end, flux, bc_x, bc_y)
+                               BoundaryType bc_y,
+                               LimiterScheme limiter)
+    : EulerSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end, flux, bc_x, bc_y, limiter)
 {}
 
 template <typename Real>
@@ -87,6 +137,7 @@ void EulerSolver<Real>::x_sweep(TimeReal dt)
 {
     const Real dt_real = static_cast<Real>(dt);
     auto gv = m_grid.view();
+    hllc_trace::set_context(m_step, static_cast<double>(m_time), static_cast<double>(dt));
 #ifdef HRSC_ENABLE_PROFILING
     ScopedTimer __prof_sweep("sweep", m_prof_);
 #endif
@@ -110,12 +161,14 @@ void EulerSolver<Real>::x_sweep(TimeReal dt)
                 Vec<Real, EulerNVars> qL_left{}, qL_right{};
                 Vec<Real, EulerNVars> qR_left{}, qR_right{};
 
-                muscl_hancock_x(gv, iL, j, dt_real, m_gamma, qL_left, qL_right);
-                muscl_hancock_x(gv, iR, j, dt_real, m_gamma, qR_left, qR_right);
+                muscl_hancock_x_with_limiter(
+                    m_limiter, gv, iL, j, dt_real, m_gamma, qL_left, qL_right);
+                muscl_hancock_x_with_limiter(
+                    m_limiter, gv, iR, j, dt_real, m_gamma, qR_left, qR_right);
 
                 flux[k] = (m_flux == FluxScheme::Rusanov)
                     ? rusanov_flux(qL_right, qR_left, m_gamma)
-                    : hllc_flux(qL_right, qR_left, m_gamma);
+                    : hllc_trace::hllc_flux_traced(qL_right, qR_left, m_gamma, k, j, "x");
             }
         }
     }
@@ -145,12 +198,14 @@ void EulerSolver<Real>::x_sweep(TimeReal dt)
             Vec<Real, EulerNVars> qL_left{}, qL_right{};
             Vec<Real, EulerNVars> qR_left{}, qR_right{};
 
-            muscl_hancock_x(gv, iL, j, dt_real, m_gamma, qL_left, qL_right);
-            muscl_hancock_x(gv, iR, j, dt_real, m_gamma, qR_left, qR_right);
+            muscl_hancock_x_with_limiter(
+                m_limiter, gv, iL, j, dt_real, m_gamma, qL_left, qL_right);
+            muscl_hancock_x_with_limiter(
+                m_limiter, gv, iR, j, dt_real, m_gamma, qR_left, qR_right);
 
             flux[k] = (m_flux == FluxScheme::Rusanov)
                 ? rusanov_flux(qL_right, qR_left, m_gamma)
-                : hllc_flux(qL_right, qR_left, m_gamma);
+                : hllc_trace::hllc_flux_traced(qL_right, qR_left, m_gamma, k, j, "x");
         }
 
         Real dtdx = dt_real / gv.dx;
@@ -171,6 +226,7 @@ void EulerSolver<Real>::y_sweep(TimeReal dt)
 {
     const Real dt_real = static_cast<Real>(dt);
     auto gv = m_grid.view();
+    hllc_trace::set_context(m_step, static_cast<double>(m_time), static_cast<double>(dt));
 #ifdef HRSC_ENABLE_PROFILING
     ScopedTimer __prof_sweep("sweep", m_prof_);
 #endif
@@ -194,15 +250,17 @@ void EulerSolver<Real>::y_sweep(TimeReal dt)
                 Vec<Real, EulerNVars> qB_bot{}, qB_top{};
                 Vec<Real, EulerNVars> qT_bot{}, qT_top{};
 
-                muscl_hancock_y(gv, i, jB, dt_real, m_gamma, qB_bot, qB_top);
-                muscl_hancock_y(gv, i, jT, dt_real, m_gamma, qT_bot, qT_top);
+                muscl_hancock_y_with_limiter(
+                    m_limiter, gv, i, jB, dt_real, m_gamma, qB_bot, qB_top);
+                muscl_hancock_y_with_limiter(
+                    m_limiter, gv, i, jT, dt_real, m_gamma, qT_bot, qT_top);
 
                 // Rotate -> flux -> rotate back
                 auto rotL = swap_momentum(qB_top);
                 auto rotR = swap_momentum(qT_bot);
                 auto f_iface = (m_flux == FluxScheme::Rusanov)
                     ? rusanov_flux(rotL, rotR, m_gamma)
-                    : hllc_flux(rotL, rotR, m_gamma);
+                    : hllc_trace::hllc_flux_traced(rotL, rotR, m_gamma, k, i, "y");
                 flux[k] = swap_momentum(f_iface);
             }
         }
@@ -233,15 +291,17 @@ void EulerSolver<Real>::y_sweep(TimeReal dt)
             Vec<Real, EulerNVars> qB_bot{}, qB_top{};
             Vec<Real, EulerNVars> qT_bot{}, qT_top{};
 
-            muscl_hancock_y(gv, i, jB, dt_real, m_gamma, qB_bot, qB_top);
-            muscl_hancock_y(gv, i, jT, dt_real, m_gamma, qT_bot, qT_top);
+            muscl_hancock_y_with_limiter(
+                m_limiter, gv, i, jB, dt_real, m_gamma, qB_bot, qB_top);
+            muscl_hancock_y_with_limiter(
+                m_limiter, gv, i, jT, dt_real, m_gamma, qT_bot, qT_top);
 
             // Rotate -> flux -> rotate back
             auto rotL = swap_momentum(qB_top);
             auto rotR = swap_momentum(qT_bot);
             auto f_iface = (m_flux == FluxScheme::Rusanov)
                 ? rusanov_flux(rotL, rotR, m_gamma)
-                : hllc_flux(rotL, rotR, m_gamma);
+                : hllc_trace::hllc_flux_traced(rotL, rotR, m_gamma, k, i, "y");
             flux[k] = swap_momentum(f_iface);
         }
 

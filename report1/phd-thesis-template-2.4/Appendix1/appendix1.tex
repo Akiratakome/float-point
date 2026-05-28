@@ -1,5 +1,26 @@
 %!TEX root = ../thesis.tex
 
-\chapter{Supplementary Evidence}
+%TC:ignore
+\chapter{Supplementary Figures}
 
-% TODO: Use only if appendix material is needed after the main report is drafted.
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{Figs/report1/appendix_runtime_minimatrix}
+\caption[Strict-HLLC runtime mini-matrix]{Strict-HLLC runtime mini-matrix across the matched-binary cases. Bars give wall-clock seconds for the local i9-13900H CPU and the matched CUDA path on the available GPUs (RTX 4060 Laptop locally, RTX 5090 on CSC for Toro3 and Toro5). Non-zero CUDA runtimes confirm that the GPU path is exercised in the comparisons reported in Table~\ref{tab:ch5-cpu-gpu}; the table's zero-drift result is therefore a property of the matched strict-IEEE binary, not of an inactive device.}
+\label{fig:app-runtime-minimatrix}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{Figs/report1/appendix_lw3_self_convergence}
+\caption[LW3 fp64 self-convergence against finer grids]{LW3 fp64 self-convergence: density $L_1$ between successive grid pairs ($400$ vs $800$, $800$ vs $1600$), on a log--log axis. The fitted slope gives an observed self-convergence order of about $0.47$, in line with the sub-quadratic behaviour seen for the 1D shock tubes in Table~\ref{tab:ch5-1d-exact-convergence}. This supports treating $1600^2$ fp64 as a finer-grid numerical reference for LW3 rather than an exact-solution comparator.}
+\label{fig:app-lw3-self-convergence}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{Figs/report1/appendix_vfc_toro3_diagnostics}
+\caption[Verificarlo MCA diagnostics for Toro3]{Verificarlo MCA stochastic-rounding diagnostics for Toro3 at $N=200$. Top: distribution of final density $L_1$ across MCA replicas at fp32 and fp64. Bottom: empirical standard deviation $\sigma_{\mathrm{FP}}$ of the conservative state as a function of replica count. The deterministic fp32 result sits inside the MCA fp32 distribution, indicating that it is not an isolated rounding instance. The fp64 spread is several orders of magnitude tighter, consistent with the precision-scale summary in Table~\ref{tab:ch5-1d-summary}.}
+\label{fig:app-vfc-toro3-diagnostics}
+\end{figure}
+%TC:endignore

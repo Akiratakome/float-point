@@ -84,7 +84,7 @@ def render_field(
         cmap=cmap,
         vmin=vmin,
         vmax=vmax,
-        aspect="auto",
+        aspect="equal",
     )
     ax.set_xlabel("x")
     ax.set_ylabel("y")

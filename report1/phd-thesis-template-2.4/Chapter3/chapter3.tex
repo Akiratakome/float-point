@@ -234,17 +234,7 @@ and
 \end{equation}
 \begin{figure}[htbp]
 \centering
-\begin{tikzpicture}[>=latex,scale=1.1]
-  \draw[->,draw=fpGray,line width=0.6pt] (-3.2,0) -- (3.2,0) node[right] {$x$};
-  \draw[->,draw=fpGray,line width=0.6pt] (0,-0.2) -- (0,2.6) node[above] {$t$};
-  \draw[draw=fpDarkBlue,line width=1.2pt] (0,0) -- (-2.6,2.4) node[above left] {$S_L$};
-  \draw[draw=fpDarkBlue,line width=1.2pt] (0,0) -- (2.6,2.4)  node[above right] {$S_R$};
-  \draw[draw=fpGray,line width=1.2pt,dashed] (0,0) -- (0.55,2.4) node[above,text=fpOrange] {$S_\ast$};
-  \node at (-2.0,1.0) {$U_L$};
-  \node[text=fpOrange] at (-0.8,1.6) {$U_{\ast L}$};
-  \node[text=fpOrange] at ( 1.2,1.6) {$U_{\ast R}$};
-  \node at ( 2.0,1.0) {$U_R$};
-\end{tikzpicture}
+\includegraphics[width=0.78\textwidth]{Figs/report1/ch3_hllc_fan}
 \caption[HLLC interface wave fan]{HLLC interface fan: $S_L, S_\ast, S_R$ separate $U_L, U_{\ast L}, U_{\ast R}, U_R$. The sign of these three speeds selects the flux branch (Eq.~\eqref{eq:ch3-hllc-fluxselect}). Outer acoustic waves $S_L, S_R$ are drawn in deep blue; the contact $S_\ast$ and star states $U_{\ast L}, U_{\ast R}$ are highlighted in orange.}
 \label{fig:hllc-fan}
 \end{figure}
@@ -446,9 +436,12 @@ and a first-order perturbation gives
   -
   \frac{\Delta D_\ast}{D_\ast},
 \end{equation}
-when the terms are non-zero. The numerator \(N_\ast\) contains the pressure
-jump and two momentum-wave terms, so nearly balanced states can lose leading
-digits before division by \(D_\ast\). The denominator has the same risk when
+when the terms are non-zero. This is the first-order relative perturbation of
+a quotient; products such as
+\((\Delta N_\ast/N_\ast)(\Delta D_\ast/D_\ast)\) are dropped. The numerator
+\(N_\ast\) contains the pressure jump and two momentum-wave terms, so nearly
+balanced states can lose leading digits before division by \(D_\ast\). The
+denominator has the same risk when
 \(\rho_L(S_L-u_L)\) and \(\rho_R(S_R-u_R)\) nearly balance. Cancellation in
 \(N_\ast\) or \(D_\ast\) can amplify rounded changes in the wave-speed estimate,
 and the amplified value may then enter a discontinuous branch selection
@@ -533,22 +526,14 @@ discussed above.}
 % <<SECTION_6_BEGIN>>
 Report~1 uses Euler, the hydrodynamic limit of the later ideal-MHD problem. In
 ideal MHD the conserved state augments \((\rho,\rho\mathbf{u},E)\) with
-\(\mathbf{B}\), adding magnetic pressure, tension, and induction terms. The Riemann fan has seven families (Fig.~\ref{fig:ch3-mhd-seven-wave-fan}); Chapter~2 Section~\emph{Ideal-MHD Project Context} gives the wave-speed physical meaning.
+\(\mathbf{B}\), adding magnetic pressure, tension, and induction terms. With normal velocity \(u_n\) and fast, Alfv\'en, slow speeds \(c_f, c_a, c_s\) the Riemann fan splits into seven families
+\(u_n-c_f,\ u_n-c_a,\ u_n-c_s,\ u_n,\ u_n+c_s,\ u_n+c_a,\ u_n+c_f\)
+(Fig.~\ref{fig:ch3-mhd-seven-wave-fan}); Chapter~2 Section~\emph{Ideal-MHD Project Context} gives the wave-speed physical meaning.
 \begin{figure}[htbp]
 \centering
-\begin{tikzpicture}[>=latex,scale=0.9]
-  \draw[->,draw=fpDarkBlue,line width=1.2pt] (0,0) -- (-3.2, 1.6) node[left]  {$u_n-c_f$};
-  \draw[->,draw=fpCyanGreen,line width=1.2pt] (0,0) -- (-2.6, 1.9) node[left]  {$u_n-c_a$};
-  \draw[->,draw=fpOrange,line width=1.2pt] (0,0) -- (-1.6, 2.1) node[above left] {$u_n-c_s$};
-  \draw[->,draw=fpGray,line width=1.2pt] (0,0) -- ( 0  , 2.3) node[above] {$u_n$};
-  \draw[->,draw=fpOrange,line width=1.2pt] (0,0) -- ( 1.6, 2.1) node[above right] {$u_n+c_s$};
-  \draw[->,draw=fpCyanGreen,line width=1.2pt] (0,0) -- ( 2.6, 1.9) node[right] {$u_n+c_a$};
-  \draw[->,draw=fpDarkBlue,line width=1.2pt] (0,0) -- ( 3.2, 1.6) node[right] {$u_n+c_f$};
-  \draw[-,draw=fpGray,line width=0.6pt] (-3.6,0) -- (3.6,0);
-  \node at (0,-0.3) {$x$};
-\end{tikzpicture}
+\includegraphics[width=\textwidth]{Figs/report1/ch3_mhd_seven_wave_fan}
 \caption[Seven-wave fan for ideal MHD]{Seven-wave fan for ideal MHD: two fast magnetosonic, two Alfven, two
-slow magnetosonic waves, and an entropy mode. Fast magnetosonic waves are drawn in deep blue, Alfven in cyan-green, slow magnetosonic in orange, and the central entropy/contact mode in grey.}
+slow magnetosonic waves, and an entropy mode. Fast magnetosonic waves are drawn in deep blue, Alfven in cyan-green, slow magnetosonic in orange, and the central entropy/contact mode in black. Side panel summarises the physical character of each family and the speed ordering $|c_s| \leq |c_a| \leq |c_f|$.}
 \label{fig:ch3-mhd-seven-wave-fan}
 \end{figure}
 The finite-volume update does not preserve
@@ -557,5 +542,10 @@ The finite-volume update does not preserve
 \end{equation}
 automatically; the cell-centred and staggered approaches in Chapter~2 Table~\ref{tab:ch2-divB-comparison} are the candidate divergence-control responses.
 
-HLLD~\citep{miyoshi_kusano_2005} and Roe-type solvers~\citep{roe_1981} retain more MHD wave structure than HLLC, while GLM-Dedner cleaning~\citep{dedner_2002} and constrained transport~\citep{evans_hawley_1988} treat divergence error differently (see Chapter~2 Table~\ref{tab:ch2-divB-comparison}).
+The hyperbolic cleaning approach of \citet{dedner_2002} augments the induction equation with a scalar field \(\psi\):
+\begin{equation}\label{eq:ch3-dedner-cleaning}
+  \partial_t \mathbf{B} + \nabla\cdot(\mathbf{u}\mathbf{B}-\mathbf{B}\mathbf{u}) + \nabla\psi = 0,\qquad
+  \partial_t \psi + c_h^2\,\nabla\cdot\mathbf{B} = -\psi/\tau,
+\end{equation}
+where \(\psi\) transports divergence error at cleaning-wave speed \(c_h\) and decays on time scale \(\tau\). HLLD~\citep{miyoshi_kusano_2005} restores a five-state fan (fast, Alfv\'en, contact) beyond HLLC's three-state acoustic-contact model; Roe-type solvers~\citep{roe_1981} likewise retain more MHD wave structure than HLLC. GLM-Dedner cleaning and constrained transport~\citep{evans_hawley_1988} treat divergence error differently (Chapter~2 Table~\ref{tab:ch2-divB-comparison}).
 % <<SECTION_6_END>>

@@ -121,9 +121,11 @@
   framerule        = 0.4pt,
   rulecolor        = \color{fpGray},
   numbers          = none,
-  captionpos       = b,
+  captionpos       = t,
   breaklines       = true,
   language         = C++,
+  abovecaptionskip = 4pt,
+  belowcaptionskip = 4pt,
 }
 
 % Caption style (three-segment lead-in)
@@ -248,3 +250,18 @@
 % *****************************************************************************
 % ******************* Better enumeration my MB*************
 \usepackage{enumitem}
+
+% *****************************************************************************
+% **************** Override hyperref colours (print option) *******************
+% The `print' class option sets every link colour to black, which kills the
+% visual cue for clickable internal navigation in the PDF. The override below
+% keeps the print-friendly margins/geometry but uses the document's existing
+% palette so section / figure / table / equation references and citations are
+% visible and navigable.
+\hypersetup{
+  colorlinks = true,
+  linkcolor  = fpDarkBlue,   % \ref to sections, figures, tables, equations
+  citecolor  = fpCyanGreen,  % \cite to bibliography
+  urlcolor   = fpDarkBlue,
+  anchorcolor= fpDarkBlue,
+}

@@ -17,6 +17,7 @@ run-local output settings.
 | `cfl` | real | `0.8` | CFL factor. |
 | `t_end` | real | `0.2` | End time. |
 | `solver` | string | `rusanov` | `hllc` or `rusanov`. HLLC test cfgs pin this explicitly. |
+| `limiter` | string | `minbee` | CPU-only opt-in limiter selection: `minbee`/`minmod`, `vanleer`/`van_leer`, `superbee`, or `vanalbada`/`van_albada`. GPU runs currently support only the default `minbee` path. |
 | `bc` | string | `outflow` | Shortcut for both axes: `outflow`, `periodic`, `reflective`. |
 | `bc_x`, `bc_y` | string | value of `bc` | Per-axis override for boundary conditions. |
 | `resolutions` | integer list | none | Comma-separated convergence resolutions. |

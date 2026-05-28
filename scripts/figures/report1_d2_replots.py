@@ -26,14 +26,10 @@ import numpy as np
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 sys.path.insert(0, str(REPO_ROOT / "scripts" / "metrics"))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from io_helper import cons_to_prim, read_binary  # noqa: E402
 from losos_metric import compute_losos_fields, _var_floor  # noqa: E402
 from downsample_2d import downsample_conserved  # noqa: E402
-from _style import apply, PALETTE, DIVERGING_CMAP, SEQUENTIAL_CMAP, save_pair  # noqa: E402
-
-apply()
 
 
 VAR_ORDER = ("rho", "u", "v", "p")
@@ -116,14 +112,12 @@ def plot_fmd_bar(rows: list[dict[str, float | str]], out_path: Path) -> None:
     }
     x = np.arange(len(variables))
     width = 0.36
-    resolution_colors = [PALETTE["fp64"], PALETTE["fp32"]]
 
     fig, ax = plt.subplots(figsize=(8.4, 4.8))
     for offset_idx, resolution in enumerate(resolutions):
         values = [lookup[(resolution, var)] for var in variables]
         offset = (offset_idx - (len(resolutions) - 1) / 2) * width
-        color = resolution_colors[offset_idx % len(resolution_colors)]
-        ax.bar(x + offset, values, width=width, label=f"N={resolution}", color=color)
+        ax.bar(x + offset, values, width=width, label=f"N={resolution}")
 
     ax.set_yscale("log")
     ax.set_xticks(x, variables)
@@ -136,7 +130,7 @@ def plot_fmd_bar(rows: list[dict[str, float | str]], out_path: Path) -> None:
     ax.grid(True, axis="y", alpha=0.3)
     ax.legend()
     fig.tight_layout()
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
@@ -289,7 +283,7 @@ def plot_region_fmd(rows: list[dict[str, float | str | int]], out_path: Path) ->
             if int(row["resolution"]) == resolution and str(row["variable"]) == "rho"
         ]
         lookup = {str(row["region"]): float(row["ratio"]) for row in group}
-        ax.bar([short[r] for r in regions], [lookup[r] for r in regions], color=PALETTE["fp64"])
+        ax.bar([short[r] for r in regions], [lookup[r] for r in regions], color="#4C78A8")
         ax.set_yscale("log")
         ax.set_title(f"N={resolution}, rho")
         ax.set_xlabel("reference-density gradient region")
@@ -297,7 +291,7 @@ def plot_region_fmd(rows: list[dict[str, float | str | int]], out_path: Path) ->
     axes[0].set_ylabel(r"$||float-double||_1 / ||double-reference||_1$")
     fig.suptitle("Precision drift by spatial region")
     fig.tight_layout()
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
@@ -498,7 +492,7 @@ def plot_noise_ratio_heatmap(
     for ax, solver in zip(axes, ("hllc", "rusanov")):
         ratio = fields[(solver, precision)]
         log_ratio = np.log10(np.clip(ratio, 1e-20, 1e20))
-        im = ax.imshow(log_ratio, origin="lower", cmap=DIVERGING_CMAP, vmin=-8, vmax=2)
+        im = ax.imshow(log_ratio, origin="lower", cmap="coolwarm", vmin=-8, vmax=2)
         images.append(im)
         ax.contour(log_ratio >= 0.0, levels=[0.5], colors="black", linewidths=0.4)
         ax.set_title(f"{solver.upper()} {precision} rho")
@@ -518,7 +512,7 @@ def plot_noise_ratio_heatmap(
     cbar = fig.colorbar(images[0], ax=axes, shrink=0.88)
     cbar.set_label(r"$\log_{10}(\sigma_{FP}/|\bar{\rho}-\rho_{ref}|)$")
     fig.suptitle(f"Full-domain noise-to-error ratio ({precision})")
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
@@ -540,7 +534,7 @@ def plot_noise_ratio_heatmap_grid(
             ax = axes[row_idx, col_idx]
             ratio = fields[(solver, precision)]
             log_ratio = np.log10(np.clip(ratio, 1e-20, 1e20))
-            im = ax.imshow(log_ratio, origin="lower", cmap=DIVERGING_CMAP, vmin=-8, vmax=2)
+            im = ax.imshow(log_ratio, origin="lower", cmap="coolwarm", vmin=-8, vmax=2)
             ax.contour(log_ratio >= 0.0, levels=[0.5], colors="black", linewidths=0.35)
             frac = float(np.mean(ratio > 1.0))
             ax.set_title(f"{solver.upper()} {precision}")
@@ -560,7 +554,7 @@ def plot_noise_ratio_heatmap_grid(
         cbar = fig.colorbar(im, ax=axes, shrink=0.88)
         cbar.set_label(r"$\log_{10}(\sigma_{FP}/|\bar{\rho}-\rho_{ref}|)$")
     fig.suptitle("Noise-to-error heatmaps across virtual precision")
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
@@ -598,7 +592,7 @@ def plot_noise_ratio_quantiles(rows: list[dict[str, float | str | int]], out_pat
     axes[1].legend()
     fig.suptitle("Full-domain noise-to-error distribution")
     fig.tight_layout()
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
@@ -644,7 +638,7 @@ def plot_region_noise_ratio(
     axes[1].legend(loc="best")
     fig.suptitle("Noise-to-error ratio by spatial region")
     fig.tight_layout()
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
@@ -663,7 +657,7 @@ def plot_region_noise_ratio_precision_compare(
         "discontinuity_grad_p95_p100": "fronts",
     }
     precisions = ("p8", "p16", "p32")
-    colors = {"p8": PALETTE["accent"], "p16": PALETTE["fp32"], "p32": PALETTE["fp64"]}
+    colors = {"p8": "#E45756", "p16": "#F2A541", "p32": "#4C78A8"}
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.8), sharey=True)
     for ax, solver in zip(axes, ("hllc", "rusanov")):
         x = np.arange(len(regions))
@@ -692,7 +686,7 @@ def plot_region_noise_ratio_precision_compare(
     axes[1].legend(loc="best")
     fig.suptitle("Region noise-to-error ratio across p8/p16/p32")
     fig.tight_layout()
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
@@ -749,7 +743,7 @@ def plot_region_noise_ratio_precision_grid(
     axes[0, 0].legend(loc="lower left", fontsize=8)
     fig.suptitle("Region noise-to-error ratio across virtual precision (labels: % cells with ratio > 1)")
     fig.tight_layout()
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
@@ -805,7 +799,7 @@ def plot_region_losos(rows: list[dict[str, float | str | int]], out_path: Path) 
     axes[1].legend(loc="best")
     fig.suptitle("Region-aware LoSoS versus s_req")
     fig.tight_layout()
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
@@ -858,7 +852,7 @@ def plot_losos_quantiles(rows: list[dict[str, float | str | int]], out_path: Pat
     axes[1].legend(loc="best")
     fig.suptitle("LoSoS distribution: q05/q25/median instead of worst-only")
     fig.tight_layout()
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
@@ -910,13 +904,12 @@ def plot_sigma(rows: list[dict[str, float | str | int]], out_path: Path) -> None
     ax.grid(True, alpha=0.3)
     ax.legend()
     fig.tight_layout()
-    save_pair(fig, out_path.stem, str(out_path.parent))
+    fig.savefig(out_path, dpi=180)
     plt.close(fig)
 
 
 def write_summary(
     out_dir: Path,
-    pareto_csv: Path,
     fmd_rows: list[dict[str, float | str]],
     losos_rows: list[dict[str, float | str | int]],
     sigma_rows: list[dict[str, float | str | int]],
@@ -936,7 +929,7 @@ def write_summary(
         "|---|---|---|",
         "| `float_double_over_reference_bar.png` | `experiments/week4/float_regression/2d/summary.json` | Float-double drift divided by double-reference discretisation error; lower is better. |",
         "| `losos_quantiles_rho.png` | raw p8/p16/p32 MCA grids + `u_ref_200_blockavg.npz` | LoSoS rho distribution using q05/q25/median, avoiding a single worst-cell story. |",
-        f"| `sigma_fp_vs_precision.png` | `{pareto_csv}` | sigma_FP_L1 falls as precision increases; this keeps the x/y relationship simple. |",
+        "| `sigma_fp_vs_precision.png` | `experiments/week7/pareto_full/pareto_lw3_full.csv` | sigma_FP_L1 falls as precision increases; this keeps the x/y relationship simple. |",
         "| `region_float_double_over_reference_rho.png` | float/double/reference binaries + density-gradient masks | Float-double drift ratio split by smooth, transition, and strongest-gradient cells. |",
         "| `region_losos_margin_rho_p32.png` | raw p32 MCA grids + density-gradient masks | LoSoS q25/median compared to s_req in each spatial region. |",
         "| `noise_to_error_ratio_rho_p32.png` | raw p32 MCA grids + `u_ref_200_blockavg.npz` | 2D analogue of `vfc_sod_noise_ratio.png`: full-domain log10(noise/error) heatmap. |",
@@ -949,7 +942,7 @@ def write_summary(
         "## Notes",
         "",
         "- The LoSoS quantile plot includes p8/p16/p32 because those raw MCA grids are present in the workspace.",
-        "- Additional scalar-only precision rows appear in the sigma_FP plot when the Pareto CSV contains them, but not in the LoSoS quantile plot unless raw MCA grids are present locally.",
+        "- p24-real-float and p53 are included in the sigma_FP plot, but not in the LoSoS quantile plot because only scalar summaries, not raw LoSoS fields, are present locally.",
         "- For p8, the common HLLC/Rusanov subset is used so sample counts match.",
         "",
         "## Float/double over reference ratios",
@@ -1147,7 +1140,6 @@ def main() -> int:
 
     write_summary(
         out_dir,
-        args.pareto_csv,
         fmd_rows,
         losos_rows,
         sigma_rows,

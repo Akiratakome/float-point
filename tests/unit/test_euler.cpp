@@ -307,6 +307,59 @@ TEST_CASE("muscl_hancock_x: linear density field evolves symmetrically", "[hanco
     REQUIRE(qR[RHO] == Approx(1.55).epsilon(1e-10));
 }
 
+TEST_CASE("EulerSolver: default limiter matches explicit minbee", "[solver][limiter]") {
+    constexpr int nx = 40;
+    EulerSolver<double> default_solver(
+        nx, 1.0 / nx, 0.0, 1.4, 0.8, 0.02,
+        FluxScheme::HLLC);
+    EulerSolver<double> minbee_solver(
+        nx, 1.0 / nx, 0.0, 1.4, 0.8, 0.02,
+        FluxScheme::HLLC, BoundaryType::Outflow, BoundaryType::Outflow,
+        LimiterScheme::Minbee);
+
+    setup_sod(default_solver.grid_view(), 1.4);
+    setup_sod(minbee_solver.grid_view(), 1.4);
+
+    default_solver.run();
+    minbee_solver.run();
+
+    auto gd = default_solver.grid_view();
+    auto gm = minbee_solver.grid_view();
+    for (int i = 0; i < nx; ++i) {
+        for (int v = 0; v < EulerNVars; ++v) {
+            REQUIRE(gd(i, 0, v) == Approx(gm(i, 0, v)).margin(0.0));
+        }
+    }
+}
+
+TEST_CASE("EulerSolver: opt-in limiter changes the evolved state", "[solver][limiter]") {
+    constexpr int nx = 40;
+    EulerSolver<double> minbee_solver(
+        nx, 1.0 / nx, 0.0, 1.4, 0.8, 0.02,
+        FluxScheme::HLLC, BoundaryType::Outflow, BoundaryType::Outflow,
+        LimiterScheme::Minbee);
+    EulerSolver<double> vanleer_solver(
+        nx, 1.0 / nx, 0.0, 1.4, 0.8, 0.02,
+        FluxScheme::HLLC, BoundaryType::Outflow, BoundaryType::Outflow,
+        LimiterScheme::VanLeer);
+
+    setup_sod(minbee_solver.grid_view(), 1.4);
+    setup_sod(vanleer_solver.grid_view(), 1.4);
+
+    minbee_solver.run();
+    vanleer_solver.run();
+
+    auto gm = minbee_solver.grid_view();
+    auto gv = vanleer_solver.grid_view();
+    double max_abs_diff = 0.0;
+    for (int i = 0; i < nx; ++i) {
+        for (int v = 0; v < EulerNVars; ++v) {
+            max_abs_diff = std::max(max_abs_diff, std::abs(gm(i, 0, v) - gv(i, 0, v)));
+        }
+    }
+    REQUIRE(max_abs_diff > 1e-14);
+}
+
 // --- muscl_reconstruct_y tests ---
 
 TEST_CASE("muscl_reconstruct_y: uniform field gives no reconstruction", "[muscl]") {

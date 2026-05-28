@@ -25,6 +25,7 @@
 namespace hrsc {
 
 enum class FluxScheme { HLLC, Rusanov };
+enum class LimiterScheme { Minbee, VanLeer, Superbee, VanAlbada };
 
 namespace detail {
     // ETA estimator becomes unreliable when the simulation has barely begun
@@ -56,6 +57,7 @@ class EulerSolver {
     TimeReal m_kahan_c;  // Kahan compensated-summation running correction
     int  m_step;
     FluxScheme m_flux;
+    LimiterScheme m_limiter;
     BoundaryType m_bc_x;
     BoundaryType m_bc_y;
 
@@ -78,13 +80,15 @@ public:
                 Real gamma, Real cfl, TimeReal t_end,
                 FluxScheme flux = FluxScheme::HLLC,
                 BoundaryType bc_x = BoundaryType::Outflow,
-                BoundaryType bc_y = BoundaryType::Outflow);
+                BoundaryType bc_y = BoundaryType::Outflow,
+                LimiterScheme limiter = LimiterScheme::Minbee);
 
     // 1D convenience constructor
     EulerSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, TimeReal t_end,
                 FluxScheme flux = FluxScheme::HLLC,
                 BoundaryType bc_x = BoundaryType::Outflow,
-                BoundaryType bc_y = BoundaryType::Outflow);
+                BoundaryType bc_y = BoundaryType::Outflow,
+                LimiterScheme limiter = LimiterScheme::Minbee);
 
     GridView<Real, EulerNVars> grid_view() {
         return m_grid.view();

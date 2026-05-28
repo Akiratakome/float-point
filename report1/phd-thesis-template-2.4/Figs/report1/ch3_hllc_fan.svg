@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="273.6pt" height="141.322812pt" viewBox="0 0 273.6 141.322812" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-05-28T15:33:50.434816</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.7, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 141.322812 
+L 273.6 141.322812 
+L 273.6 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 10.32 117.982812 
+Q 136.8 117.982812 262.497376 117.982812 
+" style="fill: none; stroke: #9aa0a6; stroke-width: 0.7; stroke-linecap: round"/>
+    <path d="M 259.297376 116.382812 
+L 262.497376 117.982812 
+L 259.297376 119.582812 
+z
+" style="fill: #9aa0a6; stroke: #9aa0a6; stroke-width: 0.7; stroke-linecap: round"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 136.8 131.002812 
+Q 136.8 72.412812 136.8 14.605436 
+" style="fill: none; stroke: #9aa0a6; stroke-width: 0.7; stroke-linecap: round"/>
+    <path d="M 135.2 17.805436 
+L 136.8 14.605436 
+L 138.4 17.805436 
+z
+" style="fill: #9aa0a6; stroke: #9aa0a6; stroke-width: 0.7; stroke-linecap: round"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 136.8 117.982812 
+L 38.22 23.122812 
+" clip-path="url(#pcf121fc71b)" style="fill: none; stroke: #1f4e79; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 136.8 117.982812 
+L 235.38 23.122812 
+" clip-path="url(#pcf121fc71b)" style="fill: none; stroke: #1f4e79; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 136.8 117.982812 
+L 157.26 23.122812 
+" clip-path="url(#pcf121fc71b)" style="fill: none; stroke-dasharray: 7,4.2; stroke-dashoffset: 0; stroke: #e76f51; stroke-width: 1.4"/>
+   </g>
+   <g id="text_1">
+    <!-- $x$ -->
+    <g style="fill: #1a1a1a" transform="translate(265.14 121.129156)">
+     <text>
+      <tspan x="0" y="-0.59375" style="font-style: italic; font-size: 10px; font-family: 'STIXGeneral'; fill: #1a1a1a">x</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_2">
+    <!-- $t$ -->
+    <g style="fill: #1a1a1a" transform="translate(130.28 9.82375)">
+     <text>
+      <tspan x="0" y="-0.546875" style="font-style: italic; font-size: 10px; font-family: 'STIXGeneral'; fill: #1a1a1a">t</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_3">
+    <!-- $S_L$ -->
+    <g style="fill: #1f4e79" transform="translate(26.96 17.26375)">
+     <text>
+      <tspan x="0" y="-0.328125" style="font-style: italic; font-size: 10px; font-family: 'STIXGeneral'; fill: #1f4e79">S</tspan>
+      <tspan x="4.999985" y="0.99375" style="font-style: italic; font-size: 7px; font-family: 'STIXGeneral'; fill: #1f4e79">L</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_4">
+    <!-- $S_R$ -->
+    <g style="fill: #1f4e79" transform="translate(237.24 17.26375)">
+     <text>
+      <tspan x="0" y="-0.328125" style="font-style: italic; font-size: 10px; font-family: 'STIXGeneral'; fill: #1f4e79">S</tspan>
+      <tspan x="4.999985" y="0.99375" style="font-style: italic; font-size: 7px; font-family: 'STIXGeneral'; fill: #1f4e79">R</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_5">
+    <!-- $S_{\ast}$ -->
+    <g style="fill: #e76f51" transform="translate(160.98 17.26375)">
+     <text>
+      <tspan x="0" y="-0.328125" style="font-style: italic; font-size: 10px; font-family: 'STIXGeneral'; fill: #e76f51">S</tspan>
+      <tspan x="4.999985" y="0.99375" style="font-size: 7px; font-family: 'STIXGeneral'; fill: #e76f51">∗</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_6">
+    <!-- $U_L$ -->
+    <g style="fill: #1a1a1a" transform="translate(47.01 81.445273)">
+     <text>
+      <tspan x="0" y="-0.8125" style="font-style: italic; font-size: 10.5px; font-family: 'STIXGeneral'; fill: #1a1a1a">U</tspan>
+      <tspan x="7.581009" y="0.640625" style="font-style: italic; font-size: 7.35px; font-family: 'STIXGeneral'; fill: #1a1a1a">L</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_7">
+    <!-- $U_R$ -->
+    <g style="fill: #1a1a1a" transform="translate(214.2 81.445273)">
+     <text>
+      <tspan x="0" y="-0.8125" style="font-style: italic; font-size: 10.5px; font-family: 'STIXGeneral'; fill: #1a1a1a">U</tspan>
+      <tspan x="7.581009" y="0.640625" style="font-style: italic; font-size: 7.35px; font-family: 'STIXGeneral'; fill: #1a1a1a">R</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_8">
+    <!-- $U_{\ast L}$ -->
+    <g style="fill: #e76f51" transform="translate(97.53 60.121156)">
+     <text>
+      <tspan x="0" y="-0.46875" style="font-style: italic; font-size: 10px; font-family: 'STIXGeneral'; fill: #e76f51">U</tspan>
+      <tspan x="7.219986" y="0.853125" style="font-size: 7px; font-family: 'STIXGeneral'; fill: #e76f51">∗</tspan>
+      <tspan x="10.880983" y="0.853125" style="font-style: italic; font-size: 7px; font-family: 'STIXGeneral'; fill: #e76f51">L</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_9">
+    <!-- $U_{\ast R}$ -->
+    <g style="fill: #e76f51" transform="translate(175.5 60.121156)">
+     <text>
+      <tspan x="0" y="-0.46875" style="font-style: italic; font-size: 10px; font-family: 'STIXGeneral'; fill: #e76f51">U</tspan>
+      <tspan x="7.219986" y="0.853125" style="font-size: 7px; font-family: 'STIXGeneral'; fill: #e76f51">∗</tspan>
+      <tspan x="10.880983" y="0.853125" style="font-style: italic; font-size: 7px; font-family: 'STIXGeneral'; fill: #e76f51">R</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_10">
+    <!-- $0$ -->
+    <g style="fill: #4a4a4a" transform="translate(140.52 132.069)">
+     <text>
+      <tspan x="0" y="-0.921875" style="font-size: 8.5px; font-family: 'STIXGeneral'; fill: #4a4a4a">0</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="line2d_4">
+    <path d="M 136.8 117.982812 
+" clip-path="url(#pcf121fc71b)" style="fill: none; stroke: #1a1a1a; stroke-width: 1.5; stroke-linecap: square"/>
+    <defs>
+     <path id="m02c315e8c4" d="M 0 1.3 
+C 0.344764 1.3 0.675454 1.163024 0.919239 0.919239 
+C 1.163024 0.675454 1.3 0.344764 1.3 0 
+C 1.3 -0.344764 1.163024 -0.675454 0.919239 -0.919239 
+C 0.675454 -1.163024 0.344764 -1.3 0 -1.3 
+C -0.344764 -1.3 -0.675454 -1.163024 -0.919239 -0.919239 
+C -1.163024 -0.675454 -1.3 -0.344764 -1.3 0 
+C -1.3 0.344764 -1.163024 0.675454 -0.919239 0.919239 
+C -0.675454 1.163024 -0.344764 1.3 0 1.3 
+z
+" style="stroke: #1a1a1a"/>
+    </defs>
+    <g clip-path="url(#pcf121fc71b)">
+     <use xlink:href="#m02c315e8c4" x="136.8" y="117.982812" style="fill: #1a1a1a; stroke: #1a1a1a"/>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pcf121fc71b">
+   <rect x="2.88" y="8.242812" width="267.84" height="130.2"/>
+  </clipPath>
+ </defs>
+</svg>
