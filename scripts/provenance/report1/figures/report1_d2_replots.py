@@ -960,7 +960,7 @@ def write_summary(
         "|---|---|---|",
         "| `float_double_over_reference_bar.png` | `experiments/week4/float_regression/2d/summary.json` | Float-double drift divided by double-reference discretisation error; lower is better. |",
         "| `losos_quantiles_rho.png` | raw p8/p16/p32 MCA grids + `u_ref_200_blockavg.npz` | LoSoS rho distribution using q05/q25/median, avoiding a single worst-cell story. |",
-        "| `sigma_fp_vs_precision.png` | `experiments/review3_mca_n30/metrics/pareto_lw3_n30.csv` | sigma_FP_L1 falls as precision increases; this keeps the x/y relationship simple. |",
+        "| `sigma_fp_vs_precision.png` | `experiments/report1/review3/mca_n30/metrics/pareto_lw3_n30.csv` | sigma_FP_L1 falls as precision increases; this keeps the x/y relationship simple. |",
         "| `region_float_double_over_reference_rho.png` | float/double/reference binaries + density-gradient masks | Float-double drift ratio split by smooth, transition, and strongest-gradient cells. |",
         "| `region_losos_margin_rho_p32.png` | raw p32 MCA grids + density-gradient masks | LoSoS q25/median compared to s_req in each spatial region. |",
         "| `noise_to_error_ratio_rho_p32.png` | raw p32 MCA grids + `u_ref_200_blockavg.npz` | 2D analogue of `vfc_sod_noise_ratio.png`: full-domain log10(noise/error) heatmap. |",
@@ -1086,7 +1086,7 @@ def main() -> int:
     parser.add_argument(
         "--sweep-root",
         type=Path,
-        default=REPO_ROOT / "experiments/review3_mca_n30/2d_vfc_precision_sweep",
+        default=REPO_ROOT / "experiments/report1/review3/mca_n30/2d_vfc_precision_sweep",
     )
     parser.add_argument(
         "--reference",
@@ -1096,12 +1096,12 @@ def main() -> int:
     parser.add_argument(
         "--pareto-csv",
         type=Path,
-        default=REPO_ROOT / "experiments/review3_mca_n30/metrics/pareto_lw3_n30.csv",
+        default=REPO_ROOT / "experiments/report1/review3/mca_n30/metrics/pareto_lw3_n30.csv",
     )
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=REPO_ROOT / "experiments/review3_mca_n30/report1_d2_replots",
+        default=REPO_ROOT / "experiments/report1/review3/mca_n30/report1_d2_replots",
     )
     parser.add_argument("--gamma", type=float, default=1.4)
     args = parser.parse_args()

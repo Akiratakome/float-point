@@ -362,7 +362,7 @@ def write_summary(output_root: Path, run_metadata: list[dict[str, Any]], analyse
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-config", type=Path, default=ROOT / "tests/cases/toro_1d/toro2.cfg")
-    parser.add_argument("--output-root", type=Path, default=ROOT / "experiments/report1_toro2_branch_trace")
+    parser.add_argument("--output-root", type=Path, default=ROOT / "experiments/report1/evidence/toro2_branch_trace")
     parser.add_argument("--timeout-s", type=float, default=120.0)
     parser.add_argument("--max-steps", type=int, default=20000)
     parser.add_argument("--dt-floor", default="1e-18")

@@ -13,15 +13,15 @@ State legend:
 ## Chapter 5
 
 - `sod_comparison` -> `analysis/plot_1d.py` (**vector**, regenerated in P2
-  follow-up; uses `experiments/report1_fp32_fp64_time_drift/runs/sod-cpu-double/grid.bin`,
+  follow-up; uses `experiments/report1/evidence/fp32_fp64_time_drift/runs/sod-cpu-double/grid.bin`,
   N=200, t=0.25)
 - `toro3_comparison` -> `analysis/plot_1d.py` (**vector**, regenerated in P2
   follow-up; uses
-  `experiments/add_experiment/toolchain_toro35/runs/toro3-double-cpu/toro3_double_cpu.bin`,
+  `experiments/report1/review3/add_experiment/toolchain_toro35/runs/toro3-double-cpu/toro3_double_cpu.bin`,
   N=200, t=0.012)
 - `toro5_comparison` -> `analysis/plot_1d.py` (**vector**, regenerated in P2
   follow-up; uses
-  `experiments/add_experiment/toolchain_toro35/runs/toro5-double-cpu/toro5_double_cpu.bin`,
+  `experiments/report1/review3/add_experiment/toolchain_toro35/runs/toro5-double-cpu/toro5_double_cpu.bin`,
   N=200, t=0.035)
 - `lw3_n400_double_rho_schlieren` -> `scripts/figures/plot_2d.py --field schlieren`
   (**vector**, regenerated in P2 follow-up; uses
@@ -80,8 +80,8 @@ pick the PDF in preference to the PNG once `\DeclareGraphicsExtensions` lists
 - The N=200 fp64 grids used for `sod_comparison`, `toro3_comparison`, and
   `toro5_comparison` are NOT in `experiments/week4/float_regression/1d/` (those
   are N=800). The reproducible N=200 inputs live under
-  `experiments/report1_fp32_fp64_time_drift/` and
-  `experiments/add_experiment/toolchain_toro35/` and were used by the P2
+  `experiments/report1/evidence/fp32_fp64_time_drift/` and
+  `experiments/report1/review3/add_experiment/toolchain_toro35/` and were used by the P2
   follow-up regeneration. Initial-condition primitives for the exact Riemann
   solver are baked into the `--rhoL/uL/pL/rhoR/uR/pR` flags of `plot_1d.py`.
 - `analysis/plot_1d.py` originally imported `scripts.verify_toro` and

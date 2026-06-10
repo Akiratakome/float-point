@@ -665,7 +665,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("experiments/report1_1d_feature_validation"),
+        default=Path("experiments/report1/evidence/1d_feature_validation"),
         help="Directory for summary.csv, summary.json, and summary.md.",
     )
     parser.add_argument("--band-cells", type=int, default=6)

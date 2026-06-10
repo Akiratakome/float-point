@@ -37,10 +37,10 @@ are not needed for a pending report figure or rerun.
 
 | path | status | recommended action |
 |---|---|---|
-| `experiments/add_experiment/builds/` | misplaced build directory | delete or move outside `experiments/`; build dirs are reproducible and should not be retained as experiment artefacts |
-| `experiments/c2_bundle_for_download/` | duplicate download bundle | delete after confirming canonical Verificarlo / Week 7 artefacts exist |
-| `experiments/tmp_convergence_check/` | temporary scratch output | delete after confirming no active script reads it |
-| `experiments/review3_*`, `experiments/review4_*` | report-review working artefacts | archive selected notes under docs if needed; otherwise remove from experiment evidence |
+| `experiments/report1/review3/add_experiment/builds/` | misplaced build directory | delete or move outside `experiments/`; build dirs are reproducible and should not be retained as experiment artefacts |
+| `experiments/_archive/duplicates/c2_bundle_for_download/` | duplicate download bundle | delete after confirming canonical Verificarlo / Week 7 artefacts exist |
+| `experiments/_scratch/tmp_convergence_check/` | temporary scratch output | delete after confirming no active script reads it |
+| `experiments/report1/review3/*` | report-review working artefacts | keep only if needed for Report 1 provenance; do not use as Report 2 canonical evidence |
 | `experiments/week9/lw_precision_heatmaps/summary.md` LW3 row | failed local figure attempt | do not cite; retain only as failed-attempt provenance if desired |
 | unreferenced `grid.bin` files below retained run folders | transient grids | delete unless promoted as reference data in a summary |
 

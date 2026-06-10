@@ -249,7 +249,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path("experiments/report1_lw3_reference_budget"),
+        default=Path("experiments/report1/evidence/lw3_reference_budget"),
         help="Output experiment directory.",
     )
     parser.add_argument("--gamma", type=float, default=1.4)

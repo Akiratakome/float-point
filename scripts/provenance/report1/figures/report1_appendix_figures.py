@@ -33,7 +33,7 @@ def density(path: Path) -> tuple[object, np.ndarray]:
 
 
 def plot_fp32_fp64_panel() -> None:
-    runs = ROOT / "experiments" / "report1_fp32_fp64_time_drift" / "runs"
+    runs = ROOT / "experiments" / "report1" / "evidence" / "fp32_fp64_time_drift" / "runs"
     cases = [
         ("Sod", "sod-cpu-double", "sod-cpu-float"),
         ("Toro3", "toro3-cpu-double", "toro3-cpu-float"),
@@ -81,7 +81,7 @@ def read_trace(path: Path) -> list[dict[str, str]]:
 
 
 def plot_toro2_branch_trace() -> None:
-    base = ROOT / "experiments" / "report1_toro2_branch_trace" / "runs"
+    base = ROOT / "experiments" / "report1" / "evidence" / "toro2_branch_trace" / "runs"
     leq = read_trace(base / "toro2_hllc_leq_trace" / "hllc_trace.csv")
     lt = read_trace(base / "toro2_hllc_lt_trace" / "hllc_trace.csv")
 
@@ -138,7 +138,7 @@ def plot_toro2_branch_trace() -> None:
 
 
 def plot_runtime_bars() -> None:
-    path = ROOT / "experiments" / "report1_runtime_minimatrix" / "timing_summary.csv"
+    path = ROOT / "experiments" / "report1" / "evidence" / "runtime_minimatrix" / "timing_summary.csv"
     rows = []
     with path.open(newline="") as f:
         for row in csv.DictReader(f):

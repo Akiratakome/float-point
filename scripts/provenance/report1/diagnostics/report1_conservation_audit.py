@@ -206,7 +206,7 @@ def main() -> int:
     parser.add_argument(
         "--output-root",
         type=Path,
-        default=ROOT / "experiments" / "report1_conservation_audit",
+        default=ROOT / "experiments" / "report1" / "evidence" / "conservation_audit",
     )
     args = parser.parse_args()
 

@@ -168,8 +168,8 @@ For the full step-by-step manual recipe see [week4/week4-verification.md](week4/
 | `experiments/week4/float_regression/2d/` | Phase C1 2D: 4 candidates + 16 difference heatmaps + summary.{md,json}; current rerun uses the Week 7 1600² reference when available |
 | `experiments/week8/report1_2d_config12_fill/` | Second 2D Euler Riemann evidence packet (LW12/config12): strict CPU/GPU, fp32/fp64, N=800 reference comparison, figures |
 | `experiments/week9/cpu_gpu_midtime*/` | Checkpointed strict-HLLC CPU/GPU saved-output evidence for Sod, LW3, and LW12 |
-| `experiments/report1_cpu_gpu_zero_drift_audit/` | Consolidated saved-output CPU/GPU zero-drift audit plus strict-vs-fast counterexamples |
-| `experiments/report1_fp32_fp64_time_drift/` | CPU HLLC fp64-vs-fp32 saved-checkpoint drift evidence |
+| `experiments/report1/evidence/cpu_gpu_zero_drift_audit/` | Consolidated saved-output CPU/GPU zero-drift audit plus strict-vs-fast counterexamples |
+| `experiments/report1/evidence/fp32_fp64_time_drift/` | CPU HLLC fp64-vs-fp32 saved-checkpoint drift evidence |
 | `experiments/week4/figures/a4_pareto/` | A4 σ_FP × s_worst Pareto figure (`pareto_lw_config3_200.png`) |
 | `experiments/week4/figures/a4_float_p24/` | A4 p24-real-float Athena heatmaps (σ_FP, LoSoS reliability/accuracy/worst) |
 | `experiments/week4/metrics/` | A4 metrics: p53 LoSoS/s_req, p24-real-float SNR/LoSoS, merged CSVs for the four-row headline table |
