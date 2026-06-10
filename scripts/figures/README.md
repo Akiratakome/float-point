@@ -18,7 +18,9 @@ promote only reusable plotting code back into this directory.
 
 These scripts generate or refresh Report 1, appendix, poster, or talk figures.
 They are useful for reproducibility, but they should not be extended as Report 2
-analysis entry points:
+analysis entry points. Tracked Report 1 scripts have been moved to
+`scripts/provenance/report1/figures/`; the paths below are compatibility
+wrappers:
 
 - `report1_d2_replots.py`
 - `report1_appendix_figures.py`

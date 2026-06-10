@@ -77,3 +77,13 @@ update:
 Historical logs under `docs/experiment_logs/` and `experiments/**/summary.md`
 are provenance. Prefer adding a note that a path was historical instead of
 rewriting old records.
+
+## Provenance Archive
+
+Report 1-specific Python scripts that were likely to be mistaken for reusable
+Report 2 entry points now live under `scripts/provenance/report1/`. The old
+paths remain as compatibility wrappers, so historical commands and pytest
+imports continue to work.
+
+Do not add new analysis to the wrappers. Edit the archived source only when
+reproducing or repairing Report 1 artefacts.
