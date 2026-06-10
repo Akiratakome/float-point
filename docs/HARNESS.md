@@ -11,6 +11,9 @@ config -> build -> run -> measure -> aggregate -> plot
 
 ## Entry Points
 
+For script ownership and legacy/provenance boundaries, see
+`scripts/README.md`.
+
 | Step | Canonical entry |
 |---|---|
 | Build matrix | `scripts/build_all.sh` |
@@ -18,6 +21,8 @@ config -> build -> run -> measure -> aggregate -> plot
 | Aggregate summaries | `python scripts/aggregate_metrics.py --output <out.json> <summary.json>...` |
 | Existing 1D regression | `bash scripts/regression/float_regression_1d.sh` |
 | Existing 2D regression | `bash scripts/regression/float_regression_2d.sh` |
+| Matrix scalar report | `python scripts/regression/matrix_summary_report.py <matrix_summary.json>` |
+| 2D plotting | `python scripts/figures/plot_2d.py <grid.bin> --field rho --out <figure.png>` |
 
 ## Build Axes
 
@@ -72,6 +77,15 @@ Each experiment directory should keep:
 
 Large grids are transient unless they are explicit reference data needed to
 reproduce a metric. If a grid is not analysed, do not keep it.
+
+## Script Path Discipline
+
+Many docs, tests, shell scripts, and experiment logs invoke scripts by path.
+Do not physically move established script entry points during an experiment
+unless the matching tests, cluster scripts, and canonical docs are updated in the
+same change. Historical logs under `docs/experiment_logs/` and
+`experiments/**/summary.md` are provenance; prefer adding a current pointer over
+rewriting old commands.
 
 ## Compatibility Rule
 

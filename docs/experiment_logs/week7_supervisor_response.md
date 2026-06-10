@@ -28,13 +28,15 @@ Interpretation: these artefacts support strict GPU-path validation and Report 1 
 Evidence paths:
 
 - Week 4 float-vs-double regression log: `docs/experiment_logs/week4_c1_float_vs_double_regression.md`
+- Week 4 1D float-vs-double summary: `experiments/week4/float_regression/1d/summary.md`
+- Week 4 2D float-vs-double summary: `experiments/week4/float_regression/2d/summary.md`
 - Week 4 tradeoff table and precision-adequacy terminology note: `docs/experiment_logs/week4_a4_lw_config3_200_tradeoff_table.md`
 - Week 4 metric inputs used by A4/Week 7 interpretation: `experiments/week4/metrics/a4_snr_with_float.csv`, `experiments/week4/metrics/a4_losos_with_float.csv`, `experiments/week4/metrics/s_req_lw_config3_200.csv`
 - Week 7 1D precision-axis validation summary: `experiments/week7/report1_validation_1d/summary.md`
 - Week 7 2D CPU precision-axis validation summary: `experiments/week7/report1_validation_2d/summary.md`
 - Week 7 2D GPU precision-axis validation summary: `experiments/week7/report1_validation_2d_gpu/summary.md`
 
-Current worktree note: the expected Week 4 summaries `experiments/week4/float_regression/1d/summary.md` and `experiments/week4/float_regression/2d/summary.md` are absent in this checkout, as recorded in `docs/experiment_logs/report1_evidence_index.md`. Report 1 can cite the Week 4 log and existing Week 4 metric artefacts, but those two summary files should be regenerated or recovered before claiming them as ready evidence.
+Current worktree note: the Week 4 summaries are present in this checkout. The older `report1_evidence_index.md` stale missing-file claim has been replaced by the canonical `docs/experiment_logs/report1_evidence_map.md`.
 
 ### Compiler and implementation variation
 
@@ -88,5 +90,5 @@ Policy: ratios with zero or near-zero denominators are diagnostic or `n/a`, not 
 - Drift is currently a synchronized final-state smoke unless synchronized multi-time checkpoints or multiple exact-final-time samples are generated. Do not infer a fitted growth rate from the current drift artefact.
 - Large transient grids are not retained except for promoted reference data. The 1600^2 binary grid remains a promoted GPU reference-candidate artefact, not a general transient-output retention policy.
 - The Week 7 1600^2 run is GPU-only. It is not 1600^2 CPU/GPU bit-equality evidence and should not be described as CPU-equivalent.
-- Week 4 float-regression summary files are absent in this worktree. Use the existing Week 4 logs/metrics carefully, and regenerate or recover the missing summaries before citing those specific paths as ready.
+- Week 4 float-regression summary files are present. Use the canonical evidence map for current priority and supersession status.
 - Output formats remain stable; this log only records evidence routing and interpretation limits.
