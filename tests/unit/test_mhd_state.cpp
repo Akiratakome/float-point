@@ -1,4 +1,5 @@
 #include "catch.hpp"
+#include "mhd/mhd_reconstruct.hpp"
 #include "mhd/mhd_state.hpp"
 
 using namespace hrsc;
@@ -53,4 +54,10 @@ TEST_CASE("MHD fast speed includes transverse magnetic pressure", "[mhd][state]"
     const double ca2 = (w.By * w.By) / w.rho;
 
     REQUIRE(fast_speed_x(w, gamma) == Approx(std::sqrt(a2 + ca2)));
+}
+
+TEST_CASE("minmod returns zero across an extremum and the smaller slope otherwise", "[mhd][recon]") {
+    REQUIRE(mhd_minmod(2.0, -1.0) == Approx(0.0));
+    REQUIRE(mhd_minmod(2.0, 3.0) == Approx(2.0));
+    REQUIRE(mhd_minmod(-4.0, -1.0) == Approx(-1.0));
 }
