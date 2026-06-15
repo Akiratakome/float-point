@@ -12,15 +12,59 @@
 
 \begin{figure}[p]
 \centering
+\begin{subfigure}{0.9\textwidth}
+\centering
 \includegraphics[width=\textwidth]{Figs/report1/appendix_lw3_self_convergence}
-\caption[LW3 fp64 self-convergence against finer grids]{LW3 fp64 self-convergence: density $L_1$ between successive grid pairs ($400$ vs $800$, $800$ vs $1600$), on a log--log axis. The fitted slope gives an observed self-convergence order of about $0.47$, in line with the sub-quadratic behaviour seen for the 1D shock tubes in Table~\ref{tab:ch5-1d-exact-convergence}. This supports treating $1600^2$ fp64 as a finer-grid numerical reference for LW3 rather than an exact-solution comparator.}
+\caption{LW3 density self-convergence.}
 \label{fig:app-lw3-self-convergence}
+\end{subfigure}
+
+\vspace{0.6em}
+
+\begin{subfigure}{0.9\textwidth}
+\centering
+\includegraphics[width=\textwidth]{Figs/report1/appendix_lw12_self_convergence}
+\caption{LW12 primitive-variable self-convergence.}
+\label{fig:app-lw12-self-convergence}
+\end{subfigure}
+\caption[LW fp64 self-convergence against finer grids]{LW fp64 self-convergence against finer grids. Panel (a) shows LW3 density $L_1$ between successive grid pairs ($400$ vs $800$, $800$ vs $1600$), with a fitted order of about $0.47$. Panel (b) shows LW12 primitive-variable $L_1$ differences between successive grid pairs ($200$ vs $400$, $400$ vs $800$, $800$ vs $1600$) after block-averaging the finer grid to the coarser. The slow sub-quadratic behaviour supports treating the fine fp64 fields as numerical references rather than exact-solution comparators.}
+\label{fig:app-lw-self-convergence}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{Figs/report1/appendix_vfc_toro3_diagnostics}
-\caption[Verificarlo MCA diagnostics for Toro3]{Verificarlo MCA stochastic-rounding diagnostics for Toro3 at $N=200$. Top: distribution of final density $L_1$ across MCA replicas at fp32 and fp64. Bottom: empirical standard deviation $\sigma_{\mathrm{FP}}$ of the conservative state as a function of replica count. The deterministic fp32 result sits inside the MCA fp32 distribution, indicating that it is not an isolated rounding instance. The fp64 spread is several orders of magnitude tighter, consistent with the precision-scale summary in Table~\ref{tab:ch5-1d-summary}.}
+\begin{subfigure}{0.96\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{Figs/report1/appendix_vfc_toro3_overlay}
+\caption{MCA sample overlay.}
+\end{subfigure}
+
+\vspace{0.5em}
+
+\begin{subfigure}{0.96\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{Figs/report1/appendix_vfc_toro3_heatmap}
+\caption{Significant-digit heatmap.}
+\end{subfigure}
+\caption[Verificarlo MCA diagnostics for Toro3]{Verificarlo MCA stochastic-rounding diagnostics for Toro3 at $N=200$. Panel (a) compares the MCA mean with the IEEE reference for density, velocity, and pressure, and panel (b) maps the corresponding significant-digit structure.}
 \label{fig:app-vfc-toro3-diagnostics}
+\end{figure}
+
+\begin{figure}[p]\ContinuedFloat
+\centering
+\begin{subfigure}{0.96\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{Figs/report1/appendix_vfc_toro3_noise_ratio}
+\caption{Noise-to-error ratio.}
+\end{subfigure}
+
+\vspace{0.5em}
+
+\begin{subfigure}{0.96\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{Figs/report1/appendix_vfc_toro3_error_budget}
+\caption{Error-budget view.}
+\end{subfigure}
+\caption[]{Verificarlo MCA diagnostics for Toro3, continued. Panels (c) and (d) summarize the stochastic-rounding spread relative to reference-scale error. The deterministic fp32 result sits inside the MCA fp32 distribution, indicating that it is not an isolated rounding instance; the fp64 spread is several orders of magnitude tighter, consistent with the precision-scale summary in Table~\ref{tab:ch5-1d-summary}.}
 \end{figure}
 %TC:endignore

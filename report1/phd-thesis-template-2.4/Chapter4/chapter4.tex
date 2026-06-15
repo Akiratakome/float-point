@@ -220,10 +220,7 @@ for both HLLC and Rusanov. The distribution-free sample-count rule used by
 \(n_{\min}=\lceil \log(1-c)/\log(p)\rceil\), where \(p\) is the probability
 level and \(c\) the confidence level~\citep{significantdigits_package}. With
 \(n=30\), the run supports a \(p=90\%\) statement at \(c=1-0.9^{30}=95.8\%\)
-confidence. Equivalently, it gives a \(p=(1-0.95)^{1/30}=90.5\%\) lower probability
-bound at \(95\%\). It does not support a \(p=95\%\) or \(p=99\%\)
-statement at \(95\%\) confidence. The stricter \(p=99\%\), \(c=95\%\) regime
-would require \(n_{\min}=299\) observations.
+confidence, but not a \(p=95\%\) or \(p=99\%\) statement at \(95\%\) confidence.
 For a primitive component $q_j$, the sample standard deviation
 $\sigma_{\mathrm{FP},j}=\operatorname{std}_k(q_j^{(k)})$ gives a local roundoff
 scale used in Chapter~6 with q05 / q25 / median spatial quantiles.
@@ -248,10 +245,8 @@ adjacent-float distance. For two-dimensional density images, SSIM
 \texttt{\detokenize{gaussian_weights=True}}, \texttt{sigma=1.5},
 \texttt{\detokenize{data_range=max(reference)-min(reference)}})
 measures image-structure similarity; values near 1 indicate closer agreement
-with the reference image. It is used only for the two-dimensional density plots,
-as a compact check that the resolved shock pattern remains aligned with the
-reference image. Precision adequacy uses the
-reference-scaled ratio
+with the reference image, and it is not applied to the one-dimensional cases.
+Precision adequacy uses the reference-scaled ratio
 \begin{equation}\label{eq:ch4-rref}
 R_{\mathrm{ref}} =
 \frac{\|U_{\mathrm{fp32}}-U_{\mathrm{fp64}}\|_1}

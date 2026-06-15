@@ -86,17 +86,21 @@ endif()
 add_library(hrsc_euler STATIC src/euler/euler_solver.cpp)
 target_link_libraries(hrsc_euler PUBLIC hrsc_core)
 
+add_library(hrsc_app STATIC
+    src/app/cases.cpp
+    src/app/diagnostics.cpp
+    src/app/output.cpp
+    src/app/run_config.cpp)
+target_link_libraries(hrsc_app PUBLIC hrsc_core hrsc_euler)
+
 # --- Main executable ---
 add_executable(hrsc src/main.cpp)
-target_link_libraries(hrsc PRIVATE hrsc_core hrsc_euler)
-target_include_directories(hrsc PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/toro_1d)
-target_include_directories(hrsc PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/liska_wendroff_2d)
-target_include_directories(hrsc PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/shock_bubble)
+target_link_libraries(hrsc PRIVATE hrsc_core hrsc_euler hrsc_app)
 
 # --- Unit tests ---
 file(GLOB TEST_SOURCES tests/unit/test_*.cpp)
 add_executable(unit_tests ${TEST_SOURCES})
-target_link_libraries(unit_tests PRIVATE hrsc_core hrsc_euler)
+target_link_libraries(unit_tests PRIVATE hrsc_core hrsc_euler hrsc_app)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/external/catch2)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/toro_1d)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/liska_wendroff_2d)

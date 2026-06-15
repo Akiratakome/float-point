@@ -1,0 +1,224 @@
+Effect of floating-point precision and hardware on HRSC schemes
+
+Abstract:
+
+Much work has been put into accelerating CFD finite-volume HRSC codes by using GPUs
+and their high memory bandwidth. GPUs tend to give better performance for single-precision
+arithmetic than double-precision arithmetic, but the use of single-precision arithmetic should
+be done only after a careful investigation of its impact on accuracy.
+
+In this project, we look at the effect of using a range of hardware and parallelisation
+approaches to quantify how solutions to the Euler and ideal-MHD systems of equations are
+affected by the precision used to evaluate them.
+
+Other code and hardware aspects that can be explored include compiler-flags, subtle
+differences in Riemann solver tolerances or intervals.
+
+Questions that can be explored include whether solution accuracy changes over time,
+potentially of particular interest for MHD chaotic problems.
+
+The code can be implemented within the AMReX framework (which allows easy compilation
+for both single and double-precision floats), or stand-alone. AMR is not expected to be used
+for this project, as profiling may be easier within a stand-alone code, and AMR adds more
+complexity to accuracy-determination than would be expected within the given time.
+
+This is largely a code development and exploration project.
+
+Required Background
+
+Essential courses:
+   ●​ Numerical Methods for Compressible Fluid Dynamics
+   ●​ Simulation of Matter under Extreme Conditions
+   ●​ Programming with GPUs
+
+Desirable courses:
+   ●​ Scientific Programming in C++
+   ●​ Software Design
+   ●​ Data Visualisation Techniques
+   ●​ Adaptive Mesh Refinement (AMReX introduction)
+
+Relevant Written Assignments
+
+   ●​ Acceleration of CFD using CUDA (strongly recommended)
+   ●​ Computational Magnetohydrodynamics (strongly recommended)
+   ●​ Adaptive Mesh Refinement AMReX (not necessary; attendance at the AMReX
+      lectures should be sufficient)
+
+Project Plan
+   -​   Select a second-order (at least) explicit finite-volume method using an approximate
+        or exact Riemann solver to use throughout. MUSCL-Hancock is strongly suggested
+        (SLIC alone is not suitable as the complexity of Riemann solvers will be of particular
+        interest.)
+   -​   Implement the Euler equations for an ideal-gas in two dimensions for both CPU and
+        GPU frameworks, using an exact or approximate Riemann solver. The HLLC or the
+        exact Riemann solver are most suitable. Use of the AMReX framework is advised
+        due to its applicability to a range of hardware, but students may wish to write their
+        own code which will be easier to customise and optimise.
+   -​   Select test-cases likely to demonstrate variation in overall results across Riemann
+        solvers and hardware. 1D tests from Toro [2013], two-dimensional Riemann
+        problems, and shock-bubble tests are suggested.
+   -​   Demonstrate any difference in results when running the same algorithm on different
+        hardware, compared to either an exact solution (where available) or simply between
+        hardware. The range and time-evolution of any differences will depend on the
+        test-cases, hardware, and compiler and compiler-options.
+   -​   Implement the Ideal-MHD equations, including a divergence-cleaning approach, in a
+        similar framework to that for the Euler equations.
+   -​   Choose suitable test-cases (e.g. Orszag-Tang and Kelvin-Helmholtz instabilities) for
+        Ideal-MHD.
+   -​   Demonstrate how results for the same test-cases vary between CPU and GPU
+        hardware. Perform a range of tests (in both 1D and 2D) and explore how the
+        discrepancy between results varies as simulation time increases.
+   -​   Consider the effect of some or all of the following on results:
+            -​ Resolution of test-cases.
+            -​ Floating-point precision (i.e. single or double) Quad precision may be
+                achievable through libraries such as Boost::Multiprecision.
+            -​ Compiler options such as -Ofast (gcc) or –use_fast_math (nvcc)
+            -​ CPU architecture or vectorisation options such as -mtune.
+            -​ Use of different numbers of MPI or OpenMP threads, or changes in
+                thread/process scheduling.
+            -​ Simple changes to Riemann solvers (such as the difference between SL <= 0
+                and SL < 0 or tolerances in an exact Riemann solver) Note that these may
+                only affect results when wave-speeds are very close to zero.
+            -​ Any other approaches that occur to you that could affect simulation results
+                without modifying the algorithm.
+   -​   Draw conclusions about what your results mean for reproducibility between different
+        implementations of the same algorithm on different hardware, compilers, or
+        code-bases, even when following a published algorithm.
+
+Tools
+
+Some possibly useful tools are listed below. I have little experience with these, but it may be
+worth investigating them as they will make exploring the multi-precision space much easier.
+
+RAPTOR
+The RAPTOR tool:
+https://github.com/RIKEN-RCCS/RAPTOR
+
+Is described in: https://arxiv.org/pdf/2507.04647v1
+
+And is installed on the CSC network at: /lsc/opt/raptor​
+requiring clang++-20 installed at: /lsc/opt/llvm-20.1
+
+This will allow exploration of the effect of different floating-point precisions on the output of a
+simulation.
+
+Verificarlo
+
+The Verificarlo tool:​
+https://github.com/verificarlo/verificarlo
+
+A tool for debugging and assessing floating point precision and reproducibility:​
+https://ceec-coe.eu/wp-content/uploads/2025/03/iakymchuk.pdf
+
+This is installed on the CSC network at:
+/lsc/opt/verificarlo-2.4.0
+Requiring clang++-18 installed at /usr/bin/clang++
+
+See
+https://github.com/verificarlo/verificarlo/wiki/Tutorials
+
+
+
+References:
+
+Explicit solvers and MHD are covered by Dr Stephen Millmore’s Advanced Continuum
+Modelling (i) course.
+
+1D Riemann tests:
+E.F. Toro, “Riemann Solvers and Numerical Methods for Fluid Dynamics: A Practical
+Introduction“, 2009, 3rd edition.
+
+2D Euler Riemann tests:
+R. Liska and B. Wendroff, “Comparison of Several Difference Schemes on 1D and 2D Test
+Problems for the Euler Equations”, SIAM Journal on Sci. Comp., Vol 25 Issue 3 (2003)
+https://doi.org/10.1137/S1064827502402120
+
+MHD, GPUs, and Orszag-Tang test:
+Bard and Dorelli, “A simple GPU-accelerated two-dimensional MUSCL-Hancock solver for
+ideal magnetohydrodynamics”, JCP 259, 2014, https://doi.org/10.1016/j.jcp.2013.12.006
+
+D. Goldberg, “What Every Computer Scientist Should Know About Floating-Point Arithmetic”,
+https://dl.acm.org/doi/10.1145/103162.103163
+Project Report 1
+
+Literature review and background [20%]
+    ●​ Overview of Euler’s equations for compressible ideal-gas.
+    ●​ Overview of the Ideal-MHD equations.
+    ●​ Finite-volume schemes, basic overview of derivation.
+    ●​ A brief discussion of floating-point arithmetic, and what effect different hardware,
+        compiler options, and parallel-thread ordering may have on the result of simple
+        expressions and algorithms.
+
+Mathematical theory [20%]
+   ●​ Description of the chosen explicit method, such as MUSCL-Hancock or WAF (must
+      be Riemann-solver based).
+   ●​ Discuss any numerical method variations specific to MHD (e.g. different Riemann
+      solvers or divergence cleaning).
+   ●​ Briefly summarise the points in the algorithms that could be varied in future
+      investigations, such as < versus <= or any others thought suitable.
+
+Code description [20%]
+   ●​ Discussion of the AMReX (or other) framework that has been chosen, and how it
+      allows ease of implementing multi-core CPU and GPU algorithms. If the student
+      writes their own code from scratch, a discussion of what ease-of-implementation or
+      optimization code features they have implemented is desirable.
+   ●​ Discussion of what testing framework will be used to ensure all results are
+      reproducible, and how ranges of modifications to compiler options or floating-point
+      tolerances will be explored. The way in which the exact or appropriately-converged
+      solution has been determined should also be discussed.
+
+Validation [20%]
+    ●​ Demonstration of correct results for at least four test-cases for Euler equations for
+        ideal-gas, that include supersonic waves. This must include both 1D and 2D tests.
+    ●​ Evaluation of these tests on both CPU and GPU.
+    ●​ Comparison of results on CPU and GPU, quantifying any differences between the
+        results.
+    ●​ Compare the result accuracy between single and double precision.
+
+Marks assigned for quality of write-up [20%]
+   ●​ Quality of write-up covers report-structure and layout, as well as general spelling and
+      grammar.
+   ●​ Suitability and readability of any plots and tables included, such as captioning,
+      labelling, etc.
+   ●​ Completeness of the overall report.
+   ●​ Suitability and quantity of references made.
+
+Project Report 2
+
+Project development [20%]
+   ●​ As implementing all of the suggestions above covers a very wide range of
+      possibilities, the student should describe how they will decide upon which changes to
+      make to the methods in order to capture a representative range of the effects on
+      accuracy in the time available.
+   ●​ Include a discussion of the results from Report 1 and how this has informed
+      subsequent project direction.
+
+Computational Results [40%]
+
+   ●​ Validation of CPU and GPU implementations for the MHD system.
+   ●​ A systematic exploration of the accuracy (and perhaps performance) of the
+      MUSCL-Hancock (or other) method on different hardware, with different compiler
+      options, or slight differences in implementation should be carried out.
+   ●​ If the difference between different implementations grows over time, quantify this.
+   ●​ The above should be carried out for a range of different test-cases for both Euler and
+      Ideal-MHD systems.
+
+Conclusions and Future work [20%]
+
+   ●​ Any conclusions from the above should be discussed.
+   ●​ This may include a discussion of what changes to hardware, parallelisation,
+      precision, and implementation have the most effect on the computed solution.
+   ●​ Some indication of which test-cases were most affected by which changes could also
+      be of interest.
+   ●​ Discuss the effect on reproducibility between different implementations of the same
+      algorithm on different hardware, compilers, or code-bases, even when following a
+      published algorithm.
+
+Marks assigned for quality of write-up [20%]
+   ●​ Quality of write-up covers report-structure and layout, as well as general spelling and
+      grammar.
+   ●​ Suitability and readability of any plots and tables included, such as captioning,
+      labelling, etc.
+   ●​ Completeness of the overall report.
+   ●​ Suitability and quantity of references made.
+

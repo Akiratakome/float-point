@@ -1,0 +1,1728 @@
+Effect of Floating-Point Precision and
+    Hardware on HRSC Schemes
+              Report 1
+
+
+
+
+                    Yudong Tang
+
+           Supervisor: Dr Philip Blakely
+
+                  Department of Physics
+                 University of Cambridge
+
+
+
+
+      This dissertation is submitted for the degree of
+                  Master of Philosophy
+
+
+
+
+                        May 2026
+                                   Declaration
+
+
+This project report is substantially my own work and conforms to the University of Cam-
+bridge’s guidelines on plagiarism. Where reference has been made to other research this is
+acknowledged in the text and bibliography.
+
+
+
+
+   May 2026
+
+                                                                            Yudong Tang
+                                                                              May 2026
+                             Acknowledgements
+
+
+Many thanks to Dr Philip Blakely for his guidance and feedback throughout this project.
+I also thank the Cambridge Centre for Scientific Computing for providing the computing
+platform used for the numerical experiments.
+                                      Abstract
+
+
+Precision, hardware, and backend choices are examined for a stand-alone CPU/CUDA Euler
+HRSC code using a second-order finite-volume MUSCL–Hancock scheme with the HLLC
+Riemann solver. The validation suite covers Sod, Toro3, Toro5, Liska-Wendroff configuration
+3 (LW3), and Liska-Wendroff configuration 12 (LW12), spanning one- and two-dimensional
+ideal-gas Euler tests with exact or higher-resolution references; LW12 is compared with an
+8002 fp64 numerical reference. The experiments compare real fp32/fp64 builds, matched
+strict-HLLC CPU/GPU saved outputs, selected compiler, branch-rule and solver variations,
+and Verificarlo/MCA diagnostics, where p32 is treated as virtual precision rather than IEEE
+fp32. Across the matched CPU/GPU saved-output set, final conservative states give L1 = 0,
+L∞ = 0, and ULPmax = 0, with checkpoint equality limited to saved states. Direct fp32/fp64
+gaps remain below the available reference scale in the tested cases; for LW12 at 4002 , the
+density reference-scaled ratio is 1.30 × 10−4 . Selected implementation checks show O2/O3
+bit-identity where tested, while fast-math perturbs non-stationary saved states. The result
+is a bounded Euler baseline for the later MHD precision and hardware study, not MHD
+validation.
+Table of contents
+
+List of figures                                                                              xi
+
+List of tables                                                                              xiii
+
+1   Introduction                                                                              1
+    1.1 Context: HRSC Schemes for Discontinuous Compressible Flows . . . . . .                1
+    1.2 Precision and Hardware Reproducibility Problem . . . . . . . . . . . . . .            1
+    1.3 Report Scope and Contribution . . . . . . . . . . . . . . . . . . . . . . . .         2
+    1.4 Report Structure . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      2
+
+2   Background and Literature Context                                                         5
+    2.1 Compressible Euler Equations . . . . . . . . . . . . . . . . . . . . . . . .          5
+    2.2 Ideal-MHD Project Context . . . . . . . . . . . . . . . . . . . . . . . . . .         6
+    2.3 HRSC and Benchmark Literature . . . . . . . . . . . . . . . . . . . . . . .           6
+    2.4 Floating-Point Arithmetic and Reproducibility . . . . . . . . . . . . . . . .         7
+    2.5 Report 1 Gap . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        8
+
+3   Numerical Method                                                                          9
+    3.1 Finite-Volume Update . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        9
+    3.2 MUSCL-Hancock Reconstruction and Predictor Step . . . . . . . . . . . .              11
+    3.3 HLLC and Rusanov Fluxes . . . . . . . . . . . . . . . . . . . . . . . . . .          12
+    3.4 Stability, Limiting, and Positivity . . . . . . . . . . . . . . . . . . . . . . .    14
+    3.5 Precision-Sensitive Decision Points . . . . . . . . . . . . . . . . . . . . .        15
+    3.6 Extension to Ideal MHD . . . . . . . . . . . . . . . . . . . . . . . . . . .         17
+
+4   Implementation and Experimental Design                                                   19
+    4.1 Implementation Route and Comparability Principle . . . . . . . . . . . . .           19
+    4.2 Algorithmic Structure of the Implementation . . . . . . . . . . . . . . . . .        20
+    4.3 Precision and Hardware Variants . . . . . . . . . . . . . . . . . . . . . . .        21
+x                                                                           Table of contents
+
+
+    4.4   Test-Case Matrix and Metrics . . . . . . . . . . . . . . . . . . . . . . . . .   23
+    4.5   Reference-Solution Strategy . . . . . . . . . . . . . . . . . . . . . . . . .    25
+
+5 Validation and Precision Results                                                         27
+  5.1 Validation Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        27
+  5.2 One-Dimensional Euler Validation . . . . . . . . . . . . . . . . . . . . . .         27
+  5.3 Two-Dimensional Euler Validation . . . . . . . . . . . . . . . . . . . . . .         31
+  5.4 Single- and Double-Precision Comparison . . . . . . . . . . . . . . . . . .          31
+  5.5 Matched CPU/GPU Comparison . . . . . . . . . . . . . . . . . . . . . . .             36
+  5.6 Compiler, Branch, Solver, and Drift-Growth Sensitivity . . . . . . . . . . .         36
+
+6   Discussion                                                                             41
+    6.1 Validation as the basis for interpretation . . . . . . . . . . . . . . . . . . .   41
+    6.2 Precision Adequacy and Region-Aware Diagnostics . . . . . . . . . . . . .          41
+    6.3 Hardware and Implementation Sensitivity . . . . . . . . . . . . . . . . . .        44
+    6.4 Limitations and Report 2 Direction . . . . . . . . . . . . . . . . . . . . . .     46
+
+7   Conclusion                                                                             47
+    7.1 Aim and Evidence Base . . . . . . . . . . . . . . . . . . . . . . . . . . . .      47
+    7.2 Key Findings . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     47
+    7.3 Limitation and Next Step . . . . . . . . . . . . . . . . . . . . . . . . . . .     47
+
+References                                                                                 49
+List of figures
+
+ 3.1   Finite-volume conservative update: the cell average Ūinj evolves by the differ-
+       ence of interface fluxes Fb 1 in x and Gb 1 in y, following Equation 3.6.          10
+                                 i± 2 , j         i, j± 2
+ 3.2   Three-wave HLLC structure at an interface: left and right acoustic waves
+       with speeds SL and SR bound two star states U∗L and U∗R , separated by a
+       contact discontinuity moving at S∗ . The sign of these three speeds selects
+       the interface flux in HLLC. . . . . . . . . . . . . . . . . . . . . . . . . . .    12
+
+ 5.1   Sod’s shock-tube problem at N = 200 and output time t = 0.25, computed
+       with the MUSCL–Hancock scheme and the HLLC Riemann solver. The
+       plotted reference is Toro’s exact Euler Riemann solution. . . . . . . . . . .      29
+ 5.2   Toro3 at N = 200 and output time t = 0.012, computed with the MUSCL–
+       Hancock scheme and the HLLC Riemann solver. The plotted reference
+       is Toro’s exact Euler Riemann solution; the case includes a right-running
+       supersonic shock. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    30
+ 5.3   Toro5 at N = 200 and output time t = 0.035, computed with the MUSCL–
+       Hancock scheme and the HLLC Riemann solver. The plotted reference is
+       Toro’s exact Euler Riemann solution for the colliding-shock test. . . . . . .      30
+ 5.4   LW3 density schlieren at 4002 cells and t = 0.3, computed in fp64 with
+       MUSCL–Hancock and the HLLC Riemann solver. The numerical-reference
+       comparison in Table 5.4 uses a 16002 fp64 solution. . . . . . . . . . . . . .      32
+ 5.5   LW12 density schlieren at 4002 cells and t = 0.25, computed in fp64 with
+       MUSCL–Hancock and the HLLC Riemann solver. The reference used for
+       the tabulated metrics is a higher-resolution 8002 fp64 numerical solution, not
+       an exact solution. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   33
+ 5.6   Reference-scaled fp32–fp64 L1 differences for LW3. Values below one
+       indicate that the precision gap is smaller than the fp64–reference error for
+       the same field and grid. . . . . . . . . . . . . . . . . . . . . . . . . . . . .   34
+xii                                                                                List of figures
+
+
+      5.7   LW12 cellwise density difference ρfp32 − ρfp64 at N = 400 and t = 0.25.
+            The diverging colormap is centred at zero; the difference reaches L∞ =
+            6.22 × 10−6 near the upper-right interaction region, while the cellwise mean
+            magnitude is 1.73 × 10−7 . This locates the precision-sensitive structure on
+            the shock-interaction front rather than spreading it uniformly across the domain. 35
+      5.8   LW3 2002 density comparison between HLLC and Rusanov at final time.
+            The visual difference is used as a scale reference for the solver-variation
+            entry in Table 5.6; pressure shows the same qualitative separation and is not
+            repeated in the main text. . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+      5.9   Normalised-time L1 drift for the non-zero O2 versus Ofast+fast-math one-
+            dimensional rows, split by density and pressure. Completed zero-drift branch-
+            rule rows are omitted from the logarithmic plot and reported in Table 5.6 and
+            the text. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+
+      6.1   Sod MCA overlay from Verificarlo, shown as a one-dimensional illustrative
+            diagnostic. The plot is used to read MCA ensemble spread and significant-
+            digit estimates; it is not a new validation result and does not provide IEEE
+            fp32 evidence. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    42
+      6.2   MCA-estimated σFP trend for LW3 density. The roundoff scale decreases
+            with virtual precision for both HLLC and Rusanov. Differences between the
+            curves reflect method variation: the arithmetic path changes, and Rusanov’s
+            extra diffusion smooths gradients, so lower or similar σFP is not an accuracy
+            ranking. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    43
+      6.3   LoSoS quantiles for LW3 density under MCA resampling. The quantile view
+            avoids basing the precision interpretation on a single worst cell. . . . . . . .    43
+      6.4   Region-aware LoSoS margin for LW3 density at Verificarlo virtual precision
+            p32. Positive values indicate that the virtual precision has more available
+            significant digits than the local sreq threshold. . . . . . . . . . . . . . . . .   44
+      6.5   Spatial noise-to-error ratio for LW3 density across Verificarlo virtual preci-
+            sions. Regions where MCA noise exceeds the reference-error scale shrink as
+            virtual precision increases. . . . . . . . . . . . . . . . . . . . . . . . . . .    45
+      6.6   Region-wise SNR analogue for LW3 density: noise-to-error ratio split by
+            smooth, transition, and shock-front regions at virtual precisions p8, p16, and
+            p32. Precision-limited regions (ratio > 1) shrink with virtual precision; the
+            shock-front band remains the dominant contributor at every level. . . . . .         45
+List of tables
+
+ 3.1   Numerical-method components that matter for the precision and hardware
+       experiments. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   16
+ 3.2   Build-time switches that toggle the precision-sensitive decisions discussed
+       above. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   17
+
+ 4.1   Strict floating-point controls used for matched CPU/GPU comparisons when
+       STRICT_IEEE=ON. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        22
+ 4.2   Experimental-design matrix for the Report 1 Euler validation suite. All cases
+       are evaluated in fp32 and fp64 on the available CPU and GPU backends; the
+       quantitative metrics are L1 , L∞ , ULPmax , reference-scaled ratios, and SSIM
+       for the two-dimensional image comparisons. . . . . . . . . . . . . . . . . .       24
+
+ 5.1   One-dimensional exact-reference density convergence . . . . . . . . . . . .        28
+ 5.2   One-dimensional feature-location and density-error split . . . . . . . . . .       29
+ 5.3   One-dimensional precision and device summary . . . . . . . . . . . . . . .         29
+ 5.4   Two-dimensional density validation and precision scale . . . . . . . . . . .       32
+ 5.5   Matched CPU/GPU strict-HLLC coverage . . . . . . . . . . . . . . . . . .           36
+ 5.6   Final-time CPU-fp64 variation metrics on the conservative state. The table
+       reports representative verified comparisons: the largest non-zero branch-rule
+       entry, the zero O2–O3 result across the tested entries, the largest compiler-
+       flag drift, and the largest available HLLC–Rusanov method difference. . . .        37
+ 5.7   fp32 CPU compiler-flag matrix for final HLLC outputs. O2 vs O3 compar-
+       isons are reported once per case where checked and are zero throughout;
+       the Ofast+fast-math entries are reported per case. The table covers Sod at
+       N = 200 and N = 400, Toro3 and Toro5 at N = 200, and LW3 at 2002 . . . .           38
+Chapter 1
+
+Introduction
+
+1.1     Context: HRSC Schemes for Discontinuous Compress-
+        ible Flows
+Compressible-flow simulations are needed when laboratory measurements or exact solutions
+cannot describe the full evolution of a flow field. In high-speed gas dynamics and aerospace
+or engineering applications, the solution may contain shocks, contact discontinuities, and
+rarefactions, so the numerical method must capture sharp waves without replacing them by
+non-physical oscillations. At the same time, the calculation has to be accurate enough to
+compare with experiments, exact Riemann solutions, or established benchmark references,
+while still running in feasible time on available hardware. The longer project also points
+towards plasma and MHD problems, but the Report 1 evidence is deliberately restricted
+to Euler validation. Finite-volume high-resolution shock-capturing methods provide the
+appropriate setting because they evolve conserved cell averages and use Riemann-solver
+fluxes to handle discontinuous wave interactions [17]. The same features that make HRSC
+methods useful also make their precision and backend reproducibility worth measuring.
+
+
+1.2     Precision and Hardware Reproducibility Problem
+For such schemes, reproducibility is not guaranteed by the statement of the finite-volume
+algorithm alone. Two runs may use the same reconstruction, Riemann solver, and time
+step, but differ because binary32 and binary64 round quantities differently, because the
+compiler fuses operations or reassociates expressions, or because device arithmetic and
+parallel ordering change the sequence of rounded operations [7, 11]. These mechanisms
+matter in CFD because shock-capturing updates contain branch decisions, limiters, and flux
+2                                                                              Introduction
+
+
+differences near discontinuities, where small arithmetic changes may be amplified rather
+than remaining isolated roundoff. Recent CFD studies therefore treat reduced or mixed
+precision as case-dependent: Brogi et al. report OpenFOAM evidence across CFD workloads,
+while Wang, Xia, and Chen study a heterogeneous hybrid-precision finite-volume method for
+compressible flow, set against the wider linear-algebra mixed-precision literature surveyed
+by Higham and Mary [10] [2, 20]. These papers motivate validation on the present solver
+and test matrix; they do not establish that fp32 is adequate here. CUDA, the NVIDIA GPU
+programming model and backend used in this project, can differ from CPU backends in
+fp32/fp64 throughput and arithmetic behaviour and can also vary between GPU devices,
+so this report measures those effects rather than assuming reproducibility across hardware.
+Verificarlo provides precision diagnostics only: direct fp32 claims use real fp32/fp64 runs;
+virtual-precision modes should not be treated as IEEE binary32 executions.
+
+
+1.3     Report Scope and Contribution
+Report 1 measures how precision and hardware/backend choices affect a Riemann-solver-
+based HRSC method on a controlled Euler validation suite. The evidence base is Euler
+ideal-gas validation in one and two space dimensions; MHD motivates the longer project
+and the direction of Report 2, but no MHD validation is claimed in Report 1. This boundary
+matters because the same numerical questions arise for ideal-MHD solvers, but the magnetic-
+field constraint and divergence-control choices require separate validation before they can
+support conclusions. Within the tested Euler cases in this report, the report contributes
+selected validation evidence for the stand-alone HRSC solver, quantified fp32/fp64 and
+matched CPU/GPU saved-output comparisons, and measured sensitivity to selected compiler,
+solver, and branch-rule variations. The contribution is therefore a bounded baseline for
+the later project rather than a general statement about all HRSC schemes, all hardware, or
+untested MHD configurations.
+
+
+1.4     Report Structure
+Chapter 2 reviews the governing background and literature context needed for the Euler
+validation study and the later MHD direction. Chapter 3 defines the finite-volume HRSC
+method and the Riemann-solver choices used in the experiments. Chapter 4 describes the
+implementation and experimental design, including how precision and hardware comparisons
+are made comparable. Chapter 5 reports the validation and precision/hardware results.
+1.4 Report Structure                                                                   3
+
+
+Chapter 6 discusses interpretation, uncertainty, and limitations. Chapter 7 gives a short
+conclusion and identifies the Report 2 direction.
+Chapter 2
+
+Background and Literature Context
+
+2.1     Compressible Euler Equations
+The Report 1 validation cases use the compressible Euler equations for an ideal gas. These
+equations form a suitable first system because they contain the wave features that a shock-
+capturing code must resolve, including shocks, contact discontinuities, and rarefactions, while
+retaining well documented Riemann-problem and two-dimensional benchmark references
+[17, 13]. Magnetic-field effects are therefore left as project context until the Euler precision
+and hardware comparisons have an auditable baseline.
+    In two space dimensions the conservative form is
+                                                                 
+                                                                ρ
+                                                               ρu
+                      ∂t U + ∂x F(U) + ∂y G(U) = 0,        U =  ,                       (2.1)
+                                                                
+                                                               ρv
+                                                                    E
+
+where ρ is density, ρu and ρv are the Cartesian momentum densities, and E is the total
+energy density. The physical fluxes are
+                                                               
+                                ρu                           ρv
+                             ρu2 + p                    ρuv 
+                     F(U) =          ,          G(U) =  2      .                      (2.2)
+                                                               
+                             ρuv                        ρv + p 
+                                  u(E + p)                v(E + p)
+6                                                          Background and Literature Context
+
+
+The one-dimensional form used for shock-tube tests is obtained by suppressing the y-
+dependence and the transverse flux. The ideal-gas closure is
+                                                                            
+              1                                                  1
+      E = ρe + ρ u2 + v2 ,                                           2    2
+                                                                           
+                                      p = (γ − 1)ρe = (γ − 1) E − ρ u + v      ,             (2.3)
+              2                                                  2
+
+where e is the specific internal energy, p is pressure, and γ is the ratio of specific heats. This
+section fixes only the governing variables and closure; the numerical flux construction is
+introduced later with the finite-volume method.
+
+
+2.2     Ideal-MHD Project Context
+The longer project extends the Euler model by coupling the gas to a magnetic field B.
+This adds magnetic pressure, magnetic tension, and magnetosonic wave families to the
+gas-dynamic system. In nondimensional units with magnetic permeability set to one, a
+compact ideal-MHD conservation form is
+                                                  
+                    ρ                   ρu
+                   ρu      ρu ⊗ u + p I − B ⊗ B
+                                          t
+                ∂t   + ∇ ·                         = 0,            ∇ · B = 0,            (2.4)
+                                                  
+                   E        (E + pt )u − (u · B)B 
+                      B               u⊗B−B⊗u
+
+where u is velocity, E is the total gas, kinetic, and magnetic energy density, and pt =
+p + |B|2 /2 is the total pressure. The final flux row is the conservative induction equation
+for B. The constraint ∇ · B = 0 states that the magnetic field is solenoidal. If numerical
+divergence is allowed to grow, the computed magnetic force and MHD wave propagation can
+be polluted by non-physical monopole error. Report 1 does not implement or validate MHD;
+Dedner cleaning would advect divergence error with a hyperbolic wave and damp it through
+relaxation, while constrained transport is a different discrete-divergence strategy [4, 6].
+
+
+2.3     HRSC and Benchmark Literature
+High-resolution shock-capturing (HRSC) finite-volume methods are a natural choice for
+compressible Euler flows because they evolve cell averages in conservative form while allow-
+ing discontinuities to be represented without tracking shock or contact positions explicitly.
+In Godunov-type methods, the face flux is obtained from a local Riemann problem, so
+the approximate Riemann solver is not a secondary implementation detail: it controls the
+2.4 Floating-Point Arithmetic and Reproducibility                                                7
+
+
+dissipation and wave information used at shocks and contact discontinuities [17, 8]. The
+Harten–Lax–van Leer (HLL) family gives a standard approximate-flux framework, and the
+HLLC extension of Toro et al. [18] restores a contact wave within that family; the algebraic
+form used in this report is deferred to Chapter 3.
+    Benchmark problems serve a different role from the numerical method itself. They
+provide recognisable wave patterns and comparison points against which a solver can be
+checked before precision and hardware effects are interpreted. Sod’s shock tube and Toro’s
+one-dimensional Riemann problems are standard sources for shocks, contacts, and rarefac-
+tions in a controlled setting [15, 17]. Liska and Wendroff’s two-dimensional Euler Riemann
+configurations extend this role to interacting waves and multidimensional structure without
+requiring the background chapter to catalogue individual test cases [13].
+
+
+2.4     Floating-Point Arithmetic and Reproducibility
+IEEE floating-point arithmetic uses finite significand and exponent fields, so the update is
+not evaluated over the real numbers. In round-to-nearest arithmetic, binary32 has a 24-bit
+significand and normal exponent range roughly −126 to +127, while binary64 has a 53-bit
+significand and range −1022 to +1023 [11, 7]. The corresponding unit roundoff is about
+2−24 and 2−53 , respectively [9]; this is a local scale, not a solution-error bound for a nonlinear
+time-dependent HRSC calculation.
+    The key difficulty is non-associativity. In binary64, (10−18 + 1) − 1 rounds the small
+increment away and returns zero, whereas 10−18 + (1 − 1) returns 10−18 . Inside a nonlinear
+solver, such changes can alter wave-speed estimates, limiter decisions, fluxes, and later time
+steps. The report therefore measures their size and location rather than assuming that they
+remain harmless or grow monotonically.
+    Compiler and device choices add variation. Ordinary -O3 may change instruction selec-
+tion, but fast-math or -Ofast can permit reassociation, FMA contraction, reciprocal-based
+division, and approximate square-root paths. Since floating-point addition is non-associative,
+GPU block or warp scheduling and atomic reductions can change the accumulation tree;
+the solver comparisons below avoid summation-order claims unless an ordered max/min or
+saved-state metric supports them. Comparison order can also matter for tied or nearly tied
+candidates. CFD precision studies such as Brogi et al.’s OpenFOAM work show why reduced
+or mixed precision must be validated case by case [2]. This report also uses Verificarlo,
+which implements Monte Carlo arithmetic (MCA) by perturbing floating-point operations to
+estimate rounding sensitivity [14, 5]. Its p32 setting is a virtual mantissa precision used for
+diagnostics, not IEEE binary32.
+8                                                      Background and Literature Context
+
+
+2.5     Report 1 Gap
+Together, the literature reviewed here separates three tasks. HRSC and Riemann-solver work
+provide the method foundations for discontinuous Euler flow; Sod, Toro, and Liska–Wendroff
+benchmarks define controlled validation settings; and floating-point studies explain why
+arithmetic format, compiler choices, and device execution can alter a nominally identical
+computation. The remaining gap for Report 1 is to measure precision and hardware sensitivity
+under controlled Euler validation tests, before treating ideal MHD as a later extension.
+Chapter 3 defines the numerical method, Chapter 4 defines the experimental design, and
+Chapter 5 reports the measured validation and precision results.
+Chapter 3
+
+Numerical Method
+
+This chapter fixes the finite-volume MUSCL–Hancock method used in Chapter 5. Chapter 4
+then varies precision, backend, compiler flags, and selected branch rules around this fixed
+update.
+
+
+3.1      Finite-Volume Update
+For the ideal-gas Euler system the conserved state is U = (ρ, ρu, ρv, E)T . In two dimensions
+it satisfies
+                                 Ut + F(U)x + G(U)y = 0,                                (3.1)
+
+with physical fluxes
+                                                                                  
+                                         ρu                                     ρv
+                                     ρu2 + p                               ρuv 
+                             F(U) =          ,                     G(U) =  2      .               (3.2)
+                                                                                  
+                                     ρuv                                   ρv + p 
+                                      u(E + p)                               v(E + p)
+
+On the Cartesian cell Ci j = [xi−1/2 , xi+1/2 ] × [y j−1/2 , y j+1/2 ], integrating over [t n ,t n+1 ] ×Ci j
+gives      Z                           Z
+                      U(x, y,t n+1 ) dx dy −               U(x, y,t n ) dx dy
+               Ci j                                 Ci j
+                       Z t n+1Z y
+                                    j+1/2                                          
+                 +                           F(U(xi+1/2 , y,t)) − F(U(xi−1/2 , y,t)) dy dt            (3.3)
+                        tn     y j−1/2
+                       Z t n+1Z x
+                                 i+1/2                                               
+                 +                           G(U(x, y j+1/2 ,t)) − G(U(x, y j−1/2 ,t)) dx dt = 0.
+                        tn     xi−1/2
+10                                                                                         Numerical Method
+
+
+The discrete unknown is the cell average
+
+                                              1
+                                                    Z
+                                 Ūinj =               U(x, y,t n ) dx dy.                             (3.4)
+                                            ∆x ∆y Ci j
+
+The interface flux is the time- and face-averaged physical flux, approximated in practice by a
+Riemann solver:
+                                            t     n+1Z y
+                                     1
+                                             Z
+                                                           j+1/2
+                      n
+                   Fbi+1/2, j=    ∆t n ∆y t n
+                                                                   F(U(xi+1/2 , y,t)) dy dt,           (3.5)
+                                                      y j−1/2
+
+
+with Gbn
+       i, j+1/2 defined analogously on horizontal faces. Substitution gives the conservative
+flux-difference update
+
+                              ∆t n  b n                    ∆t n                       
+           Ūin+1
+              j   = Ūinj −                        n
+                                    Fi+1/2, j − Fbi−1/2, j  −      Gbn
+                                                                     i, j+1/2 − bn
+                                                                                Gi, j−1/2 .            (3.6)
+                              ∆x                              ∆y
+
+Fig. 3.1 sketches the four interface fluxes in this update. A shared face therefore contributes
+
+                                                            G
+                                                            b         1
+                                                                i, j+ 2
+
+                                   Fb  1                                  Fb  1
+                                    i− 2 , j                               i+ 2 , j
+                                                        Ūinj
+
+
+                                                            G
+                                                            b         1
+                                                                i, j− 2
+
+
+Fig. 3.1 Finite-volume conservative update: the cell average Ūinj evolves by the difference of
+                               b 1 in y, following Equation 3.6.
+interface fluxes Fb 1 in x and G
+                 i± 2 , j               i, j± 2
+
+
+equal and opposite fluxes to neighbouring cells, so summing the update cancels all interior
+exchanges and leaves only boundary fluxes. This cancellation is the finite-volume conserva-
+tion mechanism used below, following the standard treatments of Toro [17] and LeVeque
+[12]. The explicit time step is controlled by a Courant–Friedrichs–Lewy (CFL) condition
+on local acoustic wave speeds; the full formula is given in Section 3.4. Equation 3.6 fixes
+the two-direction notation; the implementation applies this conservative update through
+alternating directional sweeps, described in Chapter 4. In two dimensions each sweep is a
+one-dimensional conservative update using the current cell averages; alternating the sweep
+order reduces a fixed ordering bias. The scheme is therefore dimensionally split, not an
+unsplit method with transverse flux corrections.
+3.2 MUSCL-Hancock Reconstruction and Predictor Step                                                    11
+
+
+3.2     MUSCL-Hancock Reconstruction and Predictor Step
+Slope limiting. The MUSCL-Hancock step uses a piecewise-linear reconstruction inside
+each cell, followed by a half-time predictor before the Riemann solve. Near shocks and
+contacts an unlimited piecewise-linear reconstruction can introduce new local extrema and
+spurious oscillations. A slope limiter suppresses these extrema while retaining second-order
+accuracy in smooth monotone regions. The reconstruction follows the MUSCL framework
+of van Leer [19], in the presentation of Toro [17]. For conserved component k, define the
+one-sided jumps
+
+                          (k)        (k),n       (k),n                (k)       (k),n   (k),n
+                  δ −Ui         = Ūi        − Ūi−1 ,           δ +Ui      = Ūi+1 − Ūi       .    (3.7)
+
+The report path uses component-wise minbee, equivalently minmod-style, limiting:
+                                                                          
+                                    (k)                        − (k) + (k)
+                                  σi = minmod                 δ Ui , δ Ui    ,                       (3.8)
+
+where                                 
+                                      0,                     ab ≤ 0,
+                       minmod(a, b) =                                                                (3.9)
+                                      sgn(a) min(|a|, |b|) , ab > 0.
+
+                       (k)                 (k)         (k)
+In ratio form, where ri      = δ −Ui /δ +Ui                  is defined, this corresponds to
+
+                    (k)              (k)         (k)
+                  σi      = Φ(ri ) δ +Ui ,                     Φ(r) = max(0, min(1, r)).            (3.10)
+
+Minbee is a diffusive Total Variation Diminishing (TVD) limiter, so small perturbations may
+be damped. For a scalar conservation law a TVD scheme cannot increase the discrete total
+variation in time and so cannot generate spurious extrema; for the nonlinear Euler system
+this property is heuristic rather than proved.
+
+Hancock predictor.        The reconstructed states at the left and right faces of cell i are
+
+                                  n          1                                1
+                                Ui,L = Ūin − σi ,                 n
+                                                                 Ui,R = Ūin + σi .                 (3.11)
+                                             2                                2
+A local Hancock half-step then advances them using the flux difference across the recon-
+structed cell profile:
+
+                                 n+1/2         n        ∆t     n          n
+                                                                               
+                             Ūi,L         = Ui,L −         F(Ui,R ) − F(Ui,L ) ,                   (3.12)
+                                                       2∆x
+12                                                                                   Numerical Method
+
+                                   n+1/2       n       ∆t     n          n
+                                                                              
+                              Ūi,R        = Ui,R −        F(Ui,R ) − F(Ui,L ) .                (3.13)
+                                                      2∆x
+
+Riemann input.         The Riemann problem at xi+1/2 is finally posed from neighbouring pre-
+dicted states,
+                                                                                         
+                  n+1/2                          n+1/2
+        L
+      Ui+1/2 = Ūi,R      ,           R
+                                    Ui+1/2 = Ūi+1,L ,         Fbi+1/2 = R Ui+1/2
+                                                                             L       R
+                                                                                  ,Ui+1/2   .   (3.14)
+
+The construction applies identically in the y-direction.
+
+
+3.3      HLLC and Rusanov Fluxes
+At an interface the predictor supplies left and right states UL and UR , so the local problem is
+the one-dimensional Riemann problem
+                                               
+                                               U , x < 0,
+                                                   L
+                                 URP (x, 0) =                                             (3.15)
+                                               UR , x > 0.
+
+The report’s main validation flux is HLLC. In the construction introduced by Toro et al. [18]
+and presented in Toro [17], this flux approximates the fan by left, contact, and right waves
+with speeds SL , S∗ , and SR . In the wave-speed bound of Davis [3] as presented by Toro [17],
+
+                SL = min(uL − aL , uR − aR ),               SR = max(uL + aL , uR + aR ),       (3.16)
+
+and
+                                   pR − pL + ρL uL (SL − uL ) − ρR uR (SR − uR )
+                        S∗ =                                                     .              (3.17)
+                                          ρL (SL − uL ) − ρR (SR − uR )
+
+
+                              SL                        t S                SR
+                                                           ∗
+
+
+                                               U∗L             U∗R
+                                      UL                             UR
+
+                                                                                x
+
+Fig. 3.2 Three-wave HLLC structure at an interface: left and right acoustic waves with speeds
+SL and SR bound two star states U∗L and U∗R , separated by a contact discontinuity moving at
+S∗ . The sign of these three speeds selects the interface flux in HLLC.
+3.3 HLLC and Rusanov Fluxes                                                                13
+
+
+   The approximate solution sampled at ξ = x/t is
+                                          
+                                          
+                                          
+                                          UL ,   ξ < SL ,
+                                          
+                                          
+                                          U ,    SL < ξ < S∗ ,
+                                             ∗L
+                               Ũ(ξ ) =                                                 (3.18)
+                                          
+                                          
+                                          U∗R , S∗ < ξ < SR ,
+                                          
+                                          
+                                           UR , SR < ξ .
+                                          
+
+
+The corresponding interface flux is selected by the sign of the wave speeds:
+                                          
+                                          
+                                          
+                                          FL ,      SL ≥ 0,
+                                          
+                                                     S L < 0 ≤ S∗ ,
+                                          
+                                          F ,
+                                             ∗L
+                               FbHLLC =                                                 (3.19)
+                                          
+                                          
+                                          F∗R , S∗ < 0 ≤ SR ,
+                                          
+                                          
+                                           FR , SR < 0.
+                                          
+
+
+For K ∈ {L, R}, the star-region flux is written as
+
+                                 F∗K = FK + SK (U∗K −UK ) ,                             (3.20)
+
+where U∗K is obtained from the Rankine–Hugoniot jump conditions across SK and may be
+written in closed form as
+                                                                        
+                                                      1
+                                                                        
+                                                     S∗                 
+                          SK − uK                                       
+                U∗K = ρK           
+                                                     vK
+                                                                         ,    (3.21)
+                          SK − S ∗ 
+                                                   
+                                                                         
+                                                                        
+                                    EK                        pK        
+                                        + (S∗ − uK ) S∗ +
+                                     ρK                   ρK (SK − uK )
+
+with the contact pressure p∗ = pK + ρK (SK − uK )(S∗ − uK ) equal on both sides of the contact.
+This is the part of HLLC that restores the contact wave missing from the two-wave HLL
+approximation discussed by Toro et al. [18] and Toro [17]. The exact choice of strict or
+non-strict inequality at zero is a precision-sensitive implementation decision and is discussed
+separately in Section 3.5.
+    Rusanov is used later as a controlled method comparator, not as the main validation
+method or as an accuracy recommendation. It changes only the interface flux inside the
+same MUSCL–Hancock update, leaving reconstruction and time integration fixed, so the
+comparison isolates the contact-wave, branch, and arithmetic path introduced by HLLC. The
+14                                                                                               Numerical Method
+
+
+flux replaces the contact-resolving HLLC structure by a centred flux plus scalar dissipation,
+
+            1            1
+     FbRus = (FL + FR ) − Smax (UR −UL ) ,                 Smax = max (|uL | + aL , |uR | + aR ) .          (3.22)
+            2            2
+This form is useful for comparison because it has a single local signal-speed penalty and
+no contact-wave branch, but its stronger numerical diffusion can smear contacts and shear
+layers relative to HLLC, as expected for the HLL family introduced by Harten et al. [8] and
+described by Toro [17].
+
+
+3.4      Stability, Limiting, and Positivity
+Stability is controlled by nondimensional Courant numbers rather than by the time step alone,
+with the relevant one-cell signal speeds being the acoustic bounds |u| + c and |v| + c in each
+coordinate direction. The implemented update therefore selects the time step globally from
+the local wave speeds,
+                                                                      
+                  n                          ∆x             ∆y
+                ∆t = CCFL min                        ,                     ,      0 < CCFL ≤ 1,             (3.23)
+                                  ij   |ui j | + ci j |vi j | + ci j
+
+where ci j is the sound speed in cell i j. The associated per-cell Courant numbers in the two
+coordinate directions are
+                                 ∆t                                       ∆t               
+                      νx,i j =      |ui j | + ci j ,        νy,i j =          |vi j | + ci j .              (3.24)
+                                 ∆x                                        ∆y
+
+Substituting Equation 3.23 into Equation 3.24 gives maxi j max(νx,i j , νy,i j ) ≤ CCFL directly.
+The implemented update is dimensionally split: Equation 3.6 is applied as successive one-
+dimensional sweeps in x and y. The working role of CCFL is therefore a safety factor on the
+local acoustic wave-speed restriction, not a universal stability constant [17, 12].
+     For a scalar monotone first-order scheme, a TVD argument gives a direct Courant-
+number restriction. MUSCL-Hancock uses second-order reconstruction and a predictor
+step, then relies on limiting to suppress new oscillations near nonsmooth data. The limiter
+makes the reconstruction nonlinear, so the local order is not uniform across the grid. In
+smooth monotone regions the piecewise-linear data and Hancock predictor give the expected
+second-order truncation behaviour. At extrema, shocks, contacts, and rarefaction edges the
+minbee/minmod-type limiter can set or reduce the slope, moving the local update towards a
+first-order Godunov step [19, 17].
+3.5 Precision-Sensitive Decision Points                                                    15
+
+
+   The same restriction is also tied to physical admissibility. The primitive conversion
+requires                                                     
+                                                  1   2     2
+                   ρ > 0,       p = (γ − 1) E − ρ(u + v ) > 0.                    (3.25)
+                                                  2
+Large Courant numbers, strong waves, or near-vacuum states can produce predicted or
+updated states outside this admissible set even when the conservative update is algebraically
+well defined. HLLC wave-speed estimates and limiter decisions therefore act together with
+the CFL choice: they determine not only linear stability, but also whether the intermediate
+states used in the Riemann solve remain physically meaningful. No general positivity proof
+is claimed here; the CFL and limiter choices are treated as part of the controlled numerical
+method.
+
+
+3.5     Precision-Sensitive Decision Points
+Rounding model. A useful local model for the floating-point part of the method is the
+standard one-operation rounding model
+
+                         fl(a op b) = (a op b)(1 + δ ),    |δ | ≤ u,                   (3.26)
+
+for a basic arithmetic operation under round-to-nearest-even IEEE 754 semantics, away from
+overflow, underflow, and exceptional cases [11, 7, 9]. A flux evaluation is a composed map:
+primitive recovery, sound-speed evaluation, wave-speed estimates, star-state construction,
+and flux differences each introduce small perturbations. Some intermediate quantities are
+sufficiently accurate in binary64 but insufficiently so in binary32, and HLLC comparisons
+mean rounded operands can change which algebraic formula is sampled at an interface. FMA
+accuracy also depends on hardware and compiler choices: a CPU FMA typically rounds
+once after a higher-precision intermediate, while a GPU FMA can remain at the working
+precision throughout [11, 9].
+
+Branch sensitivity. For HLLC the branch decision uses computed estimates SbL , Sb∗ , SbR , not
+exact wave speeds. The logical test
+
+                            SL ≤ 0 ≤ S∗       or     SL < 0 < S ∗                      (3.27)
+
+may only affect results when one of the computed wave speeds is very close to zero. Exact
+arithmetic distinguishes the two versions only at equality, but the computed sign of Sb∗ is a
+16                                                                             Numerical Method
+
+
+quotient,
+                                N∗
+                         S∗ =      ,     D∗ = ρL (SL − uL ) − ρR (SR − uR ),                  (3.28)
+                                D∗
+and a first-order perturbation gives
+
+                                        ∆S∗ ∆N∗ ∆D∗
+                                            ≈    −    ,                                       (3.29)
+                                         S∗   N∗   D∗
+
+when the terms are non-zero. Cancellation in N∗ or a small D∗ can amplify rounded changes
+in the wave-speed estimate, and the amplified value may then enter a discontinuous branch
+selection [17].
+
+Method components and build switches. Tables 3.1 and 3.2 summarise the precision-
+sensitive update points and the build-time switches used in Chapters 4 and 5.
+
+Method component          Role in the update                    Precision-sensitive point
+
+Limited reconstruction    Builds left/right states for the      Limiter branches can change local
+                          Hancock predictor                     order near extrema or shocks.
+Hancock predictor         Evolves reconstructed states by a     Flux differences combine rounded
+                          half step before the Riemann solve    primitive recovery and energy
+                                                                terms.
+HLLC flux                 Selects the contact-resolving         Wave-speed tests near zero expose
+                          interface flux                        the < versus ≤ branch rule.
+CFL selection             Sets the explicit time step from      Global maxima and final-time
+                          acoustic signal speeds                clipping can differ across precision
+                                                                or evaluation order.
+Rusanov flux              Provides a deliberately more          Removes the contact branch, so
+                          diffusive comparator                  differences from HLLC are method
+                                                                variation rather than reproducibility
+                                                                drift.
+Table 3.1 Numerical-method components that matter for the precision and hardware experi-
+ments.
+
+
+
+Variation axes by status. Measured Report 1 axes are the HLLC branch rule, gcc
+-O2/-O3/-Ofast with fast-math, HLLC versus Rusanov, and fp32/fp64. Exact-Riemann
+stopping tolerances, limiter choice, and CPU/GPU reduction ordering remain concept-
+only. CPU architecture and -mtune/vectorisation, MPI/OpenMP thread-count variation, and
+Boost::Multiprecision quad precision are Report 2 axes.
+3.6 Extension to Ideal MHD                                                                      17
+
+
+Macro                           Build effect                      Tested in
+
+RIEMANN_STRICT_INEQUALITY       Selects the strict < HLLC         Chapter 5 wave-speed branch
+                                branch rule in place of the       variation.
+                                default ≤.
+STRICT_IEEE                     Pins IEEE rounding on CPU         Chapter 5 CPU/GPU
+                                and CUDA by disabling FMA         strict-precision matched
+                                contraction, fast-math            comparison.
+                                reassociation, flush-to-zero,
+                                and approximate division and
+                                square root.
+FAST_MATH                       Enables fast-math:                Chapter 5 fp32 compiler-flag
+                                reassociation, FMA                comparisons against the strict
+                                contraction, flush-to-zero, and   baseline.
+                                approximate division and
+                                square root.
+Table 3.2 Build-time switches that toggle the precision-sensitive decisions discussed above.
+
+
+3.6     Extension to Ideal MHD
+Report 1 uses Euler, the hydrodynamic limit of the later ideal-MHD problem. In ideal MHD
+the conserved state augments (ρ, ρu, E) with B, adding magnetic pressure, tension, and
+induction terms. Its Riemann fan has seven families: two fast magnetosonic, two Alfven,
+two slow magnetosonic, and one entropy/contact wave, making it more complex than Euler’s
+three-wave HLLC fan [17]. The magnetic field must satisfy
+
+                                         ∇ · B = 0,                                          (3.30)
+
+at the continuous level, but a finite-volume update does not enforce this constraint automati-
+cally; discrete divergence can create spurious magnetic forces and distort wave speeds.
+    Dedner et al.’s hyperbolic cleaning approach [4] augments the induction equation with a
+scalar field ψ:
+
+               ∂t B + ∇ · (uB − Bu) + ∇ψ = 0,         ∂t ψ + c2h ∇ · B = −ψ/τ.               (3.31)
+
+Here ψ carries divergence error, ch is the cleaning-wave speed, and τ is the damping time.
+Constrained transport [6] instead preserves a staggered-mesh discrete divergence constraint.
+This is also why the Euler HLLC flux is not a direct full-MHD choice: its three-wave
+acoustic/contact model does not resolve the fast, Alfven, slow, and contact families, nor the
+18                                                                         Numerical Method
+
+
+discrete divergence constraint. HLL gives a simpler but more diffusive bound [8]; HLLD and
+Roe-type solvers aim to retain more MHD wave structure, while GLM-Dedner cleaning and
+constrained transport treat divergence error differently. These are Report 2 concerns. Report 1
+evidence remains Euler-only. The added magnetic pressure terms and near-degenerate wave
+speeds provide more branch and cancellation sites than Euler, so they require separate
+validation.
+Chapter 4
+
+Implementation and Experimental Design
+
+4.1     Implementation Route and Comparability Principle
+Report 1 uses a stand-alone Euler implementation so that the finite-volume update stays fixed
+while precision, backend, and selected build choices are varied. The real type is selected at
+configuration time and is then used as the single scalar type in the solver:
+
+      Configuration choice             Compile-time definition    Report role
+      -DFLOAT_PRECISION=float HRSC_REAL=float                     IEEE binary32 run
+      -DFLOAT_PRECISION=double HRSC_REAL=double                   IEEE binary64 run
+      -DENABLE_CUDA=ON         HRSC_HAS_CUDA                      enables device=gpu
+
+    This design keeps the precision comparison to two storage formats, binary32 and bi-
+nary64 [11]. Higher-precision extensions, such as a Boost::Multiprecision route, are outside
+the Report 1 evidence scope. When CUDA is enabled, the same executable interface serves
+CPU and CUDA backends; device=cpu/gpu selects the backend at runtime.
+    The toolchain boundary is part of the experimental design: Toro3 and Toro5 use Windows
+BuildTools; Sod, Liska-Wendroff configuration 3 (LW3), and Liska-Wendroff configura-
+tion 12 (LW12) use Linux/WSL; each CPU/GPU comparison stays within one matched
+binary/configuration.
+    The four implementation features that make this comparison auditable are:
+
+   1. fp32/fp64 source-level templating via HRSC_REAL, so the same source compiles to
+      either precision;
+
+   2. CMake ENABLE_CUDA build switch plus runtime device=cpu/gpu selection, produc-
+      ing matched within-binary CPU/GPU comparisons;
+20                                                 Implementation and Experimental Design
+
+
+     3. a Python regression harness that re-runs the validation matrix and checks outputs
+        against stored references;
+
+     4. the matched-binary CPU–GPU switch, so bit-identity claims are not confused with
+        toolchain or compiler-flag differences.
+
+
+4.2      Algorithmic Structure of the Implementation
+The executable reads the configuration, selects initial condition, boundary modes, flux solver,
+and device, then dispatches to the CPU solver or to CUDA, available only in binaries built
+with ENABLE_CUDA. Each step fills ghost cells, chooses a CFL-limited time step, applies
+directional MUSCL–Hancock sweeps with HLLC or Rusanov fluxes [17], and updates time.
+    The conservative array is cell-major: ((j+ng)*nx_total + (i+ng))*NVars + var,
+with the four Euler variables contiguous per cell. This array-of-structures-like layout gives
+CPU loops and GPU kernels the same indexing and boundary rules; it is for comparability,
+not a throughput-optimal GPU alternative to a structure-of-arrays design. The CFL scan
+computes                                                                 
+                                             ∆x                ∆y
+                     ∆t = CCFL min                     ,                    ,            (4.1)
+                                      maxi, j (|u| + c) maxi, j (|v| + c)
+then clips the result to the requested final time. Equation 4.1 is a deterministic max/min over
+wave-speed candidates, not a summation reduction, so it is not evidence for summation-order
+sensitivity. Algorithms 1 and 2 summarise dispatch and the per-cell predictor. Reproducibility
+follows the harness sequence: configure, build, run, measure, aggregate, and plot. Matrix
+runs copy the source configuration into a generated run directory, save stdout, stderr, binary
+path, precision, device, build label, command, and output path, and supply Chapter 5 with
+aggregated summaries and report-facing figures rather than raw grids.
+
+Algorithm 1 Report-Level Solver Dispatch
+ 1: Read configuration
+ 2: Select CPU or CUDA
+ 3: Fill ghost cells and compute clipped ∆t
+ 4: Apply a 1D sweep, or alternate x/y sweeps in 2D
+ 5: Refill ghost cells between sweeps
+ 6: Advance time with Kahan summation [9]
+ 7: Write configured outputs
+
+
+   The CUDA path uses separate kernels for boundary handling, face-state construction, flux
+evaluation, and conservative updates. MUSCL–Hancock reconstruction and update mainly
+4.3 Precision and Hardware Variants                                                        21
+
+Algorithm 2 MUSCL–Hancock face-state construction for one cell, one direction
+                                   n , Ū n , Ū n , ∆x, ∆t)
+ 1: function R ECONSTRUCT FACES(Ūi−1    i      i+1
+ 2:      −      n    n
+       δ ← Ūi − Ūi−1
+ 3:    δ + ← Ūi+1
+                n − Ū n
+                       i
+ 4:    σi ← M INMOD(δ − , δ + )                                                    ▷ Eq. (3.9)
+ 5:      n ← Ū n − 1 σ
+       Ui,L     i   2 i
+ 6:       n ← Ū n + 1 σ
+        Ui,R    i    2 i
+ 7:     ∆F ← F(Ui,Rn ) − F(U n )
+                            i,L
+          n+1/2       n − ∆t ∆F
+ 8:     Ūi,L     ← Ui,L  2∆x
+          n+1/2       n − ∆t ∆F
+ 9:     Ūi,R     ← Ui,R  2∆x
+                    n+1/2       n+1/2
+10:    return (Ūi,L        , Ūi,R     )
+11: end function
+
+
+use global memory and registers; shared memory is used for the CFL block reduction, not
+as a tiled stencil cache. This limits the GPU path and is not a claim of optimised stencil
+throughput. CPU and CUDA share the HLLC branch-rule sensitivity axis. In the CUDA
+CFL stage, ordered comparisons make the selected ∆t independent of block order.
+    CPU sweep loops use OpenMP static schedules, giving fixed thread assignments. The
+CPU CFL scan uses reduction(max:...) over wave-speed candidates, a determinis-
+tic comparison, not a floating-point sum. Verificarlo MCA runs are serial because the
+libinterflop PRNG is not thread-safe. MPI is not used, so comparisons exclude inter-
+process ordering.
+    Algorithm 3 expands the HLLC interface flux; the strict-inequality variant tested in
+Section 3.5 flips each branch comparator.
+
+
+4.3     Precision and Hardware Variants
+The experiment matrix separates precision, hardware, compiler, and branch-rule effects. The
+fp32/fp64 axis sets HRSC_REAL through the FLOAT_PRECISION build option. A matched
+device comparison keeps the case, executable, precision, and configuration fixed, changing
+only device=cpu to device=gpu inside a CUDA-enabled binary. CPU/GPU statements are
+therefore within-case and within-binary, not cross-toolchain, claims.
+    Compiler optimisation and the HLLC wave-speed branch rule are separate from the strict
+device comparison in Table 4.1, which defines the build controls for the saved CPU/GPU
+state comparisons reported in Chapter 5.
+    Verificarlo runs are diagnostic, not real fp32/fp64 runs. Following Parker’s Monte
+Carlo arithmetic formulation [14] and Denis et al.’s Verificarlo tool [5], the solver is built
+22                                                Implementation and Experimental Design
+
+
+
+
+Algorithm 3 HLLC interface flux selection (one face)
+ 1: function H LLC F LUX (UL ,UR )
+ 2:    Compute (ρL , uL , pL , aL ) from UL ; same for R
+ 3:    SL ← min(uL − aL , uR − aR )                                                ▷ Eq. (3.16)
+ 4:    SR ← max(uL + aL , uR + aR )
+ 5:    S∗ ← C OMPUTE C ONTACT S PEED(UL ,UR , SL , SR )                            ▷ Eq. (3.17)
+ 6:    if SL ≥ 0 then
+ 7:        return F(UL )
+ 8:    else if S∗ ≥ 0 then
+ 9:        return F(UL ) + SL (U∗L −UL )
+10:    else if SR ≥ 0 then
+11:        return F(UR ) + SR (U∗R −UR )
+12:    else
+13:        return F(UR )
+14:    end if
+15: end function
+
+
+
+
+Scope   Flag                  Meaning for the comparison
+CPU     -ffp-contract=off     forbids compiler contraction of a × b + c into a fused multiply-add
+                              (FMA), avoiding a different single-rounding path
+CPU     -fno-fast-math        disables the fast-math umbrella, including transformations that
+                              may reassociate expressions or weaken IEEE-style semantics
+CUDA    fmad=false           forbids implicit CUDA FMA contraction where the compiler
+                              would otherwise fuse multiply-add operations
+CUDA    ftz=false            keeps denormal values instead of flushing them to zero
+CUDA    prec-div=true        requests precise division rather than a faster approximate sequence
+CUDA    prec-sqrt=true       requests precise square root rather than a faster approximate
+                              sequence
+Table 4.1 Strict floating-point controls used for matched CPU/GPU comparisons when
+STRICT_IEEE=ON.
+4.4 Test-Case Matrix and Metrics                                                            23
+
+
+through the MCA/virtual-precision toolchain and sampled with independent seeds. Labels
+p8, p16, p32, and p53 are virtual mantissa settings, not binary storage formats; p32 is
+not IEEE binary32/fp32. For a primitive component q j , the sample standard deviation
+                (k)
+σFP, j = stdk (q j ) gives a local roundoff scale for comparison with field magnitude or local
+reference error. Verificarlo was chosen because MCA and virtual precision support the
+reported p8/p16/p32/p53 rounding-sensitivity diagnostics. RAPTOR remains a possible
+future tool for automated mixed-precision source transformation; Report 1 does not present
+per-routine precision rewrites. Direct fp32 claims come only from real fp32/fp64 comparisons
+against the chosen reference solution.
+
+
+4.4     Test-Case Matrix and Metrics
+The validation set exercises one- and two-dimensional Euler problems under the same
+implementation axes. Sod provides the lower-severity exact-reference baseline [15]. Toro’s
+tests supply the one-dimensional strong waves, and Liska and Wendroff’s benchmark set
+supplies the two-dimensional quadrant Riemann problems [17, 13]. The supersonic-wave
+requirement is met by four entries in this matrix: Toro3 has a right-running supersonic shock,
+Toro5 has colliding supersonic shocks, and LW3 and LW12 contain supersonic quadrant-
+interface shocks in Liska and Wendroff’s initial states. Sod is retained as the lower-severity
+exact-reference baseline rather than as the main supersonic example. Table 4.2 records this
+design coverage; Chapter 5 reports the measured values.
+    The scalar comparisons use field norms on the saved state: L1 , L∞ , and ULPmax . For
+two-dimensional density images, SSIM measures image-structure similarity; values near 1
+indicate closer agreement with the reference image. Precision adequacy uses the reference-
+scaled ratio
+                                           ∥Ufp32 −Ufp64 ∥1
+                                  Rref =                    .                            (4.2)
+                                            ∥Ufp64 −Uref ∥1
+A value below 1 means that the fp32–fp64 gap is below the chosen reference/discretisation
+scale; values near or above 1 mean that it is comparable to, or larger than, that scale. If the
+denominator is zero, the comparison is degenerate and is not interpreted as a finite adequacy
+ratio. CPU/GPU entries are matched-binary comparisons under the device-selection rule of
+Section 4.1.
+24                                                   Implementation and Experimental Design
+
+
+
+
+Case    Dim. Benchmark role and wave     Reference                  Comparisons
+             content
+
+Sod     1D   Baseline shock tube: left   Exact Riemann solution     fp32/fp64; CPU/GPU;
+             rarefaction, contact                                   reference-scaled norms
+             discontinuity, and
+             right-moving shock.
+Toro3   1D   Toro test with a strong     Exact Riemann solution     fp32/fp64; CPU/GPU;
+             pressure jump and a                                    reference-scaled norms
+             right-running supersonic
+             shock.
+Toro5   1D   Toro colliding-shock test   Exact Riemann solution     fp32/fp64; CPU/GPU;
+             with opposing supersonic                               reference-scaled norms
+             waves.
+LW3     2D   Liska–Wendroff              16002 fp64 numerical       fp32/fp64; CPU/GPU;
+             configuration 3: four-shock reference                  norms and SSIM
+             quadrant Riemann
+             interaction.
+LW12    2D   Liska–Wendroff              8002 fp64 numerical        fp32/fp64; CPU/GPU;
+             configuration 12: two       reference                  norms and SSIM
+             shock segments and two
+             contacts.
+Table 4.2 Experimental-design matrix for the Report 1 Euler validation suite. All cases
+are evaluated in fp32 and fp64 on the available CPU and GPU backends; the quantitative
+metrics are L1 , L∞ , ULPmax , reference-scaled ratios, and SSIM for the two-dimensional
+image comparisons.
+4.5 Reference-Solution Strategy                                                          25
+
+
+4.5     Reference-Solution Strategy
+The reference solution is part of the experimental design, because a float–double or CPU–
+GPU difference is only meaningful once it has a scale. For Sod and the Toro shock tubes used
+in the validation tables, the comparison is made against analytic exact Riemann references,
+so the reported error mixes discretisation and floating-point effects in a controlled one-
+dimensional setting described by Toro [17]. For the two-dimensional Liska–Wendroff
+problems, no exact reference is used. LW3 is compared with a 16002 fp64 numerical
+reference, and Liska–Wendroff configuration 12 (LW12) is compared with an 8002 fp64
+numerical reference in the benchmark family of Liska and Wendroff [13].
+    The lower-grid two-dimensional comparisons map these high-resolution references to the
+candidate grid before metrics are computed. The conserved variables in the reference grid
+are averaged over integer-ratio cell blocks, then the candidate and block-averaged reference
+states are converted to primitive variables for the reported norms and SSIM. Thus LW3
+maps 16002 to 4002 or 2002 by 4 × 4 or 8 × 8 block averaging, while LW12 maps 8002 to
+4002 or 2002 by 2 × 2 or 4 × 4 block averaging. This is a conservative mapping step, not an
+exact-solution construction.
+    Ratios such as ∥Ufp32 − Ufp64 ∥1 /∥Ufp64 − Uref ∥1 bound precision drift relative to the
+reference scale, not absolute terms [9]. CPU/GPU entries are matched same-precision
+final-state comparisons; checkpointed summaries bound only saved-output behaviour, not
+stage-by-stage identity.
+Chapter 5
+
+Validation and Precision Results
+
+5.1     Validation Overview
+Chapter 5 reports the validation and precision evidence generated from the experimental
+design in Chapter 4. The design matrix, metric definitions, and reference choices are fixed in
+Table 4.2; the role of this chapter is to interpret the measured outputs rather than to redefine
+the test suite. The results answer four questions: whether the MUSCL–Hancock–HLLC
+implementation reproduces the selected Euler benchmarks; how real fp32 and fp64 outputs
+differ when scaled against reference or discretisation error; whether matched strict CPU/GPU
+runs reproduce saved conservative states; and how selected compiler, branch-rule, solver, and
+time-resolved variation axes affect the final or checkpointed outputs.
+    The chapter starts with one-dimensional Riemann tests, then moves to the two Liska-
+Wendroff two-dimensional configurations. Precision comparisons are reported mainly as
+pairwise fp32–fp64 differences or reference-scaled ratios; separate exact errors appear
+only for the one-dimensional cases with exact Riemann references. CPU/GPU entries are
+likewise bounded: they compare matched strict-HLLC saved outputs for the listed cases
+and precisions. This separation keeps the result claims tied to their evidence and leaves the
+broader interpretation of precision and hardware sensitivity to the discussion chapter.
+
+
+5.2     One-Dimensional Euler Validation
+The one-dimensional tests are placed before the precision and hardware interpretation because
+they establish the baseline question: whether the implemented Euler solver captures the
+expected Riemann structure of the MUSCL–Hancock–HLLC path described by Toro [17]
+before small fp32–fp64 or CPU–GPU differences are assigned any meaning. Sod provides
+28                                                            Validation and Precision Results
+
+
+the least severe check, with a left rarefaction, contact discontinuity, and right-moving shock
+from the standard shock-tube problem of Sod [15]. In Fig. 5.1, the computed density, velocity,
+and pressure profiles follow the exact solution across all three waves. The feature-scale check
+in Table 5.2 quantifies this comparison for the final fp64 grid.
+    Toro3 and Toro5 then stress the same code path with stronger waves from the test set
+of Toro [17]. Toro3 has a right-running supersonic shock, and Fig. 5.2 shows the same
+wave ordering as the exact solution. Toro5 involves collision of supersonic shocks; Fig. 5.3
+therefore checks a more severe pressure and velocity interaction than Sod. The profiles retain
+grid-scale smearing at sharp waves, while preserving the main one-dimensional structures
+fixed in the Chapter 4 design matrix.
+    The numerical summaries support the same interpretation. At N = 200, the final-state
+fp64–fp32 L1 difference on the conservative state is 8.74 × 10−8 for Sod, 6.39 × 10−5 for
+Toro3, and 1.30 × 10−4 for Toro5. These are pairwise precision differences, not separate
+exact-solution errors for either precision. Against the one-dimensional exact-reference
+regression at N = 800, the Toro3 density fp32–fp64 L1 gap is 1.36 × 10−5 of the fp64–exact
+L1 error, while the corresponding Toro5 Rexact
+                                             ρ    is 3.91 × 10−5 . Thus the measured precision
+gap is well below the reference error scale for these strong one-dimensional tests. The
+matched CPU/GPU HLLC comparisons give L1 = 0, L∞ = 0, and ULPmax = 0 for both
+Toro3 and Toro5 in fp64 and fp32 at final time, so the later hardware discussion starts from
+bit-identical one-dimensional final states for these cases.
+    Table 5.1 gives the exact density errors behind this scale. The observed orders are below
+two, as expected for shock-tube solutions with discontinuities.
+
+ Case     fp64 E100       fp64 E200       fp64 E400       fp64 E800     p400→800     fp32 E800
+ Sod    6.681007×10−3   3.745822×10−3   2.140921×10−3   1.234421×10−3    0.79      1.234428×10−3
+ Toro3 1.474800×10−1 9.442646×10−2 4.948653×10−2 2.921703×10−2           0.76      2.921700×10−2
+ Toro5 4.890513×10−1 2.782433×10−1 1.660304×10−1 1.059952×10−1           0.65      1.059956×10−1
+Table 5.1 One-dimensional exact-reference density convergence for the selected shock-tube
+tests. Here EN = ∥ρN − ρexact ∥1 and p400→800 = log2 (E400 /E800 ).
+
+
+    Table 5.2 gives a narrower check on the plotted one-dimensional profiles. At N = 800,
+the main contacts and shocks are located within about one cell, while the density error is
+larger inside narrow discontinuity bands than in the remaining cells.
+5.2 One-Dimensional Euler Validation                                                          29
+
+
+
+
+      Case    contact error   max shock error   smooth ρ L1       band ρ L1   band fraction
+      Sod   6.131550×10−4 7.110670×10−4 5.233393×10−4 7.110821×10−4               0.030
+      Toro3 1.080583×10−3 2.895564×10−4 3.772028×10−3 2.544500×10−2               0.030
+      Toro5 8.578956×10−4 1.357872×10−4 1.629793×10−2 8.969731×10−2               0.045
+Table 5.2 One-dimensional feature-location and density-error split for the fp64 N = 800 final
+grids. Locations are estimated from the strongest adjacent-cell density gradient near the
+exact contact position and the strongest adjacent-cell pressure gradient near the exact shock
+position. The discontinuity band is within six cells of the exact contact and shock positions;
+rarefaction fans are excluded.
+
+
+
+
+                Case     fp64–fp32 L1 , N = 200    Rexact
+                                                    ρ     (800)   CPU/GPU drift
+                Sod           8.74 × 10−8         1.06 × 10−4         0/0/0
+                Toro3         6.39 × 10−5         1.36 × 10−5         0/0/0
+                Toro5         1.30 × 10−4         3.91 × 10−5         0/0/0
+Table 5.3 One-dimensional precision and device summary. The second column is the
+conservative-state fp64–fp32 final-state difference ∥Ufp64 −Ufp32 ∥1 at N = 200. The density
+reference-scaled ratio is Rexact
+                           ρ     = ∥ρfp32 − ρfp64 ∥1 /∥ρfp64 − ρexact ∥1 . The CPU/GPU entry
+reports L1 /L∞ /ULPmax for matched strict-HLLC outputs.
+
+
+
+
+Fig. 5.1 Sod’s shock-tube problem at N = 200 and output time t = 0.25, computed with the
+MUSCL–Hancock scheme and the HLLC Riemann solver. The plotted reference is Toro’s
+exact Euler Riemann solution.
+30                                                      Validation and Precision Results
+
+
+
+
+Fig. 5.2 Toro3 at N = 200 and output time t = 0.012, computed with the MUSCL–Hancock
+scheme and the HLLC Riemann solver. The plotted reference is Toro’s exact Euler Riemann
+solution; the case includes a right-running supersonic shock.
+
+
+
+
+Fig. 5.3 Toro5 at N = 200 and output time t = 0.035, computed with the MUSCL–Hancock
+scheme and the HLLC Riemann solver. The plotted reference is Toro’s exact Euler Riemann
+solution for the colliding-shock test.
+5.3 Two-Dimensional Euler Validation                                                        31
+
+
+5.3     Two-Dimensional Euler Validation
+The two-dimensional tests extend the validation from isolated shock-tube waves to interacting
+Riemann structures. The selected cases are configurations 3 and 12 from Liska and Wendroff
+[13]. Liska-Wendroff configuration 3 (LW3) is the four-shock case from that benchmark set,
+with supersonic shock segments initially lying on the left, right, upper, and lower quadrant
+interfaces around the central cross. In the N = 400 fp64 schlieren field, Fig. 5.4 shows
+these segments evolving into a compact interaction region: a diamond-like set of shock
+fronts surrounds the centre, while curved contact-like structures and a small rolled-up feature
+remain inside the shocked region. The original axis-aligned discontinuities are still visible
+away from the interaction zone, which is expected at this finite time because the outer waves
+have not crossed the whole domain. The reference comparisons below use report-specific
+higher-resolution fp64 runs for these two tests, not exact or literature-converged solutions.
+Against the 16002 numerical reference, the fp64 density L1 error decreases from 7.89 × 10−3
+at N = 200 to 4.95 × 10−3 at N = 400, while density SSIM increases from 0.966 to 0.982.
+The same-resolution fp64–fp32 conservative-state L1 difference at N = 400 is 3.24 × 10−7 ,
+much smaller than the reference-scale density error.
+    Liska-Wendroff configuration 12 (LW12) is treated as a separate two-dimensional Rie-
+mann problem, not as a repeat of LW3. Its initial data contain two supersonic shock segments,
+one on the upper vertical quadrant interface and one on the right horizontal quadrant interface,
+together with two contact interfaces, again following Liska and Wendroff [13]. Figure 5.5 has
+a different topology from LW3: the N = 400 fp64 schlieren image contains a large curved
+shock arc reaching towards the upper-right corner, a second curved front below it, and a
+small shear/contact roll-up near the central interaction. This separates LW12 from LW3 as a
+second multidimensional validation case. Its reference comparison uses a higher-resolution
+8002 fp64 numerical reference, not an exact solution. With that reference, the fp64 density L1
+error decreases from 2.95 × 10−3 at N = 200 to 1.33 × 10−3 at N = 400, and density SSIM
+increases from about 0.989 to about 0.996. The fp32–fp64 density difference remains below
+the available reference scale at 1.30 × 10−4 for N = 400, but this ratio is not a convergence
+proof for the 8002 reference.
+
+
+5.4     Single- and Double-Precision Comparison
+Using the reference-scaled ratio defined in Equation 4.2, Fig. 5.6 reports the direct IEEE
+fp32–fp64 density comparison for LW3. For density, Rρ = 4.47 × 10−5 at N = 200 and
+Rρ = 9.25 × 10−5 at N = 400. The ratio therefore remains far below one, but it grows
+32                                                         Validation and Precision Results
+
+
+
+          Case    reference    grid   fp64 density L1   density SSIM      Rref
+                                                                           ρ
+
+          LW3     16002 fp64   2002    7.89 × 10−3        0.9663       4.47 × 10−5
+          LW3     16002 fp64   4002    4.95 × 10−3        0.9817       9.25 × 10−5
+          LW12    8002 fp64    2002    2.95 × 10−3        0.9890       4.63 × 10−5
+          LW12    8002 fp64    4002    1.33 × 10−3        0.9963       1.30 × 10−4
+Table 5.4 Two-dimensional density validation and precision scale against higher-resolution
+fp64 numerical references, where Rref
+                                  ρ = ∥ρfp32 − ρfp64 ∥1 /∥ρfp64 − ρref ∥1 at the same grid.
+
+
+
+
+Fig. 5.4 LW3 density schlieren at 4002 cells and t = 0.3, computed in fp64 with MUSCL–
+Hancock and the HLLC Riemann solver. The numerical-reference comparison in Table 5.4
+uses a 16002 fp64 solution.
+5.4 Single- and Double-Precision Comparison                                          33
+
+
+
+
+Fig. 5.5 LW12 density schlieren at 4002 cells and t = 0.25, computed in fp64 with MUSCL–
+Hancock and the HLLC Riemann solver. The reference used for the tabulated metrics is a
+higher-resolution 8002 fp64 numerical solution, not an exact solution.
+34                                                              Validation and Precision Results
+
+
+with resolution because the reference error shrinks faster than the fp32–fp64 drift. The
+same pattern appears in the second two-dimensional case: for LW12 against the 8002 fp64
+reference, Rρ = 4.63 × 10−5 at N = 200 and Rρ = 1.30 × 10−4 at N = 400.
+    The one-dimensional exact-reference comparisons give a similar scale for the selected
+shock-tube tests. At N = 800, the density fp32–fp64 gap divided by the fp64–exact error
+is 1.06 × 10−4 for Sod, 1.36 × 10−5 for Toro3, and 3.91 × 10−5 for Toro5. The stationary-
+contact case is reported separately because its exact-stationary pressure makes the denom-
+inator zero. In particular, the stationary-contact pressure comparison has L1 fp32–fp64
+divided by fp64–exact reported as ∞, because the fp64 pressure error against the exact
+stationary state is zero. This case is therefore a degenerate-reference result, not a quantitative
+precision-adequacy ratio.
+    These measurements show that, for the tested Euler cases, the final-time direct fp32–fp64
+differences are smaller than the available reference or discretisation error estimates [9]. They
+do not show that fp32 is generally sufficient: the ratios are case-, field-, resolution-, and final-
+time metrics, and the increasing two-dimensional density ratios show that the comparison
+can move as the numerical reference improves. The localised LW12 density difference in
+Fig. 5.7 is consistent with precision sensitivity in the steep pressure and density gradients of
+the upper-right shock-interaction region. Those gradients drive extrema in local wave-speed
+estimates, which enter the HLLC star-state and flux algebra described in Chapter 3. The
+figure does not, by itself, prove that a specific HLLC branch changed; no branch-count
+diagnostic is used for that figure. Virtual-precision sensitivity maps are discussed separately
+in Chapter 6 rather than used as direct fp32 evidence here.
+
+
+
+
+Fig. 5.6 Reference-scaled fp32–fp64 L1 differences for LW3. Values below one indicate that
+the precision gap is smaller than the fp64–reference error for the same field and grid.
+5.4 Single- and Double-Precision Comparison                                                35
+
+
+
+
+Fig. 5.7 LW12 cellwise density difference ρfp32 − ρfp64 at N = 400 and t = 0.25. The
+diverging colormap is centred at zero; the difference reaches L∞ = 6.22 × 10−6 near the
+upper-right interaction region, while the cellwise mean magnitude is 1.73 × 10−7 . This
+locates the precision-sensitive structure on the shock-interaction front rather than spreading
+it uniformly across the domain.
+36                                                               Validation and Precision Results
+
+
+5.5       Matched CPU/GPU Comparison
+The matched CPU/GPU comparison asks a narrower question than the fp32–fp64 study: for a
+fixed case, precision, solver, and binary, does changing the runtime device alter the saved con-
+servative state? Table 5.5 summarises the available strict-HLLC coverage without listing each
+zero-valued comparison separately. All entries use solver=hllc and STRICT_IEEE=ON; the
+strict build disables the fast-math and fused-operation shortcuts that would otherwise make a
+device comparison less controlled. The final-output comparison is byte-level for the saved
+grid.bin files, with L1 , L∞ , and ULP metrics computed on the conservative state.
+
+  Case             Precision         Final outputs            Saved checkpoints              Result
+  Sod              fp32, fp64        2 at N = 200             8 at N = 200, to t = 0.25      zero
+  Toro3            fp32, fp64        2 at N = 200             none                           zero
+  Toro5            fp32, fp64        2 at N = 200             none                           zero
+  LW3              fp32, fp64        4 at 2002 and 4002       16 at 2002 and 4002 , to t =   zero
+                                                              0.3
+  LW12             fp32, fp64        4 at 2002 and 4002       16 at 2002 and 4002 , to t =   zero
+                                                              0.25
+     Footnote. Toro3/Toro5 were built with Windows BuildTools; Sod/LW3/LW12 were built with
+     Linux/WSL; each within-case CPU/GPU comparison uses one matched binary pair, so bit-identity
+     is claimed within a case, not across toolchains.
+Table 5.5 Matched CPU/GPU strict-HLLC coverage. “Zero drift” means that every covered
+same-precision CPU/GPU comparison has L1 = 0, L∞ = 0, and ULPmax = 0 on the saved
+conservative state; for Toro3 and Toro5 the evidence is final-output only, while Sod, LW3,
+and LW12 also have saved-checkpoint comparisons.
+
+
+    All 14 final-output comparisons in Table 5.5 are zero in L1 , L∞ , and ULPmax . The 40
+saved-checkpoint comparisons for Sod, LW3, and LW12 are also zero. These statements
+are bounded to matched within-case binaries, listed precisions, strict-HLLC builds, and
+saved outputs; they do not imply equality of unsaved intermediate stages or of other devices,
+compilers, solvers, or cases.
+
+
+5.6       Compiler, Branch, Solver, and Drift-Growth Sensitivity
+Compiler, branch-rule, and solver variation
+Table 5.6 separates the sensitivity axes which should not be interpreted in the same way. It
+reports representative verified comparisons rather than cross-case ranges. The branch-rule
+comparison changes only the HLLC wave-speed test controlled by the branch-rule macro
+defined in Chapter 3: the baseline uses ≤, while the strict-inequality build uses <. The
+5.6 Compiler, Branch, Solver, and Drift-Growth Sensitivity                                    37
+
+
+compiler comparison keeps HLLC fixed. The solver comparison is different: HLLC and
+Rusanov are deliberately different numerical fluxes, so the reported difference is a method
+effect rather than reproducibility drift. The compiler switches themselves are listed in
+Chapter 4; here they are used only as named experimental axes.
+
+    Comparison                    reported evidence          L1               L∞
+    HLLC branch, ≤ vs <           LW3, 2002                  5.03 × 10−16     2.04 × 10−14
+    O2 vs O3                      all tested entries         0                0
+    O2 vs Ofast+fast-math         Toro5, N = 200             4.57 × 10−13     7.41 × 10−11
+    HLLC vs Rusanov               LW3, 2002                  8.58 × 10−3      1.45
+Table 5.6 Final-time CPU-fp64 variation metrics on the conservative state. The table reports
+representative verified comparisons: the largest non-zero branch-rule entry, the zero O2–O3
+result across the tested entries, the largest compiler-flag drift, and the largest available HLLC–
+Rusanov method difference.
+
+
+    The zero O2–O3 comparison shows that changing optimisation level alone did not
+alter the saved final state in the tested IEEE builds. The branch-rule axis is zero for the
+one-dimensional cases and only roundoff-scale for LW3. Fast-math produces the largest
+CPU-fp64 HLLC drift on Toro5, while the HLLC–Rusanov entry is much larger because the
+flux formula has changed. These are screening metrics, not convergence studies or estimates
+of uncertainty across compilers and platforms.
+
+
+
+
+Fig. 5.8 LW3 2002 density comparison between HLLC and Rusanov at final time. The visual
+difference is used as a scale reference for the solver-variation entry in Table 5.6; pressure
+shows the same qualitative separation and is not repeated in the main text.
+38                                                         Validation and Precision Results
+
+
+    The fp32 compiler matrix in Table 5.7 shows the same qualitative split between optimi-
+sation level and fast-math in binary32 arithmetic [11, 7]. O2 and O3 are bit-identical for
+every tested case. Ofast+fast-math perturbs every non-stationary case, and the case ordering
+tracks the strong-wave structure: Toro5 has the largest final-time drift (L1 = 1.71 × 10−4 ,
+L∞ = 1.93 × 10−2 , ULPmax ≈ 29.9), Toro3 is next, the two-dimensional LW3 entry at 2002
+cells sits in between, and the smooth Sod cases at N = 200 and N = 400 stay near a few fp32
+ULPs.
+
+        Case             fp32 comparison             L1            L∞        ULPmax
+        Sod, N = 200     O2 vs O3                     0             0          0
+        Sod, N = 200     O2 vs Ofast+fast-math   9.34 × 10−8   1.19 × 10−6    4.00
+        Sod, N = 400     O2 vs Ofast+fast-math   9.90 × 10−8   1.43 × 10−6    4.80
+        Toro3, N = 200   O2 vs O3                     0             0          0
+        Toro3, N = 200   O2 vs Ofast+fast-math   6.78 × 10−5   2.81 × 10−3    9.42
+        Toro5, N = 200   O2 vs Ofast+fast-math   1.71 × 10−4   1.93 × 10−2    29.9
+        LW3, 2002        O2 vs Ofast+fast-math   3.52 × 10−7   1.20 × 10−5    23.5
+Table 5.7 fp32 CPU compiler-flag matrix for final HLLC outputs. O2 vs O3 comparisons are
+reported once per case where checked and are zero throughout; the Ofast+fast-math entries
+are reported per case. The table covers Sod at N = 200 and N = 400, Toro3 and Toro5 at
+N = 200, and LW3 at 2002 .
+
+
+    A GPU flag probe tests the build-control side of the matched CPU/GPU result. The fast
+CUDA build disables the strict-IEEE option and enables fast-math, so the host path uses
+fast-math optimisation and nvcc reverts to its default fused-operation and denormal-handling
+choices. The per-kernel FMA pin remains unchanged. Fast CUDA outputs are compared
+against strict CUDA outputs at the same case, precision, and grid. Sod at N = 200 in fp64
+acquires L1 = 2.89 × 10−17 , L∞ = 3.66 × 10−15 , ULPmax ≈ 6.6; LW3 at 2002 cells in fp64
+grows to ULPmax ≈ 23.3; the matching LW3 fp32 comparison reaches L1 = 3.62 × 10−7 ,
+L∞ = 1.57 × 10−5 , ULPmax ≈ 30.7. Sod at N = 200 in fp32 happens to remain bit-identical.
+This supplementary GPU flag probe does not constitute a non-strict CPU/GPU comparison,
+because both sides are CUDA outputs. The probe is used only to show that the strict build
+flags can materially affect the saved GPU state, so the zero-drift CPU/GPU statement in
+Table 5.5 is bounded to the strict-IEEE, fast-math-off configuration rather than to CUDA
+execution in general.
+    Limiter sensitivity is not reported as a result in this chapter. The available experiment
+summary records that the report experiment setup has no documented limiter-selection
+axis, so producing such a result during writing would require a new opt-in interface or a
+solver-numerics change.
+5.6 Compiler, Branch, Solver, and Drift-Growth Sensitivity                                  39
+
+
+Time-resolved drift and Toro2 branch stability
+Figure 5.9 uses ten synchronized checkpoints per case, from 10% to 100% of each case
+duration, for the non-zero O2 versus Ofast+fast-math rows. Zero branch-rule rows are
+omitted from the log-scale plot and reported in Table 5.6 and the text instead. The largest
+visible absolute drifts are the pressure curves for Toro5 and Toro3, followed by Toro5 density;
+Sod, Toro2, and Toro4 remain lower. The comparison is finite-time and checkpoint-based.
+
+
+
+
+Fig. 5.9 Normalised-time L1 drift for the non-zero O2 versus Ofast+fast-math one-
+dimensional rows, split by density and pressure. Completed zero-drift branch-rule rows are
+omitted from the logarithmic plot and reported in Table 5.6 and the text.
+
+    Toro2 yields no measured branch-rule drift entry because the strict-inequality build did
+not complete on this case. Under the same CPU double toolchain and default CFL, the ≤
+branch completed the near-vacuum Toro 123 case in about 0.13 s, while the < branch did
+not produce a final grid.bin within a 600 s retry cap. This is consistent with time-step
+shrinkage and stability degradation where wave speeds pass near zero. The claim is therefore
+limited to the observed non-completion rather than a measured trigger.
+Chapter 6
+
+Discussion
+
+6.1     Validation as the basis for interpretation
+Validation makes the later precision and hardware discussion interpretable, because the
+numerical differences are scaled before they are judged. Exact Riemann and high-resolution
+numerical references give fp32/fp64 differences a meaningful denominator through Equa-
+tion 4.2, so a pairwise norm is read against reference or discretisation error rather than in
+isolation. Matched within-case binaries make the CPU/GPU comparison a strict saved-output
+equality test, not a loose backend comparison. Compiler, branch-rule, solver, fp32 compiler,
+and finite-time drift axes are then read alongside precision and device axes, so implementation
+sensitivity is compared on the same case set. Sections 6.2–6.4 therefore read the evidence
+axis-by-axis, not case-by-case.
+
+
+6.2     Precision Adequacy and Region-Aware Diagnostics
+The direct IEEE fp32/fp64 comparison is most useful when read through the reference-
+scaled ratio of Chapter 4 Equation (4.2). For the non-degenerate reference comparisons in
+the tested Euler set, the pairwise final-state differences stay below the available reference
+or discretisation scale, but the largest reported density ratio, Rρ ≈ 1.30 × 10−4 for Liska-
+Wendroff configuration 12 (LW12) at 4002 , is still informative. It occurs with a localised
+upper-right shock-interaction difference in Fig. 5.7. That localisation suggests sensitivity
+where reconstructed states feed HLLC wave-speed or flux decisions, but it does not prove
+that a specific HLLC branch changed. The stationary-contact infinite ratio is a degenerate-
+reference case, because its denominator is zero, not evidence of fp32 failure. These ratios
+42                                                                                 Discussion
+
+
+also compress spatial structure into a norm, so the following diagnostics are used to interpret
+where precision pressure concentrates rather than to introduce a separate IEEE-fp32 claim.
+    Parker’s Monte Carlo Arithmetic perturbs floating-point operations to form an ensemble,
+and Denis et al.’s Verificarlo applies that idea to compiled programs [14, 5]. In this report,
+the MCA ensemble gives the per-cell distribution needed to locate sensitivity rather than only
+estimate a single global rounding scale. The Sod overlay in Fig. 6.1 shows how the ensemble
+spread and significant-digit estimates are read from a one-dimensional diagnostic before the
+same idea is used on LW3. Figure 6.2 then uses the σFP local roundoff scale of Chapter 4
+Section 4.3: for both HLLC and Rusanov, σFP falls as virtual mantissa precision rises. Lower
+or similar Rusanov values are read as the combined effect of a different arithmetic path and
+extra diffusion smoothing gradients, not as an accuracy ranking or as reproducibility drift.
+The virtual labels p8, p16, p32, and p53 are diagnostic mantissa settings, not IEEE binary
+formats; Verificarlo virtual precision p32 must therefore not be read as IEEE fp32.
+
+
+
+
+Fig. 6.1 Sod MCA overlay from Verificarlo, shown as a one-dimensional illustrative diagnos-
+tic. The plot is used to read MCA ensemble spread and significant-digit estimates; it is not a
+new validation result and does not provide IEEE fp32 evidence.
+
+    The loss-of-significance score LoSoS, the number of significant digits lost relative to
+the field magnitude under MCA resampling, gives a complementary view of the same LW3
+density samples. Figure 6.3 reports quantiles rather than the worst cell: for HLLC the median
+LoSoS rises from about 1.3 digits at p8 to about 4.0 digits at p32, while the lower quantiles
+remain closer to the front-sensitive part of the field. The plotted raw-field quantiles use
+6.2 Precision Adequacy and Region-Aware Diagnostics                                        43
+
+
+
+
+Fig. 6.2 MCA-estimated σFP trend for LW3 density. The roundoff scale decreases with
+virtual precision for both HLLC and Rusanov. Differences between the curves reflect method
+variation: the arithmetic path changes, and Rusanov’s extra diffusion smooths gradients, so
+lower or similar σFP is not an accuracy ranking.
+
+only two or three available samples per virtual precision, so the figure is used as a spatial
+diagnostic rather than a high-confidence distribution estimate.
+
+
+
+
+Fig. 6.3 LoSoS quantiles for LW3 density under MCA resampling. The quantile view avoids
+basing the precision interpretation on a single worst cell.
+
+    The required-significant-digits threshold sreq (s_req), the per-cell number of significant
+digits required so that the MCA-estimated rounding noise stays below the target ratio of the
+local field magnitude, turns LoSoS into a regional margin. Figure 6.4 plots available digits
+at p32 minus sreq . For HLLC at p32, the smooth interior has a positive median margin of
+about 1.9 digits, the transition/contact band is slightly negative at about −0.2 digits, and
+the shock-front band is negative at about −1.8 digits. The same pattern appears in the
+noise-to-error map of Fig. 6.5: for HLLC, cells with MCA noise above the reference-error
+44                                                                                     Discussion
+
+
+scale fall from 61.26% at p8 to 43.51% at p16 and 0% at p32. This region-aware reading
+is consistent with the LW12 localisation in Chapter 5, but it remains bounded to the tested
+precisions, cases, and LW3 MCA grid.
+
+
+
+
+Fig. 6.4 Region-aware LoSoS margin for LW3 density at Verificarlo virtual precision p32.
+Positive values indicate that the virtual precision has more available significant digits than
+the local sreq threshold.
+
+
+
+SNR framing. The σFP , LoSoS, sreq , and noise-to-error views all reduce to a local signal-
+to-noise comparison. Defining a per-cell signal-to-noise ratio as the ratio of local reference
+error to MCA rounding noise,
+
+                                             |Ufp64 (x) −Uref (x)|
+                                SNR(x) =                           ,                          (6.1)
+                                                    σFP (x)
+
+the noise-to-error heatmap of Fig. 6.5 is the indicator SNR < 1 over the LW3 grid, while the
+required-digits threshold gives sreq ≈ log10 (SNR−1
+                                                  target ) when the target ratio is fixed across the
+field [16]. Figure 6.6 shows the same SNR view split by smooth, transition, and shock-front
+regions: precision-limited cells (SNR < 1) concentrate where the limited reconstruction
+feeds the HLLC star-state algebra, and the precision-limited fraction shrinks monotonically
+from p8 to p32.
+
+
+6.3     Hardware and Implementation Sensitivity
+The matched strict-HLLC CPU/GPU evidence is a saved-output statement. At final time, Sod,
+Toro3, Toro5, Liska-Wendroff configuration 3 (LW3), and Liska-Wendroff configuration 12
+(LW12) are bit-identical between CPU and GPU in both fp32 and fp64, with L1 = 0, L∞ = 0,
+and ULPmax = 0. Saved-checkpoint comparisons on Sod, LW3, and LW12 add the same
+zero-drift result for checkpoint files, but they do not prove equality of all intermediate stage
+6.3 Hardware and Implementation Sensitivity                                               45
+
+
+
+
+Fig. 6.5 Spatial noise-to-error ratio for LW3 density across Verificarlo virtual precisions.
+Regions where MCA noise exceeds the reference-error scale shrink as virtual precision
+increases.
+
+
+
+
+Fig. 6.6 Region-wise SNR analogue for LW3 density: noise-to-error ratio split by smooth,
+transition, and shock-front regions at virtual precisions p8, p16, and p32. Precision-limited
+regions (ratio > 1) shrink with virtual precision; the shock-front band remains the dominant
+contributor at every level.
+46                                                                              Discussion
+
+
+values inside a time step; Toro3 and Toro5 have final-output evidence only. The toolchain
+split gives bounded comparability rather than a within-case weakness: Toro3 and Toro5
+use Windows BuildTools, while Sod, LW3, and LW12 use Linux/WSL; each within-case
+CPU/GPU comparison uses one matched binary/configuration, so bit-identity holds within
+case independently of cross-case toolchain differences.
+    The other axes show implementation sensitivity rather than a general hardware effect.
+In CPU double, the largest non-stationary compiler variation is O2 versus Ofast-fastmath
+for Toro3 and Toro5, while the branch-rule entries test an implementation choice whose
+effect is smaller or absent in completing comparisons. The fp32 compiler matrix is precision
+sensitivity under compiler flags, not hardware evidence. HLLC versus Rusanov is a deliberate
+method variation, so it should not be grouped with reproducibility drift. The supplementary
+GPU flag probe gives the build-control boundary on the zero-drift CPU/GPU statement:
+changing strict versus fast CUDA controls can change saved GPU states. Finally, checkpoint
+histories show finite-time, case-dependent drift growth, so they support a bounded time-
+window reading rather than an extrapolated rate.
+
+
+6.4     Limitations and Report 2 Direction
+The limitations are evidence-specific. LW12 uses an 8002 numerical reference, not an exact
+solution, and LW3 relies on high-resolution self-convergence. Compiler evidence uses one
+compiler family inside each case, with the cross-case toolchain split already noted above.
+Verificarlo p32 is virtual precision, and the region-margin diagnostics use small MCA sample
+counts. Toro2 with the strict < HLLC branch did not complete inside 600 s, whereas the ≤
+branch completed; this is consistent with time-step shrinkage near zero wave speeds, but the
+claim is limited to observed non-completion. Limiter selection remains conceptual rather
+than measured. The validated scope is ideal-gas Euler only: matched CPU/GPU evidence
+covers five selected cases, and no MHD validation is claimed. Report 2 should extend
+the framework to ideal-MHD tests with divergence control, with Dedner-type cleaning or
+constrained transport treated as candidate numerical choices.
+Chapter 7
+
+Conclusion
+
+7.1     Aim and Evidence Base
+The central question was how precision and hardware/backend choices affect a Riemann-
+solver-based HRSC method on a controlled Euler validation suite. Evidence came from one-
+and two-dimensional Euler cases, matched CPU/GPU saved-output comparisons, compiler
+and branch-rule variations, and region-aware precision diagnostics.
+
+
+7.2     Key Findings
+Matched strict-HLLC CPU/GPU saved outputs were bit-identical within each tested case on
+its Windows BuildTools or Linux/WSL toolchain, with zero L1 , L∞ , and ULPmax ; checkpoint
+equality applies only to saved states. Implementation sensitivity was axis-dependent: O2/O3
+comparisons were bit-identical where tested, fast-math changed non-stationary saved states,
+and HLLC–Rusanov was deliberate method variation. Direct fp32/fp64 gaps stayed below
+the available reference scale; for LW12 at 4002 , the density ratio was 1.30 × 10−4 , while
+Verificarlo p32, a virtual rather than IEEE fp32 mode, located remaining precision pressure
+on LW3 fronts. Together these findings provide a bounded Euler baseline for the later
+precision and hardware study.
+
+
+7.3     Limitation and Next Step
+The baseline does not cover untested compilers, devices, limiter choices, internal time-step
+stages, or MHD. Report 2 should add an Orszag–Tang MHD validation entry with Dedner-
+48                                                                    Conclusion
+
+
+type divergence cleaning on the same matched-binary CPU/GPU framework. The tested
+Euler baseline fixes what must be preserved before the MHD extension is judged.
+References
+
+[1] Bard, C. M. and Dorelli, J. C. (2014). A simple GPU-accelerated two-dimensional
+   MUSCL-Hancock solver for ideal magnetohydrodynamics. Journal of Computational
+   Physics, 259:444–460.
+[2] Brogi, F., Bnà, S., Boga, G., Amati, G., Esposti Ongaro, T., and Cerminara, M. (2024).
+   On floating point precision in computational fluid dynamics using OpenFOAM. Future
+   Generation Computer Systems, 152:1–16.
+[3] Davis, S. F. (1988). Simplified second-order Godunov-type methods. SIAM Journal on
+   Scientific and Statistical Computing, 9(3):445–473.
+[4] Dedner, A., Kemm, F., Kröner, D., Munz, C.-D., Schnitzer, T., and Wesenberg, M.
+   (2002). Hyperbolic divergence cleaning for the MHD equations. Journal of Computational
+   Physics, 175:645–673.
+[5] Denis, C., de Oliveira Castro, P., and Petit, E. (2016). Verificarlo: Checking floating point
+   accuracy through monte carlo arithmetic. In 2016 IEEE 23rd Symposium on Computer
+   Arithmetic (ARITH), pages 55–62.
+[6] Evans, C. R. and Hawley, J. F. (1988). Simulation of magnetohydrodynamic flows: A
+   constrained transport method. Astrophysical Journal, 332:659–677.
+[7] Goldberg, D. (1991). What every computer scientist should know about floating-point
+   arithmetic. ACM Computing Surveys, 23(1):5–48.
+[8] Harten, A., Lax, P. D., and van Leer, B. (1983). On upstream differencing and godunov-
+   type schemes for hyperbolic conservation laws. SIAM Review, 25(1):35–61.
+[9] Higham, N. J. (2002). Accuracy and Stability of Numerical Algorithms. SIAM, 2 edition.
+[10] Higham, N. J. and Mary, T. (2022). Mixed precision algorithms in numerical linear
+   algebra. Acta Numerica, 31:347–414.
+[11] IEEE Computer Society (2019). IEEE Standard for Floating-Point Arithmetic. IEEE,
+   ieee std 754-2019 edition.
+[12] LeVeque, R. J. (2002). Finite Volume Methods for Hyperbolic Problems. Cambridge
+   University Press.
+[13] Liska, R. and Wendroff, B. (2003). Comparison of several difference schemes on 1D
+   and 2D test problems for the Euler equations. SIAM Journal on Scientific Computing,
+   25(3):995–1017.
+50                                                                                 References
+
+
+[14] Parker, D. S. (1997). Monte carlo arithmetic: Exploiting randomness in floating-point
+   arithmetic. Technical Report CSD-970002, UCLA Computer Science Department.
+[15] Sod, G. A. (1978). A survey of several finite difference methods for systems of nonlinear
+   hyperbolic conservation laws. Journal of Computational Physics, 27(1):1–31.
+[16] Sohier, D., de Oliveira Castro, P., Févotte, F., Lathuilière, B., Petit, E., and Jamond, O.
+   (2021). Confidence intervals for stochastic arithmetic. ACM Transactions on Mathematical
+   Software, 47(2):1–33.
+[17] Toro, E. F. (2009). Riemann Solvers and Numerical Methods for Fluid Dynamics: A
+   Practical Introduction. Springer, 3 edition.
+[18] Toro, E. F., Spruce, M., and Speares, W. (1994). Restoration of the contact surface in
+   the HLL-riemann solver. Shock Waves, 4:25–34.
+[19] van Leer, B. (1979). Towards the ultimate conservative difference scheme. v. a second-
+   order sequel to godunov’s method. Journal of Computational Physics, 32(1):101–136.
+[20] Wang, C., Xia, J., and Chen, L. (2025). A heterogeneous hybrid-precision finite volume
+   method for compressible flow on unstructured grids. Computers & Fluids, 288:106505.
+

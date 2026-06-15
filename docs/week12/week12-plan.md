@@ -10,9 +10,11 @@
 
 **Reference spec:** [docs/superpowers/specs/2026-06-11-report2-week12-mhd-1d-design.md](../superpowers/specs/2026-06-11-report2-week12-mhd-1d-design.md)
 
+**Scope note:** This plan is deliberately **1D-only**. Do not add 2D sweeps, GLM source-step integration, Orszag-Tang/KH, or GPU MHD here. After the Brio-Wu 1D pipeline is implemented, validated, and documented, create a separate follow-up plan if there is still time to start the 2D work.
+
 ---
 
-## Physics reference (ideal MHD, GLM, 1D x-direction)
+## Physics reference (ideal MHD, source-free GLM-compatible 1D x-direction)
 
 State (conserved), `MhdNVars = 9`, index enum order:
 `U = (RHO, MX, MY, MZ, BX, BY, BZ, E, PSI)`, where `m = rho*v`.
@@ -70,7 +72,7 @@ Brio & Wu (1988) IC: `gamma = 2`, domain `[0,1]`, `x0 = 0.5`, `Bx = 0.75` everyw
 - Create: `src/mhd/mhd_state.hpp` — `MhdNVars`, index enum, `MhdPrim`, cons↔prim, `pressure`, `fast_speed_x`.
 - Create: `src/mhd/mhd_flux.hpp` — `mhd_flux_x(U, ch)`.
 - Create: `src/mhd/hll.hpp` — `mhd_hll_flux(UL, UR, ch)`.
-- Create: `src/mhd/mhd_reconstruct.hpp` — minmod MUSCL + Hancock predictor over `MhdNVars`.
+- Create: `src/mhd/mhd_reconstruct.hpp` — minmod MUSCL slopes over `MhdNVars`; the Hancock half-step is implemented in the 1D solver for Week 12.
 - Create: `src/mhd/mhd_solver.hpp` — `MhdSolver<Real>` declaration.
 - Create: `src/mhd/mhd_solver.cpp` — definitions + explicit float/double instantiation.
 - Create: `src/mhd_main.cpp` — cfg-driven entry for `hrsc_mhd`.
@@ -78,6 +80,7 @@ Brio & Wu (1988) IC: `gamma = 2`, domain `[0,1]`, `x0 = 0.5`, `Bx = 0.75` everyw
 - Create: `tests/cases/brio_wu_1d/brio_wu_ref.cfg` — N=8000 double reference cfg.
 - Create: `tests/unit/test_mhd_state.cpp`, `test_mhd_flux.cpp`, `test_mhd_hll.cpp`, `test_divb.cpp`.
 - Create: `scripts/regression/mhd_brio_wu_1d.py` — reference + L1/L2/Linf validation.
+- Generate: `experiments/week12/brio_wu_1d/summary.{csv,json,md}` — scalar validation artefacts with per-run metadata.
 - Modify: `src/utils/error_norms.hpp` — add `compute_divB_norms`.
 - Modify: `CMakeLists.txt` — add `hrsc_mhd_lib` static lib + `hrsc_mhd` executable; link `unit_tests` to the lib.
 - Modify: `docs/INDEX.md` — add Week 12 row.
@@ -512,7 +515,7 @@ git commit -m "feat(mhd): add compute_divB_norms (1D/2D central difference)"
 
 ---
 
-## Task 5: MUSCL-Hancock reconstruction (`mhd_reconstruct.hpp`)
+## Task 5: MUSCL reconstruction (`mhd_reconstruct.hpp`)
 
 **Files:**
 - Create: `src/mhd/mhd_reconstruct.hpp`
@@ -598,7 +601,7 @@ using namespace hrsc;
 
 TEST_CASE("MHD solver advances Brio-Wu without NaNs and keeps Bx≈const", "[mhd][solver]") {
     MhdSolver<double> solver(64, 1.0/64, 0.0, /*gamma=*/2.0, /*cfl=*/0.4, /*t_end=*/0.02);
-    setup_brio_wu(solver.grid_view(), 64, 1.0/64, 0.0, 0.5);
+    setup_brio_wu(solver.grid_view(), 64, 1.0/64, 0.0, 2.0, 0.5);
     solver.run();
     auto gv = solver.grid_view();
     for (int i = 0; i < 64; ++i) {
@@ -629,7 +632,7 @@ namespace hrsc {
 
 // Brio-Wu IC writer (declared here, used by tests and mhd_main).
 template <typename Real>
-void setup_brio_wu(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin, Real x0);
+void setup_brio_wu(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin, Real gamma, Real x0);
 
 template <typename Real>
 class MhdSolver {
@@ -665,12 +668,12 @@ public:
 #include "mhd/mhd_solver.hpp"
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 namespace hrsc {
 
 template <typename Real>
-void setup_brio_wu(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin, Real x0) {
-    const Real gamma = Real(2);
+void setup_brio_wu(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin, Real gamma, Real x0) {
     for (int i = 0; i < nx; ++i) {
         const Real x = xmin + (Real(i) + Real(0.5)) * dx;
         MhdPrim<Real> w{};
@@ -686,7 +689,10 @@ template <typename Real>
 MhdSolver<Real>::MhdSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl,
                            TimeReal t_end, BoundaryType bc_x)
     : m_grid(nx, 1), m_xmin(xmin), m_dx(dx), m_gamma(gamma), m_cfl(cfl),
-      m_t_end(t_end), m_time(0), m_step(0), m_bc_x(bc_x) {}
+      m_t_end(t_end), m_time(0), m_step(0), m_bc_x(bc_x) {
+    m_grid.dx = dx;
+    m_grid.dy = dx;
+}
 
 template <typename Real>
 void MhdSolver<Real>::apply_bc() {
@@ -766,8 +772,8 @@ void MhdSolver<Real>::run() {
 // Explicit instantiation (mirrors euler_solver.cpp).
 template class MhdSolver<float>;
 template class MhdSolver<double>;
-template void setup_brio_wu<float>(GridView<float, MhdNVars>, int, float, float, float);
-template void setup_brio_wu<double>(GridView<double, MhdNVars>, int, double, double, double);
+template void setup_brio_wu<float>(GridView<float, MhdNVars>, int, float, float, float, float);
+template void setup_brio_wu<double>(GridView<double, MhdNVars>, int, double, double, double, double);
 
 } // namespace hrsc
 ```
@@ -814,6 +820,7 @@ git commit -m "feat(mhd): add 1D MUSCL-Hancock HLL MHD solver + Brio-Wu IC"
 ```cpp
 // src/mhd_main.cpp
 #include "utils/config.hpp"
+#include "utils/error_norms.hpp"
 #include "utils/io.hpp"
 #include "mhd/mhd_solver.hpp"
 
@@ -842,7 +849,7 @@ int main(int argc, char** argv) {
     hrsc::MhdSolver<Real> solver(nx, dx, static_cast<Real>(xmin),
                                  static_cast<Real>(gamma), static_cast<Real>(cfl), t_end);
     hrsc::setup_brio_wu<Real>(solver.grid_view(), nx, dx, static_cast<Real>(xmin),
-                              static_cast<Real>(x0));
+                              static_cast<Real>(gamma), static_cast<Real>(x0));
     solver.run();
 
     auto gv = solver.grid_view();
@@ -855,8 +862,6 @@ int main(int argc, char** argv) {
     return 0;
 }
 ```
-
-> `compute_divB_norms` lives in `utils/error_norms.hpp`; add `#include "utils/error_norms.hpp"` to the includes above.
 
 - [ ] **Step 2: Wire CMake**
 
@@ -923,13 +928,14 @@ t_end   = 0.1
 bc      = outflow
 ```
 
-- [ ] **Step 3: Smoke-run both**
+- [ ] **Step 3: Smoke-run both precision builds**
 
 Run:
 ```bash
 ./build-double/hrsc_mhd tests/cases/brio_wu_1d/brio_wu.cfg
+./build-float/hrsc_mhd tests/cases/brio_wu_1d/brio_wu.cfg
 ```
-Expected: stderr line `[mhd] t=0.100000 steps=... divB_mean=... divB_max=<round-off>`.
+Expected: both runs print stderr line `[mhd] t=0.100000 steps=... divB_mean=... divB_max=<round-off>`. The float run may have a looser round-off floor than double, but `Bx` should remain effectively constant.
 
 - [ ] **Step 4: Commit**
 
@@ -950,80 +956,146 @@ git commit -m "test(mhd): add Brio-Wu production and reference cfgs"
 ```python
 # scripts/regression/mhd_brio_wu_1d.py
 """Brio-Wu 1D MHD validation: run candidate resolutions + an 8000-cell double
-reference, downsample the reference, and report L1/L2/Linf on density.
-Reuses io_helper for binary reads."""
-import subprocess, sys, pathlib
+reference, downsample the reference, and write L1/L2/Linf summaries on density.
+
+This is a 1D-only Week 12 validation driver. It intentionally does not extend
+run_matrix.py yet; instead it preserves the same harness discipline locally:
+generated cfgs, stdout/stderr, per-run metadata, and summary.{csv,json,md}.
+"""
+from __future__ import annotations
+
+import csv
+import json
+import subprocess
+import sys
+import pathlib
+from datetime import datetime, timezone
+
 import numpy as np
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-from io_helper import read_binary  # returns (meta, array[ny,nx,nvars])
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]
-BIN = ROOT / "build-double" / "hrsc_mhd"
-CASE = ROOT / "tests/cases/brio_wu_1d"
-OUT = ROOT / "experiments/week12/brio_wu_1d"
-OUT.mkdir(parents=True, exist_ok=True)
-RHO = 0  # MhdIdx::RHO
-
-def run(cfg, nx):
-    out = OUT / f"bw_{nx}.bin"
-    subprocess.run([str(BIN), str(cfg)], check=True,
-                   env={"_dummy": "1", **__import__("os").environ},
-                   cwd=str(ROOT),
-                   input=None)
-    # cfg has no output_file; write one by overriding via a temp cfg line:
-    raise SystemExit("Set output_file in cfgs or extend hrsc_mhd CLI before running.")
-
-if __name__ == "__main__":
-    print("See Step 2: add output_file to each resolution before computing norms.")
-```
-
-> The script is intentionally a skeleton because `hrsc_mhd` takes a single cfg. Step 2 makes it runnable.
-
-- [ ] **Step 2: Make resolutions runnable (add `output_file` per run)**
-
-Replace the script body with one that writes a temp cfg per resolution, sets `output_file`, runs, reads, and compares. Use cfg cloning:
-
-```python
-import os, subprocess, sys, pathlib, tempfile
-import numpy as np
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from io_helper import read_binary
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-BIN  = ROOT / "build-double" / "hrsc_mhd"
-BASE = (ROOT / "tests/cases/brio_wu_1d/brio_wu.cfg").read_text()
-OUT  = ROOT / "experiments/week12/brio_wu_1d"; OUT.mkdir(parents=True, exist_ok=True)
+BIN = ROOT / "build-double" / "hrsc_mhd"
+BASE_CFG = ROOT / "tests/cases/brio_wu_1d/brio_wu.cfg"
+OUT = ROOT / "experiments/week12/brio_wu_1d"
+OUT.mkdir(parents=True, exist_ok=True)
 RHO = 0
 
-def run(nx):
-    cfg = "\n".join(l for l in BASE.splitlines() if not l.startswith("nx"))
+def replace_or_append_cfg(text: str, key: str, value: str) -> str:
+    out = []
+    replaced = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#") or "=" not in line:
+            out.append(line)
+            continue
+        lhs = line.split("=", 1)[0].strip()
+        if lhs == key:
+            out.append(f"{key} = {value}")
+            replaced = True
+        else:
+            out.append(line)
+    if not replaced:
+        out.append(f"{key} = {value}")
+    return "\n".join(out) + "\n"
+
+def git_commit() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(ROOT),
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception:
+        return "unknown"
+
+def run_resolution(nx: int) -> np.ndarray:
+    run_dir = OUT / f"runs/bw_{nx}_double"
+    run_dir.mkdir(parents=True, exist_ok=True)
     out = OUT / f"bw_{nx}.bin"
-    cfg += f"\nnx = {nx}\noutput_file = {out}\n"
-    p = OUT / f"bw_{nx}.cfg"; p.write_text(cfg)
-    subprocess.run([str(BIN), str(p)], check=True, cwd=str(ROOT))
+    cfg_text = BASE_CFG.read_text(encoding="utf-8")
+    cfg_text = replace_or_append_cfg(cfg_text, "nx", str(nx))
+    cfg_text = replace_or_append_cfg(cfg_text, "output_file", str(out))
+    cfg_path = run_dir / "config.cfg"
+    cfg_path.write_text(cfg_text, encoding="utf-8")
+
+    stdout_path = run_dir / "stdout.txt"
+    stderr_path = run_dir / "stderr.txt"
+    command = [str(BIN), str(cfg_path)]
+    with stdout_path.open("w", encoding="utf-8") as stdout, stderr_path.open("w", encoding="utf-8") as stderr:
+        result = subprocess.run(command, cwd=str(ROOT), stdout=stdout, stderr=stderr, check=False)
+
+    metadata = {
+        "experiment": "week12-brio-wu-1d",
+        "name": f"bw-{nx}-double",
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "git_commit": git_commit(),
+        "binary": str(BIN),
+        "source_config": str(BASE_CFG),
+        "run_config": str(cfg_path),
+        "precision": "double",
+        "build": "build-double",
+        "nx": nx,
+        "raw_output": str(out),
+        "command": command,
+        "returncode": result.returncode,
+        "stdout": str(stdout_path),
+        "stderr": str(stderr_path),
+    }
+    (run_dir / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    if result.returncode != 0:
+        raise RuntimeError(f"run failed for nx={nx}; see {stderr_path}")
+
     meta, arr = read_binary(str(out))     # arr shape [ny, nx, nvars]
+    if meta.nvars != 9:
+        raise RuntimeError(f"expected MHD nvars=9 in {out}, got {meta.nvars}")
     return arr[0, :, RHO]
 
-ref = run(8000)
-for nx in (200, 400, 800):
-    rho = run(nx)
-    # block-average the 8000-cell reference down to nx for a fair comparison
-    factor = 8000 // nx
-    refd = ref.reshape(nx, factor).mean(axis=1)
-    diff = np.abs(rho - refd)
-    dx = 1.0 / nx
-    L1 = diff.sum() * dx
-    L2 = np.sqrt((diff**2).sum() * dx)
-    Linf = diff.max()
-    print(f"N={nx:5d}  L1={L1:.3e}  L2={L2:.3e}  Linf={Linf:.3e}")
+def main() -> None:
+    ref_nx = 8000
+    ref = run_resolution(ref_nx)
+    rows = []
+    for nx in (200, 400, 800):
+        rho = run_resolution(nx)
+        factor = ref_nx // nx
+        refd = ref.reshape(nx, factor).mean(axis=1)
+        diff = np.abs(rho - refd)
+        dx = 1.0 / nx
+        rows.append({
+            "nx": nx,
+            "reference_nx": ref_nx,
+            "L1": float(diff.sum() * dx),
+            "L2": float(np.sqrt((diff**2).sum() * dx)),
+            "Linf": float(diff.max()),
+        })
+
+    with (OUT / "summary.csv").open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["nx", "reference_nx", "L1", "L2", "Linf"])
+        writer.writeheader()
+        writer.writerows(rows)
+    (OUT / "summary.json").write_text(json.dumps({"rows": rows}, indent=2) + "\n", encoding="utf-8")
+
+    md = ["# Week 12 Brio-Wu 1D Validation", "", "| N | reference N | L1(rho) | L2(rho) | Linf(rho) |", "|---:|---:|---:|---:|---:|"]
+    for r in rows:
+        md.append(f"| {r['nx']} | {r['reference_nx']} | {r['L1']:.6e} | {r['L2']:.6e} | {r['Linf']:.6e} |")
+    md.append("")
+    md.append("Generated cfgs, stdout/stderr, and per-run metadata live under `experiments/week12/brio_wu_1d/runs/`.")
+    (OUT / "summary.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+    print("\n".join(md))
+
+if __name__ == "__main__":
+    main()
 ```
 
-- [ ] **Step 3: Run the validation**
+- [ ] **Step 2: Run the validation**
 
 Run: `python scripts/regression/mhd_brio_wu_1d.py`
-Expected: three rows N=200/400/800 with **monotonically decreasing** L1/L2 (≈1st-order HLL: roughly halving L1 as N doubles).
+Expected: `summary.csv`, `summary.json`, and `summary.md` are written under `experiments/week12/brio_wu_1d/`; rows N=200/400/800 show monotonically decreasing L1/L2 (≈1st-order HLL: roughly halving L1 as N doubles), and each run has generated cfg/stdout/stderr/metadata.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add scripts/regression/mhd_brio_wu_1d.py
@@ -1060,7 +1132,7 @@ And under "Report 1 closeout / Report 2 transition", note that Week 12 delivers 
 
 - [ ] **Step 4: Write the week summary**
 
-Create `docs/week12/week12-summary.md` capturing: delivered files, Brio-Wu L1/L2/Linf table, divB_max value, the indexing decision in Task 6, and the deferred items (GLM/2D/HLLD/GPU/harness) for Week 13.
+Create `docs/week12/week12-summary.md` capturing: delivered files, Brio-Wu L1/L2/Linf table, divB_max value, the indexing decision in Task 6, and a short "not attempted in this plan" list for GLM source-step / 2D / HLLD / GPU / full run-matrix integration. Do not add 2D implementation tasks to this Week 12 plan.
 
 - [ ] **Step 5: Commit**
 
@@ -1074,8 +1146,7 @@ git commit -m "docs(mhd): record Week 12 1D MHD walking skeleton"
 ## Self-Review (writing-plans)
 
 - **Spec coverage:** state (T1) · flux incl. psi (T2) · HLL + strict-ineq flag (T3) · compute_divB_norms (T4) · MUSCL-Hancock (T5–T6) · MhdSolver float/double instantiation (T6) · hrsc_mhd executable, Euler untouched (T7) · Brio-Wu cfgs (T8) · self-converged double reference + L1/L2/Linf (T9) · divB sentinel + Euler-green + docs (T10). All spec sections mapped.
-- **Out-of-scope** (GLM source step, 2D, Orszag-Tang/KH, HLLD, GPU MHD, run_matrix MHD-awareness) intentionally absent — deferred to Weeks 13–14.
+- **Out-of-scope** (GLM source step, 2D, Orszag-Tang/KH, HLLD, GPU MHD, run_matrix MHD-awareness) intentionally absent from this plan. After the 1D Brio-Wu pipeline is green, start a separate follow-up plan only if time remains.
 - **Type consistency:** `MhdNVars`, `MhdIdx`, `MhdPrim`, `prim_to_cons`/`cons_to_prim`/`pressure`/`fast_speed_x`, `mhd_flux_x`, `mhd_hll_flux`, `mhd_minmod`/`mhd_slope`, `DivBNorms`/`compute_divB_norms`, `MhdSolver`/`setup_brio_wu` used identically across tasks.
 - **Known risk flagged:** interface L/R indexing in Task 6 Step 4 (implementer note) — the HLL consistency test isolates indexing from flux correctness.
 - **Reuse points (API confirmed against source):** `core/boundary.hpp` exposes per-type helpers `apply_outflow_bc(view, Axis)` / `apply_periodic_bc` / `apply_reflective_bc` (no generic dispatcher) — Task 6 calls `apply_outflow_bc` directly. `GridView`/`Grid2D` expose `nx`/`ny` as **fields** (e.g. `m_grid.nx`, `grid.nx`), not methods. `utils/io.hpp` `write_binary<Real,NVars>(file, view, nx, ny, dx, dy, time)`; `utils/config.hpp` `Config` with `get_int/get_double/get_string`; `scripts/io_helper.py` `read_binary`. `MhdNVars` mirrors `EulerNVars=4` (`src/core/eos.hpp:22`).
-```

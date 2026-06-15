@@ -15,7 +15,7 @@ The MCA toolchain is defined in Chapter~2 Section~\emph{Verificarlo and Monte Ca
 \label{fig:ch6-sigma-fp}
 \end{figure}
 
-The loss-of-significance score LoSoS gives a complementary view of the same LW3 density samples. Figure~\ref{fig:ch6-losos-quantiles} reports sample quantiles rather than the worst cell. For HLLC the median LoSoS rises with virtual precision, while lower quantiles stay closer to the front-sensitive part of the field (Fig.~\ref{fig:ch6-losos-quantiles}). These quantiles are distributional estimates within the $n=30$ regime defined in Chapter~4 Section~\emph{Precision and Hardware Variants}.
+LoSoS gives a complementary view of the same LW3 density samples. Figure~\ref{fig:ch6-losos-quantiles} reports sample quantiles rather than the worst cell: for HLLC the median LoSoS rises with virtual precision, while lower quantiles stay closer to the front-sensitive part of the field. These quantiles are distributional estimates within the $n=30$ regime of Chapter~4.
 
 The required-significant-digits threshold \(s_{\mathrm{req}}\) --- the number of significant digits a downstream consumer needs at the chosen reference-error scale --- turns LoSoS into a regional margin.
 Figure~\ref{fig:ch6-region-losos} plots available digits at \texttt{p32} minus \(s_{\mathrm{req}}\). For HLLC at \texttt{p32}, the smooth interior keeps a positive margin while the shock-front band is negative; the transition/contact band sits in between (Fig.~\ref{fig:ch6-region-losos}). The noise-to-reference-error diagnostic in Fig.~\ref{fig:ch6-noise-error} gives a scale-normalised view. For both HLLC and Rusanov, the LW3 precision-limited cell fraction drops monotonically with virtual precision and reaches $0\,\%$ at \texttt{p32}. This reading is consistent with the Chapter~5 reference-scaled evidence but remains bounded to the tested precisions, cases, and the LW3 MCA grid; the \texttt{p8} stress-diagnostic caveat is listed in Section~\ref{sec:ch6-limits}.
@@ -46,11 +46,11 @@ Figure~\ref{fig:ch6-region-losos} plots available digits at \texttt{p32} minus \
 \end{figure}
 
 \paragraph{Ratio framing.}
-The $\sigma_{\mathrm{FP}}$, LoSoS, $s_{\mathrm{req}}$, and ratio views use the local noise-to-reference-error convention
+The $\sigma_{\mathrm{FP}}$, LoSoS, and ratio views share the noise-to-reference-error convention
 \begin{equation}\label{eq:ch6-eta}
-  \eta(\mathbf{x}) = \frac{\sigma_{\mathrm{FP}}(\mathbf{x})}{|U_{\mathrm{fp64}}(\mathbf{x}) - U_{\mathrm{ref}}(\mathbf{x})|},
+  \eta(\mathbf{x}) = \frac{\sigma_{\mathrm{FP}}(\mathbf{x})}{|U_{\mathrm{fp64}}(\mathbf{x}) - U_{\mathrm{ref}}(\mathbf{x})|}.
 \end{equation}
-so Fig.~\ref{fig:ch6-region-snr} reports \(\eta\) by smooth, transition, and shock-front regions. Cells with \(\eta>1\) are precision-limited. Their fraction shrinks monotonically from \texttt{p8} to \texttt{p32}~\citep{sohier_etal_2021}.
+Figure~\ref{fig:ch6-region-snr} splits \(\eta\) by region; cells with \(\eta>1\) are precision-limited~\citep{sohier_etal_2021}.
 
 \begin{figure}[htbp]
 \centering

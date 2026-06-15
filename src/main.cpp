@@ -1,3 +1,7 @@
+#include "app/cases.hpp"
+#include "app/diagnostics.hpp"
+#include "app/output.hpp"
+#include "app/run_config.hpp"
 #include "utils/config.hpp"
 #include "core/eos.hpp"
 #include "euler/euler_solver.hpp"
@@ -6,9 +10,6 @@
 #include "utils/error_norms.hpp"
 #include "utils/io.hpp"
 #include "utils/timer.hpp"
-#include "toro_tests.hpp"
-#include "lw_tests.hpp"
-#include "shock_bubble_tests.hpp"
 
 #ifdef HRSC_HAS_CUDA
 #include "gpu/euler_gpu_solver.hpp"
@@ -18,14 +19,9 @@
 #include <iomanip>
 #include <string>
 #include <stdexcept>
-#include <utility>
 #include <vector>
-#include <cmath>
 #include <algorithm>
 #include <cstdlib>
-#include <filesystem>
-#include <sstream>
-#include <limits>
 
 #ifndef HRSC_REAL
 #define HRSC_REAL double   // fallback if built without PrecisionConfig
@@ -36,410 +32,39 @@
 using Real = HRSC_REAL;
 
 using namespace hrsc;
-
-static void setup_ic(GridView<Real, EulerNVars> gv, const std::string& test, Real gamma) {
-    if (test == "sod") {
-        setup_sod(gv, gamma);
-    } else if (test == "toro2") {
-        setup_toro2(gv, gamma);
-    } else if (test == "toro3") {
-        setup_toro3(gv, gamma);
-    } else if (test == "toro4") {
-        setup_toro4(gv, gamma);
-    } else if (test == "toro5") {
-        setup_toro5(gv, gamma);
-    } else if (test == "stationary_contact") {
-        setup_stationary_contact(gv, gamma);
-    } else if (test == "lw_config3") {
-        setup_liska_wendroff_config3(gv, gamma);
-    } else if (test == "lw_config4") {
-        setup_liska_wendroff_config4(gv, gamma);  // Week 6 D5
-    } else if (test == "lw_config12") {
-        setup_liska_wendroff_config12(gv, gamma);  // Week 6 D6
-    } else if (test == "lw_config6") {
-        setup_liska_wendroff_config6(gv, gamma);  // implemented Week 5
-    } else if (test == "shock_bubble") {
-        setup_shock_bubble(gv, gamma);
-    } else {
-        throw std::runtime_error("Unknown test: " + test);
-    }
-}
-
-// Get left/right primitive states for a given test (for exact solver)
-static void get_riemann_ic(const std::string& test,
-                           double& rhoL, double& uL, double& pL,
-                           double& rhoR, double& uR, double& pR,
-                           double& x0) {
-    x0 = 0.5;
-    if (test == "sod") {
-        rhoL = 1.0; uL = 0.0; pL = 1.0;
-        rhoR = 0.125; uR = 0.0; pR = 0.1;
-    } else if (test == "toro2") {
-        rhoL = 1.0; uL = -2.0; pL = 0.4;
-        rhoR = 1.0; uR =  2.0; pR = 0.4;
-    } else if (test == "toro3") {
-        rhoL = 1.0; uL = 0.0; pL = 1000.0;
-        rhoR = 1.0; uR = 0.0; pR = 0.01;
-    } else if (test == "toro4") {
-        rhoL = 0.445; uL = 0.698; pL = 3.528;
-        rhoR = 0.5;   uR = 0.0;   pR = 0.571;
-    } else if (test == "toro5") {
-        rhoL = 5.99924; uL = 19.5975;  pL = 460.894;
-        rhoR = 5.99242; uR = -6.19633; pR = 46.0950;
-    } else if (test == "stationary_contact") {
-        rhoL = 1.0; uL = 0.0; pL = 1.0;
-        rhoR = 0.5; uR = 0.0; pR = 1.0;
-    } else {
-        throw std::runtime_error("Unknown test for convergence: " + test);
-    }
-}
-
-// Default chosen to match supervisor recommendation (email 2026-04-17):
-// Rusanov is the designated baseline vs HLLC for FP-sensitivity comparison.
-static FluxScheme parse_flux(const Config& cfg) {
-    std::string s = cfg.get_string("solver", "rusanov");
-    if (s == "rusanov") return FluxScheme::Rusanov;
-    if (s == "hllc") return FluxScheme::HLLC;
-    throw std::runtime_error(
-        "Unknown solver: " + s + " (expected 'hllc' or 'rusanov')");
-}
-
-static LimiterScheme parse_limiter(const Config& cfg) {
-    std::string s = cfg.get_string("limiter", "minbee");
-    if (s == "minbee" || s == "minmod") return LimiterScheme::Minbee;
-    if (s == "vanleer" || s == "van_leer") return LimiterScheme::VanLeer;
-    if (s == "superbee") return LimiterScheme::Superbee;
-    if (s == "vanalbada" || s == "van_albada") return LimiterScheme::VanAlbada;
-    throw std::runtime_error(
-        "Unknown limiter: " + s +
-        " (expected minbee|minmod|vanleer|van_leer|superbee|vanalbada|van_albada)");
-}
-
-static BoundaryType bc_from_string(const std::string& s) {
-    if (s == "outflow")    return BoundaryType::Outflow;
-    if (s == "periodic")   return BoundaryType::Periodic;
-    if (s == "reflective") return BoundaryType::Reflective;
-    throw std::runtime_error(
-        "Unknown boundary type: " + s + " (expected outflow|periodic|reflective)");
-}
-
-// Resolve per-axis BCs from config. Each axis takes its bc_x/bc_y key if
-// non-empty, else falls back to bc, else "outflow". Mixed per-axis modes
-// are first-class (Week 5 KH uses bc_x=periodic, bc_y=reflective).
-static std::pair<BoundaryType, BoundaryType> parse_boundary(const Config& cfg) {
-    std::string bc  = cfg.get_string("bc",   "");
-    std::string bcx = cfg.get_string("bc_x", "");
-    std::string bcy = cfg.get_string("bc_y", "");
-    auto pick = [](const std::string& axis, const std::string& fallback,
-                   const char* default_value) {
-        if (!axis.empty())     return axis;
-        if (!fallback.empty()) return fallback;
-        return std::string(default_value);
-    };
-    return { bc_from_string(pick(bcx, bc, "outflow")),
-             bc_from_string(pick(bcy, bc, "outflow")) };
-}
-
-static std::vector<double> parse_output_times(const Config& cfg) {
-    std::string raw = cfg.get_string("output_times", "");
-    if (raw.empty()) return {};
-
-    std::vector<double> result;
-    std::istringstream iss(raw);
-    std::string token;
-    while (std::getline(iss, token, ',')) {
-        auto start = token.find_first_not_of(" \t\r\n");
-        auto end = token.find_last_not_of(" \t\r\n");
-        if (start == std::string::npos) continue;
-        std::string trimmed = token.substr(start, end - start + 1);
-        try {
-            double value = std::stod(trimmed);
-            if (!std::isfinite(value) || value < 0.0) {
-                throw std::runtime_error(
-                    "output_times values must be finite and non-negative: " + trimmed);
-            }
-            result.push_back(value);
-        } catch (const std::invalid_argument&) {
-            throw std::runtime_error(
-                "Failed to parse output_times value as double: " + trimmed);
-        } catch (const std::out_of_range&) {
-            throw std::runtime_error(
-                "Failed to parse output_times value as double (out of range): " + trimmed);
-        }
-    }
-
-    std::sort(result.begin(), result.end());
-    result.erase(std::unique(result.begin(), result.end()), result.end());
-    return result;
-}
-
-static std::string checkpoint_output_file(const std::string& output_file,
-                                          std::size_t index) {
-    std::filesystem::path path(output_file);
-    std::ostringstream name;
-    name << path.stem().string()
-         << "_t" << std::setw(4) << std::setfill('0') << index
-         << path.extension().string();
-    std::filesystem::path out = path.has_parent_path()
-        ? path.parent_path() / name.str()
-        : std::filesystem::path(name.str());
-    return out.string();
-}
-
-static void run_with_binary_checkpoints(EulerSolver<Real>& solver,
-                                        int nx, int ny,
-                                        Real dx, Real dy,
-                                        double t_end,
-                                        const std::string& output_file,
-                                        const std::vector<double>& output_times) {
-    std::size_t next_output = 0;
-    auto write_due_checkpoint = [&]() {
-        const double t = static_cast<double>(solver.time());
-        while (next_output < output_times.size() &&
-               t + 1e-14 >= output_times[next_output]) {
-            const std::string checkpoint =
-                checkpoint_output_file(output_file, next_output);
-            write_binary<Real, EulerNVars>(
-                checkpoint, solver.grid_view(),
-                nx, ny, dx, dy,
-                static_cast<Real>(solver.time()));
-            ++next_output;
-        }
-    };
-
-    write_due_checkpoint();
-    while (static_cast<double>(solver.time()) < t_end) {
-        solver.step();
-        write_due_checkpoint();
-    }
-}
-
-static const char* env_nonempty(const char* name) {
-    const char* value = std::getenv(name);
-    return (value && value[0]) ? value : nullptr;
-}
-
-static long long env_long_long(const char* name, long long fallback) {
-    const char* value = env_nonempty(name);
-    if (!value) return fallback;
-    try {
-        return std::stoll(value);
-    } catch (const std::exception&) {
-        throw std::runtime_error(std::string(name) + " must be an integer");
-    }
-}
-
-static int env_int(const char* name, int fallback) {
-    long long value = env_long_long(name, fallback);
-    if (value < std::numeric_limits<int>::min() ||
-        value > std::numeric_limits<int>::max()) {
-        throw std::runtime_error(std::string(name) + " is outside int range");
-    }
-    return static_cast<int>(value);
-}
-
-static double env_double(const char* name, double fallback) {
-    const char* value = env_nonempty(name);
-    if (!value) return fallback;
-    try {
-        double parsed = std::stod(value);
-        if (!std::isfinite(parsed)) {
-            throw std::runtime_error("non-finite");
-        }
-        return parsed;
-    } catch (const std::exception&) {
-        throw std::runtime_error(std::string(name) + " must be a finite double");
-    }
-}
-
-struct DiagnosticSettings {
-    bool enabled = false;
-    long long max_steps = 0;
-    double dt_floor = 0.0;
-    std::string dump_file;
-};
-
-static DiagnosticSettings configure_diagnostics_from_env() {
-    hllc_trace::TraceConfig trace_cfg;
-    if (const char* trace_file = env_nonempty("HRSC_HLLC_TRACE_FILE")) {
-        trace_cfg.enabled = true;
-        trace_cfg.path = trace_file;
-        trace_cfg.max_records = env_long_long("HRSC_HLLC_TRACE_MAX_RECORDS", 100000);
-        trace_cfg.face_min = env_int("HRSC_HLLC_TRACE_FACE_MIN",
-                                     std::numeric_limits<int>::min());
-        trace_cfg.face_max = env_int("HRSC_HLLC_TRACE_FACE_MAX",
-                                     std::numeric_limits<int>::max());
-        trace_cfg.line_min = env_int("HRSC_HLLC_TRACE_LINE_MIN",
-                                     std::numeric_limits<int>::min());
-        trace_cfg.line_max = env_int("HRSC_HLLC_TRACE_LINE_MAX",
-                                     std::numeric_limits<int>::max());
-    }
-    hllc_trace::configure(trace_cfg);
-
-    DiagnosticSettings diag;
-    diag.max_steps = env_long_long("HRSC_DIAG_MAX_STEPS", 0);
-    diag.dt_floor = env_double("HRSC_DIAG_DT_FLOOR", 0.0);
-    if (const char* dump_file = env_nonempty("HRSC_DIAG_DUMP_FILE")) {
-        diag.dump_file = dump_file;
-    }
-    diag.enabled = hllc_trace::enabled()
-                || diag.max_steps > 0
-                || diag.dt_floor > 0.0
-                || !diag.dump_file.empty();
-    return diag;
-}
-
-struct StateStats {
-    bool finite = true;
-    double min_rho = std::numeric_limits<double>::infinity();
-    double min_p = std::numeric_limits<double>::infinity();
-    int bad_i = -1;
-    int bad_j = -1;
-};
-
-static StateStats collect_state_stats(EulerSolver<Real>& solver, Real gamma) {
-    StateStats stats;
-    auto gv = solver.grid_view();
-    for (int j = 0; j < gv.ny; ++j) {
-        for (int i = 0; i < gv.nx; ++i) {
-            Vec<Real, EulerNVars> cons;
-            for (int v = 0; v < EulerNVars; ++v) {
-                cons[v] = gv(i, j, v);
-                if (!std::isfinite(static_cast<double>(cons[v])) && stats.finite) {
-                    stats.finite = false;
-                    stats.bad_i = i;
-                    stats.bad_j = j;
-                }
-            }
-            double rho = static_cast<double>(cons[RHO]);
-            double p = static_cast<double>(pressure(cons, gamma));
-            stats.min_rho = std::min(stats.min_rho, rho);
-            stats.min_p = std::min(stats.min_p, p);
-            if ((!std::isfinite(rho) || !std::isfinite(p) || rho <= 0.0 || p <= 0.0)
-                && stats.bad_i < 0) {
-                stats.finite = false;
-                stats.bad_i = i;
-                stats.bad_j = j;
-            }
-        }
-    }
-    return stats;
-}
-
-static void write_diagnostic_dump(const DiagnosticSettings& diag,
-                                  const std::string& reason,
-                                  EulerSolver<Real>& solver,
-                                  int nx, int ny,
-                                  Real dx, Real dy,
-                                  const StateStats& stats) {
-    std::cerr << "[diagnostic] stop_reason=" << reason
-              << " step=" << solver.step_count()
-              << " time=" << static_cast<double>(solver.time())
-              << " min_rho=" << stats.min_rho
-              << " min_p=" << stats.min_p
-              << " bad_i=" << stats.bad_i
-              << " bad_j=" << stats.bad_j << "\n";
-    if (!diag.dump_file.empty()) {
-        write_binary<Real, EulerNVars>(
-            diag.dump_file, solver.grid_view(),
-            nx, ny, dx, dy,
-            static_cast<Real>(solver.time()));
-        std::cerr << "[diagnostic] dump_file=" << diag.dump_file << "\n";
-    }
-}
-
-static void run_with_diagnostics(EulerSolver<Real>& solver,
-                                 int nx, int ny,
-                                 Real dx, Real dy,
-                                 double t_end,
-                                 const std::string& output_file,
-                                 const std::vector<double>& output_times,
-                                 const DiagnosticSettings& diag,
-                                 Real gamma) {
-    std::size_t next_output = 0;
-    auto write_due_checkpoint = [&]() {
-        const double t = static_cast<double>(solver.time());
-        while (next_output < output_times.size() &&
-               t + 1e-14 >= output_times[next_output]) {
-            const std::string checkpoint =
-                checkpoint_output_file(output_file, next_output);
-            write_binary<Real, EulerNVars>(
-                checkpoint, solver.grid_view(),
-                nx, ny, dx, dy,
-                static_cast<Real>(solver.time()));
-            ++next_output;
-        }
-    };
-
-    std::cerr << "[diagnostic] enabled max_steps=" << diag.max_steps
-              << " dt_floor=" << diag.dt_floor
-              << " trace=" << (hllc_trace::enabled() ? "on" : "off") << "\n";
-    write_due_checkpoint();
-    while (static_cast<double>(solver.time()) < t_end) {
-        StateStats stats = collect_state_stats(solver, gamma);
-        TimeReal dt = solver.compute_dt();
-        if (!stats.finite) {
-            write_diagnostic_dump(diag, "invalid_state_before_step",
-                                  solver, nx, ny, dx, dy, stats);
-            return;
-        }
-        if (!std::isfinite(static_cast<double>(dt)) || dt <= TimeReal(0)) {
-            write_diagnostic_dump(diag, "non_positive_dt",
-                                  solver, nx, ny, dx, dy, stats);
-            return;
-        }
-        if (diag.dt_floor > 0.0 && static_cast<double>(dt) < diag.dt_floor) {
-            write_diagnostic_dump(diag, "dt_floor",
-                                  solver, nx, ny, dx, dy, stats);
-            return;
-        }
-
-        const int step_before = solver.step_count();
-        const TimeReal time_before = solver.time();
-        solver.step();
-        write_due_checkpoint();
-
-        stats = collect_state_stats(solver, gamma);
-        if (!stats.finite) {
-            write_diagnostic_dump(diag, "invalid_state_after_step",
-                                  solver, nx, ny, dx, dy, stats);
-            return;
-        }
-        if (solver.step_count() == step_before || solver.time() == time_before) {
-            write_diagnostic_dump(diag, "no_time_or_step_progress",
-                                  solver, nx, ny, dx, dy, stats);
-            return;
-        }
-        if (diag.max_steps > 0 && solver.step_count() >= diag.max_steps) {
-            write_diagnostic_dump(diag, "max_steps",
-                                  solver, nx, ny, dx, dy, stats);
-            return;
-        }
-    }
-}
+using namespace hrsc::app;
 
 static void run_convergence(const Config& cfg) {
     std::string test = cfg.get_string("test");
     // Read in double (Config API), cast on use to Real for solver state.
     // The exact Riemann reference solution stays in double regardless of
     // the build precision -- it's the ground truth for L_p convergence.
-    Real gamma   = static_cast<Real>(cfg.get_double("gamma", 1.4));
-    Real cfl     = static_cast<Real>(cfg.get_double("cfl", 0.8));
+    double gamma_cfg = cfg.get_double("gamma", 1.4);
+    double cfl_cfg   = cfg.get_double("cfl", 0.8);
     double t_end = cfg.get_double("t_end", 0.25);
     double xmin  = cfg.get_double("xmin", 0.0);
     double xmax  = cfg.get_double("xmax", 1.0);
+    validate_domain(1, 1, xmin, xmax, 0.0, 0.0);
+    validate_physics(gamma_cfg, cfl_cfg, t_end);
+    Real gamma = static_cast<Real>(gamma_cfg);
+    Real cfl   = static_cast<Real>(cfl_cfg);
     auto resolutions = cfg.get_int_list("resolutions");
     if (resolutions.empty()) {
         throw std::runtime_error("convergence: resolutions list is empty");
+    }
+    for (int nx : resolutions) {
+        if (nx <= 0) {
+            throw std::runtime_error(
+                "convergence: resolutions must be positive");
+        }
     }
     int largest_nx = *std::max_element(resolutions.begin(), resolutions.end());
     FluxScheme flux = parse_flux(cfg);
     LimiterScheme limiter = parse_limiter(cfg);
 
-    double rhoL, uL, pL, rhoR, uR, pR, x0;
-    get_riemann_ic(test, rhoL, uL, pL, rhoR, uR, pR, x0);
+    RiemannInitialCondition ic = get_riemann_ic(test);
     // Allow config override for x0
-    x0 = cfg.get_double("x0", x0);
+    ic.x0 = cfg.get_double("x0", ic.x0);
 
     std::cout << std::setprecision(15) << std::scientific;
     std::cout << "# N        dx            L1_rho        L2_rho        Linf_rho"
@@ -453,7 +78,7 @@ static void run_convergence(const Config& cfg) {
                                  gamma, cfl, t_end, flux,
                                  BoundaryType::Outflow, BoundaryType::Outflow,
                                  limiter);
-        setup_ic(solver.grid_view(), test, gamma);
+        setup_case_ic(solver.grid_view(), test, gamma);
         Timer total;
         total.start();
         solver.run();
@@ -480,10 +105,10 @@ static void run_convergence(const Config& cfg) {
             num_p[i]   = static_cast<double>(prim[PRES]);
 
             double x = xmin + (i + 0.5) * dx;
-            double xi = (x - x0) / t_end;
+            double xi = (x - ic.x0) / t_end;
             double erho, eu, ep;
             exact_riemann_sample(static_cast<double>(gamma), xi,
-                rhoL, uL, pL, rhoR, uR, pR,
+                ic.rhoL, ic.uL, ic.pL, ic.rhoR, ic.uR, ic.pR,
                 erho, eu, ep);
             ext_rho[i] = erho;
             ext_u[i]   = eu;
@@ -526,32 +151,23 @@ static void run_normal(const Config& cfg) {
     double xmax  = cfg.get_double("xmax", 1.0);
     double ymin  = cfg.get_double("ymin", 0.0);
     double ymax  = cfg.get_double("ymax", 0.0);
-    if (ny > 1 && ymax <= ymin) {
-        throw std::runtime_error(
-            "ymax must be > ymin when ny > 1 (got ymin=" + std::to_string(ymin) +
-            ", ymax=" + std::to_string(ymax) + ")");
-    }
-    Real   gamma = static_cast<Real>(cfg.get_double("gamma", 1.4));
-    Real   cfl   = static_cast<Real>(cfg.get_double("cfl", 0.8));
+    double gamma_cfg = cfg.get_double("gamma", 1.4);
+    double cfl_cfg   = cfg.get_double("cfl", 0.8);
     double t_end = cfg.get_double("t_end", 0.25);
     int    out_prec = cfg.get_int("output_precision", 17);
-    if (out_prec < 1 || out_prec > 17) {
-        throw std::runtime_error(
-            "output_precision must be in [1, 17] (got " + std::to_string(out_prec) + ")");
-    }
     FluxScheme flux = parse_flux(cfg);
     LimiterScheme limiter = parse_limiter(cfg);
     auto [bc_x, bc_y] = parse_boundary(cfg);
     std::string output_format = cfg.get_string("output_format", "table");
     std::string output_file = cfg.get_string("output_file", "");
     std::vector<double> output_times = parse_output_times(cfg);
-    if (!output_times.empty() && output_format != "binary") {
-        throw std::runtime_error("output_times requires output_format=binary");
-    }
-    if (!output_times.empty() && output_file.empty()) {
-        throw std::runtime_error(
-            "output_file must be set when output_times is present");
-    }
+    validate_domain(nx, ny, xmin, xmax, ymin, ymax);
+    validate_physics(gamma_cfg, cfl_cfg, t_end);
+    validate_output_precision(out_prec);
+    validate_output_options(output_format, output_file, output_times, t_end,
+                            false);
+    Real gamma = static_cast<Real>(gamma_cfg);
+    Real cfl   = static_cast<Real>(cfl_cfg);
     // Wall-clock throttled progress on stderr (<=0 disables; default off
     // preserves legacy bit-identical behaviour for existing cfgs).
     double progress_interval_s = cfg.get_double("progress_interval_s", 0.0);
@@ -567,7 +183,7 @@ static void run_normal(const Config& cfg) {
                                  static_cast<Real>(xmin), static_cast<Real>(ymin),
                                  gamma, cfl, t_end,
                                  flux, bc_x, bc_y, limiter);
-        setup_ic(solver.grid_view(), test, gamma);
+        setup_case_ic(solver.grid_view(), test, gamma);
         Timer total;
         total.start();
         if (diagnostics.enabled) {
@@ -594,19 +210,11 @@ static void run_normal(const Config& cfg) {
                   << solver.time() << "\n";
 
         if (output_format == "binary") {
-            if (output_file.empty()) {
-                throw std::runtime_error(
-                    "output_file must be set when output_format=binary");
-            }
             write_binary<Real, EulerNVars>(
                 output_file, solver.grid_view(),
                 nx, ny, static_cast<Real>(dx), static_cast<Real>(dy),
                 static_cast<Real>(solver.time()));
             return;
-        }
-        if (output_format != "table") {
-            throw std::runtime_error(
-                "Unknown output_format: " + output_format + " (expected table|binary)");
         }
 
         auto gv = solver.grid_view();
@@ -637,7 +245,7 @@ static void run_normal(const Config& cfg) {
                              static_cast<Real>(xmin),
                              gamma, cfl, t_end,
                              flux, bc_x, bc_y, limiter);
-    setup_ic(solver.grid_view(), test, gamma);
+    setup_case_ic(solver.grid_view(), test, gamma);
     Timer total;
     total.start();
     if (diagnostics.enabled) {
@@ -665,19 +273,11 @@ static void run_normal(const Config& cfg) {
 
     auto gv = solver.grid_view();
     if (output_format == "binary") {
-        if (output_file.empty()) {
-            throw std::runtime_error(
-                "output_file must be set when output_format=binary");
-        }
         write_binary<Real, EulerNVars>(
             output_file, gv, nx, 1,
             static_cast<Real>(dx), static_cast<Real>(dx),
             static_cast<Real>(solver.time()));
         return;
-    }
-    if (output_format != "table") {
-        throw std::runtime_error(
-            "Unknown output_format: " + output_format + " (expected table|binary)");
     }
     std::cout << std::setprecision(out_prec);
     for (int i = 0; i < nx; ++i) {
@@ -707,19 +307,10 @@ static void run_normal_gpu(const Config& cfg) {
     double xmax  = cfg.get_double("xmax", 1.0);
     double ymin  = cfg.get_double("ymin", 0.0);
     double ymax  = cfg.get_double("ymax", 0.0);
-    if (ny > 1 && ymax <= ymin) {
-        throw std::runtime_error(
-            "ymax must be > ymin when ny > 1 (got ymin=" + std::to_string(ymin) +
-            ", ymax=" + std::to_string(ymax) + ")");
-    }
-    Real   gamma = static_cast<Real>(cfg.get_double("gamma", 1.4));
-    Real   cfl   = static_cast<Real>(cfg.get_double("cfl", 0.8));
+    double gamma_cfg = cfg.get_double("gamma", 1.4);
+    double cfl_cfg   = cfg.get_double("cfl", 0.8);
     double t_end = cfg.get_double("t_end", 0.25);
     int    out_prec = cfg.get_int("output_precision", 17);
-    if (out_prec < 1 || out_prec > 17) {
-        throw std::runtime_error(
-            "output_precision must be in [1, 17] (got " + std::to_string(out_prec) + ")");
-    }
     FluxScheme flux = parse_flux(cfg);
     LimiterScheme limiter = parse_limiter(cfg);
     if (limiter != LimiterScheme::Minbee) {
@@ -730,10 +321,14 @@ static void run_normal_gpu(const Config& cfg) {
     auto [bc_x, bc_y] = parse_boundary(cfg);
     std::string output_format = cfg.get_string("output_format", "table");
     std::string output_file = cfg.get_string("output_file", "");
-    if (!parse_output_times(cfg).empty()) {
-        throw std::runtime_error(
-            "output_times is not supported for device=gpu; use multiple final-time runs");
-    }
+    std::vector<double> output_times = parse_output_times(cfg);
+    validate_domain(nx, ny, xmin, xmax, ymin, ymax);
+    validate_physics(gamma_cfg, cfl_cfg, t_end);
+    validate_output_precision(out_prec);
+    validate_output_options(output_format, output_file, output_times, t_end,
+                            true);
+    Real gamma = static_cast<Real>(gamma_cfg);
+    Real cfl   = static_cast<Real>(cfl_cfg);
 
     double dx = (xmax - xmin) / nx;
     double dy = (ny > 1) ? (ymax - ymin) / ny : dx;
@@ -742,7 +337,7 @@ static void run_normal_gpu(const Config& cfg) {
     Grid2D<Real, EulerNVars> ic(nx, ny);
     ic.dx = static_cast<Real>(dx);
     ic.dy = static_cast<Real>(dy);
-    setup_ic(ic.view(), test, gamma);
+    setup_case_ic(ic.view(), test, gamma);
 
     EulerGpuSolver<Real> solver(std::move(ic),
                                 static_cast<Real>(xmin),
@@ -763,19 +358,11 @@ static void run_normal_gpu(const Config& cfg) {
     GridView<Real, EulerNVars> gv = final_grid.view();
 
     if (output_format == "binary") {
-        if (output_file.empty()) {
-            throw std::runtime_error(
-                "output_file must be set when output_format=binary");
-        }
         write_binary<Real, EulerNVars>(
             output_file, gv, nx, ny,
             static_cast<Real>(dx), static_cast<Real>(dy),
             static_cast<Real>(solver.current_time()));
         return;
-    }
-    if (output_format != "table") {
-        throw std::runtime_error(
-            "Unknown output_format: " + output_format + " (expected table|binary)");
     }
 
     std::cout << std::setprecision(out_prec);
@@ -818,7 +405,7 @@ int main(int argc, char* argv[]) try {
     }
 
     Config cfg(argv[1]);
-    std::string mode = cfg.get_string("mode", "normal");
+    RunMode mode = parse_mode(cfg);
     const std::string device = cfg.get_string("device", "cpu");
     if (device != "cpu" && device != "gpu") {
         throw std::runtime_error("Invalid device='" + device + "'; expected 'cpu' or 'gpu'");
@@ -827,7 +414,7 @@ int main(int argc, char* argv[]) try {
 #ifndef HRSC_HAS_CUDA
         throw std::runtime_error("device=gpu requires building with -DENABLE_CUDA=ON");
 #else
-        if (mode == "convergence") {
+        if (mode == RunMode::Convergence) {
             // Convergence sweep on GPU is out of scope for Week 6; the GPU
             // path is for the time-stepping smoke matrix and regression
             // gate. Convergence stays CPU-only until a later week.
@@ -839,7 +426,7 @@ int main(int argc, char* argv[]) try {
 #endif
     }
 
-    if (mode == "convergence") {
+    if (mode == RunMode::Convergence) {
         run_convergence(cfg);
     } else {
         run_normal(cfg);

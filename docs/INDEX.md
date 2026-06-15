@@ -80,6 +80,10 @@ Report 1 closeout / Report 2 transition:
 
 ```
 src/
+├── app/            # cases registry; cfg parsing/validation; diagnostics;
+│                   # output/checkpoint helpers for the hrsc executable
+├── cases/          # production case IC definitions; tests/cases keeps
+│                   # compatibility wrappers plus cfg files
 ├── core/           # types.hpp (TimeReal=double, NgHost), grid.hpp, vec.hpp,
 │                   # eos.hpp, boundary.hpp (Outflow/Periodic/Reflective per-axis)
 ├── euler/          # euler_solver.{hpp,cpp} (split for explicit instantiation)
@@ -89,18 +93,18 @@ src/
 │                   # euler_kernels.{cuh,cu}, gpu_grid/cuda utilities
 ├── utils/          # io.hpp (binary reader/writer; auto-creates parent dir),
 │                   # config.hpp (key=value parser)
-└── main.cpp        # cfg-driven entry; selects test, solver, BCs, precision
-                    # via HRSC_REAL macro from cmake/PrecisionConfig.cmake
+└── main.cpp        # cfg-driven executable entry; run dispatch and formatted
+                    # output, with precision via HRSC_REAL from CMake
 
 tests/
-├── unit/           # Catch2 CPU default suite (128 cases / 11925 assertions)
+├── unit/           # Catch2 CPU default suite (136 cases / 12105 assertions)
 │                   # test_boundary.cpp (10 cases / 572 assertions covers
 │                   # outflow/periodic/reflective × 1D/2D/dispatcher/MHD-shape)
 │                   # Week 6 adds opt-in [gpu] coverage when ENABLE_CUDA=ON
 ├── cases/
-│   ├── toro_1d/    # sod, toro2-5, stationary_contact (+ rusanov twins)
+│   ├── toro_1d/    # cfgs plus wrapper to src/cases/euler/toro_tests.hpp
 │   │               # convergence_*.cfg drive resolutions = 50,100,200,400,800
-│   └── liska_wendroff_2d/  # config3_n200, config3_n400, config3_n1600; legacy config3_ref800
+│   └── liska_wendroff_2d/  # cfgs plus wrapper to src/cases/euler/lw_tests.hpp
 └── py/             # Python-level tests (pytest): test_ssim_scalar, test_snr_*,
                     # test_losos_*, test_s_req_*, test_plot_divergence_marker
 ```

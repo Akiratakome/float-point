@@ -401,7 +401,7 @@ cancellation site: when kinetic energy approaches total energy the two operands
 are of like sign and comparable magnitude, violating the Sterbenz condition and
 shedding leading digits in the difference \citep{higham_2002}. This regime is
 reached in the high-Mach pockets of LW12, in particular the upper-right
-shock-interaction arc highlighted in Fig.~\ref{fig:ch5-lw12-precision-heatmap},
+shock-interaction arc highlighted in the LW12 panel of Fig.~\ref{fig:ch5-fp32-fp64-2d},
 and in the colliding-shock star state of Toro5. The recovered pressure feeds
 the sound speed \(a=\sqrt{\gamma p/\rho}\), which in turn enters the HLLC
 wave-speed estimates (Eq.~\ref{eq:ch3-hllc-wavespeeds}) and the contact speed
@@ -482,6 +482,7 @@ experiments.}
 The macro \texttt{RIEMANN\_STRICT\_INEQUALITY} toggles the HLLC dispatcher between $\le$ (baseline) and $<$ (strict) at the wave-speed-near-zero boundary, in \texttt{src/euler/hllc.hpp} (Listing~\ref{lst:strict-ineq}). The flip changes one comparator per branch decision; the flux algebra is otherwise untouched. Chapter~5 Section~\emph{Toro Test 2 Branch Stability} analyses the downstream consequence.
 
 %TC:ignore
+\needspace{10\baselineskip}
 \begin{lstlisting}[style=fpListing,
   caption={HLLC branch dispatcher: baseline ($\le$) vs strict ($<$) selected at compile time by \texttt{RIEMANN\_STRICT\_INEQUALITY} (\texttt{src/euler/hllc.hpp}, first of two parallel blocks).},
   label=lst:strict-ineq]

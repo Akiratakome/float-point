@@ -150,9 +150,9 @@ inline Vec<Real, EulerNVars> hllc_flux_traced(
         branch = "FL";
     }
 #ifdef RIEMANN_STRICT_INEQUALITY
-    else if (SL < Real(0) && Real(0) < Sstar) {
+    else if (Sstar > Real(0)) {
 #else
-    else if (SL <= Real(0) && Real(0) <= Sstar) {
+    else if (Sstar >= Real(0)) {
 #endif
         const Real coeff = rhoL * (SL - uL) / (SL - Sstar);
         const Vec<Real, EulerNVars> UstarL = {
@@ -165,11 +165,7 @@ inline Vec<Real, EulerNVars> hllc_flux_traced(
         flux = FL + (UstarL - qL) * SL;
         branch = "starL";
     }
-#ifdef RIEMANN_STRICT_INEQUALITY
-    else if (Sstar < Real(0) && Real(0) < SR) {
-#else
-    else if (Sstar <= Real(0) && Real(0) <= SR) {
-#endif
+    else if (SR >= Real(0)) {
         const Real coeff = rhoR * (SR - uR) / (SR - Sstar);
         const Vec<Real, EulerNVars> UstarR = {
             coeff,

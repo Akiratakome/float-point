@@ -474,9 +474,6 @@ TEST_CASE("hllc_flux: Sod interface gives reasonable flux", "[hllc]") {
     REQUIRE(f[RHOU] > 0.0);
 }
 
-// Symmetry test only valid with non-strict inequality (S_star=0 is an edge case
-// where strict < excludes both star regions, falling through to FR).
-#ifndef RIEMANN_STRICT_INEQUALITY
 TEST_CASE("hllc_flux: symmetry test", "[hllc]") {
     // Symmetric states: qL = (rho=2, u=1, v=0.5, p=3), qR = (rho=2, u=-1, v=0.5, p=3)
     // By symmetry: mass flux should be zero, momentum flux = 2*p_star region
@@ -493,7 +490,6 @@ TEST_CASE("hllc_flux: symmetry test", "[hllc]") {
     // Energy flux = 0 by symmetry
     REQUIRE(f[EN] == Approx(0.0).margin(1e-12));
 }
-#endif
 
 // --- rusanov_flux tests ---
 

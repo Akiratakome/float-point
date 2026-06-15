@@ -23,7 +23,8 @@ HD_FUNC Real hllc_max(Real a, Real b) {
 // HLLC approximate Riemann solver (Toro 2009, Chapter 10).
 // Takes left/right conserved states, returns intercell flux.
 // Wave speed estimates: Davis (simplest, robust).
-// Compile flag RIEMANN_STRICT_INEQUALITY controls <= vs < in flux selection.
+// RIEMANN_STRICT_INEQUALITY changes only the S* tie ownership. The dispatcher
+// remains ordered so S=0 boundaries do not fall through to the wrong wave.
 template <typename Real>
 HD_FUNC Vec<Real, EulerNVars> hllc_flux(
     const Vec<Real, EulerNVars>& qL, const Vec<Real, EulerNVars>& qR, Real gamma)
@@ -61,9 +62,9 @@ HD_FUNC Vec<Real, EulerNVars> hllc_flux(
     }
 
 #ifdef RIEMANN_STRICT_INEQUALITY
-    if (SL < Real(0) && Real(0) < S_star) {
+    if (S_star > Real(0)) {
 #else
-    if (SL <= Real(0) && Real(0) <= S_star) {
+    if (S_star >= Real(0)) {
 #endif
         // Left star state
         Real coeff = rhoL * (SL - uL) / (SL - S_star);
@@ -77,11 +78,7 @@ HD_FUNC Vec<Real, EulerNVars> hllc_flux(
         return FL + (U_starL - qL) * SL;
     }
 
-#ifdef RIEMANN_STRICT_INEQUALITY
-    if (S_star < Real(0) && Real(0) < SR) {
-#else
-    if (S_star <= Real(0) && Real(0) <= SR) {
-#endif
+    if (SR >= Real(0)) {
         // Right star state
         Real coeff = rhoR * (SR - uR) / (SR - S_star);
         Vec<Real, EulerNVars> U_starR = {
