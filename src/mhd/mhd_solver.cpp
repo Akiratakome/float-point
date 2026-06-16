@@ -1,9 +1,8 @@
 #include "mhd/mhd_solver.hpp"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
-#include <limits>
+#include <stdexcept>
 #include <vector>
 
 namespace hrsc {
@@ -27,6 +26,20 @@ void store_cell(GridView<Real, MhdNVars> gv, int i, const Vec<Real, MhdNVars>& U
 }
 
 template <typename Real>
+bool is_physical_state(const Vec<Real, MhdNVars>& U, Real gamma) {
+    for (int k = 0; k < MhdNVars; ++k) {
+        if (!std::isfinite(U[k])) {
+            return false;
+        }
+    }
+    if (!(U[MhdIdx::RHO] > Real(0))) {
+        return false;
+    }
+    const Real p = pressure(U, gamma);
+    return std::isfinite(p) && p > Real(0);
+}
+
+template <typename Real>
 void predict_faces(GridView<Real, MhdNVars> gv, int i, Real dt, Real gamma,
                    Real ch, Vec<Real, MhdNVars>& left,
                    Vec<Real, MhdNVars>& right) {
@@ -46,6 +59,20 @@ void predict_faces(GridView<Real, MhdNVars> gv, int i, Real dt, Real gamma,
         const Real predictor = half_dtdx * (FR[k] - FL[k]);
         left[k] -= predictor;
         right[k] -= predictor;
+    }
+
+    if (!is_physical_state(left, gamma) || !is_physical_state(right, gamma)) {
+        left = U0;
+        right = U0;
+    }
+}
+
+template <typename Real>
+void validate_physical_grid(GridView<Real, MhdNVars> gv, Real gamma) {
+    for (int i = 0; i < gv.nx; ++i) {
+        if (!is_physical_state(load_cell(gv, i), gamma)) {
+            throw std::runtime_error("MhdSolver produced nonphysical state");
+        }
     }
 }
 
@@ -89,19 +116,10 @@ MhdSolver<Real>::MhdSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl,
 template <typename Real>
 void MhdSolver<Real>::apply_bc() {
     auto gv = m_grid.view();
-    static constexpr std::array<int, 2> kFlipX = {MhdIdx::MX, MhdIdx::BX};
-
-    switch (m_bc_x) {
-        case BoundaryType::Outflow:
-            apply_outflow_bc(gv, Axis::X);
-            break;
-        case BoundaryType::Periodic:
-            apply_periodic_bc(gv, Axis::X);
-            break;
-        case BoundaryType::Reflective:
-            apply_reflective_bc(gv, Axis::X, kFlipX);
-            break;
+    if (m_bc_x != BoundaryType::Outflow) {
+        throw std::logic_error("MhdSolver Task 6 supports only outflow X boundary conditions");
     }
+    apply_outflow_bc(gv, Axis::X);
 }
 
 template <typename Real>
@@ -159,13 +177,18 @@ void MhdSolver<Real>::step() {
     const Real dtdx = dt / m_dx;
     for (int i = 0; i < nx; ++i) {
         Vec<Real, MhdNVars> U = load_cell(gv, i);
+        const Real bx = U[MhdIdx::BX];
         const auto& fL = flux[static_cast<std::size_t>(i)];
         const auto& fR = flux[static_cast<std::size_t>(i + 1)];
         for (int k = 0; k < MhdNVars; ++k) {
             U[k] -= dtdx * (fR[k] - fL[k]);
         }
+        U[MhdIdx::BX] = bx;
+        U[MhdIdx::PSI] = Real(0);
         store_cell(gv, i, U);
     }
+
+    validate_physical_grid(gv, m_gamma);
 
     m_time += dt_time;
     m_step++;
@@ -174,7 +197,11 @@ void MhdSolver<Real>::step() {
 template <typename Real>
 void MhdSolver<Real>::run() {
     while (m_time < m_t_end) {
+        const TimeReal old_time = m_time;
         step();
+        if (!(m_time > old_time)) {
+            throw std::runtime_error("MhdSolver step did not advance time");
+        }
     }
 }
 
