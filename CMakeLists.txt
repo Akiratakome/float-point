@@ -100,6 +100,9 @@ target_link_libraries(hrsc_app PUBLIC hrsc_core hrsc_euler)
 add_executable(hrsc src/main.cpp)
 target_link_libraries(hrsc PRIVATE hrsc_core hrsc_euler hrsc_app)
 
+add_executable(hrsc_mhd src/mhd_main.cpp)
+target_link_libraries(hrsc_mhd PRIVATE hrsc_core hrsc_mhd_lib)
+
 # --- Unit tests ---
 file(GLOB TEST_SOURCES tests/unit/test_*.cpp)
 add_executable(unit_tests ${TEST_SOURCES})
