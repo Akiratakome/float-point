@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -51,6 +52,12 @@ void predict_faces(GridView<Real, MhdNVars> gv, int i, Real dt, Real gamma,
     left = U0 - Real(0.5) * slope;
     right = U0 + Real(0.5) * slope;
 
+    if (!is_physical_state(left, gamma) || !is_physical_state(right, gamma)) {
+        left = U0;
+        right = U0;
+        return;
+    }
+
     const Vec<Real, MhdNVars> FL = mhd_flux_x(left, gamma, ch);
     const Vec<Real, MhdNVars> FR = mhd_flux_x(right, gamma, ch);
     const Real half_dtdx = Real(0.5) * dt / gv.dx;
@@ -70,8 +77,15 @@ void predict_faces(GridView<Real, MhdNVars> gv, int i, Real dt, Real gamma,
 template <typename Real>
 void validate_physical_grid(GridView<Real, MhdNVars> gv, Real gamma) {
     for (int i = 0; i < gv.nx; ++i) {
-        if (!is_physical_state(load_cell(gv, i), gamma)) {
-            throw std::runtime_error("MhdSolver produced nonphysical state");
+        const Vec<Real, MhdNVars> U = load_cell(gv, i);
+        if (!is_physical_state(U, gamma)) {
+            std::ostringstream msg;
+            msg << "MhdSolver produced nonphysical state at i=" << i
+                << " rho=" << U[MhdIdx::RHO];
+            if (std::isfinite(U[MhdIdx::RHO]) && U[MhdIdx::RHO] > Real(0)) {
+                msg << " p=" << pressure(U, gamma);
+            }
+            throw std::runtime_error(msg.str());
         }
     }
 }
@@ -183,6 +197,8 @@ void MhdSolver<Real>::step() {
         for (int k = 0; k < MhdNVars; ++k) {
             U[k] -= dtdx * (fR[k] - fL[k]);
         }
+        // Task 6 is 1D Brio-Wu without a GLM source step: the normal field is
+        // invariant, and psi is kept inactive here rather than treated as full GLM-MHD.
         U[MhdIdx::BX] = bx;
         U[MhdIdx::PSI] = Real(0);
         store_cell(gv, i, U);

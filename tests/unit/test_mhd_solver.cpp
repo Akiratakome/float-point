@@ -2,6 +2,7 @@
 #include "mhd/mhd_solver.hpp"
 
 #include <cmath>
+#include <stdexcept>
 
 using namespace hrsc;
 
@@ -37,14 +38,28 @@ TEST_CASE("MHD solver advances Brio-Wu without NaNs and keeps Bx≈const", "[mhd
     REQUIRE(solver.time() == Approx(0.02));
 }
 
-TEST_CASE("MHD solver keeps Brio-Wu physical at N800 through t=0.06", "[mhd][solver]") {
+TEST_CASE("MHD solver keeps Brio-Wu physical at N800 through t=0.1", "[mhd][solver]") {
     constexpr int nx = 800;
     constexpr double dx = 1.0 / nx;
 
-    MhdSolver<double> solver(nx, dx, 0.0, /*gamma=*/2.0, /*cfl=*/0.4, /*t_end=*/0.06);
+    MhdSolver<double> solver(nx, dx, 0.0, /*gamma=*/2.0, /*cfl=*/0.4, /*t_end=*/0.1);
     setup_brio_wu(solver.grid_view(), nx, dx, 0.0, 2.0, 0.5);
     solver.run();
 
     require_physical_brio_wu_state(solver.grid_view(), nx, 2.0, solver.step_count(), solver.time());
-    REQUIRE(solver.time() == Approx(0.06));
+    REQUIRE(solver.time() == Approx(0.1));
+}
+
+TEST_CASE("MHD solver rejects unsupported Periodic boundary conditions", "[mhd][solver]") {
+    MhdSolver<double> solver(16, 1.0/16, 0.0, 2.0, 0.4, 0.01, BoundaryType::Periodic);
+    setup_brio_wu(solver.grid_view(), 16, 1.0/16, 0.0, 2.0, 0.5);
+
+    REQUIRE_THROWS_AS(solver.step(), std::logic_error);
+}
+
+TEST_CASE("MHD solver rejects unsupported Reflective boundary conditions", "[mhd][solver]") {
+    MhdSolver<double> solver(16, 1.0/16, 0.0, 2.0, 0.4, 0.01, BoundaryType::Reflective);
+    setup_brio_wu(solver.grid_view(), 16, 1.0/16, 0.0, 2.0, 0.5);
+
+    REQUIRE_THROWS_AS(solver.run(), std::logic_error);
 }
