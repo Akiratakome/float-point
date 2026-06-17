@@ -1398,7 +1398,22 @@ void predict_faces(const Vec<Real, MhdNVars>& Um, const Vec<Real, MhdNVars>& U0,
 
 - [ ] **Step 3: Rewrite `step()` to call an x_sweep over all rows**
 
-Replace the body of `step()` to delegate to `x_sweep(dt)` (Task 15 adds `y_sweep` + glm). For now `x_sweep` loops `j` over every physical row and runs the existing interface loop per row using `load_cell(gv,i,j)` and `predict_faces(...)` with `h = gv.dx`. Keep the flux/update math identical to the current `step()` so `ny=1` reproduces Part-1 results exactly.
+Add `void x_sweep(Real ch, TimeReal dt);` (declare in the header next to `step`). `step()` computes the step controls **once** and passes them in — this exact wiring carries through Task 15 (do not let `x_sweep`/`y_sweep` recompute `ch`):
+
+```cpp
+template <typename Real>
+void MhdSolver<Real>::step() {
+    apply_bc();                                   // MUST precede sweeps: fills ghosts
+    const Real ch = compute_ch();                 // computed ONCE per step
+    const TimeReal dt_time = compute_dt(ch);
+    if (dt_time <= TimeReal(0)) return;
+    x_sweep(ch, dt_time);                          // Task 15 appends: y_sweep(ch, dt_time); glm_damp(...)
+    m_time += dt_time;
+    ++m_step;
+}
+```
+
+`x_sweep(Real ch, TimeReal dt_time)` loops `j` over every physical row `[0, ny)` and runs the existing interface loop per row using `load_cell(gv,i,j)` and the state-based `predict_faces(..., ch, gv.dx, ...)`. It does **not** call `apply_bc` or `compute_ch`, and does **not** touch `m_time`/`m_step` (step() owns those). Keep the per-row flux/update math identical to the current `step()` so `ny=1` reproduces Part-1 results exactly. `validate_physical_grid` moves to the end of `step()` (after all sweeps) in Task 15; for Task 13 it may stay at the end of `x_sweep`.
 
 - [ ] **Step 4: Run the regression gate**
 
@@ -1440,7 +1455,14 @@ TEST_CASE("MhdSolver 2D constructor builds an ny>1 grid", "[mhd][solver2d]") {
 
 - [ ] **Step 2: Add fields + 2D ctor declaration to the header**
 
-In `mhd_solver.hpp`, add `int m_ny; Real m_dy; Real m_ymin; BoundaryType m_bc_y; Real m_glm_cr;` and declare `void y_sweep(TimeReal dt);` plus:
+In `mhd_solver.hpp`, add the new fields **in declaration order matching the ctor initializer list** to keep `-Wextra`'s `-Wreorder` quiet. The simplest is to insert them adjacent to their relatives: `m_ymin` after `m_xmin`, `m_dy` after `m_dx`, and `m_ny`/`m_bc_y`/`m_glm_cr` after `m_bc_x`. Declare both sweeps with the `ch` parameter and the y-sweep:
+
+```cpp
+void x_sweep(Real ch, TimeReal dt);
+void y_sweep(Real ch, TimeReal dt);
+```
+
+plus the 2D constructor:
 
 ```cpp
 // 2D constructor
@@ -1530,11 +1552,12 @@ Expected: FAIL — `y_sweep` not yet wired (2D rows diverge or `setup_brio_wu_ro
 // y_sweep: for each column i, run the interface loop in j on ROTATED states,
 // then rotate the HLL flux back before applying the y-difference.
 template <typename Real>
-void MhdSolver<Real>::y_sweep(TimeReal dt_time) {
+void MhdSolver<Real>::y_sweep(Real ch, TimeReal dt_time) {
     if (m_ny <= 1) return;
     const Real dt = static_cast<Real>(dt_time);
     auto gv = m_grid.view();
-    const Real ch = compute_ch();
+    // ch is the SAME value step() used for compute_dt and glm_damp (do not
+    // recompute here: a post-x-sweep ch would not match the dt this sweep uses).
     const int nx = gv.nx, ny = gv.ny;
     for (int i = 0; i < nx; ++i) {
         std::vector<Vec<Real, MhdNVars>> flux(static_cast<std::size_t>(ny + 1));
@@ -1575,13 +1598,26 @@ ch = std::max(ch, std::abs(w.vy) + fast_speed_x(mhd_swap_xy_prim(w), m_gamma));
 Make `apply_bc` cover both axes and the ψ rule:
 
 ```cpp
+// helpers in the anonymous namespace (define BEFORE apply_axis_bc):
 template <typename Real>
-void MhdSolver<Real>::apply_bc() {
-    auto gv = m_grid.view();
-    apply_axis_bc(gv, Axis::X, m_bc_x);
-    if (m_ny > 1) apply_axis_bc(gv, Axis::Y, m_bc_y);
+void zero_psi_ghosts(GridView<Real, MhdNVars> gv, Axis axis) {
+    constexpr int ng = GridView<Real, MhdNVars>::ng;
+    const int nx = gv.nx, ny = gv.ny;
+    if (axis == Axis::X) {
+        for (int j = -ng; j < ny + ng; ++j)
+            for (int g = 1; g <= ng; ++g) {
+                gv(-g, j, MhdIdx::PSI)        = Real(0);
+                gv(nx - 1 + g, j, MhdIdx::PSI) = Real(0);
+            }
+    } else {
+        for (int i = -ng; i < nx + ng; ++i)
+            for (int g = 1; g <= ng; ++g) {
+                gv(i, -g, MhdIdx::PSI)        = Real(0);
+                gv(i, ny - 1 + g, MhdIdx::PSI) = Real(0);
+            }
+    }
 }
-// helper in the anonymous namespace:
+
 template <typename Real>
 void apply_axis_bc(GridView<Real, MhdNVars> gv, Axis axis, BoundaryType bc) {
     if (bc == BoundaryType::Outflow) {
@@ -1595,7 +1631,35 @@ void apply_axis_bc(GridView<Real, MhdNVars> gv, Axis axis, BoundaryType bc) {
 }
 ```
 
-Wire `step()` to: `apply_bc()` → `ch=compute_ch()` → `dt=compute_dt(ch)` → `x_sweep(dt)` → `y_sweep(dt)` → `glm_damp(gv, nx, ny, ch, m_glm_cr, (Real)dt)` → `validate_physical_grid`. (`x_sweep` keeps its own `apply_bc`-free body; BCs are applied once per step at the top.)
+```cpp
+template <typename Real>
+void MhdSolver<Real>::apply_bc() {
+    auto gv = m_grid.view();
+    apply_axis_bc(gv, Axis::X, m_bc_x);
+    if (m_ny > 1) apply_axis_bc(gv, Axis::Y, m_bc_y);
+}
+```
+
+Extend the Task-13 `step()` to append the y-sweep, damping, and final validation — `ch` and `dt_time` are still computed **once** at the top and shared by every stage:
+
+```cpp
+template <typename Real>
+void MhdSolver<Real>::step() {
+    apply_bc();
+    const Real ch = compute_ch();
+    const TimeReal dt_time = compute_dt(ch);
+    if (dt_time <= TimeReal(0)) return;
+    x_sweep(ch, dt_time);
+    y_sweep(ch, dt_time);                  // no-op when m_ny == 1
+    auto gv = m_grid.view();
+    glm_damp<Real>(gv, gv.nx, gv.ny, ch, m_glm_cr, static_cast<Real>(dt_time));
+    validate_physical_grid(gv, m_gamma);   // once, after all sweeps + damping
+    m_time += dt_time;
+    ++m_step;
+}
+```
+
+`x_sweep` and `y_sweep` are `apply_bc`-free (BCs applied once at the top) and must not advance `m_time`/`m_step`. Remove the per-sweep `validate_physical_grid` calls added in Task 13 (validation now happens once in `step()`). With `m_ny==1` and `m_glm_cr==0`, `y_sweep` returns immediately and `glm_damp` is a no-op, so the 1D path stays bit-identical.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -1643,9 +1707,57 @@ inline BoundaryType parse_mhd_boundary(const std::string& value) {
 }
 ```
 
-- [ ] **Step 2: Extend `mhd_main.cpp` for 2D**
+- [ ] **Step 2: Add the `divb_blob` test case (`mhd_config.hpp` + IC functions)**
 
-Parse `ny` (default 1), `ymin`/`ymax` (default 0/0), `bc_y` (default = `bc`), `glm_cr` (default 0.18), and add a `divb_blob` test case to `MhdTestCase`. Build the 2D solver when `ny>1`:
+Extend the enum + parser in `mhd_config.hpp`:
+
+```cpp
+enum class MhdTestCase { BrioWu, DivbBlob };
+
+inline MhdTestCase parse_mhd_test(const std::string& value) {
+    if (value == "brio_wu")   return MhdTestCase::BrioWu;
+    if (value == "divb_blob") return MhdTestCase::DivbBlob;
+    throw std::invalid_argument("unsupported MHD test case: " + value);
+}
+```
+
+Add the per-row Brio-Wu writer (used by Task 15's 2D test) and the divergent-bump IC, declared in `mhd_solver.hpp` and defined in `mhd_solver.cpp` next to `setup_brio_wu` (explicitly instantiated for float/double like the existing setup):
+
+```cpp
+// Per-row Brio-Wu: write the x-profile into a single row j (2D replication).
+template <typename Real>
+void setup_brio_wu_row(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
+                       Real gamma, Real x0, int j) {
+    for (int i = 0; i < nx; ++i) {
+        const Real x = xmin + (Real(i) + Real(0.5)) * dx;
+        MhdPrim<Real> w{};
+        w.rho = (x < x0) ? Real(1) : Real(0.125);
+        w.Bx = Real(0.75);
+        w.By = (x < x0) ? Real(1) : Real(-1);
+        w.p  = (x < x0) ? Real(1) : Real(0.1);
+        store_cell(gv, i, j, prim_to_cons(w, gamma));
+    }
+}
+
+// Doubly-periodic Gaussian Bx bump -> known smooth nonzero div(B)=dBx/dx.
+template <typename Real>
+void setup_divb_blob(GridView<Real, MhdNVars> gv, int nx, int ny,
+                     Real dx, Real dy, Real xmin, Real ymin, Real gamma) {
+    const Real B0 = Real(1), sigma = Real(0.1), xc = Real(0.5), yc = Real(0.5);
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            const Real x = xmin + (Real(i) + Real(0.5)) * dx;
+            const Real y = ymin + (Real(j) + Real(0.5)) * dy;
+            const Real r2 = (x - xc)*(x - xc) + (y - yc)*(y - yc);
+            MhdPrim<Real> w{};
+            w.rho = Real(1); w.p = Real(1);
+            w.Bx = B0 * std::exp(-r2 / (sigma * sigma));   // By=Bz=v=psi=0
+            store_cell(gv, i, j, prim_to_cons(w, gamma));
+        }
+}
+```
+
+Then extend `mhd_main.cpp` to parse the 2D keys and dispatch the IC:
 
 ```cpp
 const int ny = cfg.get_int("ny", 1);
@@ -1657,12 +1769,21 @@ const hrsc::BoundaryType bc_y =
 const Real dy = ny > 1 ? static_cast<Real>((ymax - ymin) / ny) : dx;
 hrsc::MhdSolver<Real> solver(nx, ny, dx, dy, (Real)xmin, (Real)ymin,
                              (Real)gamma, (Real)cfl, t_end, bc, bc_y, (Real)glm_cr);
-// setup per test case (brio_wu fills all rows; divb_blob seeds the Gaussian Bx bump)
-...
+auto gv = solver.grid_view();
+if (test == hrsc::MhdTestCase::BrioWu) {
+    for (int j = 0; j < ny; ++j)
+        hrsc::setup_brio_wu_row<Real>(gv, nx, dx, (Real)xmin, (Real)gamma, (Real)x0, j);
+} else { // DivbBlob
+    hrsc::setup_divb_blob<Real>(gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
+}
+solver.run();
+gv = solver.grid_view();
 hrsc::write_binary<Real, hrsc::MhdNVars>(out, gv, nx, ny, dx, dy, (Real)solver.time());
 ```
 
 Validate `ny>0`, `glm_cr>=0`, and `ymax>ymin` when `ny>1` in `validate_cfg`.
+
+> The existing 1D `setup_brio_wu` can now delegate to `setup_brio_wu_row(..., /*j=*/0)` to avoid duplicated IC logic; keep its current signature so Part-1 tests/`setup_brio_wu` call sites are unchanged.
 
 - [ ] **Step 3: Write the cfgs**
 
@@ -1728,7 +1849,15 @@ git commit -m "feat(mhd): 2D cfg parsing + Brio-Wu-2D and divb-blob cases"
 
 - [ ] **Step 1: Write the regression driver**
 
-A driver mirroring `scripts/regression/mhd_brio_wu_1d.py`'s provenance discipline (generated cfg, stdout/stderr, metadata.json, summary.{md,json}). For Brio-Wu-2D: run the cfg, read the binary, assert every row's density equals row 0 within 1e-10 (transverse invariance) and that the row-0 profile matches the committed 1D `bw_800.bin` density within 1e-10, and that `divB_max` from stderr ≤ 1e-12. Write `experiments/week12/mhd_2d/brio_wu_2d/summary.{md,json}`.
+A driver mirroring `scripts/regression/mhd_brio_wu_1d.py`'s provenance discipline (generated cfg, stdout/stderr, metadata.json, summary.{md,json}). For Brio-Wu-2D:
+
+1. **Regenerate the 1D reference in-process** — `bw_*.bin` are gitignored and not committed, so the driver must run `tests/cases/brio_wu_1d/brio_wu.cfg` (nx=800) itself into a temp output and read its density. Do **not** assume a committed `bw_800.bin` exists.
+2. Run `brio_wu_2d.cfg`, read the 2D binary.
+3. Assert **transverse invariance**: every row's density equals row 0 within 1e-12 (rows are identical ICs under periodic-y → must stay identical).
+4. Assert **1D match**: the 2D row-0 density equals the freshly-run 1D density within 1e-10.
+5. Assert `divB_max` (parsed from the 2D run's stderr) ≤ 1e-12.
+
+Write `experiments/week12/mhd_2d/brio_wu_2d/summary.{md,json}` with all three booleans and the max row-wise / 1D-vs-2D deviations.
 
 - [ ] **Step 2: Run it**
 
@@ -1806,7 +1935,8 @@ git commit -m "docs(mhd): record Week 12 Part 2 (2D MHD + GLM cleaning)"
 
 - **Spec coverage:** mhd_swap_xy (T11) · glm_damp + cfg c_r (T12) · state-based (i,j) refactor, 1D bit-preserved (T13) · 2D ctor, 1D delegates (T14) · y-sweep + 2D CFL + periodic/ψ BC + glm wiring (T15) · 2D cfg parsing + IO + cfgs (T16) · 2D Brio-Wu regression (T17) · div(B)-cleaning decay (T18) · docs + green gates (T19). All design-spec sections mapped.
 - **Out of scope (named):** Orszag-Tang/KH physics, HLLD, GPU MHD, reflective MHD BC, run_matrix MHD-awareness, 2D figures, Strang 2nd-order splitting — all carried to Week 13.
-- **Type consistency:** `mhd_swap_xy`/`mhd_swap_xy_prim`, `glm_damp`, `load_cell(gv,i,j)`/`store_cell(gv,i,j,U)`, state-based `predict_faces(Um,U0,Up,dt,gamma,ch,h,left,right)`, 2D `MhdSolver(nx,ny,dx,dy,xmin,ymin,gamma,cfl,t_end,bc_x,bc_y,glm_cr)`, `apply_axis_bc`/`zero_psi_ghosts`, `setup_brio_wu_row` used identically across tasks.
-- **1D-preservation gate** is explicit and repeated (T13 S4-S5, T15 S5, T19 S2): 1D ctor delegates with `glm_cr=0`, `ny=1` skips `y_sweep`, so Part-1 Brio-Wu stays bit-identical (`steps=759`, divB_max ≈ 4.441e-14).
-- **Known risks flagged:** member-init order vs `-Wreorder` (T14 S3); per-checkpoint output may be unavailable → fall back to increasing-`t_end` runs (T18 S1) with no solver change.
+- **Type consistency:** `mhd_swap_xy`/`mhd_swap_xy_prim`, `glm_damp`, `load_cell(gv,i,j)`/`store_cell(gv,i,j,U)`, state-based `predict_faces(Um,U0,Up,dt,gamma,ch,h,left,right)`, `x_sweep(ch,dt)`/`y_sweep(ch,dt)`, 2D `MhdSolver(nx,ny,dx,dy,xmin,ymin,gamma,cfl,t_end,bc_x,bc_y,glm_cr)`, `apply_axis_bc`/`zero_psi_ghosts`, `setup_brio_wu_row`/`setup_divb_blob`, `parse_mhd_test(divb_blob)` used identically across tasks.
+- **1D-preservation gate** is explicit and repeated (T13 S4-S5, T15 S5, T19 S2): 1D ctor delegates with `glm_cr=0`, `ny=1` skips `y_sweep`, `glm_damp` no-ops, so Part-1 Brio-Wu stays bit-identical (`steps=759`, divB_max ≈ 4.441e-14).
+- **Plan-review fixes incorporated (2026-06-17):** (#1) `ch`/`dt` computed once in `step()` and passed into `x_sweep(ch,dt)`/`y_sweep(ch,dt)`/`glm_damp` — no per-sweep `compute_ch`, so the y-sweep CFL matches the `dt` it uses; (#2) `divb_blob` wired into `parse_mhd_test` with a concrete `setup_divb_blob`; (#3) Task 17 regenerates the 1D reference in-process (no reliance on the gitignored `bw_800.bin`); (#4) `step()` explicitly calls `apply_bc()` before the BC-free sweeps; (#5) concrete `zero_psi_ghosts` body provided.
+- **Known risks flagged:** member-init order vs `-Wreorder` is non-fatal (build uses `-Wall -Wextra`, **not** `-Werror`) but fields are declared in ctor-init order to keep it clean (T14 S2); per-checkpoint output may be unavailable → fall back to increasing-`t_end` runs (T18 S1) with no solver change; the `predict_faces` 2× recompute (1D code-review finding) is carried into `y_sweep` — correctness-neutral, optimize both sweeps together later.
 - **Reuse points (confirmed):** Euler rotate-and-reuse precedent (`euler_solver.cpp:258`); `apply_periodic_bc`/`apply_outflow_bc` generic on NVars; `Grid2D.dx/dy` fields set before `view()`; `compute_divB_norms` already 2D-capable (`error_norms.hpp`).
