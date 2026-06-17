@@ -43,6 +43,7 @@
 | 5 | [week5-plan.md](week5/week5-plan.md) | [week5-summary.md](week5/week5-summary.md) | [week5/archive/](week5/archive/) |
 | 6 | [week6-plan.md](week6/week6-plan.md) | [week6-summary.md](week6/week6-summary.md) | [week6/archive/](week6/archive/) |
 | 7 | [week7-plan.md](week7/week7-plan.md) | Report 1 evidence complete; see [report1_evidence_map.md](experiment_logs/report1_evidence_map.md) | (none) |
+| 12 | [week12-plan.md](week12/week12-plan.md) | [week12-summary.md](week12/week12-summary.md) | (none) |
 
 Week 4 also keeps:
 - [week4-verification.md](week4/week4-verification.md) — manual verification checklist (Phase B/C reproduction recipe)
@@ -73,6 +74,7 @@ Week 7 deliverables:
 Report 1 closeout / Report 2 transition:
 - Report 1 is complete. Use [report1_evidence_map.md](experiment_logs/report1_evidence_map.md) as the current source of truth for Report 1 evidence priority and exclusions.
 - Report 2 code work should start from [requirement/overall.md](requirement/overall.md) Phase 2, preserving the harness flow in [HARNESS.md](HARNESS.md).
+- Week 12 delivers the 1D MHD walking skeleton for Report 2: additive 9-variable ideal-MHD state/flux/HLL/solver code, a cfg-driven `hrsc_mhd` executable, Brio-Wu validation, and a `divB` sentinel while leaving Report-1 Euler numerics untouched.
 
 ---
 
