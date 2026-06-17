@@ -1,0 +1,32 @@
+{
+  "experiment": "week12-brio-wu-1d",
+  "name": "bw_8000_double",
+  "timestamp_utc": "2026-06-17T13:36:49.181984+00:00",
+  "git_commit": "0b5d2b5e54f86bf4d847111c127d2c0891eda120",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+  "binary_sha256": "950cc30a1efe2cb789e68ae4411de761939e8c5aef11255b1d65e3dc2d76a5ad",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\brio_wu_1d\\runs\\bw_8000_double\\config.cfg",
+  "run_config_sha256": "a52213504a892c3c6b5354765134559ac3ba2f06230d73eb3286ac850d8105fd",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx = 8000\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\brio_wu_1d\\bw_8000.bin\n",
+  "precision": "double",
+  "build": "build-double",
+  "nx": 8000,
+  "raw_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\brio_wu_1d\\bw_8000.bin",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\brio_wu_1d\\runs\\bw_8000_double\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 9.930752500004019,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\brio_wu_1d\\runs\\bw_8000_double\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\brio_wu_1d\\runs\\bw_8000_double\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.1,
+    "steps": 7604,
+    "divB_mean": 5.908e-14,
+    "divB_max": 1.776e-12,
+    "line": "[mhd] t=0.100000 steps=7604 divB_mean=5.908e-14 divB_max=1.776e-12"
+  }
+}

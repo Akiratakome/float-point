@@ -1,0 +1,121 @@
+{
+  "experiment": "week12-brio-wu-1d",
+  "reference_nx": 8000,
+  "candidate_nx": [
+    200,
+    400,
+    800
+  ],
+  "metric": "density self-convergence vs block-averaged aligned N=8000 double reference",
+  "monotonic_convergence": {
+    "candidate_nx": [
+      200,
+      400,
+      800
+    ],
+    "strictly_decreasing_L1_L2": true,
+    "metrics": {
+      "L1": {
+        "strictly_decreasing": true,
+        "values": [
+          0.014805544029617243,
+          0.009463267337920083,
+          0.005641657501720635
+        ]
+      },
+      "L2": {
+        "strictly_decreasing": true,
+        "values": [
+          0.03641584347124795,
+          0.02713725547810314,
+          0.01923044535066573
+        ]
+      }
+    }
+  },
+  "runs": [
+    {
+      "nx": 8000,
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\brio_wu_1d\\runs\\bw_8000_double\\metadata.json",
+      "elapsed_wall_s": 9.930752500004019,
+      "stderr_diagnostics": {
+        "t": 0.1,
+        "steps": 7604,
+        "divB_mean": 5.908e-14,
+        "divB_max": 1.776e-12,
+        "line": "[mhd] t=0.100000 steps=7604 divB_mean=5.908e-14 divB_max=1.776e-12"
+      },
+      "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+      "run_config_sha256": "a52213504a892c3c6b5354765134559ac3ba2f06230d73eb3286ac850d8105fd",
+      "binary_sha256": "950cc30a1efe2cb789e68ae4411de761939e8c5aef11255b1d65e3dc2d76a5ad"
+    },
+    {
+      "nx": 200,
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\brio_wu_1d\\runs\\bw_200_double\\metadata.json",
+      "elapsed_wall_s": 0.017846900002041366,
+      "stderr_diagnostics": {
+        "t": 0.1,
+        "steps": 189,
+        "divB_mean": 0.0,
+        "divB_max": 0.0,
+        "line": "[mhd] t=0.100000 steps=189 divB_mean=0.000e+00 divB_max=0.000e+00"
+      },
+      "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+      "run_config_sha256": "47484d085bb1e1a016751e13baf08f98450ab7a0dcf4530388fc0ec780770683",
+      "binary_sha256": "950cc30a1efe2cb789e68ae4411de761939e8c5aef11255b1d65e3dc2d76a5ad"
+    },
+    {
+      "nx": 400,
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\brio_wu_1d\\runs\\bw_400_double\\metadata.json",
+      "elapsed_wall_s": 0.03721600000426406,
+      "stderr_diagnostics": {
+        "t": 0.1,
+        "steps": 379,
+        "divB_mean": 0.0,
+        "divB_max": 0.0,
+        "line": "[mhd] t=0.100000 steps=379 divB_mean=0.000e+00 divB_max=0.000e+00"
+      },
+      "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+      "run_config_sha256": "0841fff867aee428d7dc8818377f848dab7825fc5564d4dddde3816c3a6d8cff",
+      "binary_sha256": "950cc30a1efe2cb789e68ae4411de761939e8c5aef11255b1d65e3dc2d76a5ad"
+    },
+    {
+      "nx": 800,
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\brio_wu_1d\\runs\\bw_800_double\\metadata.json",
+      "elapsed_wall_s": 0.09608509999816306,
+      "stderr_diagnostics": {
+        "t": 0.1,
+        "steps": 759,
+        "divB_mean": 3.339e-16,
+        "divB_max": 4.441e-14,
+        "line": "[mhd] t=0.100000 steps=759 divB_mean=3.339e-16 divB_max=4.441e-14"
+      },
+      "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+      "run_config_sha256": "5e66a0a81c67a2ded1b0d9275602ba707916744ac37de6d39a42b16b2df19b9d",
+      "binary_sha256": "950cc30a1efe2cb789e68ae4411de761939e8c5aef11255b1d65e3dc2d76a5ad"
+    }
+  ],
+  "rows": [
+    {
+      "nx": 200,
+      "reference_nx": 8000,
+      "L1": 0.014805544029617243,
+      "L2": 0.03641584347124795,
+      "Linf": 0.20834925977284052
+    },
+    {
+      "nx": 400,
+      "reference_nx": 8000,
+      "L1": 0.009463267337920083,
+      "L2": 0.02713725547810314,
+      "Linf": 0.1914836011322807
+    },
+    {
+      "nx": 800,
+      "reference_nx": 8000,
+      "L1": 0.005641657501720635,
+      "L2": 0.01923044535066573,
+      "Linf": 0.15468487592814972
+    }
+  ]
+}

@@ -15,14 +15,14 @@ Density errors compare each candidate against a block-averaged aligned N=8000 do
 
 | N | reference N | L1(rho) | L2(rho) | Linf(rho) |
 |---:|---:|---:|---:|---:|
-| 200 | 8000 | 1.134358e-02 | 3.131551e-02 | 1.969059e-01 |
-| 400 | 8000 | 6.791221e-03 | 2.266974e-02 | 1.931163e-01 |
-| 800 | 8000 | 3.848017e-03 | 1.577020e-02 | 1.585979e-01 |
+| 200 | 8000 | 1.480554e-02 | 3.641584e-02 | 2.083493e-01 |
+| 400 | 8000 | 9.463267e-03 | 2.713726e-02 | 1.914836e-01 |
+| 800 | 8000 | 5.641658e-03 | 1.923045e-02 | 1.546849e-01 |
 
 The real Brio-Wu sentinel run completed with:
 
 ```text
-[mhd] t=0.100000 steps=760 divB_mean=0.000e+00 divB_max=0.000e+00
+[mhd] t=0.100000 steps=759 divB_mean=3.339e-16 divB_max=4.441e-14
 ```
 
 Generated cfgs, stdout, stderr, metadata, and scalar summaries live under `experiments/week12/brio_wu_1d/`. Binary grids remain ignored/transient and are not committed. N=8000 was run locally for this one Week 12 validation; larger or repeated reference sweeps should move to CSC.
