@@ -191,16 +191,11 @@ void MhdSolver<Real>::step() {
     const Real dtdx = dt / m_dx;
     for (int i = 0; i < nx; ++i) {
         Vec<Real, MhdNVars> U = load_cell(gv, i);
-        const Real bx = U[MhdIdx::BX];
         const auto& fL = flux[static_cast<std::size_t>(i)];
         const auto& fR = flux[static_cast<std::size_t>(i + 1)];
         for (int k = 0; k < MhdNVars; ++k) {
             U[k] -= dtdx * (fR[k] - fL[k]);
         }
-        // Task 6 is 1D Brio-Wu without a GLM source step: the normal field is
-        // invariant, and psi is kept inactive here rather than treated as full GLM-MHD.
-        U[MhdIdx::BX] = bx;
-        U[MhdIdx::PSI] = Real(0);
         store_cell(gv, i, U);
     }
 

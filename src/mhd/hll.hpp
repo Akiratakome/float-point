@@ -15,8 +15,8 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hll_flux(const Vec<Real, MhdNVars>& UL,
     const Real cfL = fast_speed_x(wl, gamma);
     const Real cfR = fast_speed_x(wr, gamma);
 
-    const Real SL = std::min(wl.vx - cfL, wr.vx - cfR);
-    const Real SR = std::max(wr.vx + cfR, wl.vx + cfL);
+    const Real SL = std::min(std::min(wl.vx - cfL, wr.vx - cfR), -ch);
+    const Real SR = std::max(std::max(wr.vx + cfR, wl.vx + cfL), ch);
 
     const Vec<Real, MhdNVars> FL = mhd_flux_x(UL, gamma, ch);
     const Vec<Real, MhdNVars> FR = mhd_flux_x(UR, gamma, ch);

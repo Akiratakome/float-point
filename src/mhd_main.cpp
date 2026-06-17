@@ -1,6 +1,7 @@
 #include "utils/config.hpp"
 #include "utils/error_norms.hpp"
 #include "utils/io.hpp"
+#include "mhd/mhd_config.hpp"
 #include "mhd/mhd_solver.hpp"
 
 #include <cmath>
@@ -59,14 +60,18 @@ int main(int argc, char** argv) try {
     const double cfl   = cfg.get_double("cfl", 0.4);
     const double t_end = cfg.get_double("t_end", 0.1);
     const double x0    = cfg.get_double("x0", 0.5);
+    const hrsc::MhdTestCase test = hrsc::parse_mhd_test(cfg.get_string("test", "brio_wu"));
+    const hrsc::BoundaryType bc = hrsc::parse_mhd_boundary(cfg.get_string("bc", "outflow"));
     const std::string out = cfg.get_string("output_file", "");
     validate_cfg(nx, xmin, xmax, gamma, cfl, t_end, x0);
 
     const Real dx = static_cast<Real>((xmax - xmin) / nx);
     hrsc::MhdSolver<Real> solver(nx, dx, static_cast<Real>(xmin),
-                                 static_cast<Real>(gamma), static_cast<Real>(cfl), t_end);
-    hrsc::setup_brio_wu<Real>(solver.grid_view(), nx, dx, static_cast<Real>(xmin),
-                              static_cast<Real>(gamma), static_cast<Real>(x0));
+                                 static_cast<Real>(gamma), static_cast<Real>(cfl), t_end, bc);
+    if (test == hrsc::MhdTestCase::BrioWu) {
+        hrsc::setup_brio_wu<Real>(solver.grid_view(), nx, dx, static_cast<Real>(xmin),
+                                  static_cast<Real>(gamma), static_cast<Real>(x0));
+    }
     solver.run();
 
     auto gv = solver.grid_view();

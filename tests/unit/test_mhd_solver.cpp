@@ -63,3 +63,42 @@ TEST_CASE("MHD solver rejects unsupported Reflective boundary conditions", "[mhd
 
     REQUIRE_THROWS_AS(solver.run(), std::logic_error);
 }
+
+TEST_CASE("MHD solver evolves Bx/psi instead of clamping GLM variables", "[mhd][solver]") {
+    constexpr int nx = 32;
+    constexpr double dx = 1.0 / nx;
+    MhdSolver<double> solver(nx, dx, 0.0, /*gamma=*/2.0, /*cfl=*/0.1, /*t_end=*/0.001);
+    auto gv = solver.grid_view();
+
+    for (int i = 0; i < nx; ++i) {
+        const double x = (i + 0.5) * dx;
+        MhdPrim<double> w{};
+        w.rho = 1.0;
+        w.vx = 0.0;
+        w.vy = 0.0;
+        w.vz = 0.0;
+        w.Bx = 0.6 + 0.05 * std::sin(2.0 * 3.14159265358979323846 * x);
+        w.By = 0.0;
+        w.Bz = 0.0;
+        w.p = 1.0;
+        w.psi = 0.0;
+        const Vec<double, MhdNVars> U = prim_to_cons(w, 2.0);
+        for (int k = 0; k < MhdNVars; ++k) {
+            gv(i, 0, k) = U[k];
+        }
+    }
+
+    solver.step();
+
+    double max_abs_psi = 0.0;
+    double max_bx_delta = 0.0;
+    for (int i = 0; i < nx; ++i) {
+        const double x = (i + 0.5) * dx;
+        const double initial_bx = 0.6 + 0.05 * std::sin(2.0 * 3.14159265358979323846 * x);
+        max_abs_psi = std::max(max_abs_psi, std::abs(gv(i, 0, MhdIdx::PSI)));
+        max_bx_delta = std::max(max_bx_delta, std::abs(gv(i, 0, MhdIdx::BX) - initial_bx));
+    }
+
+    REQUIRE(max_abs_psi > 1e-8);
+    REQUIRE(max_bx_delta > 1e-8);
+}

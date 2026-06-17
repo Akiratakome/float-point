@@ -29,8 +29,8 @@ TEST_CASE("HLL is conservative (consistency)", "[mhd][hll]") {
 
     const double cfL = fast_speed_x(wl, gamma);
     const double cfR = fast_speed_x(wr, gamma);
-    const double SL = std::min(wl.vx - cfL, wr.vx - cfR);
-    const double SR = std::max(wr.vx + cfR, wl.vx + cfL);
+    const double SL = std::min(std::min(wl.vx - cfL, wr.vx - cfR), -ch);
+    const double SR = std::max(std::max(wr.vx + cfR, wl.vx + cfL), ch);
     Vec<double, MhdNVars> FL = mhd_flux_x(UL, gamma, ch);
     Vec<double, MhdNVars> FR = mhd_flux_x(UR, gamma, ch);
 
@@ -52,7 +52,7 @@ TEST_CASE("HLL returns the left flux when all waves move right", "[mhd][hll]") {
 
     Vec<double, MhdNVars> UL = prim_to_cons(wl, gamma);
     Vec<double, MhdNVars> UR = prim_to_cons(wr, gamma);
-    const double ch = 3.0;
+    const double ch = 0.0;
 
     REQUIRE(std::min(wl.vx - fast_speed_x(wl, gamma),
                      wr.vx - fast_speed_x(wr, gamma)) > 0.0);
@@ -73,7 +73,7 @@ TEST_CASE("HLL returns the right flux when all waves move left", "[mhd][hll]") {
 
     Vec<double, MhdNVars> UL = prim_to_cons(wl, gamma);
     Vec<double, MhdNVars> UR = prim_to_cons(wr, gamma);
-    const double ch = 3.0;
+    const double ch = 0.0;
 
     REQUIRE(std::max(wr.vx + fast_speed_x(wr, gamma),
                      wl.vx + fast_speed_x(wl, gamma)) < 0.0);
@@ -82,4 +82,19 @@ TEST_CASE("HLL returns the right flux when all waves move left", "[mhd][hll]") {
     Vec<double, MhdNVars> Fright = mhd_flux_x(UR, gamma, ch);
     for (int k = 0; k < MhdNVars; ++k)
         REQUIRE(Fhll[k] == Approx(Fright[k]));
+}
+
+TEST_CASE("HLL wave-speed envelope includes GLM cleaning waves", "[mhd][hll]") {
+    const double gamma = 2.0;
+    MhdPrim<double> wl{}, wr{};
+    wl.rho = 1.0; wl.Bx = 0.5; wl.p = 1.0;
+    wr.rho = 1.0; wr.Bx = 0.7; wr.p = 1.0;
+    Vec<double, MhdNVars> UL = prim_to_cons(wl, gamma);
+    Vec<double, MhdNVars> UR = prim_to_cons(wr, gamma);
+    const double ch = 10.0;
+
+    Vec<double, MhdNVars> F = mhd_hll_flux(UL, UR, gamma, ch);
+
+    const double expected_bx_flux = -0.5 * ch * (UR[MhdIdx::BX] - UL[MhdIdx::BX]);
+    REQUIRE(F[MhdIdx::BX] == Approx(expected_bx_flux));
 }
