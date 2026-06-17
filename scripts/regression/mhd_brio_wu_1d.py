@@ -116,11 +116,14 @@ def run_resolution(nx: int, commit: str, bin_path: pathlib.Path, binary_sha256: 
     run_dir = OUT / "runs" / f"bw_{nx}_double"
     run_dir.mkdir(parents=True, exist_ok=True)
     raw_output = OUT / f"bw_{nx}.bin"
+    if raw_output.exists():
+        raw_output.unlink()
     cfg_path, cfg_text = write_run_config(nx, run_dir, raw_output)
 
     stdout_path = run_dir / "stdout.txt"
     stderr_path = run_dir / "stderr.txt"
     command = [str(bin_path), str(cfg_path)]
+    run_start_wall_s = time.time()
     start = time.perf_counter()
     with stdout_path.open("w", encoding="utf-8") as stdout, stderr_path.open(
         "w", encoding="utf-8"
@@ -164,6 +167,16 @@ def run_resolution(nx: int, commit: str, bin_path: pathlib.Path, binary_sha256: 
     )
     if result.returncode != 0:
         raise RuntimeError(f"run failed for nx={nx}; see {stderr_path}")
+    if not raw_output.is_file():
+        raise RuntimeError(
+            f"run returned 0 for nx={nx} but did not produce {raw_output}; see {stderr_path}"
+        )
+    raw_output_mtime_s = raw_output.stat().st_mtime
+    if raw_output_mtime_s < run_start_wall_s:
+        raise RuntimeError(
+            f"run returned 0 for nx={nx} but {raw_output} is older than the run start; "
+            f"see {stderr_path}"
+        )
 
     header, arr = read_binary(raw_output)
     if header.nvars != 9:
