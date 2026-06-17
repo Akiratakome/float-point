@@ -4,10 +4,10 @@ Week 12 delivered an additive 1D ideal-MHD path for Report 2 while keeping the e
 
 ## Delivered
 
-- 9-variable MHD conserved state with primitive conversion, pressure, fast-speed helper, source-free GLM-compatible x-flux, and HLL flux.
-- Minmod MUSCL reconstruction, 1D MUSCL-Hancock MHD solver, Brio-Wu initial condition, and `hrsc_mhd` cfg-driven executable.
-- `compute_divB_norms` diagnostic and unit coverage for MHD state/flux/HLL/reconstruction/solver/divB.
-- Brio-Wu production/reference cfgs and a local self-converged double validation harness producing L1/L2/Linf summaries.
+- MHD core files: `src/mhd/mhd_state.hpp`, `src/mhd/mhd_flux.hpp`, `src/mhd/hll.hpp`, `src/mhd/mhd_reconstruct.hpp`, `src/mhd/mhd_solver.hpp`, `src/mhd/mhd_solver.cpp`.
+- Executable and diagnostics: `src/mhd_main.cpp` for `hrsc_mhd`, plus `src/utils/error_norms.hpp` for `compute_divB_norms`.
+- Tests and cfgs: `tests/unit/test_mhd_*.cpp`, `tests/unit/test_divb.cpp`, `tests/cases/brio_wu_1d/brio_wu.cfg`, `tests/cases/brio_wu_1d/brio_wu_ref.cfg`.
+- Validation/docs: `scripts/regression/mhd_brio_wu_1d.py`, `docs/INDEX.md`, and `docs/week12/week12-summary.md`.
 
 ## Brio-Wu Validation
 
