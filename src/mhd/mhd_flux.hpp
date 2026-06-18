@@ -35,4 +35,12 @@ HD_FUNC Vec<Real, MhdNVars> mhd_swap_xy(const Vec<Real, MhdNVars>& U) {
     return S;
 }
 
+template <typename Real>
+HD_FUNC MhdPrim<Real> mhd_swap_xy_prim(const MhdPrim<Real>& w) {
+    MhdPrim<Real> s = w;
+    s.vx = w.vy; s.vy = w.vx;
+    s.Bx = w.By; s.By = w.Bx;
+    return s;
+}
+
 } // namespace hrsc

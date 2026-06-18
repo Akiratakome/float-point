@@ -50,8 +50,8 @@ TEST_CASE("MHD solver keeps Brio-Wu physical at N800 through t=0.1", "[mhd][solv
     REQUIRE(solver.time() == Approx(0.1));
 }
 
-TEST_CASE("MHD solver rejects unsupported Periodic boundary conditions", "[mhd][solver]") {
-    MhdSolver<double> solver(16, 1.0/16, 0.0, 2.0, 0.4, 0.01, BoundaryType::Periodic);
+TEST_CASE("MHD solver rejects unsupported Reflective X boundary via step", "[mhd][solver]") {
+    MhdSolver<double> solver(16, 1.0/16, 0.0, 2.0, 0.4, 0.01, BoundaryType::Reflective);
     setup_brio_wu(solver.grid_view(), 16, 1.0/16, 0.0, 2.0, 0.5);
 
     REQUIRE_THROWS_AS(solver.step(), std::logic_error);
@@ -71,6 +71,23 @@ TEST_CASE("MhdSolver 2D constructor builds an ny>1 grid", "[mhd][solver2d]") {
     auto gv = s.grid_view();
     REQUIRE(gv.nx == 16);
     REQUIRE(gv.ny == 4);
+}
+
+TEST_CASE("2D Brio-Wu (ny=4, periodic-y) reproduces 1D row-wise", "[mhd][solver2d]") {
+    const int nx = 128, ny = 4;
+    const double dx = 1.0/nx, t_end = 0.05;
+    MhdSolver<double> s1(nx, dx, 0.0, 2.0, 0.4, t_end);              // 1D
+    setup_brio_wu(s1.grid_view(), nx, dx, 0.0, 2.0, 0.5);
+    s1.run();
+    MhdSolver<double> s2(nx, ny, dx, dx, 0.0, 0.0, 2.0, 0.4, t_end,  // 2D, periodic-y, GLM on
+                         BoundaryType::Outflow, BoundaryType::Periodic, 0.18);
+    auto gv2 = s2.grid_view();
+    for (int j = 0; j < ny; ++j) setup_brio_wu_row(gv2, nx, dx, 0.0, 2.0, 0.5, j);
+    s2.run();
+    auto gv1 = s1.grid_view();
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i)
+            REQUIRE(gv2(i, j, MhdIdx::RHO) == Approx(gv1(i, 0, MhdIdx::RHO)).margin(1e-10));
 }
 
 TEST_CASE("MHD solver evolves Bx/psi instead of clamping GLM variables", "[mhd][solver]") {

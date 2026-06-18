@@ -13,6 +13,10 @@ void setup_brio_wu(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
                    Real gamma, Real x0);
 
 template <typename Real>
+void setup_brio_wu_row(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
+                       Real gamma, Real x0, int j);
+
+template <typename Real>
 class MhdSolver {
     Grid2D<Real, MhdNVars> m_grid;
     Real m_xmin;
@@ -32,6 +36,7 @@ class MhdSolver {
     void apply_bc();
     Real compute_ch() const;
     void x_sweep(Real ch, TimeReal dt);
+    void y_sweep(Real ch, TimeReal dt);
 
 public:
     // 1D convenience constructor

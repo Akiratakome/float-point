@@ -1,4 +1,5 @@
 #include "mhd/mhd_solver.hpp"
+#include "mhd/glm.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -93,6 +94,37 @@ void validate_physical_grid(GridView<Real, MhdNVars> gv, Real gamma) {
     }
 }
 
+template <typename Real>
+void zero_psi_ghosts(GridView<Real, MhdNVars> gv, Axis axis) {
+    constexpr int ng = GridView<Real, MhdNVars>::ng;
+    const int nx = gv.nx, ny = gv.ny;
+    if (axis == Axis::X) {
+        for (int j = -ng; j < ny + ng; ++j)
+            for (int g = 1; g <= ng; ++g) {
+                gv(-g, j, MhdIdx::PSI)         = Real(0);
+                gv(nx - 1 + g, j, MhdIdx::PSI) = Real(0);
+            }
+    } else {
+        for (int i = -ng; i < nx + ng; ++i)
+            for (int g = 1; g <= ng; ++g) {
+                gv(i, -g, MhdIdx::PSI)         = Real(0);
+                gv(i, ny - 1 + g, MhdIdx::PSI) = Real(0);
+            }
+    }
+}
+
+template <typename Real>
+void apply_axis_bc(GridView<Real, MhdNVars> gv, Axis axis, BoundaryType bc) {
+    if (bc == BoundaryType::Outflow) {
+        apply_outflow_bc(gv, axis);
+        zero_psi_ghosts(gv, axis);
+    } else if (bc == BoundaryType::Periodic) {
+        apply_periodic_bc(gv, axis);
+    } else {
+        throw std::logic_error("MhdSolver supports only outflow/periodic BCs");
+    }
+}
+
 } // namespace
 
 template <typename Real>
@@ -146,10 +178,8 @@ MhdSolver<Real>::MhdSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl,
 template <typename Real>
 void MhdSolver<Real>::apply_bc() {
     auto gv = m_grid.view();
-    if (m_bc_x != BoundaryType::Outflow) {
-        throw std::logic_error("MhdSolver Task 6 supports only outflow X boundary conditions");
-    }
-    apply_outflow_bc(gv, Axis::X);
+    apply_axis_bc(gv, Axis::X, m_bc_x);
+    if (m_ny > 1) apply_axis_bc(gv, Axis::Y, m_bc_y);
 }
 
 template <typename Real>
@@ -218,20 +248,54 @@ void MhdSolver<Real>::x_sweep(Real ch, TimeReal dt_time) {
 }
 
 template <typename Real>
+void MhdSolver<Real>::y_sweep(Real ch, TimeReal dt_time) {
+    if (m_ny <= 1) return;
+    const Real dt = static_cast<Real>(dt_time);
+    auto gv = m_grid.view();
+    const int nx = gv.nx, ny = gv.ny;
+    // Load from post-x-sweep physical cells directly (no ghost cells) so stale
+    // Y-ghosts from apply_bc() cannot introduce spurious cross-row differences.
+    // Periodic wraps into [0, ny); outflow clamps to edge row.
+    auto load_y = [&](int col, int row) -> Vec<Real, MhdNVars> {
+        if (row >= 0 && row < ny) return load_cell(gv, col, row);
+        if (m_bc_y == BoundaryType::Periodic)
+            return load_cell(gv, col, ((row % ny) + ny) % ny);
+        return load_cell(gv, col, std::max(0, std::min(ny - 1, row)));
+    };
+    for (int i = 0; i < nx; ++i) {
+        std::vector<Vec<Real, MhdNVars>> flux(static_cast<std::size_t>(ny + 1));
+        for (int jf = 0; jf <= ny; ++jf) {
+            const int jL = jf - 1, jR = jf;
+            Vec<Real, MhdNVars> lcl{}, lcr{}, rcl{}, rcr{};
+            predict_faces(mhd_swap_xy(load_y(i, jL - 1)), mhd_swap_xy(load_y(i, jL)),
+                          mhd_swap_xy(load_y(i, jL + 1)), dt, m_gamma, ch, m_dy, lcl, lcr);
+            predict_faces(mhd_swap_xy(load_y(i, jR - 1)), mhd_swap_xy(load_y(i, jR)),
+                          mhd_swap_xy(load_y(i, jR + 1)), dt, m_gamma, ch, m_dy, rcl, rcr);
+            flux[static_cast<std::size_t>(jf)] =
+                mhd_swap_xy(mhd_hll_flux(lcr, rcl, m_gamma, ch));  // rotate flux back
+        }
+        const Real dtdy = dt / m_dy;
+        for (int j = 0; j < ny; ++j) {
+            Vec<Real, MhdNVars> U = load_cell(gv, i, j);
+            const auto& fL = flux[static_cast<std::size_t>(j)];
+            const auto& fR = flux[static_cast<std::size_t>(j + 1)];
+            for (int k = 0; k < MhdNVars; ++k) U[k] -= dtdy * (fR[k] - fL[k]);
+            store_cell(gv, i, j, U);
+        }
+    }
+}
+
+template <typename Real>
 void MhdSolver<Real>::step() {
     apply_bc();
-
     const Real ch = compute_ch();
     const TimeReal dt_time = compute_dt(ch);
-    if (dt_time <= TimeReal(0)) {
-        return;
-    }
-
+    if (dt_time <= TimeReal(0)) return;
     x_sweep(ch, dt_time);
-
+    y_sweep(ch, dt_time);                 // no-op when m_ny == 1
     auto gv = m_grid.view();
+    glm_damp<Real>(gv, gv.nx, gv.ny, ch, m_glm_cr, static_cast<Real>(dt_time));
     validate_physical_grid(gv, m_gamma);
-
     m_time += dt_time;
     m_step++;
 }
@@ -249,6 +313,23 @@ void MhdSolver<Real>::run() {
 
 template void setup_brio_wu<float>(GridView<float, MhdNVars>, int, float, float, float, float);
 template void setup_brio_wu<double>(GridView<double, MhdNVars>, int, double, double, double, double);
+
+template <typename Real>
+void setup_brio_wu_row(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
+                       Real gamma, Real x0, int j) {
+    for (int i = 0; i < nx; ++i) {
+        const Real x = xmin + (Real(i) + Real(0.5)) * dx;
+        MhdPrim<Real> w{};
+        w.rho = (x < x0) ? Real(1) : Real(0.125);
+        w.Bx = Real(0.75);
+        w.By = (x < x0) ? Real(1) : Real(-1);
+        w.p  = (x < x0) ? Real(1) : Real(0.1);
+        store_cell(gv, i, j, prim_to_cons(w, gamma));  // vy=vz=Bz=psi=0 from {}
+    }
+}
+
+template void setup_brio_wu_row<float>(GridView<float, MhdNVars>, int, float, float, float, float, int);
+template void setup_brio_wu_row<double>(GridView<double, MhdNVars>, int, double, double, double, double, int);
 
 template class MhdSolver<float>;
 template class MhdSolver<double>;
