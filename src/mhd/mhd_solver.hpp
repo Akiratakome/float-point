@@ -26,6 +26,7 @@ class MhdSolver {
 
     void apply_bc();
     Real compute_ch() const;
+    void x_sweep(Real ch, TimeReal dt);
 
 public:
     MhdSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl, TimeReal t_end,
