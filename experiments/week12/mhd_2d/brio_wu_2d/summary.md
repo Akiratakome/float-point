@@ -13,8 +13,8 @@
 
 ## Diagnostics
 
-- 2D run elapsed: 1.16s
-- 1D ref elapsed: 0.15s
+- 2D run elapsed: 1.30s
+- 1D ref elapsed: 0.16s
 - 2D steps: 861
 - 2D grid shape: ny=4, nx=800, nvars=9
 

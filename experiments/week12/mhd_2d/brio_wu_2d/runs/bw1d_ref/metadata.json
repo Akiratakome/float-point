@@ -1,15 +1,15 @@
 {
   "experiment": "week12-mhd-2d",
   "name": "bw1d_ref",
-  "timestamp_utc": "2026-06-18T15:59:48.051476+00:00",
-  "git_commit": "0899c860ce93c854fd91cb3ed879819e9a4d8443",
+  "timestamp_utc": "2026-06-18T16:01:48.241069+00:00",
+  "git_commit": "26753e126619c6ba29d2734df70ab9f68fc26143",
   "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
   "binary_sha256": "0f1080d9082ed2bc7307d06ae6fa12006ec1a4773f7667b22972918edaff9fc0",
   "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
   "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
   "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\brio_wu_2d\\runs\\bw1d_ref\\config.cfg",
-  "run_config_sha256": "8c1bda5db84e4c0d6da4d76963b41df6cc4f200cac28fb8bc670858e25f736a5",
-  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\noutput_format = binary\noutput_file = C:\\Users\\tangy\\AppData\\Local\\Temp\\tmpqj5btjk9\\bw1d_ref.bin\n",
+  "run_config_sha256": "2d79a9f2a20860163bc2fbeee4f5a7196993d281dc99140d0d9bda5a218a4ed7",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\noutput_format = binary\noutput_file = C:\\Users\\tangy\\AppData\\Local\\Temp\\tmpbpeuswof\\bw1d_ref.bin\n",
   "precision": "double",
   "build": "build-double",
   "command": [
@@ -17,7 +17,7 @@
     "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\brio_wu_2d\\runs\\bw1d_ref\\config.cfg"
   ],
   "returncode": 0,
-  "elapsed_wall_s": 0.14615040001808666,
+  "elapsed_wall_s": 0.1581618000054732,
   "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\brio_wu_2d\\runs\\bw1d_ref\\stdout.txt",
   "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\brio_wu_2d\\runs\\bw1d_ref\\stderr.txt",
   "stderr_diagnostics": {

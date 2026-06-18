@@ -1,8 +1,8 @@
 {
   "experiment": "week12-mhd-2d",
   "name": "bw2d",
-  "timestamp_utc": "2026-06-18T15:59:47.889073+00:00",
-  "git_commit": "0899c860ce93c854fd91cb3ed879819e9a4d8443",
+  "timestamp_utc": "2026-06-18T16:01:48.070497+00:00",
+  "git_commit": "26753e126619c6ba29d2734df70ab9f68fc26143",
   "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
   "binary_sha256": "0f1080d9082ed2bc7307d06ae6fa12006ec1a4773f7667b22972918edaff9fc0",
   "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu_2d.cfg",
@@ -17,7 +17,7 @@
     "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\brio_wu_2d\\runs\\bw2d\\config.cfg"
   ],
   "returncode": 0,
-  "elapsed_wall_s": 1.160923699993873,
+  "elapsed_wall_s": 1.2969250000023749,
   "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\brio_wu_2d\\runs\\bw2d\\stdout.txt",
   "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\brio_wu_2d\\runs\\bw2d\\stderr.txt",
   "stderr_diagnostics": {
