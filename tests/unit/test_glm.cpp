@@ -26,6 +26,21 @@ TEST_CASE("glm_damp decays psi by exp(-dt*ch^2/cp^2), cp^2=ch*cr", "[mhd][glm]")
     }
 }
 
+TEST_CASE("glm_damp remains finite for large ch and cr", "[mhd][glm]") {
+    Grid2D<double, MhdNVars> grid(1, 1);
+    auto v = grid.view();
+    v(0, 0, MhdIdx::PSI) = 2.0;
+
+    const double ch = 1e308;
+    const double cr = 1e308;
+    const double dt = 0.1;
+    glm_damp<double>(v, 1, 1, ch, cr, dt);
+
+    const double expected = 2.0 * std::exp(-dt * (ch / cr));
+    REQUIRE(std::isfinite(v(0, 0, MhdIdx::PSI)));
+    REQUIRE(v(0, 0, MhdIdx::PSI) == Approx(expected));
+}
+
 TEST_CASE("glm_damp is a no-op when cr<=0", "[mhd][glm]") {
     Grid2D<double, MhdNVars> grid(2, 1);
     auto v = grid.view();

@@ -14,8 +14,7 @@ void glm_damp(GridViewBase<Real, MhdNVars, Ptr> gv, int nx, int ny,
         return;
     }
 
-    const Real cp2 = ch * cr;
-    const Real factor = std::exp(-dt * ch * ch / cp2);
+    const Real factor = std::exp(-dt * ch / cr);
     for (int j = 0; j < ny; ++j) {
         for (int i = 0; i < nx; ++i) {
             gv(i, j, MhdIdx::PSI) *= factor;
