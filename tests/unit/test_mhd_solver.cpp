@@ -73,21 +73,37 @@ TEST_CASE("MhdSolver 2D constructor builds an ny>1 grid", "[mhd][solver2d]") {
     REQUIRE(gv.ny == 4);
 }
 
-TEST_CASE("2D Brio-Wu (ny=4, periodic-y) reproduces 1D row-wise", "[mhd][solver2d]") {
+TEST_CASE("2D Brio-Wu (ny=4, periodic-y) stays transverse-invariant and matches 1D",
+          "[mhd][solver2d]") {
     const int nx = 128, ny = 4;
-    const double dx = 1.0/nx, t_end = 0.05;
-    MhdSolver<double> s1(nx, dx, 0.0, 2.0, 0.4, t_end);              // 1D
-    setup_brio_wu(s1.grid_view(), nx, dx, 0.0, 2.0, 0.5);
-    s1.run();
-    MhdSolver<double> s2(nx, ny, dx, dx, 0.0, 0.0, 2.0, 0.4, t_end,  // 2D, periodic-y, GLM on
+    const double dx = 1.0 / nx, t_end = 0.05;
+
+    // 2D run: identical Brio-Wu IC on every row, periodic in y, GLM on.
+    MhdSolver<double> s2(nx, ny, dx, dx, 0.0, 0.0, 2.0, 0.4, t_end,
                          BoundaryType::Outflow, BoundaryType::Periodic, 0.18);
     auto gv2 = s2.grid_view();
     for (int j = 0; j < ny; ++j) setup_brio_wu_row(gv2, nx, dx, 0.0, 2.0, 0.5, j);
     s2.run();
-    auto gv1 = s1.grid_view();
-    for (int j = 0; j < ny; ++j)
+
+    // Primary gate: transverse invariance. The y-sweep + rotation must not
+    // introduce ANY cross-row differences (rows stay bit-identical to row 0).
+    for (int j = 1; j < ny; ++j)
         for (int i = 0; i < nx; ++i)
-            REQUIRE(gv2(i, j, MhdIdx::RHO) == Approx(gv1(i, 0, MhdIdx::RHO)).margin(1e-10));
+            for (int k = 0; k < MhdNVars; ++k)
+                REQUIRE(gv2(i, j, k) == Approx(gv2(i, 0, k)).margin(1e-12));
+
+    // Sanity: row 0 is still the Brio-Wu solution. NOT bit-identical to a 1D
+    // run -- compute_ch includes the y fast speed for ny>1, so the 2D CFL
+    // (hence dt sequence) differs. Compare on a robust mean-abs-density basis.
+    MhdSolver<double> s1(nx, dx, 0.0, 2.0, 0.4, t_end);
+    setup_brio_wu(s1.grid_view(), nx, dx, 0.0, 2.0, 0.5);
+    s1.run();
+    auto gv1 = s1.grid_view();
+    double mean_abs_diff = 0.0;
+    for (int i = 0; i < nx; ++i)
+        mean_abs_diff += std::abs(gv2(i, 0, MhdIdx::RHO) - gv1(i, 0, MhdIdx::RHO));
+    mean_abs_diff /= nx;
+    REQUIRE(mean_abs_diff < 2e-2);
 }
 
 TEST_CASE("MHD solver evolves Bx/psi instead of clamping GLM variables", "[mhd][solver]") {

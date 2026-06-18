@@ -191,6 +191,13 @@ Real MhdSolver<Real>::compute_ch() const {
             const Vec<Real, MhdNVars> U = load_cell(gv, i, j);
             const MhdPrim<Real> w = cons_to_prim(U, m_gamma);
             ch = std::max(ch, std::abs(w.vx) + fast_speed_x(w, m_gamma));
+            // y-direction fast speed (By as normal field). Required for a
+            // correct 2D CFL: cf_y exceeds cf_x where By -> 0. Guarded by ny>1
+            // so the 1D path keeps its exact ch (and bit-identical evolution).
+            if (gv.ny > 1) {
+                ch = std::max(ch, std::abs(w.vy)
+                                  + fast_speed_x(mhd_swap_xy_prim(w), m_gamma));
+            }
         }
     }
     return ch;
@@ -253,24 +260,19 @@ void MhdSolver<Real>::y_sweep(Real ch, TimeReal dt_time) {
     const Real dt = static_cast<Real>(dt_time);
     auto gv = m_grid.view();
     const int nx = gv.nx, ny = gv.ny;
-    // Load from post-x-sweep physical cells directly (no ghost cells) so stale
-    // Y-ghosts from apply_bc() cannot introduce spurious cross-row differences.
-    // Periodic wraps into [0, ny); outflow clamps to edge row.
-    auto load_y = [&](int col, int row) -> Vec<Real, MhdNVars> {
-        if (row >= 0 && row < ny) return load_cell(gv, col, row);
-        if (m_bc_y == BoundaryType::Periodic)
-            return load_cell(gv, col, ((row % ny) + ny) % ny);
-        return load_cell(gv, col, std::max(0, std::min(ny - 1, row)));
-    };
+    // step() re-applies BCs before calling y_sweep, so the y-ghost cells are
+    // valid (periodic wrap / outflow + psi=0). Rotate each y-stencil into the
+    // x-frame with mhd_swap_xy, reuse the x-direction predictor + HLL, then
+    // rotate the flux back.
     for (int i = 0; i < nx; ++i) {
         std::vector<Vec<Real, MhdNVars>> flux(static_cast<std::size_t>(ny + 1));
         for (int jf = 0; jf <= ny; ++jf) {
             const int jL = jf - 1, jR = jf;
             Vec<Real, MhdNVars> lcl{}, lcr{}, rcl{}, rcr{};
-            predict_faces(mhd_swap_xy(load_y(i, jL - 1)), mhd_swap_xy(load_y(i, jL)),
-                          mhd_swap_xy(load_y(i, jL + 1)), dt, m_gamma, ch, m_dy, lcl, lcr);
-            predict_faces(mhd_swap_xy(load_y(i, jR - 1)), mhd_swap_xy(load_y(i, jR)),
-                          mhd_swap_xy(load_y(i, jR + 1)), dt, m_gamma, ch, m_dy, rcl, rcr);
+            predict_faces(mhd_swap_xy(load_cell(gv, i, jL - 1)), mhd_swap_xy(load_cell(gv, i, jL)),
+                          mhd_swap_xy(load_cell(gv, i, jL + 1)), dt, m_gamma, ch, m_dy, lcl, lcr);
+            predict_faces(mhd_swap_xy(load_cell(gv, i, jR - 1)), mhd_swap_xy(load_cell(gv, i, jR)),
+                          mhd_swap_xy(load_cell(gv, i, jR + 1)), dt, m_gamma, ch, m_dy, rcl, rcr);
             flux[static_cast<std::size_t>(jf)] =
                 mhd_swap_xy(mhd_hll_flux(lcr, rcl, m_gamma, ch));  // rotate flux back
         }
@@ -292,7 +294,10 @@ void MhdSolver<Real>::step() {
     const TimeReal dt_time = compute_dt(ch);
     if (dt_time <= TimeReal(0)) return;
     x_sweep(ch, dt_time);
-    y_sweep(ch, dt_time);                 // no-op when m_ny == 1
+    if (m_ny > 1) {
+        apply_bc();                       // refresh y-ghosts after the x-sweep
+        y_sweep(ch, dt_time);
+    }
     auto gv = m_grid.view();
     glm_damp<Real>(gv, gv.nx, gv.ny, ch, m_glm_cr, static_cast<Real>(dt_time));
     validate_physical_grid(gv, m_gamma);
