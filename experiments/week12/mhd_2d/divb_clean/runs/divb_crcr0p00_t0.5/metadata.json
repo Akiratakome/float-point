@@ -1,0 +1,30 @@
+{
+  "experiment": "week12-mhd-2d",
+  "name": "divb_crcr0p00_t0.5",
+  "timestamp_utc": "2026-06-18T15:59:50.243650+00:00",
+  "git_commit": "0899c860ce93c854fd91cb3ed879819e9a4d8443",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+  "binary_sha256": "0f1080d9082ed2bc7307d06ae6fa12006ec1a4773f7667b22972918edaff9fc0",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\mhd_divb_clean\\divb_blob.cfg",
+  "source_config_sha256": "93389d42fb3fd895293b7cbc118135b46ab3398dd83e12a239b41cc93ad04503",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\divb_clean\\runs\\divb_crcr0p00_t0.5\\config.cfg",
+  "run_config_sha256": "acced8c06951c578a0740c8073f4c861ce8cc308cd7bd53f10647ae56c32e282",
+  "run_config_text": "# Gaussian Bx bump on a doubly-periodic grid -> nonzero div(B); GLM should clean it.\ntest = divb_blob\nnx = 128\nny = 128\nxmin = 0.0\nxmax = 1.0\nymin = 0.0\nymax = 1.0\ngamma = 2.0\ncfl = 0.4\nt_end = 0.5\nbc = periodic\nbc_y = periodic\nglm_cr = 0.0\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\divb_clean\\divb_blob_cr0p00_t0p5.bin\n",
+  "precision": "double",
+  "build": "build-double",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\divb_clean\\runs\\divb_crcr0p00_t0.5\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 1.3697172999964096,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\divb_clean\\runs\\divb_crcr0p00_t0.5\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week12\\mhd_2d\\divb_clean\\runs\\divb_crcr0p00_t0.5\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.5,
+    "steps": 258,
+    "divB_mean": 0.63,
+    "divB_max": 3.03,
+    "line": "[mhd] t=0.500000 steps=258 divB_mean=6.300e-01 divB_max=3.030e+00"
+  }
+}
