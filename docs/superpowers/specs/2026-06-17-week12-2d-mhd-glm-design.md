@@ -40,8 +40,8 @@ physics validation remain Week 13 per overall.md.
 
 | # | Decision | Choice |
 |---|---|---|
-| 1 | 2D validation scope | Machinery + cheap validations (2D Brio-Wu regression + div(B)-cleaning decay); Orszag-Tang/KH stay Week 13 |
-| 2 | GLM damping parameter | cfg `glm_cr` (default 0.18), `c_p² = c_h·c_r`, analytic decay ψ·=exp(−Δt·c_h²/c_p²) |
+| 1 | 2D validation scope | Machinery + cheap validations (2D Brio-Wu regression + div(B)-cleaning diagnostic); Orszag-Tang/KH stay Week 13 |
+| 2 | GLM damping parameter | cfg `glm_cr` (default 0.18), `c_p² = c_h·c_r`, analytic decay ψ·=exp(−Δt·c_h²/c_p²); with this convention smaller positive `c_r` damps faster |
 | 3 | Boundary conditions | Add **periodic** for 9-var MHD + ψ=0-at-ghost rule for outflow; reflective deferred to Week 13 (KH) |
 | 4 | GLM formulation | **Canonical Dedner**: keep 1D flux coupling untouched, add parabolic damping post-sweep, full-grid div(B) as diagnostic |
 | 5 | Solver structure | Extend `MhdSolver<Real>` **in place** to unified 1D/2D (mirrors EulerSolver); 1D path bit-preserved |
@@ -99,8 +99,10 @@ scripts/regression/mhd_2d_week12.py       # NEW: 2D regression + cleaning driver
   `mhd_state.hpp`, `core/grid.hpp`.
 - **`MhdSolver<Real>` (extended)** — fields gain `m_ny`, `m_dy`, `m_bc_y`,
   `m_glm_cr`. Per step: `apply_bc()` → `compute_ch()` (2D max) →
-  `x_sweep(dt)` → `y_sweep(dt)` → `glm_damp(...)`. 1D (`ny==1`) skips `y_sweep`;
-  with ψ≈0 the damping is negligible, so 1D Brio-Wu stays bit-identical.
+  `x_sweep(dt)` → `apply_bc()` → `y_sweep(dt)` → `glm_damp(...)`. The second
+  boundary pass refreshes y-ghost cells after the x-sweep, matching the existing
+  Euler 2D sweep pattern. 1D (`ny==1`) skips `y_sweep`; with ψ≈0 the damping is
+  negligible, so 1D Brio-Wu stays bit-identical.
   `y_sweep` = for each y-interface, reconstruct/predict in y by rotating cells
   with `mhd_swap_xy`, compute HLL on rotated states, rotate the flux back
   (mirrors Euler `y_sweep`). **Depends on:** `mhd_flux.hpp`, `hll.hpp`,
@@ -114,7 +116,8 @@ scripts/regression/mhd_2d_week12.py       # NEW: 2D regression + cleaning driver
 
 ### Operator splitting
 
-Lie splitting per step: `x_sweep(dt)` → `y_sweep(dt)` → `glm_damp(dt)`. Second-
+Lie splitting per step: `x_sweep(dt)` → boundary refresh → `y_sweep(dt)` →
+`glm_damp(dt)`. Second-
 order Strang alternation is deferred to Week 13 (Lie is sufficient to validate the
 machinery and the cleaning behaviour). `compute_ch` becomes the global maximum of
 `|vx|+c_f` and `|vy|+c_f` over physical cells; it sets both the CFL `dt` and the
@@ -128,13 +131,15 @@ GLM cleaning speed.
   ICs. Each row's density must match the 1D Brio-Wu result to L∞ ≤ 1e-10
   (double); `divB_max` stays at round-off (~1e-13). Confirms the y-sweep +
   rotation introduce no transverse corruption.
-- **div(B)-cleaning decay**: doubly-periodic 128² grid, uniform `ρ=1, p=1,
+- **div(B)-cleaning diagnostic**: doubly-periodic 128² grid, uniform `ρ=1, p=1,
   v=0, By=Bz=0, ψ=0`, and a smooth Gaussian magnetic bump in the normal
   component: `Bx = B0·exp(−((x−0.5)²+(y−0.5)²)/σ²)` with `B0=1, σ=0.1`. This
-  makes `div(B)=∂Bx/∂x` nonzero, smooth, and analytically known. With GLM on,
-  `max|div(B)|` must **monotonically decrease** over the first N steps, and
-  decrease faster for larger `glm_cr` (e.g. 0.36 vs 0.18). `glm_cr=0` is the
-  control (no damping → divergence advects without decaying).
+  makes `div(B)=∂Bx/∂x` nonzero, smooth, and analytically known. Because the
+  hyperbolic GLM subsystem propagates divergence waves, `max|div(B)|` is not a
+  guaranteed monotone time series. The validation records div(B) over checkpoints
+  and gates on robust comparisons: finite runs, damped cases no worse than the
+  `glm_cr=0` control at the final checkpoint, and the smaller positive
+  `glm_cr=0.18` no worse than `0.36` under the `c_p²=c_h·c_r` convention.
 
 ---
 
@@ -176,8 +181,10 @@ figure gap is carried into the Week-13 plan) · Strang 2nd-order splitting.
 - 1D Brio-Wu output is **bit-identical** to the current validated result.
 - 2D Brio-Wu (ny=4, periodic-y) reproduces the 1D profile (L∞ ≤ 1e-10) with
   `divB_max` at round-off.
-- div(B)-cleaning test shows `max|div(B)|` monotonically decreasing, faster for
-  larger `glm_cr`, with `glm_cr=0` as a non-decaying control.
+- div(B)-cleaning diagnostic records checkpointed `max|div(B)|`/mean values and
+  shows damped cases are no worse than the `glm_cr=0` control at the final
+  checkpoint, with smaller positive `glm_cr` damping at least as strongly as a
+  larger one under the chosen `c_p²=c_h·c_r` convention.
 - New Catch2 unit tests green; existing MHD + Euler suites untouched and passing.
 
 ---

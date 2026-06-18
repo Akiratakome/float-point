@@ -1159,7 +1159,7 @@ git commit -m "docs(mhd): record Week 12 1D MHD walking skeleton"
 
 > **Reference spec:** [2026-06-17-week12-2d-mhd-glm-design.md](../superpowers/specs/2026-06-17-week12-2d-mhd-glm-design.md). Completes overall.md's Week 12 2D items deferred by Part 1.
 
-**Goal:** Extend the validated 1D `MhdSolver` in place to unified 1D/2D — rotate-and-reuse Y-sweep, canonical Dedner GLM (flux coupling untouched + analytic parabolic damping, full-grid div(B) as diagnostic), 9-var periodic BC + ψ=0-ghost rule for outflow — validated by a 2D Brio-Wu regression and a div(B)-cleaning decay test. 1D Brio-Wu must stay **bit-identical**.
+**Goal:** Extend the validated 1D `MhdSolver` in place to unified 1D/2D — rotate-and-reuse Y-sweep, canonical Dedner GLM (flux coupling untouched + analytic parabolic damping, full-grid div(B) as diagnostic), 9-var periodic BC + ψ=0-ghost rule for outflow — validated by a 2D Brio-Wu regression and a div(B)-cleaning diagnostic. 1D Brio-Wu must stay **bit-identical**.
 
 **Key constraints (verified against source):**
 
@@ -1168,6 +1168,10 @@ git commit -m "docs(mhd): record Week 12 1D MHD walking skeleton"
 - Euler y-sweep precedent: rotate with `swap_momentum`, reuse x-flux, rotate back (`src/euler/euler_solver.cpp:258-264`). MHD swap must rotate **both** momentum and B.
 - `Grid2D`/`GridView` expose `dx, dy` fields (`src/core/grid.hpp:14,45`); `view()` captures them by value (set `m_grid.dx/dy` before `view()`).
 - `apply_periodic_bc(view, Axis)` / `apply_outflow_bc(view, Axis)` are `NVars`-generic (`src/core/boundary.hpp`).
+- Current `CMakeLists.txt` uses a plain `file(GLOB TEST_SOURCES tests/unit/test_*.cpp)` without `CONFIGURE_DEPENDS`; every task that creates a new `tests/unit/test_*.cpp` must re-run `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double` before building, or the new test file may not be compiled.
+- With the chosen Dedner damping convention `c_p^2 = c_h * c_r`, the damping factor is `exp(-dt * c_h / c_r)`: smaller positive `glm_cr` damps faster. Do not write gates that expect larger `glm_cr` to damp faster.
+- The Part-2 1D preservation requirement means binary-identical 1D Brio-Wu output, not just matching `steps` or `divB`; Task 13 records a local baseline hash before refactoring and later gates compare against that hash.
+- Regression commands use `python` for consistency with Part 1. If `python --version` resolves to the WindowsApps stub instead of a real interpreter, use the same real interpreter that ran `scripts/regression/mhd_brio_wu_1d.py` and keep the command otherwise identical.
 
 ---
 
@@ -1221,7 +1225,7 @@ TEST_CASE("rotated x-flux equals the y-physical-flux", "[mhd][swap]") {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][swap]"`
+Run: `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][swap]"`
 Expected: FAIL — `mhd_swap_xy` undefined.
 
 - [ ] **Step 3: Write minimal implementation** (append to `src/mhd/mhd_flux.hpp` inside `namespace hrsc`)
@@ -1242,7 +1246,7 @@ HD_FUNC Vec<Real, MhdNVars> mhd_swap_xy(const Vec<Real, MhdNVars>& U) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][swap]"`
+Run: `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][swap]"`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -1297,7 +1301,7 @@ TEST_CASE("glm_damp is a no-op when cr<=0", "[mhd][glm]") {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][glm]"`
+Run: `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][glm]"`
 Expected: FAIL — `mhd/glm.hpp` not found.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -1331,7 +1335,7 @@ void glm_damp(GridViewBase<Real, MhdNVars, Ptr> gv, int nx, int ny,
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][glm]"`
+Run: `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][glm]"`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -1346,8 +1350,27 @@ git commit -m "feat(mhd): add GLM parabolic damping stage (glm_damp)"
 ## Task 13: Refactor solver internals to state-based, dimension-agnostic (1D bit-preserved)
 
 **Files:**
+- Modify: `src/mhd/mhd_solver.hpp`
 - Modify: `src/mhd/mhd_solver.cpp`
 - Test: existing `tests/unit/test_mhd_solver.cpp` (regression gate — must stay green)
+- Create/force-add small provenance: `experiments/week12/mhd_2d/baselines/brio_wu_1d_part1.cfg`, `experiments/week12/mhd_2d/baselines/brio_wu_1d_part1.sha256`
+
+- [ ] **Step 0: Capture the Part-1 1D binary baseline before editing solver code**
+
+Run this before any Task-13 code edits:
+
+```powershell
+New-Item -ItemType Directory -Force experiments\week12\mhd_2d\baselines | Out-Null
+Copy-Item tests\cases\brio_wu_1d\brio_wu.cfg experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.cfg
+Add-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.cfg "output_file = experiments/week12/mhd_2d/baselines/brio_wu_1d_part1.bin"
+cmake --build build-double --target hrsc_mhd
+.\build-double\hrsc_mhd.exe experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.cfg
+(Get-FileHash experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.bin -Algorithm SHA256).Hash.ToLowerInvariant() |
+  Set-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.sha256
+Get-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.sha256
+```
+
+Expected: the run prints `steps=759` and a round-off `divB_max`; the `.sha256` file contains one lowercase SHA256 line. Do not commit `brio_wu_1d_part1.bin`.
 
 - [ ] **Step 1: Generalize the cell accessors to (i, j)**
 
@@ -1422,13 +1445,25 @@ Expected: PASS — the 1D Brio-Wu solver test is unchanged (bit-identical evolut
 
 - [ ] **Step 5: Verify 1D end-to-end is still bit-identical**
 
-Run: `./build-double/hrsc_mhd tests/cases/brio_wu_1d/brio_wu.cfg`
-Expected: same stderr line as Part 1 (`steps=759 divB_max≈4.441e-14`).
+Run:
+
+```powershell
+Copy-Item experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.cfg experiments\week12\mhd_2d\baselines\brio_wu_1d_after_task13.cfg
+(Get-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_after_task13.cfg) -replace 'brio_wu_1d_part1.bin','brio_wu_1d_after_task13.bin' |
+  Set-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_after_task13.cfg
+.\build-double\hrsc_mhd.exe experiments\week12\mhd_2d\baselines\brio_wu_1d_after_task13.cfg
+$baseline = (Get-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.sha256).Trim()
+$actual = (Get-FileHash experiments\week12\mhd_2d\baselines\brio_wu_1d_after_task13.bin -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($actual -ne $baseline) { throw "1D Brio-Wu binary hash changed: $actual != $baseline" }
+```
+
+Expected: same stderr line as Part 1 (`steps=759 divB_max≈4.441e-14`) and no hash exception. Do not commit `brio_wu_1d_after_task13.bin`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/mhd/mhd_solver.cpp
+git add src/mhd/mhd_solver.hpp src/mhd/mhd_solver.cpp
+git add -f experiments/week12/mhd_2d/baselines/brio_wu_1d_part1.cfg experiments/week12/mhd_2d/baselines/brio_wu_1d_part1.sha256
 git commit -m "refactor(mhd): make solver internals state-based and (i,j)-general"
 ```
 
@@ -1496,9 +1531,26 @@ MhdSolver<Real>::MhdSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl,
 
 > Declare member init order to match the header field order to avoid `-Wreorder`. Adjust the field declaration order if needed so the initializer list is in-order.
 
+Update `compute_dt` while the 2D spacing fields are introduced. The 1D path must still use exactly `m_dx`; 2D uses the smaller cell spacing for CFL:
+
+```cpp
+template <typename Real>
+TimeReal MhdSolver<Real>::compute_dt(Real ch) const {
+    const Real denom = std::max(ch, Real(1e-30));
+    const Real h = (m_ny > 1) ? std::min(m_dx, m_dy) : m_dx;
+    TimeReal dt = static_cast<TimeReal>(m_cfl)
+                * static_cast<TimeReal>(h)
+                / static_cast<TimeReal>(denom);
+    if (m_time + dt > m_t_end) {
+        dt = m_t_end - m_time;
+    }
+    return dt;
+}
+```
+
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][solver2d]"`
+Run: `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][solver2d]"`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -1513,6 +1565,7 @@ git commit -m "feat(mhd): add 2D MhdSolver constructor; 1D ctor delegates"
 ## Task 15: Y-sweep + GLM damping + 2D compute_ch (`mhd_solver.cpp`)
 
 **Files:**
+- Modify: `src/mhd/mhd_solver.hpp`
 - Modify: `src/mhd/mhd_solver.cpp`
 - Test: `tests/unit/test_mhd_solver.cpp` (2D Brio-Wu-reproduces-1D smoke)
 
@@ -1539,14 +1592,60 @@ TEST_CASE("2D Brio-Wu (ny=4, periodic-y) reproduces 1D row-wise", "[mhd][solver2
 }
 ```
 
-> `setup_brio_wu_row` is a thin per-row variant of `setup_brio_wu`; add it next to `setup_brio_wu` in Step 3 (it writes the same x-profile into row `j`). The existing `setup_brio_wu` keeps writing row 0 for the 1D path.
+> `setup_brio_wu_row` is a thin per-row variant of `setup_brio_wu`; Task 15 introduces it because this test uses it. It writes the same x-profile into row `j`. The existing `setup_brio_wu` keeps its current signature and delegates to row 0 so Part-1 call sites are unchanged.
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][solver2d]"`
+Run: `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][solver2d]"`
 Expected: FAIL — `y_sweep` not yet wired (2D rows diverge or `setup_brio_wu_row` undefined).
 
-- [ ] **Step 3: Implement `y_sweep`, 2D `compute_ch`, `apply_bc` per axis, and wire `step()`**
+- [ ] **Step 3: Add `setup_brio_wu_row`, then implement `y_sweep`, 2D `compute_ch`, `apply_bc` per axis, and wire `step()`**
+
+First declare the per-row writer in `mhd_solver.hpp` next to `setup_brio_wu`:
+
+```cpp
+template <typename Real>
+void setup_brio_wu_row(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
+                       Real gamma, Real x0, int j);
+```
+
+Then define it in `mhd_solver.cpp` next to `setup_brio_wu`; make `setup_brio_wu` delegate to row 0:
+
+```cpp
+template <typename Real>
+void setup_brio_wu_row(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
+                       Real gamma, Real x0, int j) {
+    for (int i = 0; i < nx; ++i) {
+        const Real x = xmin + (Real(i) + Real(0.5)) * dx;
+        MhdPrim<Real> w{};
+        w.rho = (x < x0) ? Real(1) : Real(0.125);
+        w.vx = Real(0);
+        w.vy = Real(0);
+        w.vz = Real(0);
+        w.Bx = Real(0.75);
+        w.By = (x < x0) ? Real(1) : Real(-1);
+        w.Bz = Real(0);
+        w.p = (x < x0) ? Real(1) : Real(0.1);
+        w.psi = Real(0);
+        store_cell(gv, i, j, prim_to_cons(w, gamma));
+    }
+}
+
+template <typename Real>
+void setup_brio_wu(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
+                   Real gamma, Real x0) {
+    setup_brio_wu_row(gv, nx, dx, xmin, gamma, x0, 0);
+}
+```
+
+Add explicit instantiations for both setup helpers:
+
+```cpp
+template void setup_brio_wu_row<float>(GridView<float, MhdNVars>, int, float, float, float, float, int);
+template void setup_brio_wu_row<double>(GridView<double, MhdNVars>, int, double, double, double, double, int);
+```
+
+Now implement the sweep/BC/GLM pieces:
 
 ```cpp
 // y_sweep: for each column i, run the interface loop in j on ROTATED states,
@@ -1581,7 +1680,6 @@ void MhdSolver<Real>::y_sweep(Real ch, TimeReal dt_time) {
             store_cell(gv, i, j, U);
         }
     }
-    validate_physical_grid(gv, m_gamma);
 }
 ```
 
@@ -1640,7 +1738,7 @@ void MhdSolver<Real>::apply_bc() {
 }
 ```
 
-Extend the Task-13 `step()` to append the y-sweep, damping, and final validation — `ch` and `dt_time` are still computed **once** at the top and shared by every stage:
+Extend the Task-13 `step()` to append the boundary refresh, y-sweep, damping, and final validation — `ch` and `dt_time` are still computed **once** at the top and shared by every stage. The second `apply_bc()` is required because `x_sweep` changes physical cells before `y_sweep` reads y-boundary ghost cells; this mirrors the existing Euler 2D pattern.
 
 ```cpp
 template <typename Real>
@@ -1650,6 +1748,7 @@ void MhdSolver<Real>::step() {
     const TimeReal dt_time = compute_dt(ch);
     if (dt_time <= TimeReal(0)) return;
     x_sweep(ch, dt_time);
+    if (m_ny > 1) apply_bc();                // refresh ghosts after x-sweep
     y_sweep(ch, dt_time);                  // no-op when m_ny == 1
     auto gv = m_grid.view();
     glm_damp<Real>(gv, gv.nx, gv.ny, ch, m_glm_cr, static_cast<Real>(dt_time));
@@ -1659,22 +1758,34 @@ void MhdSolver<Real>::step() {
 }
 ```
 
-`x_sweep` and `y_sweep` are `apply_bc`-free (BCs applied once at the top) and must not advance `m_time`/`m_step`. Remove the per-sweep `validate_physical_grid` calls added in Task 13 (validation now happens once in `step()`). With `m_ny==1` and `m_glm_cr==0`, `y_sweep` returns immediately and `glm_damp` is a no-op, so the 1D path stays bit-identical.
+`x_sweep` and `y_sweep` must not advance `m_time`/`m_step`. `x_sweep` and `y_sweep` remain boundary-application-free; `step()` owns both boundary passes (`apply_bc()` before x, and a second `apply_bc()` before y only when `m_ny > 1`). Remove the per-sweep `validate_physical_grid` calls added in Task 13 (validation now happens once in `step()`). With `m_ny==1` and `m_glm_cr==0`, the second boundary pass is skipped, `y_sweep` returns immediately, and `glm_damp` is a no-op, so the 1D path stays bit-identical.
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][solver2d]"`
+Run: `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][solver2d]"`
 Expected: PASS — every 2D row matches the 1D density to 1e-10.
 
 - [ ] **Step 5: Re-run the 1D regression gate**
 
-Run: `./build-double/unit_tests "[mhd][solver]" && ./build-double/hrsc_mhd tests/cases/brio_wu_1d/brio_wu.cfg`
-Expected: 1D unchanged (`steps=759`, divB_max ≈ 4.441e-14).
+Run:
+
+```powershell
+.\build-double\unit_tests.exe "[mhd][solver]"
+Copy-Item experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.cfg experiments\week12\mhd_2d\baselines\brio_wu_1d_after_task15.cfg
+(Get-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_after_task15.cfg) -replace 'brio_wu_1d_part1.bin','brio_wu_1d_after_task15.bin' |
+  Set-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_after_task15.cfg
+.\build-double\hrsc_mhd.exe experiments\week12\mhd_2d\baselines\brio_wu_1d_after_task15.cfg
+$baseline = (Get-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.sha256).Trim()
+$actual = (Get-FileHash experiments\week12\mhd_2d\baselines\brio_wu_1d_after_task15.bin -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($actual -ne $baseline) { throw "1D Brio-Wu binary hash changed: $actual != $baseline" }
+```
+
+Expected: `[mhd][solver]` passes; 1D stderr remains `steps=759`, `divB_max≈4.441e-14`; no hash exception. Do not commit `brio_wu_1d_after_task15.bin`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/mhd/mhd_solver.cpp src/mhd/mhd_flux.hpp tests/unit/test_mhd_solver.cpp
+git add src/mhd/mhd_solver.hpp src/mhd/mhd_solver.cpp src/mhd/mhd_flux.hpp tests/unit/test_mhd_solver.cpp
 git commit -m "feat(mhd): add y-sweep, 2D CFL, periodic/psi BCs, GLM damping step"
 ```
 
@@ -1684,8 +1795,10 @@ git commit -m "feat(mhd): add y-sweep, 2D CFL, periodic/psi BCs, GLM damping ste
 
 **Files:**
 - Modify: `src/mhd_main.cpp`, `src/mhd/mhd_config.hpp`
+- Modify: `src/mhd/mhd_solver.hpp`, `src/mhd/mhd_solver.cpp`
 - Create: `tests/cases/brio_wu_1d/brio_wu_2d.cfg`, `tests/cases/mhd_divb_clean/divb_blob.cfg`
 - Test: `tests/unit/test_mhd_config.cpp` (periodic accepted)
+- Test: `tests/unit/test_mhd_periodic.cpp` (9-var periodic wrap, including `PSI`)
 
 - [ ] **Step 1: Accept `periodic` in `parse_mhd_boundary` (+ failing test)**
 
@@ -1707,6 +1820,45 @@ inline BoundaryType parse_mhd_boundary(const std::string& value) {
 }
 ```
 
+- [ ] **Step 1b: Add a 9-var periodic BC regression test**
+
+Create `tests/unit/test_mhd_periodic.cpp`:
+
+```cpp
+#include "catch.hpp"
+#include "core/boundary.hpp"
+#include "core/grid.hpp"
+#include "mhd/mhd_state.hpp"
+
+using namespace hrsc;
+
+TEST_CASE("MHD periodic X boundary wraps all 9 variables including psi", "[mhd][periodic]") {
+    Grid2D<double, MhdNVars> grid(4, 2);
+    auto gv = grid.view();
+    for (int j = 0; j < 2; ++j) {
+        for (int i = 0; i < 4; ++i) {
+            for (int k = 0; k < MhdNVars; ++k) {
+                gv(i, j, k) = 100.0*j + 10.0*i + k;
+            }
+        }
+    }
+
+    apply_periodic_bc(gv, Axis::X);
+
+    for (int j = 0; j < 2; ++j) {
+        for (int k = 0; k < MhdNVars; ++k) {
+            REQUIRE(gv(-1, j, k) == Approx(gv(3, j, k)));
+            REQUIRE(gv(-2, j, k) == Approx(gv(2, j, k)));
+            REQUIRE(gv(4, j, k) == Approx(gv(0, j, k)));
+            REQUIRE(gv(5, j, k) == Approx(gv(1, j, k)));
+        }
+    }
+}
+```
+
+Run: `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double --target unit_tests && ./build-double/unit_tests "[mhd][periodic]"`
+Expected: PASS.
+
 - [ ] **Step 2: Add the `divb_blob` test case (`mhd_config.hpp` + IC functions)**
 
 Extend the enum + parser in `mhd_config.hpp`:
@@ -1721,24 +1873,9 @@ inline MhdTestCase parse_mhd_test(const std::string& value) {
 }
 ```
 
-Add the per-row Brio-Wu writer (used by Task 15's 2D test) and the divergent-bump IC, declared in `mhd_solver.hpp` and defined in `mhd_solver.cpp` next to `setup_brio_wu` (explicitly instantiated for float/double like the existing setup):
+Task 15 already introduced `setup_brio_wu_row`. In Task 16, add only the divergent-bump IC, declared in `mhd_solver.hpp` next to the Brio-Wu setup helpers and defined in `mhd_solver.cpp` (explicitly instantiated for float/double like the existing setup):
 
 ```cpp
-// Per-row Brio-Wu: write the x-profile into a single row j (2D replication).
-template <typename Real>
-void setup_brio_wu_row(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
-                       Real gamma, Real x0, int j) {
-    for (int i = 0; i < nx; ++i) {
-        const Real x = xmin + (Real(i) + Real(0.5)) * dx;
-        MhdPrim<Real> w{};
-        w.rho = (x < x0) ? Real(1) : Real(0.125);
-        w.Bx = Real(0.75);
-        w.By = (x < x0) ? Real(1) : Real(-1);
-        w.p  = (x < x0) ? Real(1) : Real(0.1);
-        store_cell(gv, i, j, prim_to_cons(w, gamma));
-    }
-}
-
 // Doubly-periodic Gaussian Bx bump -> known smooth nonzero div(B)=dBx/dx.
 template <typename Real>
 void setup_divb_blob(GridView<Real, MhdNVars> gv, int nx, int ny,
@@ -1778,12 +1915,16 @@ if (test == hrsc::MhdTestCase::BrioWu) {
 }
 solver.run();
 gv = solver.grid_view();
-hrsc::write_binary<Real, hrsc::MhdNVars>(out, gv, nx, ny, dx, dy, (Real)solver.time());
+hrsc::DivBNorms<Real> db = hrsc::compute_divB_norms<Real>(gv, nx, ny, dx, dy);
+std::fprintf(stderr, "[mhd] t=%.6f steps=%d divB_mean=%.3e divB_max=%.3e\n",
+             solver.time(), solver.step_count(), (double)db.mean, (double)db.max);
+if (!out.empty())
+    hrsc::write_binary<Real, hrsc::MhdNVars>(out, gv, nx, ny, dx, dy, (Real)solver.time());
 ```
 
-Validate `ny>0`, `glm_cr>=0`, and `ymax>ymin` when `ny>1` in `validate_cfg`.
+Validate `ny>0`, `glm_cr>=0`, and `ymax>ymin` when `ny>1` in `validate_cfg`. Preserve the existing `[mhd] t=... steps=... divB_mean=... divB_max=...` stderr format exactly so the Part-1 and Part-2 regression scripts can parse the same sentinel line.
 
-> The existing 1D `setup_brio_wu` can now delegate to `setup_brio_wu_row(..., /*j=*/0)` to avoid duplicated IC logic; keep its current signature so Part-1 tests/`setup_brio_wu` call sites are unchanged.
+> `setup_brio_wu` should already delegate to `setup_brio_wu_row(..., /*j=*/0)` from Task 15; keep that signature unchanged so Part-1 tests/`setup_brio_wu` call sites are unchanged.
 
 - [ ] **Step 3: Write the cfgs**
 
@@ -1835,8 +1976,7 @@ Expected: both finish with a `[mhd]` diagnostic line; brio_wu_2d divB_max at rou
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/mhd_main.cpp src/mhd/mhd_config.hpp tests/unit/test_mhd_config.cpp \
-        tests/cases/brio_wu_1d/brio_wu_2d.cfg tests/cases/mhd_divb_clean/divb_blob.cfg
+git add src/mhd_main.cpp src/mhd/mhd_config.hpp src/mhd/mhd_solver.hpp src/mhd/mhd_solver.cpp tests/unit/test_mhd_config.cpp tests/unit/test_mhd_periodic.cpp tests/cases/brio_wu_1d/brio_wu_2d.cfg tests/cases/mhd_divb_clean/divb_blob.cfg
 git commit -m "feat(mhd): 2D cfg parsing + Brio-Wu-2D and divb-blob cases"
 ```
 
@@ -1867,38 +2007,45 @@ Expected: `transverse_invariance: True`, `matches_1d: True`, `divB_max_ok: True`
 - [ ] **Step 3: Commit**
 
 ```bash
-git add scripts/regression/mhd_2d_week12.py experiments/week12/mhd_2d/brio_wu_2d/summary.md
+git add scripts/regression/mhd_2d_week12.py
+git add -f experiments/week12/mhd_2d/brio_wu_2d/summary.md experiments/week12/mhd_2d/brio_wu_2d/summary.json
+git add -f experiments/week12/mhd_2d/brio_wu_2d/runs/*/config.cfg experiments/week12/mhd_2d/brio_wu_2d/runs/*/stdout.txt experiments/week12/mhd_2d/brio_wu_2d/runs/*/stderr.txt experiments/week12/mhd_2d/brio_wu_2d/runs/*/metadata.json
 git commit -m "test(mhd): 2D Brio-Wu regression (transverse invariance + 1D match)"
 ```
 
 ---
 
-## Task 18: div(B)-cleaning decay validation
+## Task 18: div(B)-cleaning diagnostic validation
 
 **Files:**
 - Modify: `scripts/regression/mhd_2d_week12.py` (add the cleaning case)
 
 - [ ] **Step 1: Add the cleaning driver path**
 
-For `divb_blob`: run the case at `glm_cr ∈ {0.0, 0.18, 0.36}` (override via generated cfgs), capturing `divB_max` at several checkpoints (use `output_times` if available, else short t_end runs at increasing times). Assert:
-- `glm_cr=0.18` and `0.36`: `max|div(B)|` strictly decreasing over checkpoints;
-- decay with `0.36` faster than `0.18` (smaller final `max|div(B)|`);
-- `glm_cr=0.0` (control): not decaying (final ≥ ~initial up to advection).
+For `divb_blob`: run the case at `glm_cr ∈ {0.0, 0.18, 0.36}` (override via generated cfgs), capturing `divB_max` and `divB_mean` at several checkpoints (use `output_times` if available, else short `t_end` runs at increasing times). With `cp^2 = ch * cr`, smaller positive `glm_cr` damps `psi` faster; do **not** expect larger `glm_cr` to damp faster.
 
-Write `experiments/week12/mhd_2d/divb_clean/summary.{md,json}` with the per-cr decay table.
+Robust assertions:
+- every run succeeds and every parsed `divB_mean`/`divB_max` is finite;
+- final `divB_max` for `glm_cr=0.18` and `glm_cr=0.36` is no worse than the `glm_cr=0.0` control by more than a small tolerance (`final_cr <= final_control * 1.02`);
+- final `divB_max` for `glm_cr=0.18` is no worse than `glm_cr=0.36` by more than a small tolerance (`final_018 <= final_036 * 1.02`), matching the `cp^2 = ch * cr` convention;
+- the full checkpoint table is written even if the series is not monotone, because hyperbolic GLM can propagate/oscillate divergence waves.
+
+Write `experiments/week12/mhd_2d/divb_clean/summary.{md,json}` with the per-cr checkpoint table, final-control comparison, and parameter-ordering comparison.
 
 > If per-checkpoint output is not yet supported by `hrsc_mhd`, run the same case at increasing `t_end` values and read the final `divB_max` from each run's stderr — keep it simple, no solver changes.
 
 - [ ] **Step 2: Run it**
 
 Run: `python scripts/regression/mhd_2d_week12.py --case divb_clean`
-Expected: monotonic decay for cr>0, faster for larger cr, flat control.
+Expected: `finite: True`, `damped_no_worse_than_control: True`, `smaller_cr_no_worse_than_larger_cr: True`.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add scripts/regression/mhd_2d_week12.py experiments/week12/mhd_2d/divb_clean/summary.md
-git commit -m "test(mhd): div(B)-cleaning decay validation across glm_cr"
+git add scripts/regression/mhd_2d_week12.py
+git add -f experiments/week12/mhd_2d/divb_clean/summary.md experiments/week12/mhd_2d/divb_clean/summary.json
+git add -f experiments/week12/mhd_2d/divb_clean/runs/*/config.cfg experiments/week12/mhd_2d/divb_clean/runs/*/stdout.txt experiments/week12/mhd_2d/divb_clean/runs/*/stderr.txt experiments/week12/mhd_2d/divb_clean/runs/*/metadata.json
+git commit -m "test(mhd): div(B)-cleaning diagnostic across glm_cr"
 ```
 
 ---
@@ -1910,17 +2057,33 @@ git commit -m "test(mhd): div(B)-cleaning decay validation across glm_cr"
 
 - [ ] **Step 1: Confirm all suites green**
 
-Run: `./build-double/unit_tests -r compact`
+Run: `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double --target unit_tests hrsc_mhd && ./build-double/unit_tests -r compact`
 Expected: PASS — Part-1 MHD, new `[mhd][swap]/[glm]/[solver2d]/[config]`, boundary, and all Euler cases; no Euler regressions.
 
 - [ ] **Step 2: Confirm 1D still bit-identical**
 
-Run: `./build-double/hrsc_mhd tests/cases/brio_wu_1d/brio_wu.cfg`
-Expected: `steps=759`, `divB_max ≈ 4.441e-14` (unchanged from Part 1).
+Run:
+
+```powershell
+Copy-Item experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.cfg experiments\week12\mhd_2d\baselines\brio_wu_1d_final.cfg
+(Get-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_final.cfg) -replace 'brio_wu_1d_part1.bin','brio_wu_1d_final.bin' |
+  Set-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_final.cfg
+.\build-double\hrsc_mhd.exe experiments\week12\mhd_2d\baselines\brio_wu_1d_final.cfg
+$baseline = (Get-Content experiments\week12\mhd_2d\baselines\brio_wu_1d_part1.sha256).Trim()
+$actual = (Get-FileHash experiments\week12\mhd_2d\baselines\brio_wu_1d_final.bin -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($actual -ne $baseline) { throw "1D Brio-Wu binary hash changed: $actual != $baseline" }
+```
+
+Expected: `steps=759`, `divB_max ≈ 4.441e-14`, and no hash exception.
+
+- [ ] **Step 2b: Confirm float `hrsc_mhd` still builds and smokes**
+
+Run: `cmake -B build-float -G Ninja -DFLOAT_PRECISION=float && cmake --build build-float --target hrsc_mhd && ./build-float/hrsc_mhd tests/cases/brio_wu_1d/brio_wu.cfg`
+Expected: float Brio-Wu finishes with a `[mhd]` diagnostic line and round-off `divB_max`.
 
 - [ ] **Step 3: Write the 2D addendum**
 
-Append a "## Week 12 Part 2 — 2D machinery + GLM" section to `week12-summary.md`: delivered files (`mhd_swap_xy`, `glm.hpp`, 2D solver, periodic/ψ BCs), the 2D Brio-Wu transverse-invariance result, the div(B)-cleaning decay table, and the carried-forward gaps (Orszag-Tang/KH physics, HLLD, GPU MHD, reflective BC, **2D figures**) for the Week-13 plan.
+Append a "## Week 12 Part 2 — 2D machinery + GLM" section to `week12-summary.md`: delivered files (`mhd_swap_xy`, `glm.hpp`, 2D solver, periodic/ψ BCs), the 2D Brio-Wu transverse-invariance result, the div(B)-cleaning diagnostic table, and the carried-forward gaps (Orszag-Tang/KH physics, HLLD, GPU MHD, reflective BC, **2D figures**) for the Week-13 plan.
 
 - [ ] **Step 4: Commit**
 
@@ -1933,7 +2096,7 @@ git commit -m "docs(mhd): record Week 12 Part 2 (2D MHD + GLM cleaning)"
 
 ## Self-Review (writing-plans, Part 2)
 
-- **Spec coverage:** mhd_swap_xy (T11) · glm_damp + cfg c_r (T12) · state-based (i,j) refactor, 1D bit-preserved (T13) · 2D ctor, 1D delegates (T14) · y-sweep + 2D CFL + periodic/ψ BC + glm wiring (T15) · 2D cfg parsing + IO + cfgs (T16) · 2D Brio-Wu regression (T17) · div(B)-cleaning decay (T18) · docs + green gates (T19). All design-spec sections mapped.
+- **Spec coverage:** mhd_swap_xy (T11) · glm_damp + cfg c_r (T12) · state-based (i,j) refactor, 1D bit-preserved (T13) · 2D ctor, 1D delegates (T14) · y-sweep + 2D CFL + periodic/ψ BC + glm wiring (T15) · 2D cfg parsing + IO + cfgs (T16) · 2D Brio-Wu regression (T17) · div(B)-cleaning diagnostic (T18) · docs + green gates (T19). All design-spec sections mapped.
 - **Out of scope (named):** Orszag-Tang/KH physics, HLLD, GPU MHD, reflective MHD BC, run_matrix MHD-awareness, 2D figures, Strang 2nd-order splitting — all carried to Week 13.
 - **Type consistency:** `mhd_swap_xy`/`mhd_swap_xy_prim`, `glm_damp`, `load_cell(gv,i,j)`/`store_cell(gv,i,j,U)`, state-based `predict_faces(Um,U0,Up,dt,gamma,ch,h,left,right)`, `x_sweep(ch,dt)`/`y_sweep(ch,dt)`, 2D `MhdSolver(nx,ny,dx,dy,xmin,ymin,gamma,cfl,t_end,bc_x,bc_y,glm_cr)`, `apply_axis_bc`/`zero_psi_ghosts`, `setup_brio_wu_row`/`setup_divb_blob`, `parse_mhd_test(divb_blob)` used identically across tasks.
 - **1D-preservation gate** is explicit and repeated (T13 S4-S5, T15 S5, T19 S2): 1D ctor delegates with `glm_cr=0`, `ny=1` skips `y_sweep`, `glm_damp` no-ops, so Part-1 Brio-Wu stays bit-identical (`steps=759`, divB_max ≈ 4.441e-14).
