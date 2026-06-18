@@ -33,7 +33,7 @@ TEST_CASE("glm_damp remains finite for large ch and cr", "[mhd][glm]") {
 
     const double ch = 1e308;
     const double cr = 1e308;
-    const double dt = 0.1;
+    const double dt = 2.0;
     glm_damp<double>(v, 1, 1, ch, cr, dt);
 
     const double expected = 2.0 * std::exp(-dt * (ch / cr));
