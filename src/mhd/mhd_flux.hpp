@@ -25,4 +25,14 @@ HD_FUNC Vec<Real, MhdNVars> mhd_flux_x(const Vec<Real, MhdNVars>& U, Real gamma,
     return F;
 }
 
+template <typename Real>
+HD_FUNC Vec<Real, MhdNVars> mhd_swap_xy(const Vec<Real, MhdNVars>& U) {
+    Vec<Real, MhdNVars> S = U;
+    S[MhdIdx::MX] = U[MhdIdx::MY];
+    S[MhdIdx::MY] = U[MhdIdx::MX];
+    S[MhdIdx::BX] = U[MhdIdx::BY];
+    S[MhdIdx::BY] = U[MhdIdx::BX];
+    return S;
+}
+
 } // namespace hrsc
