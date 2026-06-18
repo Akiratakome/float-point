@@ -206,8 +206,9 @@ Real MhdSolver<Real>::compute_ch() const {
 template <typename Real>
 TimeReal MhdSolver<Real>::compute_dt(Real ch) const {
     const Real denom = std::max(ch, Real(1e-30));
+    const Real h = (m_ny > 1) ? std::min(m_dx, m_dy) : m_dx;
     TimeReal dt = static_cast<TimeReal>(m_cfl)
-                * static_cast<TimeReal>(m_dx)
+                * static_cast<TimeReal>(h)
                 / static_cast<TimeReal>(denom);
     if (m_time + dt > m_t_end) {
         dt = m_t_end - m_time;

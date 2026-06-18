@@ -79,7 +79,8 @@ hyperbolic ψ–B coupling is left untouched, so 1D Brio-Wu stays bit-identical.
 **Check 1 — 2D does not corrupt the 1D physics.** Running Brio-Wu on an 800×4
 grid (periodic in y) is **exactly transverse-invariant** (every row identical to
 machine zero) and its row-0 profile matches the 1D run to a mean density
-difference of 3.5e-4. This confirms the y-sweep + rotation are correct.
+difference of 3.5e-4 and max density difference of 7.0e-3 under the stricter 2D
+CFL. This confirms the y-sweep + rotation are correct.
 
 **Check 2 — GLM cleaning works (key result).** On a doubly-periodic 128² grid
 seeded with a Gaussian `B_x` bump (a known nonzero `∇·B`), GLM cleaning drives the

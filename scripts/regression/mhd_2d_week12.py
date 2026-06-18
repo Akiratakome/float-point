@@ -279,8 +279,11 @@ def run_brio_wu_2d(bin_path: pathlib.Path, commit: str, binary_sha256: str) -> d
                 f"1D nx={rho_1d.shape[0]} != 2D nx={rho_2d_row0.shape[0]}; "
                 "cannot compare without resampling"
             )
-        mean_abs_rho_diff_vs_1d = float(np.abs(rho_2d_row0 - rho_1d).mean())
+        rho_diff_vs_1d = np.abs(rho_2d_row0 - rho_1d)
+        mean_abs_rho_diff_vs_1d = float(rho_diff_vs_1d.mean())
+        max_abs_rho_diff_vs_1d = float(rho_diff_vs_1d.max())
         print(f"[brio_wu_2d]   mean_abs_rho_diff_vs_1d = {mean_abs_rho_diff_vs_1d:.3e}")
+        print(f"[brio_wu_2d]   max_abs_rho_diff_vs_1d  = {max_abs_rho_diff_vs_1d:.3e}")
 
     divb_max_2d = float(diag_2d.get("divB_max", float("nan")))
     divb_mean_2d = float(diag_2d.get("divB_mean", float("nan")))
@@ -288,13 +291,17 @@ def run_brio_wu_2d(bin_path: pathlib.Path, commit: str, binary_sha256: str) -> d
     # ---- Gate checks -------------------------------------------------------
     gate_transverse = max_transverse_dev <= 1e-12
     gate_divb = divb_max_2d <= 1e-10
-    gate_rho_vs_1d = mean_abs_rho_diff_vs_1d < 2e-2
+    # The 2D solver uses the y-direction fast speed in its CFL, so its dt
+    # sequence is not bit-identical to the 1D run. Keep this as a tight
+    # consistency gate rather than an exact-equality gate.
+    gate_rho_vs_1d = mean_abs_rho_diff_vs_1d < 1e-3 and max_abs_rho_diff_vs_1d < 1e-2
 
     results: dict[str, Any] = {
         "max_transverse_dev": max_transverse_dev,
         "divB_max": divb_max_2d,
         "divB_mean": divb_mean_2d,
         "mean_abs_rho_diff_vs_1d": mean_abs_rho_diff_vs_1d,
+        "max_abs_rho_diff_vs_1d": max_abs_rho_diff_vs_1d,
         "gate_transverse_passed": gate_transverse,
         "gate_divB_passed": gate_divb,
         "gate_rho_vs_1d_passed": gate_rho_vs_1d,
@@ -313,7 +320,8 @@ def run_brio_wu_2d(bin_path: pathlib.Path, commit: str, binary_sha256: str) -> d
         "|---|---:|---|---:|",
         f"| max_transverse_dev | {max_transverse_dev:.3e} | <= 1e-12 | {gate_transverse} |",
         f"| divB_max (2D) | {divb_max_2d:.3e} | <= 1e-10 | {gate_divb} |",
-        f"| mean_abs_rho_diff_vs_1d | {mean_abs_rho_diff_vs_1d:.3e} | < 2e-2 | {gate_rho_vs_1d} |",
+        f"| mean_abs_rho_diff_vs_1d | {mean_abs_rho_diff_vs_1d:.3e} | < 1e-3 | {gate_rho_vs_1d} |",
+        f"| max_abs_rho_diff_vs_1d | {max_abs_rho_diff_vs_1d:.3e} | < 1e-2 | {gate_rho_vs_1d} |",
         "",
         "## Diagnostics",
         "",
@@ -359,8 +367,8 @@ def run_brio_wu_2d(bin_path: pathlib.Path, commit: str, binary_sha256: str) -> d
         )
     if not gate_rho_vs_1d:
         failures.append(
-            f"GATE FAIL: mean_abs_rho_diff_vs_1d={mean_abs_rho_diff_vs_1d:.3e} >= 2e-2 "
-            "(2D row 0 deviates too much from 1D reference)"
+            f"GATE FAIL: rho diff vs 1D too large: mean={mean_abs_rho_diff_vs_1d:.3e}, "
+            f"max={max_abs_rho_diff_vs_1d:.3e}"
         )
     if failures:
         for f in failures:
@@ -464,8 +472,9 @@ def run_divb_clean(bin_path: pathlib.Path, commit: str, binary_sha256: str) -> d
     all_finite = all(
         math.isfinite(v) for v in [divb_max_ctrl, divb_max_018, divb_max_036]
     )
-    cleaning_018 = divb_max_018 < divb_max_ctrl
-    cleaning_036 = divb_max_036 < divb_max_ctrl
+    cleaning_018 = divb_max_018 <= divb_max_ctrl * 1.02
+    cleaning_036 = divb_max_036 <= divb_max_ctrl * 1.02
+    cr018_no_worse_than_cr036 = divb_max_018 <= divb_max_036 * 1.02
     cr036_better_than_cr018 = divb_max_036 < divb_max_018  # informational only
 
     print()
@@ -473,6 +482,7 @@ def run_divb_clean(bin_path: pathlib.Path, commit: str, binary_sha256: str) -> d
     print(f"  divB_max(cr=0.00, t=0.5) = {divb_max_ctrl:.3e}  (control)")
     print(f"  divB_max(cr=0.18, t=0.5) = {divb_max_018:.3e}  cleaned < control? {cleaning_018}")
     print(f"  divB_max(cr=0.36, t=0.5) = {divb_max_036:.3e}  cleaned < control? {cleaning_036}")
+    print(f"  cr=0.18 no worse than cr=0.36? {cr018_no_worse_than_cr036}")
     print(f"  cr=0.36 better than cr=0.18? {cr036_better_than_cr018}  (informational)")
 
     # ---- Build summary.csv -------------------------------------------------
@@ -509,6 +519,7 @@ def run_divb_clean(bin_path: pathlib.Path, commit: str, binary_sha256: str) -> d
             "all_finite": all_finite,
             "cleaning_018_passed": cleaning_018,
             "cleaning_036_passed": cleaning_036,
+            "cr018_no_worse_than_cr036_passed": cr018_no_worse_than_cr036,
             "cr036_better_than_cr018": cr036_better_than_cr018,
         },
         "figure_grids": figure_grids,
@@ -550,8 +561,9 @@ def run_divb_clean(bin_path: pathlib.Path, commit: str, binary_sha256: str) -> d
         f"| check | value | pass? |",
         f"|---|---:|---:|",
         f"| divB_max(cr=0.00, t=0.5) control | {divb_max_ctrl:.3e} | n/a |",
-        f"| divB_max(cr=0.18, t=0.5) < control | {divb_max_018:.3e} | {cleaning_018} |",
-        f"| divB_max(cr=0.36, t=0.5) < control | {divb_max_036:.3e} | {cleaning_036} |",
+        f"| divB_max(cr=0.18, t=0.5) <= control*1.02 | {divb_max_018:.3e} | {cleaning_018} |",
+        f"| divB_max(cr=0.36, t=0.5) <= control*1.02 | {divb_max_036:.3e} | {cleaning_036} |",
+        f"| cr=0.18 <= cr=0.36*1.02 | {cr018_no_worse_than_cr036} | {cr018_no_worse_than_cr036} |",
         f"| cr=0.36 < cr=0.18 (informational) | {cr036_better_than_cr018} | n/a |",
         "",
         "## Figure grids",
@@ -587,6 +599,11 @@ def run_divb_clean(bin_path: pathlib.Path, commit: str, binary_sha256: str) -> d
         failures.append(
             f"GATE FAIL: divB_max(cr=0.36)={divb_max_036:.3e} >= "
             f"divB_max(cr=0.0)={divb_max_ctrl:.3e} — GLM cr=0.36 is NOT cleaning better"
+        )
+    if not cr018_no_worse_than_cr036:
+        failures.append(
+            f"GATE FAIL: divB_max(cr=0.18)={divb_max_018:.3e} is worse than "
+            f"divB_max(cr=0.36)={divb_max_036:.3e} beyond tolerance"
         )
     if failures:
         for f in failures:

@@ -73,6 +73,14 @@ TEST_CASE("MhdSolver 2D constructor builds an ny>1 grid", "[mhd][solver2d]") {
     REQUIRE(gv.ny == 4);
 }
 
+TEST_CASE("MhdSolver 2D CFL uses the smaller grid spacing", "[mhd][solver2d]") {
+    MhdSolver<double> s(16, 4, /*dx=*/0.1, /*dy=*/0.01, 0.0, 0.0,
+                        /*gamma=*/2.0, /*cfl=*/0.4, /*t_end=*/1.0,
+                        BoundaryType::Periodic, BoundaryType::Periodic, /*glm_cr=*/0.18);
+
+    REQUIRE(s.compute_dt(/*ch=*/2.0) == Approx(0.002));
+}
+
 TEST_CASE("2D Brio-Wu (ny=4, periodic-y) stays transverse-invariant and matches 1D",
           "[mhd][solver2d]") {
     const int nx = 128, ny = 4;
@@ -100,10 +108,16 @@ TEST_CASE("2D Brio-Wu (ny=4, periodic-y) stays transverse-invariant and matches 
     s1.run();
     auto gv1 = s1.grid_view();
     double mean_abs_diff = 0.0;
+    double max_abs_diff = 0.0;
     for (int i = 0; i < nx; ++i)
-        mean_abs_diff += std::abs(gv2(i, 0, MhdIdx::RHO) - gv1(i, 0, MhdIdx::RHO));
+    {
+        const double diff = std::abs(gv2(i, 0, MhdIdx::RHO) - gv1(i, 0, MhdIdx::RHO));
+        mean_abs_diff += diff;
+        max_abs_diff = std::max(max_abs_diff, diff);
+    }
     mean_abs_diff /= nx;
-    REQUIRE(mean_abs_diff < 2e-2);
+    REQUIRE(mean_abs_diff < 1e-3);
+    REQUIRE(max_abs_diff < 1e-2);
 }
 
 TEST_CASE("MHD solver evolves Bx/psi instead of clamping GLM variables", "[mhd][solver]") {

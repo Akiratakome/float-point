@@ -38,28 +38,30 @@ Task 6 fixed the interface convention: interface `i` uses the right face of cell
 Delivered (Tasks 11–19): `mhd_swap_xy`/`mhd_swap_xy_prim` rotation (`mhd_flux.hpp`),
 `glm_damp` (`src/mhd/glm.hpp`), a state-based `(i,j)`-general solver refactor, the
 2D constructor, the rotate-and-reuse `y_sweep`, a 2D CFL that includes the
-y-direction fast speed (guarded by `ny>1` so 1D stays bit-identical), periodic +
-ψ=0-ghost boundary conditions, the `divb_blob` case, and the validation driver
-`scripts/regression/mhd_2d_week12.py`.
+y-direction fast speed and the smaller of `dx,dy` (guarded by `ny>1` so 1D stays
+bit-identical), periodic + ψ=0-ghost boundary conditions, the `divb_blob` case,
+and the validation driver `scripts/regression/mhd_2d_week12.py`.
 
 **Approach (canonical Dedner):** the 1D hyperbolic ψ–B flux coupling is left
 untouched; multi-D cleaning emerges from the summed x/y sweeps plus an analytic
-parabolic damping `ψ ← ψ·exp(−Δt·c_h²/c_p²)` (cfg knob `glm_cr`, default 0.18).
+parabolic damping `ψ ← ψ·exp(−Δt·c_h²/c_p²)` (cfg knob `glm_cr`, default 0 for
+1D/no-op preservation and 0.18 for 2D).
 Full-grid `div(B)` is the diagnostic. (Documented deviation from overall.md's
 literal "separate div(B) source step", which would double-count the flux coupling.)
 
 **Validation:**
 
 - *2D Brio-Wu (800×4, periodic-y):* exactly transverse-invariant (rows identical
-  to machine zero); row-0 matches the 1D run to mean Δρ = 3.5e-4. Confirms the
-  y-sweep does not corrupt the validated x-physics.
+  to machine zero); row-0 matches the 1D run to mean Δρ = 3.5e-4 and max Δρ =
+  7.0e-3 under the stricter 2D CFL. Confirms the y-sweep does not corrupt the
+  validated x-physics.
 - *div(B)-cleaning (128², doubly periodic Gaussian Bx bump):* `max|∇·B|` at t=0.5
   drops from 3.03 (control `glm_cr=0`) to 0.27 (`glm_cr=0.18`) — a ~11× reduction;
   cleaning is non-monotone in `glm_cr` (0.18 beats 0.36). Figures:
   `experiments/week12/mhd_2d/figures/divb_cleaning_{decay,heatmap}.png`.
 
 **1D regression gate held throughout:** Brio-Wu stays bit-identical
-(`steps=759`, `divB_max=4.441e-14`). Full MHD suite: 32 cases / 13942 assertions.
+(`steps=759`, `divB_max=4.441e-14`). Full MHD suite: 33 cases / 13944 assertions.
 
 Supervisor update: `docs/emails/week12_progress_to_philip_2026-06-18.md`.
 
