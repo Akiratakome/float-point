@@ -336,6 +336,28 @@ void setup_brio_wu_row(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
 template void setup_brio_wu_row<float>(GridView<float, MhdNVars>, int, float, float, float, float, int);
 template void setup_brio_wu_row<double>(GridView<double, MhdNVars>, int, double, double, double, double, int);
 
+// Doubly-periodic Gaussian Bx bump -> known smooth nonzero div(B)=dBx/dx.
+// Uniform rho=1, p=1, v=0, By=Bz=psi=0.
+template <typename Real>
+void setup_divb_blob(GridView<Real, MhdNVars> gv, int nx, int ny,
+                     Real dx, Real dy, Real xmin, Real ymin, Real gamma) {
+    const Real B0 = Real(1), sigma = Real(0.1), xc = Real(0.5), yc = Real(0.5);
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            const Real x = xmin + (Real(i) + Real(0.5)) * dx;
+            const Real y = ymin + (Real(j) + Real(0.5)) * dy;
+            const Real r2 = (x - xc) * (x - xc) + (y - yc) * (y - yc);
+            MhdPrim<Real> w{};
+            w.rho = Real(1);
+            w.p = Real(1);
+            w.Bx = B0 * std::exp(-r2 / (sigma * sigma));  // By=Bz=v=psi=0 from {}
+            store_cell(gv, i, j, prim_to_cons(w, gamma));
+        }
+}
+
+template void setup_divb_blob<float>(GridView<float,MhdNVars>,int,int,float,float,float,float,float);
+template void setup_divb_blob<double>(GridView<double,MhdNVars>,int,int,double,double,double,double,double);
+
 template class MhdSolver<float>;
 template class MhdSolver<double>;
 

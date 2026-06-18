@@ -17,6 +17,10 @@ void setup_brio_wu_row(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
                        Real gamma, Real x0, int j);
 
 template <typename Real>
+void setup_divb_blob(GridView<Real, MhdNVars> gv, int nx, int ny,
+                     Real dx, Real dy, Real xmin, Real ymin, Real gamma);
+
+template <typename Real>
 class MhdSolver {
     Grid2D<Real, MhdNVars> m_grid;
     Real m_xmin;

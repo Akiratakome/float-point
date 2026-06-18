@@ -22,19 +22,30 @@ void require_finite(const char* name, double value) {
     }
 }
 
-void validate_cfg(int nx, double xmin, double xmax, double gamma,
-                  double cfl, double t_end, double x0) {
+void validate_cfg(int nx, int ny, double xmin, double xmax, double ymin, double ymax,
+                  double gamma, double cfl, double t_end, double x0, double glm_cr) {
     if (nx <= 0) {
         throw std::invalid_argument("nx must be > 0");
     }
+    if (ny <= 0) {
+        throw std::invalid_argument("ny must be > 0");
+    }
+    if (!(glm_cr >= 0.0)) {
+        throw std::invalid_argument("glm_cr must be >= 0");
+    }
     require_finite("xmin", xmin);
     require_finite("xmax", xmax);
+    require_finite("ymin", ymin);
+    require_finite("ymax", ymax);
     require_finite("gamma", gamma);
     require_finite("cfl", cfl);
     require_finite("t_end", t_end);
     require_finite("x0", x0);
     if (!(xmax > xmin)) {
         throw std::invalid_argument("xmax must be > xmin");
+    }
+    if (ny > 1 && !(ymax > ymin)) {
+        throw std::invalid_argument("ymax must be > ymin when ny > 1");
     }
     if (!(gamma > 1.0)) {
         throw std::invalid_argument("gamma must be > 1.0");
@@ -53,34 +64,47 @@ int main(int argc, char** argv) try {
     if (argc < 2) { std::fprintf(stderr, "usage: hrsc_mhd <cfg>\n"); return 1; }
     hrsc::Config cfg(argv[1]);
 
-    const int    nx    = cfg.get_int("nx", 800);
-    const double xmin  = cfg.get_double("xmin", 0.0);
-    const double xmax  = cfg.get_double("xmax", 1.0);
-    const double gamma = cfg.get_double("gamma", 2.0);
-    const double cfl   = cfg.get_double("cfl", 0.4);
-    const double t_end = cfg.get_double("t_end", 0.1);
-    const double x0    = cfg.get_double("x0", 0.5);
+    const int    nx      = cfg.get_int("nx", 800);
+    const int    ny      = cfg.get_int("ny", 1);
+    const double xmin    = cfg.get_double("xmin", 0.0);
+    const double xmax    = cfg.get_double("xmax", 1.0);
+    const double ymin    = cfg.get_double("ymin", 0.0);
+    const double ymax    = cfg.get_double("ymax", ny > 1 ? 1.0 : 0.0);
+    const double gamma   = cfg.get_double("gamma", 2.0);
+    const double cfl     = cfg.get_double("cfl", 0.4);
+    const double t_end   = cfg.get_double("t_end", 0.1);
+    const double x0      = cfg.get_double("x0", 0.5);
+    const double glm_cr  = cfg.get_double("glm_cr", 0.18);
     const hrsc::MhdTestCase test = hrsc::parse_mhd_test(cfg.get_string("test", "brio_wu"));
-    const hrsc::BoundaryType bc = hrsc::parse_mhd_boundary(cfg.get_string("bc", "outflow"));
+    const hrsc::BoundaryType bc   = hrsc::parse_mhd_boundary(cfg.get_string("bc", "outflow"));
+    const hrsc::BoundaryType bc_y = hrsc::parse_mhd_boundary(cfg.get_string("bc_y", cfg.get_string("bc", "outflow")));
     const std::string out = cfg.get_string("output_file", "");
-    validate_cfg(nx, xmin, xmax, gamma, cfl, t_end, x0);
+
+    validate_cfg(nx, ny, xmin, xmax, ymin, ymax, gamma, cfl, t_end, x0, glm_cr);
 
     const Real dx = static_cast<Real>((xmax - xmin) / nx);
-    hrsc::MhdSolver<Real> solver(nx, dx, static_cast<Real>(xmin),
-                                 static_cast<Real>(gamma), static_cast<Real>(cfl), t_end, bc);
-    if (test == hrsc::MhdTestCase::BrioWu) {
-        hrsc::setup_brio_wu<Real>(solver.grid_view(), nx, dx, static_cast<Real>(xmin),
-                                  static_cast<Real>(gamma), static_cast<Real>(x0));
-    }
-    solver.run();
+    const Real dy = (ny > 1) ? static_cast<Real>((ymax - ymin) / ny) : dx;
+
+    hrsc::MhdSolver<Real> solver(nx, ny, dx, dy, (Real)xmin, (Real)ymin,
+                                 (Real)gamma, (Real)cfl, t_end, bc, bc_y, (Real)glm_cr);
 
     auto gv = solver.grid_view();
-    hrsc::DivBNorms<Real> db = hrsc::compute_divB_norms<Real>(gv, nx, 1, dx, dx);
+    if (test == hrsc::MhdTestCase::BrioWu) {
+        for (int j = 0; j < ny; ++j)
+            hrsc::setup_brio_wu_row<Real>(gv, nx, dx, (Real)xmin, (Real)gamma, (Real)x0, j);
+    } else {
+        hrsc::setup_divb_blob<Real>(gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
+    }
+
+    solver.run();
+
+    gv = solver.grid_view();
+    hrsc::DivBNorms<Real> db = hrsc::compute_divB_norms<Real>(gv, nx, ny, dx, dy);
     std::fprintf(stderr, "[mhd] t=%.6f steps=%d divB_mean=%.3e divB_max=%.3e\n",
                  solver.time(), solver.step_count(), (double)db.mean, (double)db.max);
 
     if (!out.empty())
-        hrsc::write_binary<Real, hrsc::MhdNVars>(out, gv, nx, 1, dx, dx, (Real)solver.time());
+        hrsc::write_binary<Real, hrsc::MhdNVars>(out, gv, nx, ny, dx, dy, (Real)solver.time());
     return 0;
 } catch (const std::exception& e) {
     std::fprintf(stderr, "[error] %s\n", e.what());

@@ -12,6 +12,14 @@ TEST_CASE("MHD cfg parser accepts only the Week 12 Brio-Wu outflow case", "[mhd]
 
 TEST_CASE("MHD cfg parser rejects unsupported tests and boundary conditions", "[mhd][config]") {
     REQUIRE_THROWS_AS(parse_mhd_test("orszag_tang"), std::invalid_argument);
-    REQUIRE_THROWS_AS(parse_mhd_boundary("periodic"), std::invalid_argument);
     REQUIRE_THROWS_AS(parse_mhd_boundary("reflective"), std::invalid_argument);
+}
+
+TEST_CASE("parse_mhd_boundary accepts periodic", "[mhd][config]") {
+    REQUIRE(parse_mhd_boundary("periodic") == BoundaryType::Periodic);
+    REQUIRE(parse_mhd_boundary("outflow")  == BoundaryType::Outflow);
+}
+
+TEST_CASE("parse_mhd_test accepts divb_blob", "[mhd][config]") {
+    REQUIRE(parse_mhd_test("divb_blob") == MhdTestCase::DivbBlob);
 }
