@@ -64,6 +64,15 @@ TEST_CASE("MHD solver rejects unsupported Reflective boundary conditions", "[mhd
     REQUIRE_THROWS_AS(solver.run(), std::logic_error);
 }
 
+TEST_CASE("MhdSolver 2D constructor builds an ny>1 grid", "[mhd][solver2d]") {
+    MhdSolver<double> s(16, 4, 1.0/16, 1.0/4, 0.0, 0.0,
+                        /*gamma=*/2.0, /*cfl=*/0.4, /*t_end=*/0.0,
+                        BoundaryType::Periodic, BoundaryType::Periodic, /*glm_cr=*/0.18);
+    auto gv = s.grid_view();
+    REQUIRE(gv.nx == 16);
+    REQUIRE(gv.ny == 4);
+}
+
 TEST_CASE("MHD solver evolves Bx/psi instead of clamping GLM variables", "[mhd][solver]") {
     constexpr int nx = 32;
     constexpr double dx = 1.0 / nx;

@@ -115,20 +115,33 @@ void setup_brio_wu(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
 }
 
 template <typename Real>
-MhdSolver<Real>::MhdSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl,
-                           TimeReal t_end, BoundaryType bc_x)
-    : m_grid(nx, 1),
+MhdSolver<Real>::MhdSolver(int nx, int ny, Real dx, Real dy, Real xmin, Real ymin,
+                           Real gamma, Real cfl, TimeReal t_end,
+                           BoundaryType bc_x, BoundaryType bc_y, Real glm_cr)
+    : m_grid(nx, ny),
       m_xmin(xmin),
+      m_ymin(ymin),
       m_dx(dx),
+      m_dy(dy),
       m_gamma(gamma),
       m_cfl(cfl),
       m_t_end(t_end),
       m_time(TimeReal(0)),
       m_step(0),
-      m_bc_x(bc_x) {
+      m_bc_x(bc_x),
+      m_ny(ny),
+      m_bc_y(bc_y),
+      m_glm_cr(glm_cr) {
     m_grid.dx = dx;
-    m_grid.dy = dx;
+    m_grid.dy = dy;
 }
+
+// 1D convenience ctor: ny=1, glm_cr=0 -> no damping -> bit-identical to before.
+template <typename Real>
+MhdSolver<Real>::MhdSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl,
+                           TimeReal t_end, BoundaryType bc_x)
+    : MhdSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end,
+                bc_x, BoundaryType::Outflow, Real(0)) {}
 
 template <typename Real>
 void MhdSolver<Real>::apply_bc() {
