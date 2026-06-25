@@ -37,6 +37,8 @@ _DIAG_RE = re.compile(
 
 def block_average_2d(arr: np.ndarray, ny_c: int, nx_c: int) -> np.ndarray:
     """Block-mean a (ny, nx) array down to (ny_c, nx_c). Requires integer factors."""
+    if ny_c <= 0 or nx_c <= 0:
+        raise ValueError(f"target shape must be positive, got ({ny_c},{nx_c})")
     ny, nx = arr.shape
     if ny % ny_c != 0 or nx % nx_c != 0:
         raise ValueError(f"non-integer downsample factor: ({ny},{nx}) -> ({ny_c},{nx_c})")
@@ -60,6 +62,7 @@ def reflect_y_residual(field: np.ndarray) -> float:
 
 def conserved_totals(arr: np.ndarray, gamma: float) -> dict[str, float]:
     """Domain sums of conserved mass and total energy (periodic-domain invariants)."""
+    _ = gamma  # kept for API parity; conserved totals use stored fields directly.
     return {"mass": float(arr[..., RHO].sum()), "energy": float(arr[..., E].sum())}
 
 
@@ -81,7 +84,13 @@ def replace_or_append_cfg(text: str, key: str, value: str) -> str:
             out.append(line)
             continue
         if line.split("=", 1)[0].strip() == key:
-            out.append(f"{key} = {value}")
+            suffix = ""
+            comment_start = line.find("#")
+            if comment_start >= 0:
+                before_comment = line[:comment_start]
+                comment_gap = before_comment[len(before_comment.rstrip()):]
+                suffix = f"{comment_gap}{line[comment_start:]}"
+            out.append(f"{key} = {value}{suffix}")
             replaced = True
         else:
             out.append(line)
@@ -124,6 +133,11 @@ def run_case(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha2
     cfg_path.write_text(cfg_text, encoding="utf-8")
     stdout_path, stderr_path = run_dir / "stdout.txt", run_dir / "stderr.txt"
     command = [str(bin_path), str(cfg_path)]
+    output_bin_path = None
+    if output_bin is not None:
+        output_bin_path = pathlib.Path(output_bin)
+        if not output_bin_path.is_absolute():
+            output_bin_path = ROOT / output_bin_path
     start = time.time()
     t0 = time.perf_counter()
     with stdout_path.open("w", encoding="utf-8") as fo, stderr_path.open("w", encoding="utf-8") as fe:
@@ -141,10 +155,12 @@ def run_case(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha2
         "stdout": str(stdout_path), "stderr": str(stderr_path),
         "stderr_diagnostics": parse_mhd_diagnostics(stderr_text),
     }
+    if output_bin_path is not None:
+        meta["output_binary"] = str(output_bin_path)
     (run_dir / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
     if result.returncode != 0:
         raise RuntimeError(f"run '{label}' failed (rc={result.returncode}); see {stderr_path}")
-    if output_bin is not None:
-        if not output_bin.is_file() or output_bin.stat().st_mtime < start:
-            raise RuntimeError(f"run '{label}' did not (re)produce {output_bin}; see {stderr_path}")
+    if output_bin_path is not None:
+        if not output_bin_path.is_file() or output_bin_path.stat().st_mtime < start:
+            raise RuntimeError(f"run '{label}' did not (re)produce {output_bin_path}; see {stderr_path}")
     return result, meta, stderr_text
