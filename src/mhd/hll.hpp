@@ -36,4 +36,15 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hll_flux(const Vec<Real, MhdNVars>& UL,
     return F;
 }
 
+// Stateless functor wrapper so MhdSolver can be templated on the Riemann
+// solver while mhd_hll_flux stays a free function for direct unit testing.
+struct HllFlux {
+    template <typename Real>
+    HD_FUNC Vec<Real, MhdNVars> operator()(const Vec<Real, MhdNVars>& UL,
+                                           const Vec<Real, MhdNVars>& UR,
+                                           Real gamma, Real ch) const {
+        return mhd_hll_flux(UL, UR, gamma, ch);
+    }
+};
+
 } // namespace hrsc

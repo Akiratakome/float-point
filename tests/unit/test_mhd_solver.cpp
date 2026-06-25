@@ -1,4 +1,5 @@
 #include "catch.hpp"
+#include "mhd/hll.hpp"  // HllFlux
 #include "mhd/mhd_solver.hpp"
 
 #include <cmath>
@@ -157,4 +158,20 @@ TEST_CASE("MHD solver evolves Bx/psi instead of clamping GLM variables", "[mhd][
 
     REQUIRE(max_abs_psi > 1e-8);
     REQUIRE(max_bx_delta > 1e-8);
+}
+
+TEST_CASE("MhdSolver<double, HllFlux> matches default HLL solver", "[mhd][solver][functor]") {
+    // Same Brio-Wu short run as the default-parameter solver; the explicit
+    // HllFlux instantiation must reproduce it bit-for-bit (the default IS HllFlux).
+    MhdSolver<double> a(64, 1.0/64, 0.0, 2.0, 0.4, 0.02);
+    setup_brio_wu(a.grid_view(), 64, 1.0/64, 0.0, 2.0, 0.5);
+    a.run();
+    MhdSolver<double, HllFlux> b(64, 1.0/64, 0.0, 2.0, 0.4, 0.02);
+    setup_brio_wu(b.grid_view(), 64, 1.0/64, 0.0, 2.0, 0.5);
+    b.run();
+    auto ga = a.grid_view();
+    auto gb = b.grid_view();
+    for (int i = 0; i < 64; ++i)
+        for (int k = 0; k < MhdNVars; ++k)
+            REQUIRE(gb(i, 0, k) == ga(i, 0, k));
 }

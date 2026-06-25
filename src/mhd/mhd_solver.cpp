@@ -146,10 +146,12 @@ void setup_brio_wu(GridView<Real, MhdNVars> gv, int nx, Real dx, Real xmin,
     }
 }
 
-template <typename Real>
-MhdSolver<Real>::MhdSolver(int nx, int ny, Real dx, Real dy, Real xmin, Real ymin,
-                           Real gamma, Real cfl, TimeReal t_end,
-                           BoundaryType bc_x, BoundaryType bc_y, Real glm_cr)
+template <typename Real, typename RiemannFlux>
+MhdSolver<Real, RiemannFlux>::MhdSolver(int nx, int ny, Real dx, Real dy,
+                                        Real xmin, Real ymin, Real gamma,
+                                        Real cfl, TimeReal t_end,
+                                        BoundaryType bc_x, BoundaryType bc_y,
+                                        Real glm_cr)
     : m_grid(nx, ny),
       m_xmin(xmin),
       m_ymin(ymin),
@@ -169,21 +171,22 @@ MhdSolver<Real>::MhdSolver(int nx, int ny, Real dx, Real dy, Real xmin, Real ymi
 }
 
 // 1D convenience ctor: ny=1, glm_cr=0 -> no damping -> bit-identical to before.
-template <typename Real>
-MhdSolver<Real>::MhdSolver(int nx, Real dx, Real xmin, Real gamma, Real cfl,
-                           TimeReal t_end, BoundaryType bc_x)
-    : MhdSolver(nx, 1, dx, dx, xmin, Real(0), gamma, cfl, t_end,
-                bc_x, BoundaryType::Outflow, Real(0)) {}
+template <typename Real, typename RiemannFlux>
+MhdSolver<Real, RiemannFlux>::MhdSolver(int nx, Real dx, Real xmin,
+                                        Real gamma, Real cfl,
+                                        TimeReal t_end, BoundaryType bc_x)
+    : MhdSolver<Real, RiemannFlux>(nx, 1, dx, dx, xmin, Real(0), gamma, cfl,
+                                   t_end, bc_x, BoundaryType::Outflow, Real(0)) {}
 
-template <typename Real>
-void MhdSolver<Real>::apply_bc() {
+template <typename Real, typename RiemannFlux>
+void MhdSolver<Real, RiemannFlux>::apply_bc() {
     auto gv = m_grid.view();
     apply_axis_bc(gv, Axis::X, m_bc_x);
     if (m_ny > 1) apply_axis_bc(gv, Axis::Y, m_bc_y);
 }
 
-template <typename Real>
-Real MhdSolver<Real>::compute_ch() const {
+template <typename Real, typename RiemannFlux>
+Real MhdSolver<Real, RiemannFlux>::compute_ch() const {
     auto gv = m_grid.view();
     Real ch = Real(0);
     for (int j = 0; j < gv.ny; ++j) {
@@ -203,8 +206,8 @@ Real MhdSolver<Real>::compute_ch() const {
     return ch;
 }
 
-template <typename Real>
-TimeReal MhdSolver<Real>::compute_dt(Real ch) const {
+template <typename Real, typename RiemannFlux>
+TimeReal MhdSolver<Real, RiemannFlux>::compute_dt(Real ch) const {
     const Real denom = std::max(ch, Real(1e-30));
     const Real h = (m_ny > 1) ? std::min(m_dx, m_dy) : m_dx;
     TimeReal dt = static_cast<TimeReal>(m_cfl)
@@ -216,8 +219,8 @@ TimeReal MhdSolver<Real>::compute_dt(Real ch) const {
     return dt;
 }
 
-template <typename Real>
-void MhdSolver<Real>::x_sweep(Real ch, TimeReal dt_time) {
+template <typename Real, typename RiemannFlux>
+void MhdSolver<Real, RiemannFlux>::x_sweep(Real ch, TimeReal dt_time) {
     const Real dt = static_cast<Real>(dt_time);
     auto gv = m_grid.view();
     const int nx = gv.nx;
@@ -239,7 +242,7 @@ void MhdSolver<Real>::x_sweep(Real ch, TimeReal dt_time) {
                           right_cell_left, right_cell_right);
 
             flux[static_cast<std::size_t>(iface)] =
-                mhd_hll_flux(left_cell_right, right_cell_left, m_gamma, ch);
+                RiemannFlux{}(left_cell_right, right_cell_left, m_gamma, ch);
         }
 
         const Real dtdx = dt / m_dx;
@@ -255,8 +258,8 @@ void MhdSolver<Real>::x_sweep(Real ch, TimeReal dt_time) {
     }
 }
 
-template <typename Real>
-void MhdSolver<Real>::y_sweep(Real ch, TimeReal dt_time) {
+template <typename Real, typename RiemannFlux>
+void MhdSolver<Real, RiemannFlux>::y_sweep(Real ch, TimeReal dt_time) {
     if (m_ny <= 1) return;
     const Real dt = static_cast<Real>(dt_time);
     auto gv = m_grid.view();
@@ -275,7 +278,7 @@ void MhdSolver<Real>::y_sweep(Real ch, TimeReal dt_time) {
             predict_faces(mhd_swap_xy(load_cell(gv, i, jR - 1)), mhd_swap_xy(load_cell(gv, i, jR)),
                           mhd_swap_xy(load_cell(gv, i, jR + 1)), dt, m_gamma, ch, m_dy, rcl, rcr);
             flux[static_cast<std::size_t>(jf)] =
-                mhd_swap_xy(mhd_hll_flux(lcr, rcl, m_gamma, ch));  // rotate flux back
+                mhd_swap_xy(RiemannFlux{}(lcr, rcl, m_gamma, ch));  // rotate flux back
         }
         const Real dtdy = dt / m_dy;
         for (int j = 0; j < ny; ++j) {
@@ -288,8 +291,8 @@ void MhdSolver<Real>::y_sweep(Real ch, TimeReal dt_time) {
     }
 }
 
-template <typename Real>
-void MhdSolver<Real>::step() {
+template <typename Real, typename RiemannFlux>
+void MhdSolver<Real, RiemannFlux>::step() {
     apply_bc();
     const Real ch = compute_ch();
     const TimeReal dt_time = compute_dt(ch);
@@ -306,8 +309,8 @@ void MhdSolver<Real>::step() {
     m_step++;
 }
 
-template <typename Real>
-void MhdSolver<Real>::run() {
+template <typename Real, typename RiemannFlux>
+void MhdSolver<Real, RiemannFlux>::run() {
     while (m_time < m_t_end) {
         const TimeReal old_time = m_time;
         step();
@@ -359,7 +362,7 @@ void setup_divb_blob(GridView<Real, MhdNVars> gv, int nx, int ny,
 template void setup_divb_blob<float>(GridView<float,MhdNVars>,int,int,float,float,float,float,float);
 template void setup_divb_blob<double>(GridView<double,MhdNVars>,int,int,double,double,double,double,double);
 
-template class MhdSolver<float>;
-template class MhdSolver<double>;
+template class MhdSolver<float, HllFlux>;
+template class MhdSolver<double, HllFlux>;
 
 } // namespace hrsc

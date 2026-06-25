@@ -20,7 +20,7 @@ template <typename Real>
 void setup_divb_blob(GridView<Real, MhdNVars> gv, int nx, int ny,
                      Real dx, Real dy, Real xmin, Real ymin, Real gamma);
 
-template <typename Real>
+template <typename Real, typename RiemannFlux = HllFlux>
 class MhdSolver {
     Grid2D<Real, MhdNVars> m_grid;
     Real m_xmin;
