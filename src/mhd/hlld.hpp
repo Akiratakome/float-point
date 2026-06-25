@@ -12,9 +12,9 @@ namespace hrsc {
 // The (Bx, psi) GLM pair is decoupled and solved exactly (Dedner/Mignone):
 //   Bx*  = 0.5*(BxL+BxR) - 0.5*(psiR-psiL)/ch
 //   psi* = 0.5*(psiL+psiR) - 0.5*ch*(BxR-BxL)
-// giving F[BX]=psi*, F[PSI]=ch^2*Bx*; the 5-wave fan uses Bn=Bx* as the
-// constant normal field everywhere else. Degenerate intermediate states fall
-// back to HLL (already GLM-consistent via its +-ch wave-speed clamp).
+// giving F[BX]=psi*, F[PSI]=ch^2*Bx*; the 5-wave fan is evaluated on
+// primitive-equivalent states rebuilt with Bn=Bx* and psi=0. Degenerate
+// intermediate states fall back to HLL on that same non-GLM subsystem state.
 template <typename Real>
 HD_FUNC Vec<Real, MhdNVars> mhd_hlld_flux(const Vec<Real, MhdNVars>& UL,
                                           const Vec<Real, MhdNVars>& UR,
@@ -32,13 +32,33 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hlld_flux(const Vec<Real, MhdNVars>& UL,
     const Real psis = Real(0.5) * (UL[MhdIdx::PSI] + UR[MhdIdx::PSI])
                     - Real(0.5) * ch * (UR[MhdIdx::BX] - UL[MhdIdx::BX]);
     const Real Bn = Bxs;
+    if (!std::isfinite(Bn) || !std::isfinite(psis))
+        return mhd_hll_flux(UL, UR, gamma, ch);
 
-    const MhdPrim<Real> wl = cons_to_prim(UL, gamma);
-    const MhdPrim<Real> wr = cons_to_prim(UR, gamma);
+    MhdPrim<Real> wl = cons_to_prim(UL, gamma);
+    MhdPrim<Real> wr = cons_to_prim(UR, gamma);
+    wl.Bx = Bn;
+    wr.Bx = Bn;
+    wl.psi = Real(0);
+    wr.psi = Real(0);
+    const Vec<Real, MhdNVars> ULf = prim_to_cons(wl, gamma);
+    const Vec<Real, MhdNVars> URf = prim_to_cons(wr, gamma);
+
     const Real cfL = fast_speed_x(wl, gamma);
     const Real cfR = fast_speed_x(wr, gamma);
     const Real SL = std::min(wl.vx - cfL, wr.vx - cfR);
     const Real SR = std::max(wr.vx + cfR, wl.vx + cfL);
+    const Real guard_factor = Real(64);  // Tolerance multiplier for near-zero fan denominators.
+
+    auto finite_vec = [](const Vec<Real, MhdNVars>& U) {
+        for (int k = 0; k < MhdNVars; ++k)
+            if (!std::isfinite(U[k])) return false;
+        return true;
+    };
+
+    auto finite_positive = [](Real x) {
+        return std::isfinite(x) && x > Real(0);
+    };
 
     auto with_glm = [&](Vec<Real, MhdNVars> F) {
         F[MhdIdx::BX] = psis;
@@ -46,32 +66,55 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hlld_flux(const Vec<Real, MhdNVars>& UL,
         return F;
     };
 
+    auto fallback = [&]() {
+        return with_glm(mhd_hll_flux(ULf, URf, gamma, ch));
+    };
+
+    if (!std::isfinite(cfL) || !std::isfinite(cfR) ||
+        !std::isfinite(SL) || !std::isfinite(SR))
+        return fallback();
+
 #ifdef RIEMANN_STRICT_INEQUALITY
-    if (SL > Real(0)) return with_glm(mhd_flux_x(UL, gamma, ch));
-    if (SR < Real(0)) return with_glm(mhd_flux_x(UR, gamma, ch));
+    if (SL > Real(0)) return with_glm(mhd_flux_x(ULf, gamma, ch));
+    if (SR < Real(0)) return with_glm(mhd_flux_x(URf, gamma, ch));
 #else
-    if (SL >= Real(0)) return with_glm(mhd_flux_x(UL, gamma, ch));
-    if (SR <= Real(0)) return with_glm(mhd_flux_x(UR, gamma, ch));
+    if (SL >= Real(0)) return with_glm(mhd_flux_x(ULf, gamma, ch));
+    if (SR <= Real(0)) return with_glm(mhd_flux_x(URf, gamma, ch));
 #endif
 
     const Real rhoL = wl.rho, rhoR = wr.rho;
-    const Real EL = UL[MhdIdx::E], ER = UR[MhdIdx::E];
+    const Real EL = ULf[MhdIdx::E], ER = URf[MhdIdx::E];
     const Real ptL = wl.p + Real(0.5) * (Bn*Bn + wl.By*wl.By + wl.Bz*wl.Bz);
     const Real ptR = wr.p + Real(0.5) * (Bn*Bn + wr.By*wr.By + wr.Bz*wr.Bz);
     const Real mL = SL - wl.vx, mR = SR - wr.vx;
     const Real denomSM = mR*rhoR - mL*rhoL;
+    const Real denomSM_scale = std::max(Real(1), std::abs(mR*rhoR) + std::abs(mL*rhoL));
+    if (!(std::isfinite(denomSM) &&
+          std::abs(denomSM) > eps * guard_factor * denomSM_scale))
+        return fallback();
     const Real SM = (mR*rhoR*wr.vx - mL*rhoL*wl.vx - ptR + ptL) / denomSM;
     const Real pts = (mR*rhoR*ptL - mL*rhoL*ptR
                       + rhoL*rhoR*mR*mL*(wr.vx - wl.vx)) / denomSM;
+    if (!std::isfinite(SM) || !std::isfinite(pts))
+        return fallback();
 
     // Build one single-star state; returns false on a degenerate denominator.
     auto build_star = [&](const MhdPrim<Real>& w, Real Ek, Real ptk, Real Sk,
                           Real& rhos, Vec<Real, MhdNVars>& Us) -> bool {
         const Real m = Sk - w.vx;
-        rhos = w.rho * m / (Sk - SM);
+        const Real wave_gap = Sk - SM;
+        const Real gap_scale = std::max(Real(1), std::abs(Sk) + std::abs(SM));
+        if (!(std::isfinite(m) && std::isfinite(wave_gap) &&
+              std::abs(wave_gap) > eps * guard_factor * gap_scale))
+            return false;
+
+        rhos = w.rho * m / wave_gap;
+        if (!finite_positive(rhos))
+            return false;
+
         const Real denom = w.rho * m * (Sk - SM) - Bn*Bn;
-        const Real scale = w.rho * m * m + Bn*Bn;
-        if (!(std::abs(denom) > std::numeric_limits<Real>::epsilon() * scale * Real(64)))
+        const Real scale = std::max(Real(1), w.rho * m * m + Bn*Bn);
+        if (!(std::isfinite(denom) && std::abs(denom) > eps * guard_factor * scale))
             return false;
         const Real fac = Bn * (SM - w.vx) / denom;
         const Real vys = w.vy - w.By * fac;
@@ -86,31 +129,39 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hlld_flux(const Vec<Real, MhdNVars>& UL,
         Us[MhdIdx::MY]  = rhos*vys; Us[MhdIdx::MZ] = rhos*vzs;
         Us[MhdIdx::BX]  = Bn;     Us[MhdIdx::BY] = Bys; Us[MhdIdx::BZ] = Bzs;
         Us[MhdIdx::E]   = Es;     Us[MhdIdx::PSI] = Real(0);
-        return true;
+        return finite_vec(Us);
     };
 
     Real rhosL = Real(0), rhosR = Real(0);
     Vec<Real, MhdNVars> UsL{}, UsR{};
     if (!build_star(wl, EL, ptL, SL, rhosL, UsL) ||
         !build_star(wr, ER, ptR, SR, rhosR, UsR))
-        return with_glm(mhd_hll_flux(UL, UR, gamma, ch));  // degenerate -> HLL
+        return fallback();  // degenerate -> HLL on the same GLM-split fan state
 
-    const Vec<Real, MhdNVars> FL = mhd_flux_x(UL, gamma, ch);
-    const Vec<Real, MhdNVars> FR = mhd_flux_x(UR, gamma, ch);
+    if (!finite_positive(rhosL) || !finite_positive(rhosR))
+        return fallback();
+
+    const Vec<Real, MhdNVars> FL = mhd_flux_x(ULf, gamma, ch);
+    const Vec<Real, MhdNVars> FR = mhd_flux_x(URf, gamma, ch);
     const Real SsL = SM - std::abs(Bn) / std::sqrt(rhosL);
     const Real SsR = SM + std::abs(Bn) / std::sqrt(rhosR);
+    if (!std::isfinite(SsL) || !std::isfinite(SsR))
+        return fallback();
 
     Vec<Real, MhdNVars> F;
     if (SsL >= Real(0)) {
-        F = FL + SL * (UsL - UL);                       // F*L
+        F = FL + SL * (UsL - ULf);                      // F*L
     } else if (SsR <= Real(0)) {
-        F = FR + SR * (UsR - UR);                       // F*R
+        F = FR + SR * (UsR - URf);                      // F*R
     } else {
         // Double-star region: combine the two single-star states across the
         // rotational (Alfven) waves, contact at SM.
         const Real sgn = (Bn >= Real(0)) ? Real(1) : Real(-1);
         const Real sqL = std::sqrt(rhosL), sqR = std::sqrt(rhosR);
         const Real inv = Real(1) / (sqL + sqR);
+        if (!(std::isfinite(sqL) && std::isfinite(sqR) && std::isfinite(inv)))
+            return fallback();
+
         const Real vyL = UsL[MhdIdx::MY]/rhosL, vzL = UsL[MhdIdx::MZ]/rhosL;
         const Real vyR = UsR[MhdIdx::MY]/rhosR, vzR = UsR[MhdIdx::MZ]/rhosR;
         const Real ByL = UsL[MhdIdx::BY], BzL = UsL[MhdIdx::BZ];
@@ -122,22 +173,27 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hlld_flux(const Vec<Real, MhdNVars>& UL,
         const Real vssdotBss = SM*Bn + vyss*Byss + vzss*Bzss;
 
         auto build_dstar = [&](Real rhos, const Vec<Real, MhdNVars>& Us,
-                               Real vy, Real vz, Real By, Real Bz, Real sq, Real sign) {
-            Vec<Real, MhdNVars> Uss = Us;
+                               Real vy, Real vz, Real By, Real Bz, Real sq, Real sign,
+                               Vec<Real, MhdNVars>& Uss) {
+            Uss = Us;
             Uss[MhdIdx::MX] = rhos*SM; Uss[MhdIdx::MY] = rhos*vyss; Uss[MhdIdx::MZ] = rhos*vzss;
             Uss[MhdIdx::BY] = Byss; Uss[MhdIdx::BZ] = Bzss;
             const Real vsdotBs = SM*Bn + vy*By + vz*Bz;
             Uss[MhdIdx::E] = Us[MhdIdx::E] + sign * sq * (vsdotBs - vssdotBss);
-            return Uss;
+            return finite_vec(Uss);
         };
-        const Vec<Real, MhdNVars> UssL = build_dstar(rhosL, UsL, vyL, vzL, ByL, BzL, sqL, -sgn);
-        const Vec<Real, MhdNVars> UssR = build_dstar(rhosR, UsR, vyR, vzR, ByR, BzR, sqR, +sgn);
+        Vec<Real, MhdNVars> UssL{}, UssR{};
+        if (!build_dstar(rhosL, UsL, vyL, vzL, ByL, BzL, sqL, -sgn, UssL) ||
+            !build_dstar(rhosR, UsR, vyR, vzR, ByR, BzR, sqR, +sgn, UssR))
+            return fallback();
 
         if (SM >= Real(0))
-            F = FL + SsL * UssL - (SsL - SL) * UsL - SL * UL;   // F**L
+            F = FL + SsL * UssL - (SsL - SL) * UsL - SL * ULf;  // F**L
         else
-            F = FR + SsR * UssR - (SsR - SR) * UsR - SR * UR;   // F**R
+            F = FR + SsR * UssR - (SsR - SR) * UsR - SR * URf;  // F**R
     }
+    if (!finite_vec(F))
+        return fallback();
     return with_glm(F);
 }
 

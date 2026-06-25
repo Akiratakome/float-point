@@ -6,6 +6,16 @@
 
 using namespace hrsc;
 
+namespace {
+
+Vec<double, MhdNVars> glm_fan_state(MhdPrim<double> w, double Bx, double gamma) {
+    w.Bx = Bx;
+    w.psi = 0.0;
+    return prim_to_cons(w, gamma);
+}
+
+} // namespace
+
 TEST_CASE("HLLD with identical states returns the physical flux", "[mhd][hlld]") {
     const double gamma = 2.0, ch = 2.0;
     MhdPrim<double> w{};
@@ -27,18 +37,33 @@ TEST_CASE("HLLD GLM (Bx,psi) split is exact in the supersonic branch", "[mhd][hl
     Vec<double, MhdNVars> F = mhd_hlld_flux(UL, UR, gamma, ch);
     const double Bxs = 0.5 * (wl.Bx + wr.Bx) - 0.5 * (wr.psi - wl.psi) / ch;
     const double psis = 0.5 * (wl.psi + wr.psi) - 0.5 * ch * (wr.Bx - wl.Bx);
+    Vec<double, MhdNVars> FLfan = mhd_flux_x(glm_fan_state(wl, Bxs, gamma), gamma, ch);
     REQUIRE(F[MhdIdx::BX]  == Approx(psis));
     REQUIRE(F[MhdIdx::PSI] == Approx(ch * ch * Bxs));
     REQUIRE(F[MhdIdx::RHO] == Approx(wl.rho * wl.vx));  // upwind physical mass flux
+    REQUIRE(F[MhdIdx::MX]  == Approx(FLfan[MhdIdx::MX]));
+    REQUIRE(F[MhdIdx::E]   == Approx(FLfan[MhdIdx::E]));
 }
 
-TEST_CASE("HLLD produces finite, conservative flux on Brio-Wu states", "[mhd][hlld]") {
+TEST_CASE("HLLD produces finite flux on Brio-Wu states", "[mhd][hlld]") {
     const double gamma = 2.0, ch = 3.0;
     MhdPrim<double> wl{}, wr{};
     wl.rho = 1.0;   wl.Bx = 0.75; wl.By = 1.0;  wl.p = 1.0;
     wr.rho = 0.125; wr.Bx = 0.75; wr.By = -1.0; wr.p = 0.1;
     Vec<double, MhdNVars> UL = prim_to_cons(wl, gamma), UR = prim_to_cons(wr, gamma);
     Vec<double, MhdNVars> F = mhd_hlld_flux(UL, UR, gamma, ch);
+    for (int k = 0; k < MhdNVars; ++k) REQUIRE(std::isfinite(F[k]));
+}
+
+TEST_CASE("HLLD remains finite for near-zero GLM normal field stress", "[mhd][hlld]") {
+    const double gamma = 2.0, ch = 3.0;
+    MhdPrim<double> wl{}, wr{};
+    wl.rho = 1.0; wl.vx = -0.2; wl.vy = 0.3; wl.Bx = 1.0; wl.By = 0.7; wl.p = 1.0;
+    wr.rho = 0.8; wr.vx = 0.1; wr.vy = -0.4; wr.Bx = -0.8; wr.By = -0.6; wr.p = 0.9;
+    wl.psi = -0.3;
+    wr.psi = 0.3;  // Bx* = 0 exactly; rotational fan degenerates to the contact.
+    Vec<double, MhdNVars> F = mhd_hlld_flux(prim_to_cons(wl, gamma), prim_to_cons(wr, gamma),
+                                            gamma, ch);
     for (int k = 0; k < MhdNVars; ++k) REQUIRE(std::isfinite(F[k]));
 }
 
