@@ -1,5 +1,6 @@
 #include "mhd/mhd_solver.hpp"
 #include "mhd/glm.hpp"
+#include "mhd/hlld.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -429,5 +430,7 @@ template void setup_kelvin_helmholtz<double>(GridView<double, MhdNVars>, int, in
 
 template class MhdSolver<float, HllFlux>;
 template class MhdSolver<double, HllFlux>;
+template class MhdSolver<float, HlldFlux>;
+template class MhdSolver<double, HlldFlux>;
 
 } // namespace hrsc
