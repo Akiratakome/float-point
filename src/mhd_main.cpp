@@ -96,8 +96,10 @@ int main(int argc, char** argv) try {
         hrsc::setup_orszag_tang<Real>(gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
     } else if (test == hrsc::MhdTestCase::KelvinHelmholtz) {
         hrsc::setup_kelvin_helmholtz<Real>(gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
-    } else {
+    } else if (test == hrsc::MhdTestCase::DivbBlob) {
         hrsc::setup_divb_blob<Real>(gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
+    } else {
+        throw std::invalid_argument("unsupported MHD test case dispatch");
     }
 
     solver.run();
