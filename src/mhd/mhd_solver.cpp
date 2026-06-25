@@ -362,6 +362,35 @@ void setup_divb_blob(GridView<Real, MhdNVars> gv, int nx, int ny,
 template void setup_divb_blob<float>(GridView<float,MhdNVars>,int,int,float,float,float,float,float);
 template void setup_divb_blob<double>(GridView<double,MhdNVars>,int,int,double,double,double,double,double);
 
+// Orszag-Tang vortex (Toth 2000), rationalized units matching the solver's
+// ptot = p + 0.5*|B|^2 convention: rho=gamma^2, p=gamma, B0=1. The vector-
+// potential construction makes div(B)=0 at t=0 (Bx depends only on y, By only
+// on x), so the cell-centred central difference is exactly zero initially.
+template <typename Real>
+void setup_orszag_tang(GridView<Real, MhdNVars> gv, int nx, int ny,
+                       Real dx, Real dy, Real xmin, Real ymin, Real gamma) {
+    const Real pi = Real(3.14159265358979323846);
+    const Real B0 = Real(1);
+    const Real rho0 = gamma * gamma;
+    const Real p0 = gamma;
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            const Real x = xmin + (Real(i) + Real(0.5)) * dx;
+            const Real y = ymin + (Real(j) + Real(0.5)) * dy;
+            MhdPrim<Real> w{};
+            w.rho = rho0;
+            w.p   = p0;
+            w.vx  = -std::sin(Real(2) * pi * y);
+            w.vy  =  std::sin(Real(2) * pi * x);
+            w.Bx  = -B0 * std::sin(Real(2) * pi * y);
+            w.By  =  B0 * std::sin(Real(4) * pi * x);
+            store_cell(gv, i, j, prim_to_cons(w, gamma));
+        }
+}
+
+template void setup_orszag_tang<float>(GridView<float, MhdNVars>, int, int, float, float, float, float, float);
+template void setup_orszag_tang<double>(GridView<double, MhdNVars>, int, int, double, double, double, double, double);
+
 template class MhdSolver<float, HllFlux>;
 template class MhdSolver<double, HllFlux>;
 
