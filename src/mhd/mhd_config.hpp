@@ -7,11 +7,12 @@
 
 namespace hrsc {
 
-enum class MhdTestCase { BrioWu, DivbBlob };
+enum class MhdTestCase { BrioWu, DivbBlob, OrszagTang };
 
 inline MhdTestCase parse_mhd_test(const std::string& value) {
-    if (value == "brio_wu")   return MhdTestCase::BrioWu;
-    if (value == "divb_blob") return MhdTestCase::DivbBlob;
+    if (value == "brio_wu")     return MhdTestCase::BrioWu;
+    if (value == "divb_blob")   return MhdTestCase::DivbBlob;
+    if (value == "orszag_tang") return MhdTestCase::OrszagTang;
     throw std::invalid_argument("unsupported MHD test case: " + value);
 }
 

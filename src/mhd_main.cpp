@@ -92,6 +92,8 @@ int main(int argc, char** argv) try {
     if (test == hrsc::MhdTestCase::BrioWu) {
         for (int j = 0; j < ny; ++j)
             hrsc::setup_brio_wu_row<Real>(gv, nx, dx, (Real)xmin, (Real)gamma, (Real)x0, j);
+    } else if (test == hrsc::MhdTestCase::OrszagTang) {
+        hrsc::setup_orszag_tang<Real>(gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
     } else {
         hrsc::setup_divb_blob<Real>(gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
     }
