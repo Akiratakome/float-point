@@ -94,6 +94,8 @@ int main(int argc, char** argv) try {
             hrsc::setup_brio_wu_row<Real>(gv, nx, dx, (Real)xmin, (Real)gamma, (Real)x0, j);
     } else if (test == hrsc::MhdTestCase::OrszagTang) {
         hrsc::setup_orszag_tang<Real>(gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
+    } else if (test == hrsc::MhdTestCase::KelvinHelmholtz) {
+        hrsc::setup_kelvin_helmholtz<Real>(gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
     } else {
         hrsc::setup_divb_blob<Real>(gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
     }
