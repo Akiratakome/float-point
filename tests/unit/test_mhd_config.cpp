@@ -25,3 +25,19 @@ TEST_CASE("parse_mhd_boundary accepts periodic", "[mhd][config]") {
 TEST_CASE("parse_mhd_test accepts divb_blob", "[mhd][config]") {
     REQUIRE(parse_mhd_test("divb_blob") == MhdTestCase::DivbBlob);
 }
+
+TEST_CASE("parse_mhd_riemann accepts supported solvers", "[mhd][config]") {
+    REQUIRE(parse_mhd_riemann("hll") == MhdRiemann::Hll);
+    REQUIRE(parse_mhd_riemann("hlld") == MhdRiemann::Hlld);
+}
+
+TEST_CASE("parse_mhd_riemann rejects unsupported solvers with value", "[mhd][config]") {
+    bool caught = false;
+    try {
+        (void)parse_mhd_riemann("roe");
+    } catch (const std::invalid_argument& e) {
+        caught = true;
+        REQUIRE(std::string(e.what()) == "unsupported MHD Riemann solver: roe");
+    }
+    REQUIRE(caught);
+}

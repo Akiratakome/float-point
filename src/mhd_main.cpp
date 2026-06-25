@@ -1,6 +1,8 @@
 #include "utils/config.hpp"
 #include "utils/error_norms.hpp"
 #include "utils/io.hpp"
+#include "mhd/hll.hpp"
+#include "mhd/hlld.hpp"
 #include "mhd/mhd_config.hpp"
 #include "mhd/mhd_solver.hpp"
 
@@ -58,35 +60,13 @@ void validate_cfg(int nx, int ny, double xmin, double xmax, double ymin, double 
     }
 }
 
-} // namespace
-
-int main(int argc, char** argv) try {
-    if (argc < 2) { std::fprintf(stderr, "usage: hrsc_mhd <cfg>\n"); return 1; }
-    hrsc::Config cfg(argv[1]);
-
-    const int    nx      = cfg.get_int("nx", 800);
-    const int    ny      = cfg.get_int("ny", 1);
-    const double xmin    = cfg.get_double("xmin", 0.0);
-    const double xmax    = cfg.get_double("xmax", 1.0);
-    const double ymin    = cfg.get_double("ymin", 0.0);
-    const double ymax    = cfg.get_double("ymax", ny > 1 ? 1.0 : 0.0);
-    const double gamma   = cfg.get_double("gamma", 2.0);
-    const double cfl     = cfg.get_double("cfl", 0.4);
-    const double t_end   = cfg.get_double("t_end", 0.1);
-    const double x0      = cfg.get_double("x0", 0.5);
-    const double glm_cr  = cfg.get_double("glm_cr", ny > 1 ? 0.18 : 0.0);
-    const hrsc::MhdTestCase test = hrsc::parse_mhd_test(cfg.get_string("test", "brio_wu"));
-    const hrsc::BoundaryType bc   = hrsc::parse_mhd_boundary(cfg.get_string("bc", "outflow"));
-    const hrsc::BoundaryType bc_y = hrsc::parse_mhd_boundary(cfg.get_string("bc_y", cfg.get_string("bc", "outflow")));
-    const std::string out = cfg.get_string("output_file", "");
-
-    validate_cfg(nx, ny, xmin, xmax, ymin, ymax, gamma, cfl, t_end, x0, glm_cr);
-
-    const Real dx = static_cast<Real>((xmax - xmin) / nx);
-    const Real dy = (ny > 1) ? static_cast<Real>((ymax - ymin) / ny) : dx;
-
-    hrsc::MhdSolver<Real> solver(nx, ny, dx, dy, (Real)xmin, (Real)ymin,
-                                 (Real)gamma, (Real)cfl, t_end, bc, bc_y, (Real)glm_cr);
+template <typename Flux>
+int run_mhd(int nx, int ny, double xmin, double ymin, double gamma, double cfl,
+            double t_end, double x0, double glm_cr, hrsc::MhdTestCase test,
+            hrsc::BoundaryType bc, hrsc::BoundaryType bc_y, Real dx, Real dy,
+            const std::string& out) {
+    hrsc::MhdSolver<Real, Flux> solver(nx, ny, dx, dy, (Real)xmin, (Real)ymin,
+                                       (Real)gamma, (Real)cfl, t_end, bc, bc_y, (Real)glm_cr);
 
     auto gv = solver.grid_view();
     if (test == hrsc::MhdTestCase::BrioWu) {
@@ -112,6 +92,42 @@ int main(int argc, char** argv) try {
     if (!out.empty())
         hrsc::write_binary<Real, hrsc::MhdNVars>(out, gv, nx, ny, dx, dy, (Real)solver.time());
     return 0;
+}
+
+} // namespace
+
+int main(int argc, char** argv) try {
+    if (argc < 2) { std::fprintf(stderr, "usage: hrsc_mhd <cfg>\n"); return 1; }
+    hrsc::Config cfg(argv[1]);
+
+    const int    nx      = cfg.get_int("nx", 800);
+    const int    ny      = cfg.get_int("ny", 1);
+    const double xmin    = cfg.get_double("xmin", 0.0);
+    const double xmax    = cfg.get_double("xmax", 1.0);
+    const double ymin    = cfg.get_double("ymin", 0.0);
+    const double ymax    = cfg.get_double("ymax", ny > 1 ? 1.0 : 0.0);
+    const double gamma   = cfg.get_double("gamma", 2.0);
+    const double cfl     = cfg.get_double("cfl", 0.4);
+    const double t_end   = cfg.get_double("t_end", 0.1);
+    const double x0      = cfg.get_double("x0", 0.5);
+    const double glm_cr  = cfg.get_double("glm_cr", ny > 1 ? 0.18 : 0.0);
+    const hrsc::MhdTestCase test = hrsc::parse_mhd_test(cfg.get_string("test", "brio_wu"));
+    const hrsc::MhdRiemann riemann = hrsc::parse_mhd_riemann(cfg.get_string("riemann", "hll"));
+    const hrsc::BoundaryType bc   = hrsc::parse_mhd_boundary(cfg.get_string("bc", "outflow"));
+    const hrsc::BoundaryType bc_y = hrsc::parse_mhd_boundary(cfg.get_string("bc_y", cfg.get_string("bc", "outflow")));
+    const std::string out = cfg.get_string("output_file", "");
+
+    validate_cfg(nx, ny, xmin, xmax, ymin, ymax, gamma, cfl, t_end, x0, glm_cr);
+
+    const Real dx = static_cast<Real>((xmax - xmin) / nx);
+    const Real dy = (ny > 1) ? static_cast<Real>((ymax - ymin) / ny) : dx;
+
+    if (riemann == hrsc::MhdRiemann::Hlld) {
+        return run_mhd<hrsc::HlldFlux>(nx, ny, xmin, ymin, gamma, cfl, t_end,
+                                       x0, glm_cr, test, bc, bc_y, dx, dy, out);
+    }
+    return run_mhd<hrsc::HllFlux>(nx, ny, xmin, ymin, gamma, cfl, t_end,
+                                  x0, glm_cr, test, bc, bc_y, dx, dy, out);
 } catch (const std::exception& e) {
     std::fprintf(stderr, "[error] %s\n", e.what());
     return 2;
