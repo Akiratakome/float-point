@@ -391,6 +391,42 @@ void setup_orszag_tang(GridView<Real, MhdNVars> gv, int nx, int ny,
 template void setup_orszag_tang<float>(GridView<float, MhdNVars>, int, int, float, float, float, float, float);
 template void setup_orszag_tang<double>(GridView<double, MhdNVars>, int, int, double, double, double, double, double);
 
+// Kelvin-Helmholtz periodic double shear layer. The pinned parameters follow
+// the Week-13 benchmark design on the canonical [0,1]x[0,1] domain; y1/y2 are
+// absolute interface coordinates, not offsets from ymin. The magnetic field is
+// uniform (Bx=B0, By=Bz=0), so the cell-centred div(B) sentinel is exactly zero
+// at t=0.
+template <typename Real>
+void setup_kelvin_helmholtz(GridView<Real, MhdNVars> gv, int nx, int ny,
+                            Real dx, Real dy, Real xmin, Real ymin, Real gamma) {
+    const Real pi = Real(3.14159265358979323846);
+    const Real U0 = Real(0.5);
+    const Real a = Real(0.025);
+    const Real delta = Real(0.01);
+    const Real s = Real(0.05);
+    const Real B0 = Real(0.1);
+    const Real y1 = Real(0.25);
+    const Real y2 = Real(0.75);
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            const Real x = xmin + (Real(i) + Real(0.5)) * dx;
+            const Real y = ymin + (Real(j) + Real(0.5)) * dy;
+            const Real dy1 = y - y1;
+            const Real dy2 = y - y2;
+            MhdPrim<Real> w{};
+            w.rho = Real(1);
+            w.p = Real(1);
+            w.vx = U0 * (std::tanh(dy1 / a) - std::tanh(dy2 / a) - Real(1));
+            w.vy = delta * std::sin(Real(2) * pi * x)
+                 * (std::exp(-(dy1 * dy1) / (s * s)) + std::exp(-(dy2 * dy2) / (s * s)));
+            w.Bx = B0;
+            store_cell(gv, i, j, prim_to_cons(w, gamma));  // By=Bz=psi=0 from {}
+        }
+}
+
+template void setup_kelvin_helmholtz<float>(GridView<float, MhdNVars>, int, int, float, float, float, float, float);
+template void setup_kelvin_helmholtz<double>(GridView<double, MhdNVars>, int, int, double, double, double, double, double);
+
 template class MhdSolver<float, HllFlux>;
 template class MhdSolver<double, HllFlux>;
 

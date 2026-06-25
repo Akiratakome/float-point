@@ -24,6 +24,10 @@ template <typename Real>
 void setup_orszag_tang(GridView<Real, MhdNVars> gv, int nx, int ny,
                        Real dx, Real dy, Real xmin, Real ymin, Real gamma);
 
+template <typename Real>
+void setup_kelvin_helmholtz(GridView<Real, MhdNVars> gv, int nx, int ny,
+                            Real dx, Real dy, Real xmin, Real ymin, Real gamma);
+
 template <typename Real, typename RiemannFlux = HllFlux>
 class MhdSolver {
     Grid2D<Real, MhdNVars> m_grid;
