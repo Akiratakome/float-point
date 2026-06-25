@@ -44,6 +44,7 @@
 | 6 | [week6-plan.md](week6/week6-plan.md) | [week6-summary.md](week6/week6-summary.md) | [week6/archive/](week6/archive/) |
 | 7 | [week7-plan.md](week7/week7-plan.md) | Report 1 evidence complete; see [report1_evidence_map.md](experiment_logs/report1_evidence_map.md) | (none) |
 | 12 | [week12-plan.md](week12/week12-plan.md) | [week12-summary.md](week12/week12-summary.md) | (none) |
+| 13 | [week13-plan.md](week13/week13-plan.md) | [week13-summary.md](week13/week13-summary.md) | (none) |
 
 Week 4 also keeps:
 - [week4-verification.md](week4/week4-verification.md) — manual verification checklist (Phase B/C reproduction recipe)
