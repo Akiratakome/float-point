@@ -146,6 +146,40 @@ cmake -B build-double -G Ninja -DFLOAT_PRECISION=double -DCMAKE_BUILD_TYPE=Relea
 cmake --build build-double
 ```
 
+### Local Windows toolchain notes
+
+On this workstation, a bare PowerShell may not expose the real C++ compiler or
+Python. Check these local installations before concluding the environment is
+missing:
+
+- Visual Studio Build Tools root:
+  `C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools`
+- MSVC compiler observed:
+  `C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe`
+  (`cl` version `19.51.36248`).
+- Miniconda Python:
+  `C:\Users\tangy\miniconda3\python.exe` (`Python 3.13.13`).
+
+To verify or build with MSVC from `cmd.exe`, first load the developer
+environment:
+
+```cmd
+call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64
+where cl
+cl /Bv
+cmake -B build-double -G Ninja -DFLOAT_PRECISION=double -DCMAKE_BUILD_TYPE=Release
+cmake --build build-double
+```
+
+`c++` is not expected to be the compiler name in this MSVC setup; use the
+developer environment so CMake can discover `cl`. For Python scripts, prefer the
+full Miniconda path or set `PYTHON` explicitly:
+
+```powershell
+& "C:\Users\tangy\miniconda3\python.exe" --version
+$env:PYTHON = "C:\Users\tangy\miniconda3\python.exe"
+```
+
 ---
 
 ## 5. Common-task cheatsheet
@@ -193,7 +227,8 @@ C2 main result log: [experiment_logs/c2_real_float_vs_vprec.md](experiment_logs/
 | Symptom | Cause | Fix |
 |---|---|---|
 | `Cannot open file for writing: experiments/.../output.bin` | Old binary; cfg points at nested path with no `mkdir -p` | Rebuild — current `src/utils/io.hpp` auto-creates parent dirs |
-| `bash scripts/foo.sh: python: command not found` | Microsoft Store Python stub on PATH (no real interpreter) | Set `PYTHON=/c/Users/.../anaconda3/python.exe` or rely on the script's `resolve_python` (skips WindowsApps) |
+| `bash scripts/foo.sh: python: command not found` | Microsoft Store Python stub on PATH (no real interpreter) | Set `PYTHON=/c/Users/tangy/miniconda3/python.exe` or rely on the script's `resolve_python` (skips WindowsApps) |
+| CMake says `No CMAKE_CXX_COMPILER could be found` | Plain PowerShell has not loaded VS BuildTools paths | Run through `VsDevCmd.bat` from `C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\` so CMake can find `cl` |
 | Bash redirect `./build-double/hrsc.exe ... > out.csv` produces 0 bytes | MSYS pipe handle quirk under PowerShell-spawned bash | Drive long pipelines from PowerShell directly (works); native Linux/WSL also works |
 | `unit_tests` boundary cases fail | Build out-of-date after BC changes | `cmake --build build-{double,float}` |
 
@@ -219,4 +254,4 @@ When a structured reorganization or multi-step task is in progress, three files 
 
 ---
 
-*Last updated: 2026-06-10 (Report 1 complete; Report 2 setup begins from the cleaned evidence map and harness rules).*
+*Last updated: 2026-06-25 (added local Windows VS BuildTools + Miniconda notes for reproducible verification).*
