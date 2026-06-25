@@ -25,6 +25,8 @@ the HLLD div(B) behavior is understood.
 ## Evidence
 
 - Plan: [week13-plan.md](week13-plan.md)
+- Paper-grounded benchmark matrix:
+  [paper_benchmark_matrix.md](paper_benchmark_matrix.md)
 - Solver comparison summary:
   [summary.md](../../experiments/week13/solver_compare/summary.md)
 - Solver comparison data:
