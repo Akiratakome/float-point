@@ -6,7 +6,8 @@ Gates:
      512^2 double reference block-averaged to 256^2). Must be finite and the
      L1 must be below a coarse sanity ceiling.
   2. Conservation: |mass(t_end) - mass(t0)| / mass(t0) at round-off level.
-  3. div(B) floor: glm_cr=0.18 run has divB_max below the glm_cr=0 control.
+  3. div(B) floor: glm_cr=0.18 run has finite divB_max below a hard ceiling.
+     The glm_cr=0 control comparison is diagnostic only.
   4. Symmetry (reported, not gated): point-symmetry residual of density.
 """
 from __future__ import annotations
@@ -16,13 +17,7 @@ import json
 import pathlib
 import sys
 
-import numpy as np
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from _mhd_harness import (ROOT, RHO, block_average_2d, conserved_totals, git_commit,
-                          point_symmetry_residual, read_binary, replace_or_append_cfg,
-                          resolve_binary, run_case, sha256_file)
-
+ROOT = pathlib.Path(__file__).resolve().parents[2]
 BIN = ROOT / "build-double" / "hrsc_mhd"
 CFG = ROOT / "tests" / "cases" / "orszag_tang_2d" / "orszag_tang.cfg"
 CFG_REF = ROOT / "tests" / "cases" / "orszag_tang_2d" / "orszag_tang_ref.cfg"
@@ -30,6 +25,35 @@ OUT = ROOT / "experiments" / "week13" / "orszag_tang"
 GAMMA = 5.0 / 3.0
 L1_CEILING = 0.5        # coarse sanity ceiling on L1(rho); real value is far smaller
 DIVB_MAX_CEILING = 5.0  # hard gate: divB_max finite and bounded below this
+
+
+def clear_scalar_summaries() -> None:
+    for name in ("summary.csv", "summary.json", "summary.md"):
+        path = OUT / name
+        if path.exists():
+            path.unlink()
+
+
+def require_divb_max(meta, label):
+    diagnostics = meta.get("stderr_diagnostics") or {}
+    if "divB_max" not in diagnostics:
+        stderr_path = meta.get("stderr", "<unknown stderr path>")
+        raise RuntimeError(f"run '{label}' did not report divB_max; see {stderr_path}")
+    return diagnostics["divB_max"]
+
+
+def fmt_optional(value) -> str:
+    return "n/a" if value is None else f"{value:.3e}"
+
+
+def json_safe_run_meta(meta):
+    safe = dict(meta)
+    diagnostics = dict(safe.get("stderr_diagnostics") or {})
+    for key, value in diagnostics.items():
+        if isinstance(value, float) and not np.isfinite(value):
+            diagnostics[key] = None
+    safe["stderr_diagnostics"] = diagnostics
+    return safe
 
 
 def run_grid(label, cfg_path, out_bin, bin_path, commit, sha, extra=None):
@@ -47,7 +71,20 @@ def run_grid(label, cfg_path, out_bin, bin_path, commit, sha, extra=None):
 
 
 def main() -> None:
+    global np, RHO, block_average_2d, conserved_totals, git_commit
+    global point_symmetry_residual, read_binary, replace_or_append_cfg
+    global resolve_binary, run_case, sha256_file
+
     OUT.mkdir(parents=True, exist_ok=True)
+    clear_scalar_summaries()
+
+    import numpy as np
+
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    from _mhd_harness import (RHO, block_average_2d, conserved_totals, git_commit,
+                              point_symmetry_residual, read_binary, replace_or_append_cfg,
+                              resolve_binary, run_case, sha256_file)
+
     bin_path = resolve_binary(BIN)
     sha, commit = sha256_file(bin_path), git_commit()
 
@@ -76,12 +113,24 @@ def main() -> None:
     mass_ic = rho0 * rho_c.size
     mass_rel = abs(mass_now - mass_ic) / mass_ic
 
-    divb_cand = meta_c["stderr_diagnostics"]["divB_max"]
-    divb_ctrl = meta_ctrl["stderr_diagnostics"]["divB_max"]
+    divb_cand = require_divb_max(meta_c, "ot_256")
+    divb_ctrl_raw = require_divb_max(meta_ctrl, "ot_256_cr0")
+    if np.isfinite(divb_ctrl_raw):
+        divb_ctrl = float(divb_ctrl_raw)
+        divb_ctrl_status = "finite"
+    else:
+        divb_ctrl = None
+        divb_ctrl_status = "non-finite"
     sym = point_symmetry_residual(rho_c)
     # Diagnostic only: for a coupled physical solution the GLM cleaning ratio is
     # NOT guaranteed < 1 at every metric/time, so it is reported, not gated.
-    cleaning_ratio = (divb_cand / divb_ctrl) if divb_ctrl else float("inf")
+    raw_cleaning_ratio = (divb_cand / divb_ctrl) if divb_ctrl else None
+    if raw_cleaning_ratio is not None and np.isfinite(raw_cleaning_ratio):
+        cleaning_ratio = float(raw_cleaning_ratio)
+        cleaning_ratio_status = "finite"
+    else:
+        cleaning_ratio = None
+        cleaning_ratio_status = "undefined"
 
     gate_norms = np.isfinite([l1, l2, linf]).all() and l1 < L1_CEILING
     gate_mass = mass_rel < 1e-10
@@ -91,7 +140,9 @@ def main() -> None:
 
     results = {"L1_rho": l1, "L2_rho": l2, "Linf_rho": linf, "mass_rel": mass_rel,
                "divB_max_cr018": divb_cand, "divB_max_cr0": divb_ctrl,
+               "divB_max_cr0_status": divb_ctrl_status,
                "cleaning_ratio_diagnostic": cleaning_ratio,
+               "cleaning_ratio_status": cleaning_ratio_status,
                "symmetry_residual": sym, "gate_norms": bool(gate_norms),
                "gate_mass": bool(gate_mass), "gate_divb": bool(gate_divb)}
 
@@ -102,7 +153,10 @@ def main() -> None:
     (OUT / "summary.json").write_text(json.dumps(
         {"experiment": "week13-orszag-tang", "git_commit": commit,
          "binary_sha256": sha, "results": results,
-         "runs": {"cand": meta_c, "ref": meta_r, "ctrl": meta_ctrl}}, indent=2) + "\n",
+         "runs": {"cand": json_safe_run_meta(meta_c),
+                  "ref": json_safe_run_meta(meta_r),
+                  "ctrl": json_safe_run_meta(meta_ctrl)}},
+        indent=2, allow_nan=False) + "\n",
         encoding="utf-8")
     md = [
         "# Week 13 Orszag-Tang 2D Validation", "",
@@ -113,7 +167,9 @@ def main() -> None:
         f"| Linf(rho) | {linf:.3e} | finite | {gate_norms} |",
         f"| mass_rel | {mass_rel:.3e} | < 1e-10 | {gate_mass} |",
         f"| divB_max | {divb_cand:.3e} | finite & < {DIVB_MAX_CEILING} | {gate_divb} |",
-        f"| cleaning_ratio cr0.18/cr0 (diagnostic) | {cleaning_ratio:.3e} | n/a | n/a |",
+        f"| divB_max cr0 (diagnostic) | {fmt_optional(divb_ctrl)} | {divb_ctrl_status} | n/a |",
+        f"| cleaning_ratio cr0.18/cr0 (diagnostic) | {fmt_optional(cleaning_ratio)} | "
+        f"{cleaning_ratio_status} | n/a |",
         f"| symmetry_residual (reported) | {sym:.3e} | n/a | n/a |",
     ]
     (OUT / "summary.md").write_text("\n".join(md) + "\n", encoding="utf-8")
