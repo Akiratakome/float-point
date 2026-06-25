@@ -1,0 +1,74 @@
+{
+  "experiment": "week13-solver-compare",
+  "git_commit": "5bf8d6bd0f91f3a00e05695a020e25b5202845dc",
+  "binary_sha256": "4244952a15c52f9da2f8ea9df38d02e430fc83e546cfd1781e40cba9690a7b99",
+  "results": {
+    "L1_rho_hlld_vs_hll": 0.09433502331791101,
+    "Linf_rho_hlld_vs_hll": 0.8460488709710963,
+    "divB_max_hll": 3.72,
+    "divB_max_hlld": 34.29,
+    "hlld_finite": true,
+    "steps_hll": 806,
+    "steps_hlld": 813
+  },
+  "runs": {
+    "hll": {
+      "experiment": "week13-solver-compare",
+      "name": "ot_hll",
+      "timestamp_utc": "2026-06-25T13:30:32.723852+00:00",
+      "git_commit": "5bf8d6bd0f91f3a00e05695a020e25b5202845dc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+      "binary_sha256": "4244952a15c52f9da2f8ea9df38d02e430fc83e546cfd1781e40cba9690a7b99",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+      "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\runs\\hll\\config.cfg",
+      "run_config_sha256": "f886e6cf453df8e385942b5416774ab58838668cd3d02cb6dbaf5bd528f906a7",
+      "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\ot_256_hll.bin\nriemann = hll\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\runs\\hll\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 229.1688482999998,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\runs\\hll\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\runs\\hll\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.5,
+        "steps": 806,
+        "divB_mean": 0.1225,
+        "divB_max": 3.72,
+        "line": "[mhd] t=0.500000 steps=806 divB_mean=1.225e-01 divB_max=3.720e+00"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\ot_256_hll.bin"
+    },
+    "hlld": {
+      "experiment": "week13-solver-compare",
+      "name": "ot_hlld",
+      "timestamp_utc": "2026-06-25T13:36:02.533875+00:00",
+      "git_commit": "5bf8d6bd0f91f3a00e05695a020e25b5202845dc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+      "binary_sha256": "4244952a15c52f9da2f8ea9df38d02e430fc83e546cfd1781e40cba9690a7b99",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+      "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\runs\\hlld\\config.cfg",
+      "run_config_sha256": "4879e1f70266804eee10438d5312cd8dd57955b9c19fc2f2473a68691e204ed1",
+      "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\ot_256_hlld.bin\nriemann = hlld\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\runs\\hlld\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 329.7988441000016,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\runs\\hlld\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\runs\\hlld\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.5,
+        "steps": 813,
+        "divB_mean": 0.2917,
+        "divB_max": 34.29,
+        "line": "[mhd] t=0.500000 steps=813 divB_mean=2.917e-01 divB_max=3.429e+01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\solver_compare\\ot_256_hlld.bin"
+    }
+  }
+}
