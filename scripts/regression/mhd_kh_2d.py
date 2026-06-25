@@ -7,7 +7,7 @@ Gates:
      L1 must be below a coarse sanity ceiling.
   2. Conservation: |mass(t_end) - mass(t0)| / mass(t0) at round-off level,
      using the analytic uniform rho0=1 initial mass.
-  3. div(B) floor: glm_cr=0.18 run has finite divB_max bounded below a hard
+  3. div(B) floor: glm_cr=0.18 run has finite divB_max below a hard
      ceiling. The glm_cr=0 cleaning ratio is diagnostic only.
   4. Symmetry (reported, not gated): y-reflection residual of density.
 """
@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 import pathlib
 import sys
 
@@ -25,7 +26,7 @@ CFG_REF = ROOT / "tests" / "cases" / "kelvin_helmholtz_2d" / "kh_ref.cfg"
 OUT = ROOT / "experiments" / "week13" / "kelvin_helmholtz"
 GAMMA = 5.0 / 3.0
 L1_CEILING = 0.2        # coarse sanity ceiling on L1(rho) (rho0=1)
-DIVB_MAX_CEILING = 5.0  # hard gate: divB_max finite and bounded below this
+DIVB_MAX_CEILING = 5.0  # hard gate: divB_max finite and below this
 
 
 def clear_scalar_summaries() -> None:
@@ -47,11 +48,22 @@ def fmt_optional(value) -> str:
     return "n/a" if value is None else f"{value:.3e}"
 
 
+def sanitize_scalar_results(results):
+    safe = {}
+    for key, value in results.items():
+        if isinstance(value, float) and not math.isfinite(value):
+            safe[key] = None
+            safe[f"{key}_status"] = "non-finite"
+        else:
+            safe[key] = value
+    return safe
+
+
 def json_safe_run_meta(meta):
     safe = dict(meta)
     diagnostics = dict(safe.get("stderr_diagnostics") or {})
     for key, value in diagnostics.items():
-        if isinstance(value, float) and not np.isfinite(value):
+        if isinstance(value, float) and not math.isfinite(value):
             diagnostics[key] = None
     safe["stderr_diagnostics"] = diagnostics
     return safe
@@ -132,7 +144,7 @@ def main() -> None:
 
     gate_norms = np.isfinite([l1, l2, linf]).all() and l1 < L1_CEILING
     gate_mass = mass_rel < 1e-10
-    # Hard div(B) gate: finite and bounded below a recorded ceiling.
+    # Hard div(B) gate: finite and below a recorded ceiling.
     gate_divb = bool(np.isfinite(divb_cand) and divb_cand < DIVB_MAX_CEILING)
 
     results = {"L1_rho": l1, "L2_rho": l2, "Linf_rho": linf, "mass_rel": mass_rel,
@@ -143,34 +155,38 @@ def main() -> None:
                "reflect_y_residual": sym, "gate_norms": bool(gate_norms),
                "gate_mass": bool(gate_mass), "gate_divb": bool(gate_divb)}
 
-    with (OUT / "summary.csv").open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=list(results))
-        w.writeheader()
-        w.writerow(results)
-    (OUT / "summary.json").write_text(json.dumps(
-        {"experiment": "week13-kelvin-helmholtz", "git_commit": commit,
-         "binary_sha256": sha, "results": results,
-         "runs": {"cand": json_safe_run_meta(meta_c),
-                  "ref": json_safe_run_meta(meta_r),
-                  "ctrl": json_safe_run_meta(meta_ctrl)}},
-        indent=2, allow_nan=False) + "\n",
-        encoding="utf-8")
+    safe_results = sanitize_scalar_results(results)
+    json_payload = {
+        "experiment": "week13-kelvin-helmholtz", "git_commit": commit,
+        "binary_sha256": sha, "results": safe_results,
+        "runs": {"cand": json_safe_run_meta(meta_c),
+                 "ref": json_safe_run_meta(meta_r),
+                 "ctrl": json_safe_run_meta(meta_ctrl)},
+    }
+    json_text = json.dumps(json_payload, indent=2, allow_nan=False) + "\n"
     md = [
         "# Week 13 Kelvin-Helmholtz 2D Validation", "",
         "256^2 candidate vs 512^2 double reference (block-averaged), gamma=5/3, t=1.0.", "",
         "| metric | value | gate | pass? |", "|---|---:|---|---:|",
-        f"| L1(rho) | {l1:.3e} | < {L1_CEILING} | {gate_norms} |",
-        f"| L2(rho) | {l2:.3e} | finite | {gate_norms} |",
-        f"| Linf(rho) | {linf:.3e} | finite | {gate_norms} |",
-        f"| mass_rel | {mass_rel:.3e} | < 1e-10 | {gate_mass} |",
-        f"| divB_max | {divb_cand:.3e} | finite & < {DIVB_MAX_CEILING} | {gate_divb} |",
-        f"| divB_max cr0 (diagnostic) | {fmt_optional(divb_ctrl)} | {divb_ctrl_status} | n/a |",
-        f"| cleaning_ratio cr0.18/cr0 (diagnostic) | {fmt_optional(cleaning_ratio)} | "
+        f"| L1(rho) | {fmt_optional(safe_results['L1_rho'])} | < {L1_CEILING} | {gate_norms} |",
+        f"| L2(rho) | {fmt_optional(safe_results['L2_rho'])} | finite | {gate_norms} |",
+        f"| Linf(rho) | {fmt_optional(safe_results['Linf_rho'])} | finite | {gate_norms} |",
+        f"| mass_rel | {fmt_optional(safe_results['mass_rel'])} | < 1e-10 | {gate_mass} |",
+        f"| divB_max | {fmt_optional(safe_results['divB_max_cr018'])} | finite & < {DIVB_MAX_CEILING} | {gate_divb} |",
+        f"| divB_max cr0 (diagnostic) | {fmt_optional(safe_results['divB_max_cr0'])} | {divb_ctrl_status} | n/a |",
+        f"| cleaning_ratio cr0.18/cr0 (diagnostic) | {fmt_optional(safe_results['cleaning_ratio_diagnostic'])} | "
         f"{cleaning_ratio_status} | n/a |",
-        f"| reflect_y_residual (reported) | {sym:.3e} | n/a | n/a |",
+        f"| reflect_y_residual (reported) | {fmt_optional(safe_results['reflect_y_residual'])} | n/a | n/a |",
     ]
-    (OUT / "summary.md").write_text("\n".join(md) + "\n", encoding="utf-8")
-    print("\n".join(md))
+    md_text = "\n".join(md) + "\n"
+
+    with (OUT / "summary.csv").open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=list(safe_results))
+        w.writeheader()
+        w.writerow(safe_results)
+    (OUT / "summary.json").write_text(json_text, encoding="utf-8")
+    (OUT / "summary.md").write_text(md_text, encoding="utf-8")
+    print(md_text, end="")
 
     failures = [name for name, ok in
                 [("norms", gate_norms), ("mass", gate_mass), ("divB", gate_divb)] if not ok]
