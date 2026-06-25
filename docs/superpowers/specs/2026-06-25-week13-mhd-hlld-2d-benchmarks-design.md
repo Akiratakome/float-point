@@ -171,7 +171,9 @@ remaining components — momentum, energy, and transverse magnetic fluxes must u
 
 **Robustness & conventions:**
 - Internal **HLL fallback** for degenerate states: `Bx*²/rho` below tolerance,
-  vanishing `(SR-SL)` or intermediate denominators.
+  vanishing `(SR-SL)` or intermediate denominators, **and `ch <= eps` or
+  non-finite `ch`** (the GLM split's `1/ch` term — normal physical states have
+  `ch > 0`, but unit tests or degenerate inputs may pass a tiny/zero value).
 - Same `RIEMANN_STRICT_INEQUALITY` flag convention as HLL for wave-side tests.
 - Named tolerance constant (no magic number).
 
@@ -192,8 +194,13 @@ Per-test driver under `scripts/regression/` (`mhd_orszag_tang_2d.py`,
   round-off.
 - **Conservation:** total mass exactly conserved on the periodic domain; total
   energy conserved to truncation level.
-- **∇·B floor:** `divB_mean`/`divB_max` stay bounded and are reduced by GLM
-  (`glm_cr=0.18` vs control `glm_cr=0`), reusing `compute_divB_norms`.
+- **∇·B floor (hard gate):** `divB_mean`/`divB_max` stay **finite and bounded
+  below a recorded threshold**, with the values written to metadata (reusing
+  `compute_divB_norms`). The `glm_cr=0.18` vs control `glm_cr=0` comparison is a
+  **diagnostic only** — for a coupled physical solution, numerical divergence
+  generation/transport/damping interacts with the flow, so "cleaning beats
+  control at every metric and time" is *not* guaranteed and must **not** be a
+  pass/fail criterion for OT/KH. (It *is* a valid hard gate for `divb_blob`.)
 - **Symmetry diagnostic:** monitor the discrete point-symmetry residual of ρ
   about the domain centre (OT) / shear-reflection residual (KH); exact transform
   rules pinned during implementation from Tóth (2000). Reported, not a hard gate
@@ -201,6 +208,13 @@ Per-test driver under `scripts/regression/` (`mhd_orszag_tang_2d.py`,
 
 cfgs: `tests/cases/orszag_tang_2d/{orszag_tang.cfg, orszag_tang_ref.cfg}`,
 `tests/cases/kelvin_helmholtz_2d/{kh.cfg, kh_ref.cfg}`.
+
+**HLLD correctness gates** are the *intrinsic* properties — stability,
+finite/positive state, conservation, ∇·B bounded, and **self-convergence**
+(HLLD candidate vs an HLLD self-converged reference). HLLD must **not** be
+gated on matching the *HLL* reference: HLLD is deliberately less diffusive, so
+on the same grid it can differ from HLL appreciably. The HLL-vs-HLLD comparison
+feeds the **decision table** (which solver for the remainder), not pass/fail.
 
 ---
 
@@ -233,8 +247,11 @@ cfgs: `tests/cases/orszag_tang_2d/{orszag_tang.cfg, orszag_tang_ref.cfg}`,
   instantiations.
 - `src/mhd/mhd_config.hpp` — `MhdTestCase` + `MhdRiemann` enums/parsers.
 - `src/mhd_main.cpp` — `run_mhd<Flux>` dispatch; OT/KH case setup branch.
-- `CMakeLists.txt` — headers are header-only (auto-included); confirm the 4
-  `MhdSolver` instantiations compile; new test files auto-globbed.
+- `CMakeLists.txt` — **likely no change**: `hlld.hpp` is header-only and unit
+  tests are globbed (`file(GLOB tests/unit/test_*.cpp)`), so new tests need only
+  a **reconfigure**. Verify configure picks up the new tests and the 4
+  `MhdSolver` instantiations compile; edit CMake only if a new `.cpp` or include
+  path is actually introduced (avoid an unnecessary diff).
 - `docs/INDEX.md` — add Week 13 row.
 
 **Generate (transient/ignored, not committed):** binary grids under
@@ -250,8 +267,11 @@ cfgs: `tests/cases/orszag_tang_2d/{orszag_tang.cfg, orszag_tang_ref.cfg}`,
 3. **Kelvin-Helmholtz case** — setup + cfg + validation (HLL). *Core complete.*
 4. **HLLD solver** — `hlld.hpp` + GLM split + fallback; unit-validated; wired
    `riemann=hll|hlld`.
-5. **HLLD on benchmarks + decision** — compare to HLL reference; record the
-   Week-13 milestone decision (HLLD or HLL for the remainder).
+5. **HLLD on benchmarks + decision** — validate HLLD on its *intrinsic* gates
+   (stability, finite/positive, conservation, ∇·B bounded, self-convergence);
+   the HLL-vs-HLLD comparison populates the decision table and records the
+   Week-13 milestone decision (HLLD or HLL for the remainder). Matching HLL is
+   not a pass condition.
 
 ---
 
