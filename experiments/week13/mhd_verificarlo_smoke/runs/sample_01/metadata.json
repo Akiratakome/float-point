@@ -1,0 +1,35 @@
+{
+  "experiment": "week13-mhd-verificarlo-smoke",
+  "timestamp_utc": "2026-06-26T07:07:52.150388+00:00",
+  "git_commit": "884c119964897199946e7c01044bb6fc3a1ad776",
+  "runner": "docker",
+  "precision": 53,
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_01\\config.cfg",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\noutput_format = binary\noutput_file = /workdir/experiments/week13/mhd_verificarlo_smoke/runs/sample_01/grid.bin\n",
+  "command": [
+    "docker",
+    "run",
+    "--rm",
+    "-v",
+    "C:\\Users\\tangy\\Desktop\\floatpoint:/workdir",
+    "-w",
+    "/workdir",
+    "verificarlo/verificarlo:cmake",
+    "bash",
+    "-lc",
+    "VFC_BACKENDS=libinterflop_mca.so VFC_BACKENDS_SILENT_LOAD=True VFC_MCA_PRECISION_BINARY64=53 /workdir/experiments/week13/mhd_verificarlo_smoke/build-vfc-p53/hrsc_mhd /workdir/experiments/week13/mhd_verificarlo_smoke/runs/sample_01/config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 41.317937299987534,
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_01\\grid.bin",
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_01\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_01\\stderr.txt",
+  "grid_metrics": {
+    "grid_status": "read",
+    "rho_min": 0.11716054488890904,
+    "rho_max": 1.0,
+    "rho_mean": 0.5624999999999999
+  }
+}

@@ -46,6 +46,14 @@ def test_make_sample_cfg_appends_binary_output_keys_without_mutating_source():
     assert "output_file = runs\\sample_01\\grid.bin\n" in out or "output_file = runs/sample_01/grid.bin\n" in out
 
 
+def test_make_sample_cfg_preserves_docker_posix_output_path():
+    source = "test = brio_wu\n"
+
+    out = make_sample_cfg(source, "/workdir/experiments/week13/sample_01/grid.bin")
+
+    assert "output_file = /workdir/experiments/week13/sample_01/grid.bin\n" in out
+
+
 def test_blocked_summary_explicitly_says_no_mca_result_was_produced():
     probes = [
         make_probe_record(

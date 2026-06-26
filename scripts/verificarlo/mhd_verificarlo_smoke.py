@@ -180,7 +180,7 @@ def choose_runner(probes: list[dict[str, Any]]) -> str | None:
     return None
 
 
-def make_sample_cfg(source_text: str, grid_path: pathlib.Path) -> str:
+def make_sample_cfg(source_text: str, grid_path: pathlib.Path | str) -> str:
     text = replace_or_append_cfg(source_text, "output_format", "binary")
     text = replace_or_append_cfg(text, "output_file", str(grid_path))
     return text
@@ -422,7 +422,7 @@ def run_samples(args: argparse.Namespace, probes: list[dict[str, Any]], runner: 
         run_dir.mkdir(parents=True, exist_ok=True)
         grid_path = run_dir / "grid.bin"
         cfg_path = run_dir / "config.cfg"
-        cfg_text = make_sample_cfg(source_text, pathlib.Path(runner_path(runner, grid_path)))
+        cfg_text = make_sample_cfg(source_text, runner_path(runner, grid_path))
         cfg_path.write_text(cfg_text, encoding="utf-8")
         command = sample_command_for_runner(runner, args.image, build_dir, cfg_path, args.precision)
         t0 = time.perf_counter()

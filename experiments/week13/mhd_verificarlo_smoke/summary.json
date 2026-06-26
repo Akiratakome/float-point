@@ -1,11 +1,103 @@
 {
   "experiment": "week13-mhd-verificarlo-smoke",
-  "status": "blocked_environment",
-  "reason": "No supported native, WSL, or Docker Verificarlo runner was found.",
-  "selected_runner": null,
-  "mca_samples_produced": 0,
-  "mca_evidence_generated": false,
+  "status": "completed",
+  "reason": "Produced 3 Verificarlo MCA sample grids with runner `docker`.",
+  "selected_runner": "docker",
+  "mca_samples_produced": 3,
+  "mca_evidence_generated": true,
   "environment_json": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\environment.json",
+  "scalar_summary": {
+    "samples": 3,
+    "rho_mean_min": 0.5624999999999998,
+    "rho_mean_max": 0.5625,
+    "rho_mean_spread": 2.220446049250313e-16
+  },
+  "samples": [
+    {
+      "sample": "sample_01",
+      "returncode": 0,
+      "elapsed_wall_s": 41.317937299987534,
+      "config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_01\\config.cfg",
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_01\\grid.bin",
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_01\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_01\\stderr.txt",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "-v",
+        "C:\\Users\\tangy\\Desktop\\floatpoint:/workdir",
+        "-w",
+        "/workdir",
+        "verificarlo/verificarlo:cmake",
+        "bash",
+        "-lc",
+        "VFC_BACKENDS=libinterflop_mca.so VFC_BACKENDS_SILENT_LOAD=True VFC_MCA_PRECISION_BINARY64=53 /workdir/experiments/week13/mhd_verificarlo_smoke/build-vfc-p53/hrsc_mhd /workdir/experiments/week13/mhd_verificarlo_smoke/runs/sample_01/config.cfg"
+      ],
+      "runner": "docker",
+      "precision": 53,
+      "grid_status": "read",
+      "rho_min": 0.11716054488890904,
+      "rho_max": 1.0,
+      "rho_mean": 0.5624999999999999
+    },
+    {
+      "sample": "sample_02",
+      "returncode": 0,
+      "elapsed_wall_s": 42.08324449999782,
+      "config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_02\\config.cfg",
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_02\\grid.bin",
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_02\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_02\\stderr.txt",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "-v",
+        "C:\\Users\\tangy\\Desktop\\floatpoint:/workdir",
+        "-w",
+        "/workdir",
+        "verificarlo/verificarlo:cmake",
+        "bash",
+        "-lc",
+        "VFC_BACKENDS=libinterflop_mca.so VFC_BACKENDS_SILENT_LOAD=True VFC_MCA_PRECISION_BINARY64=53 /workdir/experiments/week13/mhd_verificarlo_smoke/build-vfc-p53/hrsc_mhd /workdir/experiments/week13/mhd_verificarlo_smoke/runs/sample_02/config.cfg"
+      ],
+      "runner": "docker",
+      "precision": 53,
+      "grid_status": "read",
+      "rho_min": 0.11716054488890926,
+      "rho_max": 0.9999999999999999,
+      "rho_mean": 0.5624999999999998
+    },
+    {
+      "sample": "sample_03",
+      "returncode": 0,
+      "elapsed_wall_s": 43.86799630000314,
+      "config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_03\\config.cfg",
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_03\\grid.bin",
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_03\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke\\runs\\sample_03\\stderr.txt",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "-v",
+        "C:\\Users\\tangy\\Desktop\\floatpoint:/workdir",
+        "-w",
+        "/workdir",
+        "verificarlo/verificarlo:cmake",
+        "bash",
+        "-lc",
+        "VFC_BACKENDS=libinterflop_mca.so VFC_BACKENDS_SILENT_LOAD=True VFC_MCA_PRECISION_BINARY64=53 /workdir/experiments/week13/mhd_verificarlo_smoke/build-vfc-p53/hrsc_mhd /workdir/experiments/week13/mhd_verificarlo_smoke/runs/sample_03/config.cfg"
+      ],
+      "runner": "docker",
+      "precision": 53,
+      "grid_status": "read",
+      "rho_min": 0.11716054488890867,
+      "rho_max": 1.0,
+      "rho_mean": 0.5625
+    }
+  ],
   "probes": [
     {
       "name": "native",
@@ -27,9 +119,9 @@
         "-lc",
         "verificarlo-c++ --version && cmake --version"
       ],
-      "returncode": 4294967295,
-      "stdout": " \ufffd(u\ufffdN  L i n u x   \ufffdv  W i n d o w s   P[\ufffd|\ufffd~\ufffdl\tg\ufffd]\ufffd[\u0148\ufffdv R\ufffdS 0\n \n \ufffdS \ufffd\u01cf\ufffd[\u0148 S+T\ufffdN N\ufffd f\ufffdv R\ufffdSeg\u3273Qdk\ue558\ufffd \ufffd\n \n \n \n \u007fO(u  w s l . e x e   - - l i s t   - - o n l i n e '      R\ufffdQ\ufffdS(u\ufffdv R\ufffdS\n \n \ufffdT    w s l . e x e   - - i n s t a l l   < D i s t r o >     \u06cfL\ufffd\ufffd[\u0148 0\n \n ",
-      "stderr": "",
+      "returncode": 127,
+      "stdout": "",
+      "stderr": "bash: line 1: verificarlo-c++: command not found\n",
       "supported": false,
       "runner": null
     },
@@ -43,16 +135,16 @@
         "C:\\Users\\tangy\\Desktop\\floatpoint:/workdir",
         "-w",
         "/workdir",
-        "verificarlo/verificarlo",
+        "verificarlo/verificarlo:cmake",
         "bash",
         "-lc",
         "verificarlo-c++ --version && cmake --version"
       ],
-      "returncode": 1,
-      "stdout": "",
-      "stderr": "WARNING: Error loading config file: open C:\\Users\\tangy\\.docker\\config.json: Access is denied.\npermission denied while trying to connect to the docker API at npipe:////./pipe/docker_engine\n",
-      "supported": false,
-      "runner": null
+      "returncode": 0,
+      "stdout": "verificarlo 2.5.1\ncmake version 3.28.3\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\n",
+      "stderr": "",
+      "supported": true,
+      "runner": "docker"
     }
   ]
 }

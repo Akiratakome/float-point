@@ -1,15 +1,19 @@
 # Week 13 MHD Verificarlo Smoke
 
-Status: `blocked_environment`
+Status: `completed`
 
-No supported native, WSL, or Docker Verificarlo runner was found.
+Produced 3 Verificarlo MCA sample grids with runner `docker`.
 
-no Verificarlo MCA result was produced; no MCA evidence was generated.
+- runner: `docker`
+- samples: 3
+- rho_mean_spread: 2.220446049250313e-16
 
-## Runner probes
+## Samples
 
-| runner | supported | return code | stderr |
-|---|---|---:|---|
-| native | False | 127 | `[WinError 2] 系统找不到指定的文件。` |
-| wsl | False | 4294967295 | `` |
-| docker | False | 1 | `WARNING: Error loading config file: open C:\Users\tangy\.docker\config.json: Access is denied. permission denied while trying to connect to the docker API at npipe:////./pipe/docker_engine` |
+| sample | rc | grid_status | rho_min | rho_max | rho_mean |
+|---|---:|---|---:|---:|---:|
+| sample_01 | 0 | read | 0.11716054488890904 | 1.0 | 0.5624999999999999 |
+| sample_02 | 0 | read | 0.11716054488890926 | 0.9999999999999999 | 0.5624999999999998 |
+| sample_03 | 0 | read | 0.11716054488890867 | 1.0 | 0.5625 |
+
+Generated artifacts include `environment.json`, `summary.json`, per-sample `config.cfg`, logs, and `metadata.json`. Binary grids are transient.
