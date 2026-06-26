@@ -29,6 +29,8 @@ the HLLD div(B) behavior is understood.
   [paper_benchmark_matrix.md](paper_benchmark_matrix.md)
 - Orszag-Tang paper-style figure packet:
   [paper_summary.md](../../experiments/week13/orszag_tang/paper_summary.md)
+- Kelvin-Helmholtz paper-style figure packet:
+  [paper_summary.md](../../experiments/week13/kelvin_helmholtz/paper_summary.md)
 - Solver comparison summary:
   [summary.md](../../experiments/week13/solver_compare/summary.md)
 - Solver comparison data:

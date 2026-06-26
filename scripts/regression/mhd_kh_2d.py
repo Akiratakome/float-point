@@ -14,6 +14,7 @@ Gates:
 from __future__ import annotations
 
 import csv
+import argparse
 import json
 import math
 import pathlib
@@ -27,11 +28,32 @@ OUT = ROOT / "experiments" / "week13" / "kelvin_helmholtz"
 GAMMA = 5.0 / 3.0
 L1_CEILING = 0.2        # coarse sanity ceiling on L1(rho) (rho0=1)
 DIVB_MAX_CEILING = 5.0  # hard gate: divB_max finite and below this
+PAPER_NOTE = (
+    "Paper anchor: Kelvin-Helmholtz is used here as a 2D ideal-MHD shear-layer "
+    "morphology benchmark following Frank et al. 1996. Lecoanet et al. 2015 is "
+    "recorded as the limitation anchor: inviscid KH comparisons are sensitive "
+    "to perturbations and regularisation, so this packet is bounded morphology "
+    "and diagnostic evidence, not a full convergence claim."
+)
+FIGURE_NAMES = (
+    "kh_density_bmag.png",
+    "kh_divb.png",
+    "kh_paper_style.png",
+)
+PAPER_SUMMARY = OUT / "paper_summary.md"
 
 
 def clear_scalar_summaries() -> None:
     for name in ("summary.csv", "summary.json", "summary.md"):
         path = OUT / name
+        if path.exists():
+            path.unlink()
+
+
+def clear_generated_figures() -> None:
+    fig_dir = OUT / "figures"
+    for name in FIGURE_NAMES:
+        path = fig_dir / name
         if path.exists():
             path.unlink()
 
@@ -83,20 +105,135 @@ def run_grid(label, cfg_path, out_bin, bin_path, commit, sha, extra=None):
     return meta
 
 
-def main() -> None:
-    global np, RHO, block_average_2d, conserved_totals, git_commit
-    global read_binary, reflect_y_residual, replace_or_append_cfg
-    global resolve_binary, run_case, sha256_file
+def periodic_abs_divb(arr, dx: float, dy: float):
+    bx = arr[..., BX].astype(np.float64)
+    by = arr[..., BY].astype(np.float64)
+    d_bx_dx = (np.roll(bx, -1, axis=1) - np.roll(bx, 1, axis=1)) / (2.0 * dx)
+    d_by_dy = (np.roll(by, -1, axis=0) - np.roll(by, 1, axis=0)) / (2.0 * dy)
+    return np.abs(d_bx_dx + d_by_dy)
 
-    OUT.mkdir(parents=True, exist_ok=True)
-    clear_scalar_summaries()
+
+def write_validation_figures(header, arr) -> list[str]:
+    from mhd_paper_figures import mhd_primitive, plot_heatmap_panels
+
+    fig_dir = OUT / "figures"
+    prim = mhd_primitive(arr.astype(np.float64), GAMMA)
+    density = prim["rho"]
+    bmag = np.sqrt(prim["Bx"] ** 2 + prim["By"] ** 2 + prim["Bz"] ** 2)
+    abs_divb = periodic_abs_divb(arr, header.dx, header.dy)
+
+    paths = [
+        plot_heatmap_panels(
+            fig_dir / "kh_density_bmag.png",
+            [
+                {"title": "density", "field": density},
+                {"title": "Bmag", "field": bmag},
+            ],
+            columns=2,
+        ),
+        plot_heatmap_panels(
+            fig_dir / "kh_divb.png",
+            [
+                {"title": "abs divB log10", "field": abs_divb, "log10": True},
+            ],
+            columns=1,
+        ),
+        plot_heatmap_panels(
+            fig_dir / "kh_paper_style.png",
+            [
+                {"title": "density", "field": density},
+                {"title": "Bmag", "field": bmag},
+            ],
+            columns=2,
+            panel_size=430,
+            margin=52,
+            gap=76,
+        ),
+    ]
+    return [path.relative_to(ROOT).as_posix() for path in paths]
+
+
+def import_runtime_helpers() -> None:
+    global np, RHO, block_average_2d, conserved_totals, git_commit
+    global BX, BY, read_binary, reflect_y_residual, replace_or_append_cfg
+    global resolve_binary, run_case, sha256_file
 
     import numpy as np
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-    from _mhd_harness import (RHO, block_average_2d, conserved_totals, git_commit,
+    from _mhd_harness import (RHO, BX, BY, block_average_2d, conserved_totals, git_commit,
                               read_binary, reflect_y_residual, replace_or_append_cfg,
                               resolve_binary, run_case, sha256_file)
+
+
+def load_metadata(path: pathlib.Path) -> dict:
+    if not path.is_file():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def write_paper_summary(figure_paths: list[str], meta: dict) -> None:
+    diag = meta.get("stderr_diagnostics") or {}
+    diag_line = diag.get("line", "(diagnostics unavailable)")
+    lines = [
+        "# Week 13 Kelvin-Helmholtz Paper-Style Figures",
+        "",
+        PAPER_NOTE,
+        "",
+        "This packet is generated from the local `256^2` HLL Kelvin-Helmholtz "
+        "run using `tests/cases/kelvin_helmholtz_2d/kh.cfg` at `t=1.0`. It is "
+        "paper-style morphology evidence and does not claim that the full "
+        "`512^2` self-reference validation gate passed.",
+        "",
+        "## Local run diagnostic",
+        "",
+        f"`{diag_line}`",
+        "",
+        "## Figures",
+        "",
+    ]
+    lines.extend(f"- `{path}`" for path in figure_paths)
+    lines.extend([
+        "",
+        "## Pending validation",
+        "",
+        "The full `mhd_kh_2d.py` validation still requires the `512^2` "
+        "self-reference run from `kh_ref.cfg` plus the `glm_cr=0` diagnostic "
+        "control. Those runs are intentionally not launched by "
+        "`--paper-figures-only`; the `512^2` gate remains pending under the "
+        "local runtime policy for this workstation.",
+        "",
+    ])
+    PAPER_SUMMARY.write_text("\n".join(lines), encoding="utf-8")
+
+
+def paper_figures_only() -> None:
+    import_runtime_helpers()
+    OUT.mkdir(parents=True, exist_ok=True)
+    clear_generated_figures()
+
+    cand_bin = OUT / "kh_256.bin"
+    meta_path = OUT / "runs" / "kh_256" / "metadata.json"
+    meta = load_metadata(meta_path)
+    if not cand_bin.is_file():
+        bin_path = resolve_binary(BIN)
+        sha, commit = sha256_file(bin_path), git_commit()
+        meta = run_grid("kh_256", CFG, cand_bin, bin_path, commit, sha)
+
+    cand_header, cand = read_binary(cand_bin)
+    figure_paths = write_validation_figures(cand_header, cand)
+    write_paper_summary(figure_paths, meta)
+    print(PAPER_SUMMARY.read_text(encoding="utf-8"), end="")
+
+
+def main() -> None:
+    import_runtime_helpers()
+
+    OUT.mkdir(parents=True, exist_ok=True)
+    clear_scalar_summaries()
 
     bin_path = resolve_binary(BIN)
     sha, commit = sha256_file(bin_path), git_commit()
@@ -196,4 +333,11 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--paper-figures-only", action="store_true",
+                        help="write KH paper-style figures from the 256^2 candidate without claiming the full validation gate")
+    args = parser.parse_args()
+    if args.paper_figures_only:
+        paper_figures_only()
+    else:
+        main()
