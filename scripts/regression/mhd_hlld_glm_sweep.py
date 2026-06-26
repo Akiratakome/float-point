@@ -273,7 +273,11 @@ def run_one(
 def summarise_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
     finite_hlld = [
         row for row in rows
-        if row.get("riemann") == "hlld" and is_finite_number(row.get("divB_max"))
+        if (
+            row.get("riemann") == "hlld"
+            and row.get("returncode") == 0
+            and is_finite_number(row.get("divB_max"))
+        )
     ]
     best = min(finite_hlld, key=lambda row: float(row["divB_max"])) if finite_hlld else None
     completed = sum(1 for row in rows if row.get("returncode") == 0)

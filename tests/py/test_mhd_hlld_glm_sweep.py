@@ -44,6 +44,18 @@ def test_summarise_rows_selects_lowest_finite_hlld_divb_without_adoption():
     assert "not production adoption" in summary["decision"].lower()
 
 
+def test_summarise_rows_excludes_failed_hlld_from_best_diagnostic():
+    rows = [
+        {"riemann": "hlld", "glm_cr": 0.05, "divB_max": 1.0e-6, "returncode": 1},
+        {"riemann": "hlld", "glm_cr": 0.18, "divB_max": 4.0e-4, "returncode": 0},
+    ]
+
+    summary = summarise_rows(rows)
+
+    assert summary["best_finite_hlld"]["glm_cr"] == 0.18
+    assert summary["best_finite_hlld"]["returncode"] == 0
+
+
 def test_make_run_cfg_applies_overrides_without_mutating_source_text():
     source = "nx = 256\nny = 256\nt_end = 0.5\nglm_cr = 0.18\n"
 
