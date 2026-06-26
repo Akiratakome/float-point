@@ -37,5 +37,7 @@ the HLLD div(B) behavior is understood.
   [figures/README.md](../../experiments/week13/solver_compare/figures/README.md)
 - HLLD GLM local sweep:
   [summary.md](../../experiments/week13/hlld_glm_sweep/summary.md)
+- MHD Verificarlo local smoke/probe:
+  [summary.md](../../experiments/week13/mhd_verificarlo_smoke/summary.md)
 - Solver comparison data:
   [summary.json](../../experiments/week13/solver_compare/summary.json)

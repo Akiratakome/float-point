@@ -1,0 +1,65 @@
+{
+  "experiment": "week13-mhd-verificarlo-smoke",
+  "timestamp_utc": "2026-06-26T06:14:56.420417+00:00",
+  "git_commit": "1de8c9a6de608953a86d7e08bef98cd3e3d07494",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:12:50) [MSC v.1942 64 bit (AMD64)]",
+  "case": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "case_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "output_root": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\mhd_verificarlo_smoke",
+  "samples": 3,
+  "precision": 53,
+  "image": "verificarlo/verificarlo",
+  "probe_only": true,
+  "selected_runner": null,
+  "probes": [
+    {
+      "name": "native",
+      "command": [
+        "verificarlo-c++",
+        "--version"
+      ],
+      "returncode": 127,
+      "stdout": "",
+      "stderr": "[WinError 2] \u7cfb\u7edf\u627e\u4e0d\u5230\u6307\u5b9a\u7684\u6587\u4ef6\u3002",
+      "supported": false,
+      "runner": null
+    },
+    {
+      "name": "wsl",
+      "command": [
+        "wsl",
+        "bash",
+        "-lc",
+        "verificarlo-c++ --version && cmake --version"
+      ],
+      "returncode": 4294967295,
+      "stdout": " \ufffd(u\ufffdN  L i n u x   \ufffdv  W i n d o w s   P[\ufffd|\ufffd~\ufffdl\tg\ufffd]\ufffd[\u0148\ufffdv R\ufffdS 0\n \n \ufffdS \ufffd\u01cf\ufffd[\u0148 S+T\ufffdN N\ufffd f\ufffdv R\ufffdSeg\u3273Qdk\ue558\ufffd \ufffd\n \n \n \n \u007fO(u  w s l . e x e   - - l i s t   - - o n l i n e '      R\ufffdQ\ufffdS(u\ufffdv R\ufffdS\n \n \ufffdT    w s l . e x e   - - i n s t a l l   < D i s t r o >     \u06cfL\ufffd\ufffd[\u0148 0\n \n ",
+      "stderr": "",
+      "supported": false,
+      "runner": null
+    },
+    {
+      "name": "docker",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "-v",
+        "C:\\Users\\tangy\\Desktop\\floatpoint:/workdir",
+        "-w",
+        "/workdir",
+        "verificarlo/verificarlo",
+        "bash",
+        "-lc",
+        "verificarlo-c++ --version && cmake --version"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "WARNING: Error loading config file: open C:\\Users\\tangy\\.docker\\config.json: Access is denied.\npermission denied while trying to connect to the docker API at npipe:////./pipe/docker_engine\n",
+      "supported": false,
+      "runner": null
+    }
+  ],
+  "status": "blocked_environment"
+}
