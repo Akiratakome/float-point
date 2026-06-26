@@ -19,3 +19,11 @@ Rationale: HLLD completed the Orszag-Tang candidate run with a finite density
 field, but its reported divB_max was 3.429e+01 versus 3.720e+00 for HLL on the
 same grid/config. Keep HLL as the production solver for the next MHD precision
 study step until the HLLD div(B) behavior is understood.
+
+## Diagnostic figures
+
+- `figures/rho_hll_hlld_diff.png`
+- `figures/divb_hll_hlld.png`
+
+These figures support the deferred-HLLD decision; they are not production
+validation.
