@@ -10,10 +10,11 @@ Current evidence was audited with:
 git ls-files docs/week12 docs/week13 experiments/week12 experiments/week13 scripts/regression | Sort-Object
 ```
 
-The audit shows tracked Week 12 Brio-Wu and GLM-cleaning summaries/figures, plus
-the Week 13 HLLD-vs-HLL solver-comparison summary. Orszag-Tang and
-Kelvin-Helmholtz report summaries are planned follow-up evidence, not current
-paper-grounded validation artefacts.
+The audit shows tracked Week 12 Brio-Wu and GLM-cleaning summaries/figures, the
+Week 13 HLLD-vs-HLL solver-comparison summary, and a Week 13 Orszag-Tang
+`256^2` paper-style figure packet. The full Orszag-Tang `512^2`
+self-reference gate and the Kelvin-Helmholtz report packet remain planned
+follow-up evidence, not completed validation artefacts.
 
 | local case | production solver | literature anchor | cfg/time | report figure target | current evidence | claim boundary |
 |---|---|---|---|---|---|---|
