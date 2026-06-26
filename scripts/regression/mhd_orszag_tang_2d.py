@@ -13,6 +13,7 @@ Gates:
 from __future__ import annotations
 
 import csv
+import argparse
 import json
 import math
 import pathlib
@@ -26,11 +27,31 @@ OUT = ROOT / "experiments" / "week13" / "orszag_tang"
 GAMMA = 5.0 / 3.0
 L1_CEILING = 0.5        # coarse sanity ceiling on L1(rho); real value is far smaller
 DIVB_MAX_CEILING = 5.0  # hard gate: divB_max finite and below this
+PAPER_NOTE = (
+    "Paper anchor: Orszag-Tang is used here as a 2D ideal-MHD vortex benchmark "
+    "in the Toth 2000 div(B)-constraint context. The 512-grid self-reference "
+    "norms are engineering consistency checks; report validation relies on "
+    "paper-grounded morphology and finite div(B)/conservation diagnostics."
+)
+FIGURE_NAMES = (
+    "ot_density_pressure.png",
+    "ot_divb.png",
+    "ot_paper_style.png",
+)
+PAPER_SUMMARY = OUT / "paper_summary.md"
 
 
 def clear_scalar_summaries() -> None:
     for name in ("summary.csv", "summary.json", "summary.md"):
         path = OUT / name
+        if path.exists():
+            path.unlink()
+
+
+def clear_generated_figures() -> None:
+    fig_dir = OUT / "figures"
+    for name in FIGURE_NAMES:
+        path = fig_dir / name
         if path.exists():
             path.unlink()
 
@@ -82,20 +103,135 @@ def run_grid(label, cfg_path, out_bin, bin_path, commit, sha, extra=None):
     return meta
 
 
-def main() -> None:
-    global np, RHO, block_average_2d, conserved_totals, git_commit
+def periodic_abs_divb(arr, dx: float, dy: float):
+    bx = arr[..., BX].astype(np.float64)
+    by = arr[..., BY].astype(np.float64)
+    d_bx_dx = (np.roll(bx, -1, axis=1) - np.roll(bx, 1, axis=1)) / (2.0 * dx)
+    d_by_dy = (np.roll(by, -1, axis=0) - np.roll(by, 1, axis=0)) / (2.0 * dy)
+    return np.abs(d_bx_dx + d_by_dy)
+
+
+def write_validation_figures(header, arr) -> list[str]:
+    from mhd_paper_figures import mhd_primitive, plot_heatmap_panels
+
+    fig_dir = OUT / "figures"
+    prim = mhd_primitive(arr.astype(np.float64), GAMMA)
+    density = prim["rho"]
+    pressure = prim["p"]
+    magnetic_pressure = 0.5 * (prim["Bx"] ** 2 + prim["By"] ** 2 + prim["Bz"] ** 2)
+    abs_divb = periodic_abs_divb(arr, header.dx, header.dy)
+
+    paths = [
+        plot_heatmap_panels(
+            fig_dir / "ot_density_pressure.png",
+            [
+                {"title": "density", "field": density},
+                {"title": "pressure", "field": pressure},
+            ],
+            columns=2,
+        ),
+        plot_heatmap_panels(
+            fig_dir / "ot_divb.png",
+            [
+                {"title": "abs divB log10", "field": abs_divb, "log10": True},
+            ],
+            columns=1,
+        ),
+        plot_heatmap_panels(
+            fig_dir / "ot_paper_style.png",
+            [
+                {"title": "density", "field": density},
+                {"title": "mag pressure", "field": magnetic_pressure},
+            ],
+            columns=2,
+            panel_size=430,
+            margin=52,
+            gap=76,
+        ),
+    ]
+    return [path.relative_to(ROOT).as_posix() for path in paths]
+
+
+def import_runtime_helpers() -> None:
+    global np, RHO, BX, BY, block_average_2d, conserved_totals, git_commit
     global point_symmetry_residual, read_binary, replace_or_append_cfg
     global resolve_binary, run_case, sha256_file
-
-    OUT.mkdir(parents=True, exist_ok=True)
-    clear_scalar_summaries()
 
     import numpy as np
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-    from _mhd_harness import (RHO, block_average_2d, conserved_totals, git_commit,
+    from _mhd_harness import (RHO, BX, BY, block_average_2d, conserved_totals, git_commit,
                               point_symmetry_residual, read_binary, replace_or_append_cfg,
                               resolve_binary, run_case, sha256_file)
+
+
+def load_metadata(path: pathlib.Path) -> dict:
+    if not path.is_file():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def write_paper_summary(figure_paths: list[str], meta: dict) -> None:
+    diag = meta.get("stderr_diagnostics") or {}
+    diag_line = diag.get("line", "(diagnostics unavailable)")
+    lines = [
+        "# Week 13 Orszag-Tang Paper-Style Figures",
+        "",
+        PAPER_NOTE,
+        "",
+        "This packet is generated from the local `256^2` HLL Orszag-Tang run. "
+        "It is paper-grounded morphology evidence, not a completed 512-grid "
+        "self-reference validation gate.",
+        "",
+        "## Local run diagnostic",
+        "",
+        f"`{diag_line}`",
+        "",
+        "## Figures",
+        "",
+    ]
+    lines.extend(f"- `{path}`" for path in figure_paths)
+    lines.extend([
+        "",
+        "## Pending validation",
+        "",
+        "The full `mhd_orszag_tang_2d.py` validation still requires the `512^2` "
+        "reference and `glm_cr=0` control run. On this workstation the full run "
+        "exceeded the local 20 minute command budget after completing the `256^2` "
+        "candidate, so the self-reference gate is not recorded here.",
+        "",
+    ])
+    PAPER_SUMMARY.write_text("\n".join(lines), encoding="utf-8")
+
+
+def paper_figures_only() -> None:
+    import_runtime_helpers()
+    OUT.mkdir(parents=True, exist_ok=True)
+    clear_generated_figures()
+
+    cand_bin = OUT / "ot_256.bin"
+    meta_path = OUT / "runs" / "ot_256" / "metadata.json"
+    meta = load_metadata(meta_path)
+    if not cand_bin.is_file():
+        bin_path = resolve_binary(BIN)
+        sha, commit = sha256_file(bin_path), git_commit()
+        meta = run_grid("ot_256", CFG, cand_bin, bin_path, commit, sha)
+
+    cand_header, cand = read_binary(cand_bin)
+    figure_paths = write_validation_figures(cand_header, cand)
+    write_paper_summary(figure_paths, meta)
+    print(PAPER_SUMMARY.read_text(encoding="utf-8"), end="")
+
+
+def main() -> None:
+    import_runtime_helpers()
+
+    OUT.mkdir(parents=True, exist_ok=True)
+    clear_scalar_summaries()
+    clear_generated_figures()
 
     bin_path = resolve_binary(BIN)
     sha, commit = sha256_file(bin_path), git_commit()
@@ -107,7 +243,7 @@ def main() -> None:
     meta_ctrl = run_grid("ot_256_cr0", CFG, OUT / "ot_256_cr0.bin", bin_path,
                          commit, sha, extra={"glm_cr": 0.0})
 
-    _, cand = read_binary(cand_bin)
+    cand_header, cand = read_binary(cand_bin)
     _, ref = read_binary(ref_bin)
     rho_c = cand[..., RHO].astype(np.float64)
     rho_ref = block_average_2d(ref[..., RHO].astype(np.float64), rho_c.shape[0], rho_c.shape[1])
@@ -159,9 +295,14 @@ def main() -> None:
                "gate_mass": bool(gate_mass), "gate_divb": bool(gate_divb)}
 
     safe_results = sanitize_scalar_results(results)
+    failures = [name for name, ok in
+                [("norms", gate_norms), ("mass", gate_mass), ("divB", gate_divb)] if not ok]
+    figure_paths = [] if failures else write_validation_figures(cand_header, cand)
     json_payload = {
         "experiment": "week13-orszag-tang", "git_commit": commit,
         "binary_sha256": sha, "results": safe_results,
+        "paper_anchor": PAPER_NOTE,
+        "figures": figure_paths,
         "runs": {"cand": json_safe_run_meta(meta_c),
                  "ref": json_safe_run_meta(meta_r),
                  "ctrl": json_safe_run_meta(meta_ctrl)},
@@ -180,7 +321,12 @@ def main() -> None:
         f"| cleaning_ratio cr0.18/cr0 (diagnostic) | {fmt_optional(safe_results['cleaning_ratio_diagnostic'])} | "
         f"{cleaning_ratio_status} | n/a |",
         f"| symmetry_residual (reported) | {fmt_optional(safe_results['symmetry_residual'])} | n/a | n/a |",
+        "",
+        PAPER_NOTE,
     ]
+    if figure_paths:
+        md.extend(["", "## Figures", ""])
+        md.extend(f"- `{path}`" for path in figure_paths)
     md_text = "\n".join(md) + "\n"
 
     with (OUT / "summary.csv").open("w", newline="", encoding="utf-8") as f:
@@ -191,12 +337,17 @@ def main() -> None:
     (OUT / "summary.md").write_text(md_text, encoding="utf-8")
     print(md_text, end="")
 
-    failures = [name for name, ok in
-                [("norms", gate_norms), ("mass", gate_mass), ("divB", gate_divb)] if not ok]
     if failures:
         raise SystemExit(f"GATE FAIL: {failures}")
     print("[orszag_tang] ALL GATES PASSED")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--paper-figures-only", action="store_true",
+                        help="write OT paper-style figures from the 256^2 candidate without claiming the full validation gate")
+    args = parser.parse_args()
+    if args.paper_figures_only:
+        paper_figures_only()
+    else:
+        main()

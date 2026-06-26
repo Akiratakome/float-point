@@ -7,7 +7,7 @@ import math
 import pathlib
 import struct
 import zlib
-from typing import Iterable
+from typing import Iterable, Sequence
 
 import numpy as np
 
@@ -88,14 +88,21 @@ _FONT = {
     "W": ("101", "101", "101", "101", "111", "111", "101"),
     "a": ("000", "000", "111", "001", "111", "101", "111"),
     "b": ("100", "100", "110", "101", "101", "101", "110"),
+    "c": ("000", "000", "111", "100", "100", "100", "111"),
+    "d": ("001", "001", "011", "101", "101", "101", "011"),
     "e": ("000", "000", "111", "101", "111", "100", "111"),
+    "g": ("000", "000", "111", "101", "111", "001", "111"),
     "h": ("100", "100", "110", "101", "101", "101", "101"),
     "i": ("010", "000", "110", "010", "010", "010", "111"),
+    "l": ("110", "010", "010", "010", "010", "010", "111"),
     "m": ("000", "000", "110", "111", "101", "101", "101"),
     "n": ("000", "000", "110", "101", "101", "101", "101"),
     "o": ("000", "000", "111", "101", "101", "101", "111"),
     "p": ("000", "000", "110", "101", "101", "110", "100"),
+    "q": ("000", "000", "011", "101", "101", "011", "001"),
     "r": ("000", "000", "110", "101", "100", "100", "100"),
+    "s": ("000", "000", "111", "100", "111", "001", "111"),
+    "t": ("010", "010", "111", "010", "010", "010", "011"),
     "u": ("000", "000", "101", "101", "101", "101", "111"),
     "v": ("000", "000", "101", "101", "101", "101", "010"),
     "x": ("000", "000", "101", "101", "010", "101", "101"),
@@ -223,5 +230,150 @@ def plot_line_panels(
         ys = np.rint(y1 - (values - ymin) / (ymax - ymin) * (plot_h - 1)).astype(int)
         for xa, ya, xb, yb in zip(xs[:-1], ys[:-1], xs[1:], ys[1:]):
             _draw_line(img, int(xa), int(ya), int(xb), int(yb), black)
+
+    return save_png_rgb(path, img)
+
+
+_HEATMAP_STOPS = np.array(
+    [
+        (31, 38, 86),
+        (43, 108, 151),
+        (40, 164, 142),
+        (235, 221, 83),
+        (252, 250, 236),
+    ],
+    dtype=float,
+)
+
+
+def _normalise_field(values: np.ndarray, vmin: float | None, vmax: float | None) -> tuple[np.ndarray, float, float]:
+    arr = np.asarray(values, dtype=float)
+    finite = np.isfinite(arr)
+    if not finite.any():
+        raise ValueError("heatmap field has no finite values")
+    lo = float(np.nanmin(arr[finite])) if vmin is None else float(vmin)
+    hi = float(np.nanmax(arr[finite])) if vmax is None else float(vmax)
+    if not math.isfinite(lo) or not math.isfinite(hi):
+        raise ValueError(f"non-finite heatmap limits: {lo}, {hi}")
+    if hi <= lo:
+        hi = lo + 1.0
+    norm = np.clip((arr - lo) / (hi - lo), 0.0, 1.0)
+    norm = np.where(finite, norm, 0.0)
+    return norm, lo, hi
+
+
+def _colourise(norm: np.ndarray) -> np.ndarray:
+    scaled = np.asarray(norm, dtype=float) * (_HEATMAP_STOPS.shape[0] - 1)
+    idx = np.floor(scaled).astype(int)
+    idx = np.clip(idx, 0, _HEATMAP_STOPS.shape[0] - 2)
+    frac = (scaled - idx)[..., None]
+    rgb = _HEATMAP_STOPS[idx] * (1.0 - frac) + _HEATMAP_STOPS[idx + 1] * frac
+    return np.clip(np.rint(rgb), 0, 255).astype(np.uint8)
+
+
+def _resize_nearest(rgb: np.ndarray, height: int, width: int) -> np.ndarray:
+    if rgb.ndim != 3 or rgb.shape[2] != 3:
+        raise ValueError(f"expected RGB image, got {rgb.shape}")
+    src_h, src_w = rgb.shape[:2]
+    yi = np.linspace(0, src_h - 1, height).round().astype(int)
+    xi = np.linspace(0, src_w - 1, width).round().astype(int)
+    return rgb[yi][:, xi]
+
+
+def _draw_heatmap_panel(
+    img: np.ndarray,
+    field: np.ndarray,
+    *,
+    x0: int,
+    y0: int,
+    panel_w: int,
+    panel_h: int,
+    title: str,
+    vmin: float | None,
+    vmax: float | None,
+    log10: bool,
+) -> None:
+    arr = np.asarray(field, dtype=float)
+    if arr.ndim != 2:
+        raise ValueError(f"heatmap fields must be 2D, got {arr.shape}")
+    plot = np.log10(np.maximum(np.abs(arr), 1.0e-300)) if log10 else arr
+    norm, lo, hi = _normalise_field(plot, vmin, vmax)
+    heat = _resize_nearest(_colourise(norm), panel_h, panel_w)
+    img[y0:y0 + panel_h, x0:x0 + panel_w] = heat
+
+    black = (0, 0, 0)
+    gray = (85, 85, 85)
+    _draw_line(img, x0, y0, x0 + panel_w, y0, black)
+    _draw_line(img, x0, y0 + panel_h, x0 + panel_w, y0 + panel_h, black)
+    _draw_line(img, x0, y0, x0, y0 + panel_h, black)
+    _draw_line(img, x0 + panel_w, y0, x0 + panel_w, y0 + panel_h, black)
+    _draw_text(img, x0, max(8, y0 - 31), title, black, scale=3)
+    _draw_text(img, x0, y0 + panel_h + 12, "x", gray, scale=2)
+    _draw_text(img, max(6, x0 - 24), y0 + panel_h // 2, "y", gray, scale=2)
+
+    bar_x = x0 + panel_w + 14
+    bar_w = 22
+    bar = _colourise(np.linspace(1.0, 0.0, panel_h)[:, None])
+    bar = np.repeat(bar, bar_w, axis=1)
+    img[y0:y0 + panel_h, bar_x:bar_x + bar_w] = bar
+    _draw_line(img, bar_x, y0, bar_x + bar_w, y0, black)
+    _draw_line(img, bar_x, y0 + panel_h, bar_x + bar_w, y0 + panel_h, black)
+    _draw_line(img, bar_x, y0, bar_x, y0 + panel_h, black)
+    _draw_line(img, bar_x + bar_w, y0, bar_x + bar_w, y0 + panel_h, black)
+    _draw_text(img, bar_x + bar_w + 8, y0, _nice(hi), black, scale=2)
+    _draw_text(img, bar_x + bar_w + 8, y0 + panel_h - 14, _nice(lo), black, scale=2)
+
+
+def plot_heatmap_panels(
+    path: str | pathlib.Path,
+    panels: Sequence[dict[str, object] | tuple[str, np.ndarray]],
+    *,
+    columns: int | None = None,
+    panel_size: int = 520,
+    margin: int = 64,
+    gap: int = 94,
+    title_gap: int = 42,
+) -> pathlib.Path:
+    """Render one or more 2D scalar fields as titled RGB heatmap panels.
+
+    Each panel may be either ``(title, field)`` or a dict with ``title``,
+    ``field``, and optional ``vmin``, ``vmax``, ``log10`` keys.  The writer is
+    intentionally small and stdlib-only so validation figures work in minimal
+    Python environments without matplotlib/PIL/imageio/cv2.
+    """
+    if not panels:
+        raise ValueError("at least one heatmap panel is required")
+    parsed: list[dict[str, object]] = []
+    for panel in panels:
+        if isinstance(panel, tuple):
+            title, field = panel
+            parsed.append({"title": title, "field": field})
+        else:
+            parsed.append(dict(panel))
+    cols = columns or min(2, len(parsed))
+    if cols <= 0:
+        raise ValueError(f"columns must be positive, got {cols}")
+    rows = int(math.ceil(len(parsed) / cols))
+    colorbar_w = 86
+    width = 2 * margin + cols * panel_size + (cols - 1) * gap + cols * colorbar_w
+    height = 2 * margin + rows * (panel_size + title_gap) + (rows - 1) * gap + 36
+    img = np.full((height, width, 3), 255, dtype=np.uint8)
+
+    for idx, panel in enumerate(parsed):
+        row, col = divmod(idx, cols)
+        x0 = margin + col * (panel_size + colorbar_w + gap)
+        y0 = margin + title_gap + row * (panel_size + title_gap + gap)
+        _draw_heatmap_panel(
+            img,
+            np.asarray(panel["field"], dtype=float),
+            x0=x0,
+            y0=y0,
+            panel_w=panel_size,
+            panel_h=panel_size,
+            title=str(panel.get("title", "")),
+            vmin=panel.get("vmin"),  # type: ignore[arg-type]
+            vmax=panel.get("vmax"),  # type: ignore[arg-type]
+            log10=bool(panel.get("log10", False)),
+        )
 
     return save_png_rgb(path, img)
