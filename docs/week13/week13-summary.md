@@ -35,5 +35,7 @@ the HLLD div(B) behavior is understood.
   [summary.md](../../experiments/week13/solver_compare/summary.md)
 - HLLD diagnostic figures:
   [figures/README.md](../../experiments/week13/solver_compare/figures/README.md)
+- HLLD GLM local sweep:
+  [summary.md](../../experiments/week13/hlld_glm_sweep/summary.md)
 - Solver comparison data:
   [summary.json](../../experiments/week13/solver_compare/summary.json)

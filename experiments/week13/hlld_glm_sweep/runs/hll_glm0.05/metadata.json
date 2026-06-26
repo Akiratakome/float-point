@@ -1,0 +1,29 @@
+{
+  "experiment": "week13-hlld-glm-sweep",
+  "name": "hll_glm0.05",
+  "timestamp_utc": "2026-06-26T02:33:33.750772+00:00",
+  "git_commit": "6f4614cb9fcdc06cba961c192495959966d0885f",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+  "binary_sha256": "4244952a15c52f9da2f8ea9df38d02e430fc83e546cfd1781e40cba9690a7b99",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+  "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_glm_sweep\\runs\\hll_glm0.05\\config.cfg",
+  "run_config_sha256": "bdba77745218382742a18243c2f1f9d0d8b7356097929c10f6175dd757664901",
+  "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx = 64\nny = 64\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end = 0.05\nglm_cr = 0.05\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_glm_sweep\\runs\\hll_glm0.05\\grid.bin\nriemann = hll\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_glm_sweep\\runs\\hll_glm0.05\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.33703460000106134,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_glm_sweep\\runs\\hll_glm0.05\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_glm_sweep\\runs\\hll_glm0.05\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.05,
+    "steps": 19,
+    "divB_mean": 0.05007,
+    "divB_max": 0.3549,
+    "line": "[mhd] t=0.050000 steps=19 divB_mean=5.007e-02 divB_max=3.549e-01"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_glm_sweep\\runs\\hll_glm0.05\\grid.bin"
+}
