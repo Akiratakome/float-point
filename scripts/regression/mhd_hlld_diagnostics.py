@@ -50,12 +50,28 @@ def periodic_divb(arr, dx: float, dy: float):
 
 
 def check_compatible_headers(h_hll, h_hlld) -> None:
-    lhs = (h_hll.nx, h_hll.ny, h_hll.nvars, h_hll.dx, h_hll.dy)
-    rhs = (h_hlld.nx, h_hlld.ny, h_hlld.nvars, h_hlld.dx, h_hlld.dy)
+    lhs = (
+        h_hll.nx,
+        h_hll.ny,
+        h_hll.nvars,
+        h_hll.precision_tag,
+        h_hll.t,
+        h_hll.dx,
+        h_hll.dy,
+    )
+    rhs = (
+        h_hlld.nx,
+        h_hlld.ny,
+        h_hlld.nvars,
+        h_hlld.precision_tag,
+        h_hlld.t,
+        h_hlld.dx,
+        h_hlld.dy,
+    )
     if lhs != rhs:
         raise ValueError(f"HLL/HLLD grid headers differ: {lhs} vs {rhs}")
-    if h_hll.nvars <= max(RHO, BX, BY):
-        raise ValueError(f"expected MHD grid with at least 6 variables, got {h_hll.nvars}")
+    if h_hll.nvars < 9:
+        raise ValueError(f"expected 9-variable MHD grid, got {h_hll.nvars}")
 
 
 def write_figures():
@@ -206,6 +222,16 @@ Diagnostic values:
 
 
 def update_solver_summary() -> None:
+    decision = """## Decision
+
+- [ ] HLLD validated and adopted for remaining MHD work, OR
+- [x] HLLD deferred; HLL remains the production solver (fallback per overall.md).
+
+Rationale: HLLD remains finite on the Week 13 Orszag-Tang solver comparison,
+but it produces a substantially larger divB maximum than the HLL candidate in
+the current GLM configuration. Keep HLL as the production solver for subsequent
+MHD precision-study runs until a follow-up HLLD+divB-control pass is validated.
+"""
     section = """## Diagnostic figures
 
 - `figures/rho_hll_hlld_diff.png`
@@ -215,7 +241,13 @@ These figures support the deferred-HLLD decision; they are not production
 validation.
 """
     text = SUMMARY.read_text(encoding="utf-8")
-    SUMMARY.write_text(replace_section(text, "## Diagnostic figures", section), encoding="utf-8")
+    text = replace_section(text, "## Decision", decision)
+    text = replace_section(text, "## Diagnostic figures", section)
+    text = text.replace(
+        "validated.\n## Diagnostic figures",
+        "validated.\n\n## Diagnostic figures",
+    )
+    SUMMARY.write_text(text, encoding="utf-8")
 
 
 def update_week13_summary() -> None:

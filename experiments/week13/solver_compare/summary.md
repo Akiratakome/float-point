@@ -15,10 +15,10 @@
 - [ ] HLLD validated and adopted for remaining MHD work, OR
 - [x] HLLD deferred; HLL remains the production solver (fallback per overall.md).
 
-Rationale: HLLD completed the Orszag-Tang candidate run with a finite density
-field, but its reported divB_max was 3.429e+01 versus 3.720e+00 for HLL on the
-same grid/config. Keep HLL as the production solver for the next MHD precision
-study step until the HLLD div(B) behavior is understood.
+Rationale: HLLD remains finite on the Week 13 Orszag-Tang solver comparison,
+but it produces a substantially larger divB maximum than the HLL candidate in
+the current GLM configuration. Keep HLL as the production solver for subsequent
+MHD precision-study runs until a follow-up HLLD+divB-control pass is validated.
 
 ## Diagnostic figures
 
