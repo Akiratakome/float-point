@@ -25,5 +25,11 @@
     "divB_max": 0.3397,
     "line": "[mhd] t=0.050000 steps=19 divB_mean=4.057e-02 divB_max=3.397e-01"
   },
-  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_glm_sweep\\runs\\hlld_glm0.18\\grid.bin"
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_glm_sweep\\runs\\hlld_glm0.18\\grid.bin",
+  "rho_metrics": {
+    "grid_status": "read",
+    "finite_rho": true,
+    "rho_min": 2.440437492428486,
+    "rho_max": 3.7136133697811218
+  }
 }

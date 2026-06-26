@@ -21,4 +21,4 @@ This is a local diagnostic sweep for Orszag-Tang MHD GLM cleaning. HLLD remains 
 | hlld_glm0.05 | hlld | 0.05 | 0 | 0.05 | 19 | 0.04496 | 0.2431 | True | 2.44061 | 3.71349 |
 | hlld_glm0.18 | hlld | 0.18 | 0 | 0.05 | 19 | 0.04057 | 0.3397 | True | 2.44044 | 3.71361 |
 
-Generated artifacts: `summary.csv`, `summary.json`, per-run `config.cfg`, `stdout.txt`, `stderr.txt`, and `metadata.json`. Binary grids are transient analysis inputs and are not intended for commit.
+Generated artifacts: `summary.csv`, `summary.json`, per-run `config.cfg`, `stderr.txt` logs, and `metadata.json`. `stdout.txt` is a local run artifact when non-empty. Binary grids are transient analysis inputs and are not intended for commit.

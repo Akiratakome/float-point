@@ -36,6 +36,7 @@ from _mhd_harness import (  # noqa: E402
     git_commit,
     parse_mhd_diagnostics,
     replace_or_append_cfg,
+    resolve_binary,
     run_case,
     sha256_file,
 )
@@ -61,9 +62,13 @@ def json_sanitise(value: Any) -> Any:
     return value
 
 
+def default_rho_metrics(status: str = "missing") -> dict[str, Any]:
+    return {"grid_status": status, "finite_rho": None, "rho_min": None, "rho_max": None}
+
+
 def read_rho_metrics(grid_path: pathlib.Path) -> dict[str, Any]:
     if not grid_path.is_file():
-        return {"grid_status": "missing", "finite_rho": None, "rho_min": None, "rho_max": None}
+        return default_rho_metrics()
     try:
         sys.path.insert(0, str(ROOT / "scripts"))
         from io_helper import read_binary  # noqa: WPS433
@@ -112,17 +117,36 @@ def make_run_cfg(
     return text
 
 
-def load_existing_row(run_dir: pathlib.Path, riemann: str, glm_cr: float) -> dict[str, Any] | None:
-    meta_path = run_dir / "metadata.json"
-    if not meta_path.is_file():
+def load_metadata(path: pathlib.Path) -> dict[str, Any] | None:
+    if not path.is_file():
         return None
     try:
-        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
+        return None
+
+
+def write_metadata(path: pathlib.Path, meta: dict[str, Any]) -> None:
+    path.write_text(json.dumps(json_sanitise(meta), indent=2, allow_nan=False) + "\n", encoding="utf-8")
+
+
+def load_existing_row(run_dir: pathlib.Path, riemann: str, glm_cr: float) -> dict[str, Any] | None:
+    meta_path = run_dir / "metadata.json"
+    meta = load_metadata(meta_path)
+    if meta is None:
         return None
     if meta.get("returncode") != 0:
         return None
-    return row_from_metadata(meta, run_dir, riemann, glm_cr, reused=True)
+    row = row_from_metadata(meta, run_dir, riemann, glm_cr, reused=True)
+    if "rho_metrics" not in meta:
+        meta["rho_metrics"] = {
+            "grid_status": row.get("grid_status"),
+            "finite_rho": row.get("finite_rho"),
+            "rho_min": row.get("rho_min"),
+            "rho_max": row.get("rho_max"),
+        }
+        write_metadata(meta_path, meta)
+    return row
 
 
 def row_from_metadata(
@@ -135,7 +159,7 @@ def row_from_metadata(
 ) -> dict[str, Any]:
     diag = meta.get("stderr_diagnostics") or {}
     grid_path = pathlib.Path(meta.get("output_binary") or (run_dir / "grid.bin"))
-    rho_metrics = read_rho_metrics(grid_path)
+    rho_metrics = meta.get("rho_metrics") or read_rho_metrics(grid_path)
     row = {
         "name": run_dir.name,
         "riemann": riemann,
@@ -152,6 +176,46 @@ def row_from_metadata(
         "metadata": str(run_dir / "metadata.json"),
     }
     row.update(rho_metrics)
+    return row
+
+
+def failed_row_from_run_dir(
+    run_dir: pathlib.Path,
+    riemann: str,
+    glm_cr: float,
+    error: Exception,
+) -> dict[str, Any]:
+    meta_path = run_dir / "metadata.json"
+    meta = load_metadata(meta_path) or {}
+    stderr_path = pathlib.Path(meta.get("stderr") or (run_dir / "stderr.txt"))
+    stderr_text = ""
+    if stderr_path.is_file():
+        stderr_text = stderr_path.read_text(encoding="utf-8", errors="replace")
+    diag = meta.get("stderr_diagnostics") or parse_mhd_diagnostics(stderr_text)
+    grid_path = pathlib.Path(meta.get("output_binary") or (run_dir / "grid.bin"))
+    rho_metrics = meta.get("rho_metrics") or default_rho_metrics()
+    row = {
+        "name": run_dir.name,
+        "riemann": riemann,
+        "glm_cr": float(glm_cr),
+        "returncode": meta.get("returncode", 1),
+        "reused": False,
+        "elapsed_wall_s": meta.get("elapsed_wall_s"),
+        "t": diag.get("t"),
+        "steps": diag.get("steps"),
+        "divB_mean": diag.get("divB_mean"),
+        "divB_max": diag.get("divB_max"),
+        "diagnostics_line": diag.get("line"),
+        "grid": str(grid_path),
+        "metadata": str(meta_path),
+        "error": f"{type(error).__name__}: {error}",
+    }
+    row.update(rho_metrics)
+    if meta_path.is_file():
+        meta["stderr_diagnostics"] = diag
+        meta["rho_metrics"] = rho_metrics
+        meta["sweep_error"] = row["error"]
+        write_metadata(meta_path, meta)
     return row
 
 
@@ -184,21 +248,25 @@ def run_one(
         nx=nx,
         t_end=t_end,
     )
-    _, meta, stderr_text = run_case(
-        run_dir.name,
-        cfg_text,
-        run_dir,
-        bin_path,
-        case_path,
-        commit,
-        binary_sha256,
-        output_bin=grid_path,
-        experiment="week13-hlld-glm-sweep",
-    )
+    try:
+        _, meta, stderr_text = run_case(
+            run_dir.name,
+            cfg_text,
+            run_dir,
+            bin_path,
+            case_path,
+            commit,
+            binary_sha256,
+            output_bin=grid_path,
+            experiment="week13-hlld-glm-sweep",
+        )
+    except Exception as exc:
+        return failed_row_from_run_dir(run_dir, riemann, glm_cr, exc)
     # Be tolerant of older metadata by reparsing the captured stderr if needed.
     if not meta.get("stderr_diagnostics"):
         meta["stderr_diagnostics"] = parse_mhd_diagnostics(stderr_text)
-        (run_dir / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+    meta["rho_metrics"] = read_rho_metrics(grid_path)
+    write_metadata(run_dir / "metadata.json", meta)
     return row_from_metadata(meta, run_dir, riemann, glm_cr, reused=False)
 
 
@@ -241,6 +309,7 @@ def write_summary_csv(rows: list[dict[str, Any]], path: pathlib.Path) -> None:
         "grid_status",
         "grid",
         "metadata",
+        "error",
         "diagnostics_line",
     ]
     with path.open("w", newline="", encoding="utf-8") as f:
@@ -310,8 +379,9 @@ def write_summary_md(rows: list[dict[str, Any]], summary: dict[str, Any], path: 
     lines.extend([
         "",
         "Generated artifacts: `summary.csv`, `summary.json`, per-run `config.cfg`, "
-        "`stdout.txt`, `stderr.txt`, and `metadata.json`. Binary grids are transient "
-        "analysis inputs and are not intended for commit.",
+        "`stderr.txt` logs, and `metadata.json`. `stdout.txt` is a local run artifact "
+        "when non-empty. Binary grids are transient analysis inputs and are not "
+        "intended for commit.",
         "",
     ])
     path.write_text("\n".join(lines), encoding="utf-8")
@@ -323,6 +393,7 @@ def write_summaries(rows: list[dict[str, Any]], out_root: pathlib.Path, args: ar
         "experiment": "week13-hlld-glm-sweep",
         "case": str(args.case),
         "binary": str(args.binary),
+        "resolved_binary": str(args.resolved_binary),
         "output_root": str(out_root),
         "nx": args.nx,
         "t_end": args.t_end,
@@ -358,6 +429,8 @@ def main(argv: list[str] | None = None) -> int:
     out_root = args.out if args.out.is_absolute() else ROOT / args.out
     case_path = args.case if args.case.is_absolute() else ROOT / args.case
     bin_path = args.binary if args.binary.is_absolute() else ROOT / args.binary
+    bin_path = resolve_binary(bin_path)
+    args.resolved_binary = bin_path
     out_root.mkdir(parents=True, exist_ok=True)
 
     source_text = case_path.read_text(encoding="utf-8")
