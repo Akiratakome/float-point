@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
+from typing import Callable, Optional
 
 
 @dataclass(frozen=True)
@@ -39,8 +40,9 @@ def generate_variants(
     opt_levels: tuple[str, ...] = ("O2", "O3", "Ofast"),
     fast_math_values: tuple[bool, ...] = (False, True),
     strict_values: tuple[bool, ...] = (False, True),
+    filter: Optional[Callable[[BuildVariant], bool]] = None,
 ) -> list[BuildVariant]:
-    return [
+    variants = [
         BuildVariant(
             precision=precision,
             opt_level=opt_level,
@@ -51,3 +53,6 @@ def generate_variants(
             precisions, opt_levels, fast_math_values, strict_values
         )
     ]
+    if filter is not None:
+        variants = [variant for variant in variants if filter(variant)]
+    return variants
