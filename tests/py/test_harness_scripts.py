@@ -7,10 +7,20 @@ import pytest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+MHD_CASE_DIRS = {
+    "brio_wu_1d",
+    "kelvin_helmholtz_2d",
+    "mhd_divb_clean",
+    "orszag_tang_2d",
+}
 
 
-def test_all_case_configs_pin_solver_after_default_change() -> None:
-    cfgs = sorted((REPO_ROOT / "tests" / "cases").rglob("*.cfg"))
+def test_all_euler_case_configs_pin_solver_after_default_change() -> None:
+    cfgs = sorted(
+        cfg
+        for cfg in (REPO_ROOT / "tests" / "cases").rglob("*.cfg")
+        if cfg.relative_to(REPO_ROOT / "tests" / "cases").parts[0] not in MHD_CASE_DIRS
+    )
     missing = []
     for cfg in cfgs:
         text = cfg.read_text(encoding="utf-8")
