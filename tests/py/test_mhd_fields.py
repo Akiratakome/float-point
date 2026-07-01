@@ -7,7 +7,13 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts" / "metrics"))
 
-from mhd_fields import mhd_primitive_fields, field_norms, FIELD_NAMES, GATE_FIELDS
+from mhd_fields import (
+    mca_field_spread,
+    mhd_primitive_fields,
+    field_norms,
+    FIELD_NAMES,
+    GATE_FIELDS,
+)
 
 
 def _cell(rho, vx, By, p, gamma):
@@ -60,3 +66,46 @@ def test_primitive_fields_rejects_flat_state():
     gamma = 5.0 / 3.0
     with pytest.raises(ValueError, match="shape"):
         mhd_primitive_fields(np.zeros(9), gamma)
+
+
+def test_mca_field_spread_zero_when_identical():
+    gamma = 5.0 / 3.0
+    one = np.array([[_cell(1.0, 0.2, 0.1, 1.0, gamma)]], dtype=np.float64)  # (1,1,9)
+    samples = np.stack([one, one, one], axis=0)  # (3,1,1,9)
+    out = mca_field_spread(samples, gamma)
+    assert out["spread_rho"] == 0.0
+    assert out["spread_By"] == 0.0
+    assert out["rho_mean_spread"] == 0.0
+    assert "snr_p" in out
+
+
+def test_mca_field_spread_detects_rho_variation():
+    gamma = 5.0 / 3.0
+    s0 = np.array([[_cell(1.0, 0.0, 0.1, 1.0, gamma)]], dtype=np.float64)
+    s1 = np.array([[_cell(1.2, 0.0, 0.1, 1.0, gamma)]], dtype=np.float64)
+    samples = np.stack([s0, s1], axis=0)
+    out = mca_field_spread(samples, gamma)
+    assert out["spread_rho"] > 0.0
+    assert np.isclose(out["rho_mean_spread"], 0.2)
+
+
+@pytest.mark.parametrize(
+    "samples",
+    [
+        np.empty((0, 1, 1, 9), dtype=np.float64),
+        np.zeros((1, 1, 1, 9), dtype=np.float64),
+    ],
+)
+def test_mca_field_spread_rejects_too_few_samples(samples):
+    gamma = 5.0 / 3.0
+    with pytest.raises(ValueError, match="at least 2"):
+        mca_field_spread(samples, gamma)
+
+
+def test_mca_field_spread_uses_ddof_one_for_spread():
+    gamma = 5.0 / 3.0
+    s0 = np.array([[_cell(1.0, 0.0, 0.1, 1.0, gamma)]], dtype=np.float64)
+    s1 = np.array([[_cell(1.2, 0.0, 0.1, 1.0, gamma)]], dtype=np.float64)
+    samples = np.stack([s0, s1], axis=0)
+    out = mca_field_spread(samples, gamma)
+    assert np.isclose(out["spread_rho"], np.sqrt(0.02))
