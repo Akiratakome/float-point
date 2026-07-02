@@ -1,10 +1,10 @@
 {
   "experiment": "week14-mhd-precision-pilot",
   "name": "cpu-float-O2-ieee-leq",
-  "timestamp_utc": "2026-07-02T04:42:13.114237+00:00",
-  "git_commit": "8eee31318fa512c2a69d012726eb7699d7c8b0c2",
+  "timestamp_utc": "2026-07-02T04:50:57.954015+00:00",
+  "git_commit": "734629799b9e2469e71780a4b8a5caff76e7ee8c",
   "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
-  "binary_sha256": "82e8b098226de278375e55b3db6e353161a1c740681fdaccd092c67846bc3764",
+  "binary_sha256": "205699186629598a4fed672dd7a2bbded7d01eed4de1ddd10ccb84777fea9516",
   "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
   "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
   "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\runs\\cpu-float-O2-ieee-leq\\config.cfg",
@@ -15,7 +15,7 @@
     "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\runs\\cpu-float-O2-ieee-leq\\config.cfg"
   ],
   "returncode": 0,
-  "elapsed_wall_s": 0.148184800054878,
+  "elapsed_wall_s": 0.1385556000750512,
   "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\runs\\cpu-float-O2-ieee-leq\\stdout.txt",
   "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\runs\\cpu-float-O2-ieee-leq\\stderr.txt",
   "stderr_diagnostics": {
