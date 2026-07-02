@@ -47,3 +47,15 @@ Run directories keep metadata, stdout, stderr, and generated cfgs. Raw
 `--keep-grids` is passed; rerun the commands above to regenerate grids when
 needed. Build directories, including `build-matrix/`, are not committed and can
 be recreated by the harness.
+
+## Phase scaling (no new code)
+
+- **P1 (deterministic breadth, 24 variants):**
+  `mhd_precision_pilot.py --phase p1 --skip-mca` -- same schema, full
+  precision x opt x fastmath x riemann fan. Review `gates.G1.ordering_flags`
+  (fastmath/ieee inversions) before making any ordering claim.
+- **P2 (MCA depth):** run the sampler once --
+  `mhd_precision_sampling.py --samples 30` (writes `mca/summary.json`) -- then
+  fold it without re-sampling:
+  `mhd_precision_pilot.py --phase p0 --mca-summary experiments/week14/mhd_precision_pilot/mca/summary.json`.
+  `blocked_environment` remains a valid, non-failing outcome.
