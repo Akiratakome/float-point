@@ -1,8 +1,8 @@
 {
   "experiment": "week14-mhd-precision-pilot",
   "name": "cpu-double-Ofast-ieee-leq",
-  "timestamp_utc": "2026-07-02T04:50:55.366690+00:00",
-  "git_commit": "734629799b9e2469e71780a4b8a5caff76e7ee8c",
+  "timestamp_utc": "2026-07-02T05:28:50.404297+00:00",
+  "git_commit": "76d5e381b9074476526d6014d4e3fc98d2e7deae",
   "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-Ofast-ieee-leq\\hrsc_mhd.exe",
   "binary_sha256": "388f86529b0a4d08ae8bfde7281a1db8f740ae81c6d0a72834203769fe7c9c6d",
   "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
@@ -15,7 +15,7 @@
     "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\runs\\cpu-double-Ofast-ieee-leq\\config.cfg"
   ],
   "returncode": 0,
-  "elapsed_wall_s": 0.18268530000932515,
+  "elapsed_wall_s": 0.17794959992170334,
   "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\runs\\cpu-double-Ofast-ieee-leq\\stdout.txt",
   "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\runs\\cpu-double-Ofast-ieee-leq\\stderr.txt",
   "stderr_diagnostics": {
