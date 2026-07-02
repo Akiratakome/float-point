@@ -88,6 +88,7 @@ def build_variant(variant: BuildVariant) -> pathlib.Path:
         str(build_dir),
         "-G",
         "Ninja",
+        "-DCMAKE_BUILD_TYPE=Release",
         *variant.cmake_args(),
     ]
     subprocess.run(cmake_configure, cwd=str(ROOT), check=True)

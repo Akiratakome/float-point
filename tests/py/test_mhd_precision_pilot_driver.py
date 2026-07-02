@@ -96,6 +96,20 @@ def test_write_matrix_json(tmp_path):
     assert all(Path(r["binary"]).name == expected_binary for r in data["runs"])
 
 
+def test_build_variant_configures_release_build(monkeypatch):
+    calls = []
+
+    def fake_run(command, cwd, check):
+        calls.append(command)
+
+    monkeypatch.setattr(drv.subprocess, "run", fake_run)
+    monkeypatch.setattr(drv, "resolve_binary", lambda path: path)
+
+    drv.build_variant(BuildVariant("double", "O2", False, False))
+
+    assert "-DCMAKE_BUILD_TYPE=Release" in calls[0]
+
+
 def test_measure_run_nonfinite_array_returns_failing_row():
     gamma = 5.0 / 3.0
     ref = np.array([[_cell(1.0, 0.1, 0.2, 1.0, gamma)]], dtype=np.float64)
