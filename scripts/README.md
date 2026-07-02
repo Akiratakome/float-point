@@ -21,6 +21,7 @@ Use these first for new Report 2 work.
 | Read grids | `io_helper.py` | Shared binary-grid reader and primitive conversion helpers. |
 | Measure | `metrics/` | Reusable scalar metrics and reference comparisons. |
 | Summarise | `regression/matrix_summary_report.py` | Preferred matrix-summary consumer for new harness runs. |
+| Summarise (MHD precision) | `regression/mhd_precision_pilot.py` | **canonical** Week-14 MHD precision-study aggregator; authoritative `summary.json`. `matrix_summary_report.py` is generic-checks-only here. |
 | Aggregate | `aggregate_metrics.py` | Thin JSON combiner for multiple summaries. |
 | Plot | `figures/plot_2d.py` plus selected `figures/` helpers | Keep generated figures under the owning experiment/report directory. |
 

@@ -33,6 +33,8 @@
 ## 2. Per-week navigation
 
 **Convention** (post-2026-04-28 reorg): each week keeps **only** `weekN-plan.md` + `weekN-summary.md` at the top. Everything else lives in `archive/` (legacy planning docs, design notes, briefings) or in shared folders (`emails/`, `experiment_logs/`).
+Links in this table are relative to `docs/INDEX.md`; from the repository root,
+use `docs/weekN/...`.
 
 | Week | Plan | Summary | Archive |
 |---|---|---|---|
@@ -160,6 +162,9 @@ missing:
   (`cl` version `19.51.36248`).
 - Miniconda Python:
   `C:\Users\tangy\miniconda3\python.exe` (`Python 3.13.13`).
+- Project test Python:
+  `C:\Users\tangy\miniconda3\envs\floatpoint\python.exe` (`Python 3.11.15`;
+  includes `pytest`).
 
 To verify or build with MSVC from `cmd.exe`, first load the developer
 environment:
@@ -173,10 +178,12 @@ cmake --build build-double
 ```
 
 `c++` is not expected to be the compiler name in this MSVC setup; use the
-developer environment so CMake can discover `cl`. For Python scripts, prefer the
-full Miniconda path or set `PYTHON` explicitly:
+developer environment so CMake can discover `cl`. For Python tests, prefer the
+project test environment; for plain scripts, use the full Miniconda path or set
+`PYTHON` explicitly:
 
 ```powershell
+& "C:\Users\tangy\miniconda3\envs\floatpoint\python.exe" -m pytest tests\py -q
 & "C:\Users\tangy\miniconda3\python.exe" --version
 $env:PYTHON = "C:\Users\tangy\miniconda3\python.exe"
 ```
@@ -205,6 +212,7 @@ For the full step-by-step manual recipe see [week4/week4-verification.md](week4/
 | Where to find | What's there |
 |---|---|
 | `docs/experiment_logs/report1_evidence_map.md` | Canonical Report 1 evidence routing: P0/P1/P2/P3 artefacts, superseded results, exclusions, and current strongest claims |
+| `experiments/week14/mhd_precision_pilot/` | Week-14 HLL MHD precision pilot output directory: README now; Task 9/P0 run generates deterministic deltas vs `cpu-double-O2-ieee-leq`, MCA status, unified `summary.{csv,json,md}`, and figures |
 | `experiments/week4/float_regression/1d/` | Phase C1 1D: 12 CSVs (sod, toro2-5, stationary_contact × {double, float}) + summary.{md,json} |
 | `experiments/week4/float_regression/2d/` | Phase C1 2D: 4 candidates + 16 difference heatmaps + summary.{md,json}; current rerun uses the Week 7 1600² reference when available |
 | `experiments/week8/report1_2d_config12_fill/` | Second 2D Euler Riemann evidence packet (LW12/config12): strict CPU/GPU, fp32/fp64, N=800 reference comparison, figures |
@@ -255,4 +263,4 @@ When a structured reorganization or multi-step task is in progress, three files 
 
 ---
 
-*Last updated: 2026-06-25 (added local Windows VS BuildTools + Miniconda notes for reproducible verification).*
+*Last updated: 2026-07-01 (clarified per-week path usage and added the project pytest environment note).*
