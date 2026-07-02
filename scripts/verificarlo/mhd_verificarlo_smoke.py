@@ -28,6 +28,7 @@ DEFAULT_CASE = ROOT / "tests" / "cases" / "brio_wu_1d" / "brio_wu.cfg"
 DEFAULT_OUT = ROOT / "experiments" / "week13" / "mhd_verificarlo_smoke"
 DEFAULT_IMAGE = "verificarlo/verificarlo"
 EXPERIMENT = "week13-mhd-verificarlo-smoke"
+SAMPLE_MAX_ATTEMPTS = 3
 
 sys.path.insert(0, str(ROOT / "scripts" / "regression"))
 from _mhd_harness import git_commit, replace_or_append_cfg, sha256_file  # noqa: E402
@@ -422,50 +423,71 @@ def run_samples(args: argparse.Namespace, probes: list[dict[str, Any]], runner: 
         run_dir.mkdir(parents=True, exist_ok=True)
         grid_path = run_dir / "grid.bin"
         cfg_path = run_dir / "config.cfg"
-        cfg_text = make_sample_cfg(source_text, runner_path(runner, grid_path))
-        cfg_path.write_text(cfg_text, encoding="utf-8")
-        command = sample_command_for_runner(runner, args.image, build_dir, cfg_path, args.precision)
-        t0 = time.perf_counter()
-        result = run_command(command, timeout=300)
-        elapsed = time.perf_counter() - t0
-        (run_dir / "stdout.txt").write_text(result.get("stdout", ""), encoding="utf-8", errors="replace")
-        (run_dir / "stderr.txt").write_text(result.get("stderr", ""), encoding="utf-8", errors="replace")
-        metrics = read_grid_metrics(grid_path)
-        row = {
-            "sample": sample_name,
-            "returncode": result["returncode"],
-            "elapsed_wall_s": elapsed,
-            "config": str(cfg_path),
-            "output_binary": str(grid_path),
-            "stdout": str(run_dir / "stdout.txt"),
-            "stderr": str(run_dir / "stderr.txt"),
-            "command": command,
-            "runner": runner,
-            "precision": args.precision,
-        }
-        row.update(metrics)
-        metadata = {
-            "experiment": EXPERIMENT,
-            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            "git_commit": git_commit(),
-            "runner": runner,
-            "precision": args.precision,
-            "source_config": str(args.case),
-            "source_config_sha256": sha256_file(args.case),
-            "run_config": str(cfg_path),
-            "run_config_text": cfg_text,
-            "command": command,
-            "returncode": result["returncode"],
-            "elapsed_wall_s": elapsed,
-            "output_binary": str(grid_path),
-            "stdout": str(run_dir / "stdout.txt"),
-            "stderr": str(run_dir / "stderr.txt"),
-            "grid_metrics": metrics,
-        }
-        write_json(run_dir / "metadata.json", metadata)
-        sample_rows.append(row)
-        if result["returncode"] != 0 or metrics["grid_status"] != "read":
-            return "blocked_run", sample_rows, f"Sample `{sample_name}` failed before producing a readable MCA grid."
+        for attempt in range(1, SAMPLE_MAX_ATTEMPTS + 1):
+            if grid_path.exists():
+                grid_path.unlink()
+            cfg_text = make_sample_cfg(source_text, runner_path(runner, grid_path))
+            cfg_path.write_text(cfg_text, encoding="utf-8")
+            command = sample_command_for_runner(runner, args.image, build_dir, cfg_path, args.precision)
+            t0 = time.perf_counter()
+            result = run_command(command, timeout=300)
+            elapsed = time.perf_counter() - t0
+            stdout_path = run_dir / "stdout.txt"
+            stderr_path = run_dir / "stderr.txt"
+            stdout_path.write_text(result.get("stdout", ""), encoding="utf-8", errors="replace")
+            stderr_path.write_text(result.get("stderr", ""), encoding="utf-8", errors="replace")
+            (run_dir / f"attempt_{attempt:02d}_stdout.txt").write_text(
+                result.get("stdout", ""), encoding="utf-8", errors="replace")
+            (run_dir / f"attempt_{attempt:02d}_stderr.txt").write_text(
+                result.get("stderr", ""), encoding="utf-8", errors="replace")
+            metrics = read_grid_metrics(grid_path)
+            row = {
+                "sample": sample_name,
+                "attempt": attempt,
+                "max_attempts": SAMPLE_MAX_ATTEMPTS,
+                "returncode": result["returncode"],
+                "elapsed_wall_s": elapsed,
+                "config": str(cfg_path),
+                "output_binary": str(grid_path),
+                "stdout": str(stdout_path),
+                "stderr": str(stderr_path),
+                "command": command,
+                "runner": runner,
+                "precision": args.precision,
+            }
+            row.update(metrics)
+            metadata = {
+                "experiment": EXPERIMENT,
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                "git_commit": git_commit(),
+                "runner": runner,
+                "precision": args.precision,
+                "sample": sample_name,
+                "attempt": attempt,
+                "max_attempts": SAMPLE_MAX_ATTEMPTS,
+                "source_config": str(args.case),
+                "source_config_sha256": sha256_file(args.case),
+                "run_config": str(cfg_path),
+                "run_config_text": cfg_text,
+                "command": command,
+                "returncode": result["returncode"],
+                "elapsed_wall_s": elapsed,
+                "output_binary": str(grid_path),
+                "stdout": str(stdout_path),
+                "stderr": str(stderr_path),
+                "grid_metrics": metrics,
+            }
+            write_json(run_dir / "metadata.json", metadata)
+            if result["returncode"] == 0 and metrics["grid_status"] == "read":
+                sample_rows.append(row)
+                break
+        else:
+            return (
+                "blocked_run",
+                sample_rows,
+                f"Sample `{sample_name}` failed before producing a readable MCA grid "
+                f"after {SAMPLE_MAX_ATTEMPTS} attempts.",
+            )
 
     return "completed", sample_rows, f"Produced {len(sample_rows)} Verificarlo MCA sample grids with runner `{runner}`."
 
