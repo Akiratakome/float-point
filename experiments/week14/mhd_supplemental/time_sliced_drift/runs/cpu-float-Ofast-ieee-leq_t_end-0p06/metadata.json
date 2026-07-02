@@ -1,0 +1,29 @@
+{
+  "experiment": "week14-mhd-supplemental",
+  "name": "cpu-float-Ofast-ieee-leq",
+  "timestamp_utc": "2026-07-02T10:53:25.970376+00:00",
+  "git_commit": "5ccf559ca4effb7f88bb2f8adc0f1a7c7bcf3f05",
+  "binary": "build-matrix\\cpu-float-Ofast-ieee-leq\\hrsc_mhd.exe",
+  "binary_sha256": "0edcb4cb2728829e89a85e3b7e5bf192d799f154c4b9eb5ad7772ca867772b31",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "experiments\\week14\\mhd_supplemental\\time_sliced_drift\\runs\\cpu-float-Ofast-ieee-leq_t_end-0p06\\config.cfg",
+  "run_config_sha256": "8a7a19943cb7a62a843f5f0a23f5b04279d0d4587d12f68350e1ffb119717fff",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end = 0.06\nbc      = outflow\noutput_format = binary\noutput_file = experiments/week14/mhd_supplemental/time_sliced_drift/runs/cpu-float-Ofast-ieee-leq_t_end-0p06/grid.bin\n",
+  "command": [
+    "build-matrix\\cpu-float-Ofast-ieee-leq\\hrsc_mhd.exe",
+    "experiments\\week14\\mhd_supplemental\\time_sliced_drift\\runs\\cpu-float-Ofast-ieee-leq_t_end-0p06\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.07879080006387085,
+  "stdout": "experiments\\week14\\mhd_supplemental\\time_sliced_drift\\runs\\cpu-float-Ofast-ieee-leq_t_end-0p06\\stdout.txt",
+  "stderr": "experiments\\week14\\mhd_supplemental\\time_sliced_drift\\runs\\cpu-float-Ofast-ieee-leq_t_end-0p06\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.06,
+    "steps": 455,
+    "divB_mean": 0.0,
+    "divB_max": 0.0,
+    "line": "[mhd] t=0.060000 steps=455 divB_mean=0.000e+00 divB_max=0.000e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_supplemental\\time_sliced_drift\\runs\\cpu-float-Ofast-ieee-leq_t_end-0p06\\grid.bin"
+}

@@ -1,0 +1,29 @@
+{
+  "experiment": "week14-mhd-supplemental",
+  "name": "cpu-float-O2-ieee-leq",
+  "timestamp_utc": "2026-07-02T10:53:24.903123+00:00",
+  "git_commit": "5ccf559ca4effb7f88bb2f8adc0f1a7c7bcf3f05",
+  "binary": "build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+  "binary_sha256": "205699186629598a4fed672dd7a2bbded7d01eed4de1ddd10ccb84777fea9516",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "experiments\\week14\\mhd_supplemental\\resolution_ladder\\runs\\cpu-float-O2-ieee-leq_nx-1600\\config.cfg",
+  "run_config_sha256": "289ff723674e07fd9e4b89d1323e4d408d9e6d208ad9aa67803f28b5a03cabc2",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx = 1600\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\noutput_format = binary\noutput_file = experiments/week14/mhd_supplemental/resolution_ladder/runs/cpu-float-O2-ieee-leq_nx-1600/grid.bin\n",
+  "command": [
+    "build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+    "experiments\\week14\\mhd_supplemental\\resolution_ladder\\runs\\cpu-float-O2-ieee-leq_nx-1600\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.4648761000717059,
+  "stdout": "experiments\\week14\\mhd_supplemental\\resolution_ladder\\runs\\cpu-float-O2-ieee-leq_nx-1600\\stdout.txt",
+  "stderr": "experiments\\week14\\mhd_supplemental\\resolution_ladder\\runs\\cpu-float-O2-ieee-leq_nx-1600\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.1,
+    "steps": 1519,
+    "divB_mean": 0.0,
+    "divB_max": 0.0,
+    "line": "[mhd] t=0.100000 steps=1519 divB_mean=0.000e+00 divB_max=0.000e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_supplemental\\resolution_ladder\\runs\\cpu-float-O2-ieee-leq_nx-1600\\grid.bin"
+}

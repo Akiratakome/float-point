@@ -1,0 +1,45 @@
+{
+  "experiment": "week14-mhd-supplemental",
+  "git_commit": "5ccf559ca4effb7f88bb2f8adc0f1a7c7bcf3f05",
+  "suites": {
+    "resolution_ladder": {
+      "summary_path": "resolution_ladder/summary.json",
+      "figure_path": "resolution_ladder/figure.png",
+      "rows": 8,
+      "headlines": {
+        "finite_rows": 8,
+        "total_rows": 8,
+        "max_divB_abs": 8.882e-14,
+        "max_Linf_By": 0.3689983006908919,
+        "max_Linf_rho": 0.15119382817832533,
+        "max_thread_Linf_rho": 0.0
+      }
+    },
+    "time_sliced_drift": {
+      "summary_path": "time_sliced_drift/summary.json",
+      "figure_path": "time_sliced_drift/figure.png",
+      "rows": 20,
+      "headlines": {
+        "finite_rows": 20,
+        "total_rows": 20,
+        "max_divB_abs": 2.384e-05,
+        "max_Linf_By": 1.5097946416409158e-06,
+        "max_Linf_rho": 1.075167475605987e-06,
+        "max_thread_Linf_rho": 0.0
+      }
+    },
+    "thread_repro": {
+      "summary_path": "thread_repro/summary.json",
+      "figure_path": "thread_repro/figure.png",
+      "rows": 4,
+      "headlines": {
+        "finite_rows": 4,
+        "total_rows": 4,
+        "max_divB_abs": 4.441e-14,
+        "max_Linf_By": 0.0,
+        "max_Linf_rho": 0.0,
+        "max_thread_Linf_rho": 0.0
+      }
+    }
+  }
+}
