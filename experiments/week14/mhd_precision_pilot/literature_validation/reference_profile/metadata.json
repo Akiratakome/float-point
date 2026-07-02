@@ -1,0 +1,29 @@
+{
+  "experiment": "week14-mhd-literature-validation",
+  "name": "cpu-double-O2-ieee-leq",
+  "timestamp_utc": "2026-07-02T10:11:34.125798+00:00",
+  "git_commit": "b2a82414d66b4dc948f52c5e6d6c28297187a4d0",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+  "binary_sha256": "8de00b46e0a7f3ec7a2530db64d058c984b41a39ff1e7086d8edae827870b9a5",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\literature_validation\\reference_profile\\config.cfg",
+  "run_config_sha256": "02cf440fcbe085f301a45b8e6c8191494b653f084384517b3693a909a3a54412",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\literature_validation\\reference_profile\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\literature_validation\\reference_profile\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.15017459995578974,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\literature_validation\\reference_profile\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\literature_validation\\reference_profile\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.1,
+    "steps": 759,
+    "divB_mean": 3.339e-16,
+    "divB_max": 4.441e-14,
+    "line": "[mhd] t=0.100000 steps=759 divB_mean=3.339e-16 divB_max=4.441e-14"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\literature_validation\\reference_profile\\grid.bin"
+}

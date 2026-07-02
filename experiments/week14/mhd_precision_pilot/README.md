@@ -6,20 +6,22 @@ convenience view.
 
 ## Commands
 
-Deterministic P0 build-axis run without MCA sampling:
+Formal P0 evidence run with Docker Verificarlo MCA:
 
 ```powershell
-& "C:\Users\tangy\miniconda3\envs\floatpoint\python.exe" scripts/regression/mhd_precision_pilot.py --phase p0 --skip-mca
+docker build -f scripts/verificarlo/Dockerfile.cmake -t floatpoint-verificarlo-cmake:week14 scripts/verificarlo
+& "C:\Users\tangy\miniconda3\envs\floatpoint\python.exe" scripts/regression/mhd_precision_pilot.py --phase p0 --samples 8 --mca-image floatpoint-verificarlo-cmake:week14
 ```
 
-Deterministic P0 run with 8 requested MCA samples:
+Supervisor-facing literature validation packet:
 
 ```powershell
-& "C:\Users\tangy\miniconda3\envs\floatpoint\python.exe" scripts/regression/mhd_precision_pilot.py --phase p0 --samples 8
+& "C:\Users\tangy\miniconda3\envs\floatpoint\python.exe" scripts/regression/mhd_literature_validation.py --binary .\build-matrix\cpu-double-O2-ieee-leq\hrsc_mhd.exe
 ```
 
-MCA blocks may be `completed` or `blocked_environment`; a clean environment
-block is valid and non-failing for G0.
+`--skip-mca` remains a diagnostic harness escape hatch for blocked local
+environments, but it is not the Week-14 supervisor evidence path. The committed
+P0 evidence requires completed Docker Verificarlo MCA blocks.
 
 ## Outputs
 
@@ -33,6 +35,11 @@ block is valid and non-failing for G0.
   build variant.
 - `figures/mca_noise_floor.png`: MCA spread and SNR summary when completed MCA
   evidence is available.
+- `literature_validation/supervisor_validation.md`: short supervisor-facing
+  literature comparison and claim-boundary note.
+- `literature_validation/brio_wu_reference_profile.png`: reference HLL
+  Brio-Wu primitive-field profile (`rho`, `vx`, `By`, `p`) for visual benchmark
+  comparison.
 
 ## Claim Buckets
 
@@ -51,11 +58,13 @@ be recreated by the harness.
 ## Phase scaling (no new code)
 
 - **P1 (deterministic breadth, 24 variants):**
-  `mhd_precision_pilot.py --phase p1 --skip-mca` -- same schema, full
-  precision x opt x fastmath x riemann fan. Review `gates.G1.ordering_flags`
-  (fastmath/ieee inversions) before making any ordering claim.
+  use `mhd_precision_pilot.py --phase p1` only with a working Docker
+  Verificarlo path or with an explicitly folded completed MCA summary. Review
+  `gates.G1.ordering_flags` (fastmath/ieee inversions) before making any
+  ordering claim.
 - **P2 (MCA depth):** run the sampler once --
-  `mhd_precision_sampling.py --samples 30` (writes `mca/summary.json`) -- then
-  fold it without re-sampling:
+  `mhd_precision_sampling.py --samples 30 --image floatpoint-verificarlo-cmake:week14`
+  (writes `mca/summary.json`) -- then fold it without re-sampling:
   `mhd_precision_pilot.py --phase p0 --mca-summary experiments/week14/mhd_precision_pilot/mca/summary.json`.
-  `blocked_environment` remains a valid, non-failing outcome.
+  `blocked_environment` is still representable by the schema, but it is not a
+  completed supervisor evidence packet.

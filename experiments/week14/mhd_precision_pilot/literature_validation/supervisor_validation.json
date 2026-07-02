@@ -1,0 +1,58 @@
+{
+  "experiment": "week14-mhd-precision-pilot",
+  "case": "brio_wu_1d",
+  "solver": "hll",
+  "reference": "cpu-double-O2-ieee-leq",
+  "git_commit": "76d5e381b9074476526d6014d4e3fc98d2e7deae",
+  "g0_pass": true,
+  "reference_steps": 759,
+  "reference_divB_max": 4.441e-14,
+  "reference_finite": true,
+  "mca": {
+    "p53": {
+      "status": "completed",
+      "n": 8,
+      "runner": "docker",
+      "spread_rho": 5.276438482869213e-15,
+      "spread_By": 1.6212786327785847e-14,
+      "spread_p": 1.9955489549649677e-14
+    },
+    "p24": {
+      "status": "completed",
+      "n": 8,
+      "runner": "docker",
+      "spread_rho": 5.389576582634889e-15,
+      "spread_By": 1.5763994135252106e-14,
+      "spread_p": 1.9374312020491246e-14
+    }
+  },
+  "sources": [
+    {
+      "label": "Brio & Wu (1988)",
+      "url": "https://doi.org/10.1016/0021-9991(88)90120-9",
+      "role": "classic one-dimensional ideal-MHD shock-tube benchmark"
+    },
+    {
+      "label": "Athena code paper (Stone et al., 2008)",
+      "url": "https://arxiv.org/abs/0804.0402",
+      "role": "modern MHD code test-suite context for comparison claims"
+    },
+    {
+      "label": "PLUTO code paper (Mignone et al., 2007)",
+      "url": "https://arxiv.org/abs/astro-ph/0701854",
+      "role": "Godunov shock-capturing benchmark context"
+    },
+    {
+      "label": "Takahashi & Yamada (2012)",
+      "url": "https://arxiv.org/abs/1210.5584",
+      "role": "Brio-Wu Riemann-problem non-uniqueness caution"
+    }
+  ],
+  "profile_figure": "experiments\\week14\\mhd_precision_pilot\\literature_validation\\brio_wu_reference_profile.png",
+  "profile_grid_shape": [
+    1,
+    800,
+    9
+  ],
+  "profile_time": 0.1
+}
