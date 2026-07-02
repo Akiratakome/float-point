@@ -411,6 +411,12 @@ int main(int argc, char* argv[]) try {
         throw std::runtime_error("Invalid device='" + device + "'; expected 'cpu' or 'gpu'");
     }
     if (device == "gpu") {
+        LimiterScheme limiter = parse_limiter(cfg);
+        if (limiter != LimiterScheme::Minbee) {
+            throw std::runtime_error(
+                "limiter selection is currently supported only for device=cpu; "
+                "GPU kernels use the default minbee limiter");
+        }
 #ifndef HRSC_HAS_CUDA
         throw std::runtime_error("device=gpu requires building with -DENABLE_CUDA=ON");
 #else

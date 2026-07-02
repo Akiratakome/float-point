@@ -115,10 +115,5 @@ def test_gpu_non_minbee_limiter_fails_before_cuda_run(tmp_path: Path) -> None:
 
     result = _run(binary, cfg)
 
-    if (
-        "Unknown device: gpu" in result.stderr
-        or "device=gpu requires building with -DENABLE_CUDA=ON" in result.stderr
-    ):
-        pytest.skip("binary was built without CUDA device dispatch")
     assert result.returncode != 0
     assert "limiter selection is currently supported only for device=cpu" in result.stderr
