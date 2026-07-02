@@ -1,6 +1,9 @@
 """Pure aggregation helpers for the Week 14 MHD precision pilot."""
 
+import csv
+import json
 import math
+from pathlib import Path
 
 REFERENCE = "cpu-double-O2-ieee-leq"
 ANCHOR_STEPS = 759
@@ -59,6 +62,7 @@ _ROW_FINITE_NUMBER_KEYS = (
     "L2_vx",
     "Linf_vx",
 )
+SUMMARY_CSV_COLUMNS = _ROW_REQUIRED_KEYS
 _MCA_BLOCK_REQUIRED_KEYS = ("status", "n", *MCA_FIELD_KEYS)
 _MCA_REQUIRED_BLOCKS = ("p53", "p24")
 _MCA_STATUSES = {
@@ -201,6 +205,105 @@ def assemble_summary(rows, mca, git_commit):
             "precision_noise": "Precision-noise claims remain provisional until MCA depth is evaluated.",
         },
     }
+
+
+def write_summaries(summary, out_dir):
+    """Write authoritative JSON plus stable CSV and Markdown summary views."""
+    out_path = Path(out_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+
+    with (out_path / "summary.json").open("w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+        f.write("\n")
+
+    with (out_path / "summary.csv").open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=SUMMARY_CSV_COLUMNS, extrasaction="ignore")
+        writer.writeheader()
+        for row in summary.get("deterministic", []):
+            writer.writerow(row)
+
+    (out_path / "summary.md").write_text(_summary_markdown(summary), encoding="utf-8")
+
+
+def _summary_markdown(summary):
+    lines = [
+        "# MHD Precision Pilot Summary",
+        "",
+        f"- Experiment: {_markdown_text(summary.get('experiment'))}",
+        f"- Case: {_markdown_text(summary.get('case'))}",
+        f"- Solver: {_markdown_text(summary.get('solver'))}",
+        f"- Reference: {_markdown_text(summary.get('reference'))}",
+        f"- Git commit: {_markdown_text(summary.get('git_commit'))}",
+        "",
+        "## G0",
+        "",
+        f"- Pass: {_markdown_text(summary.get('gates', {}).get('G0', {}).get('pass'))}",
+        "",
+        "## Deterministic variants",
+        "",
+        _markdown_table(SUMMARY_CSV_COLUMNS, summary.get("deterministic", [])),
+        "",
+        "## MCA",
+        "",
+        _mca_markdown_table(summary.get("mca", {})),
+        "",
+        "## Ordering flags",
+        "",
+        _markdown_table(
+            (
+                "axis", "precision", "opt", "riemann", "ieee_variant",
+                "fastmath_variant", "ieee_Linf_rho", "fastmath_Linf_rho",
+            ),
+            summary.get("gates", {}).get("G1", {}).get("ordering_flags", []),
+        ),
+        "",
+        "## Claim buckets",
+        "",
+    ]
+    claims = summary.get("claims", {})
+    if claims:
+        for name in sorted(claims):
+            lines.append(f"- {_markdown_text(name)}: {_markdown_text(claims.get(name))}")
+    else:
+        lines.append("- none")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _mca_markdown_table(mca):
+    columns = ("name", "status", "reason", "n", "runner", "mca_evidence_generated", *MCA_FIELD_KEYS)
+    rows = []
+    for name, block in sorted(_named_mca_blocks(mca).items()):
+        row = {"name": name}
+        row.update(block)
+        rows.append(row)
+    return _markdown_table(columns, rows)
+
+
+def _markdown_table(columns, rows):
+    header = "| " + " | ".join(columns) + " |"
+    divider = "| " + " | ".join("---" for _ in columns) + " |"
+    body = [
+        "| " + " | ".join(_markdown_cell(row.get(column)) for column in columns) + " |"
+        for row in rows
+    ]
+    if not body:
+        body = ["| " + " | ".join("" for _ in columns) + " |"]
+    return "\n".join([header, divider, *body])
+
+
+def _display(value):
+    if value is None:
+        return ""
+    return str(value)
+
+
+def _markdown_cell(value):
+    return _display(value).replace("\r", " ").replace("\n", " ").replace("|", "\\|")
+
+
+def _markdown_text(value):
+    return _display(value).replace("\r", " ").replace("\n", " ").replace("|", "\\|")
 
 
 def _has_keys(mapping, keys):

@@ -1,4 +1,6 @@
 import sys
+import json
+import csv
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -6,7 +8,7 @@ sys.path.insert(0, str(ROOT / "scripts" / "regression"))
 
 from mhd_precision_pilot_core import (
     REFERENCE, ANCHOR_STEPS, ANCHOR_DIVB_MAX,
-    MCA_FIELD_KEYS,
+    MCA_FIELD_KEYS, SUMMARY_CSV_COLUMNS,
     gate_g0, gate_g1, gate_g2, ordering_flags, assemble_summary,
     blocked_mca_block, schema_valid,
 )
@@ -239,3 +241,62 @@ def test_assemble_summary_shape_and_claims():
     assert summary["gates"]["G2"]["status"] == "pending_depth"
     assert set(summary["claims"]) == {"morphology", "self_reference", "precision_noise"}
     assert summary["mca"]["p53"]["status"] == "blocked_environment"
+
+
+def test_write_summaries_emits_three_files(tmp_path):
+    from mhd_precision_pilot_core import (
+        assemble_summary, write_summaries, REFERENCE, ANCHOR_STEPS,
+        ANCHOR_DIVB_MAX, blocked_mca_block, SUMMARY_CSV_COLUMNS,
+    )
+    rows = [{
+        "variant": REFERENCE, "precision": "double", "opt": "O2",
+        "fastmath": False, "riemann": "leq", "finite": True, "rc": 0,
+        "steps": ANCHOR_STEPS, "divB_max": ANCHOR_DIVB_MAX, "walltime_s": 0.01,
+        "is_reference": True,
+        "L1_rho": 0.0, "L2_rho": 0.0, "Linf_rho": 0.0,
+        "L1_By": 0.0, "L2_By": 0.0, "Linf_By": 0.0,
+        "L1_p": 0.0, "L2_p": 0.0, "Linf_p": 0.0,
+        "L1_vx": 0.0, "L2_vx": 0.0, "Linf_vx": 0.0,
+    }]
+    mca = {"p53": blocked_mca_block("blocked_environment", "no runner"),
+           "p24": blocked_mca_block("blocked_environment", "no runner")}
+    summary = assemble_summary(rows, mca, git_commit="deadbeef")
+    write_summaries(summary, tmp_path)
+    loaded = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
+    assert loaded == summary
+
+    csv_text = (tmp_path / "summary.csv").read_text(encoding="utf-8")
+    csv_lines = csv_text.splitlines()
+    assert csv_lines[0] == ",".join(SUMMARY_CSV_COLUMNS)
+    csv_rows = list(csv.DictReader(csv_lines))
+    assert len(csv_rows) == 1
+    assert csv_rows[0]["variant"] == REFERENCE
+    assert csv_rows[0]["precision"] == "double"
+    assert csv_rows[0]["is_reference"] == "True"
+
+    md = (tmp_path / "summary.md").read_text(encoding="utf-8")
+    assert "## G0" in md
+    assert "## Deterministic variants" in md
+    assert "## MCA" in md
+    assert "## Ordering flags" in md
+    assert "## Claim buckets" in md
+    assert REFERENCE in md
+
+
+def test_write_summaries_escapes_markdown_table_cells(tmp_path):
+    from mhd_precision_pilot_core import assemble_summary, write_summaries
+
+    rows = [
+        _reference_row(),
+        _row("bad|name", "float", "O2", False, "leq",
+             steps=ANCHOR_STEPS, divb=ANCHOR_DIVB_MAX, linf_rho=0.01),
+    ]
+    mca = _blocked_mca()
+    mca["p53"]["reason"] = "a|b\nc"
+    summary = assemble_summary(rows, mca, git_commit="deadbeef")
+    write_summaries(summary, tmp_path)
+
+    md = (tmp_path / "summary.md").read_text(encoding="utf-8")
+    assert "bad\\|name" in md
+    assert "a\\|b c" in md
+    assert "a|b\nc" not in md
