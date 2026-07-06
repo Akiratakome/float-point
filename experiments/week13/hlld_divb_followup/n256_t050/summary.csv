@@ -1,0 +1,2 @@
+name,riemann,glm_cr,returncode,reused,elapsed_wall_s,t,steps,divB_mean,divB_max,finite_rho,rho_min,rho_max,grid_status,grid,metadata,error,diagnostics_line
+hlld_glm0.18,hlld,0.18,0,False,76.38206720002927,0.5,812,0.274,24.45,True,1.165544023596033,6.197069261222302,read,C:\Users\tangy\Desktop\floatpoint\experiments\week13\hlld_divb_followup\n256_t050\runs\hlld_glm0.18\grid.bin,C:\Users\tangy\Desktop\floatpoint\experiments\week13\hlld_divb_followup\n256_t050\runs\hlld_glm0.18\metadata.json,,[mhd] t=0.500000 steps=812 divB_mean=2.740e-01 divB_max=2.445e+01

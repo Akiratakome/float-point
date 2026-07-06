@@ -1,0 +1,82 @@
+{
+  "experiment": "week13-hlld-glm-sweep",
+  "case": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+  "resolved_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+  "output_root": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_divb_followup\\t030",
+  "nx": 128,
+  "t_end": 0.3,
+  "glm_cr": [
+    0.18
+  ],
+  "riemann": [
+    "hll",
+    "hlld"
+  ],
+  "summary": {
+    "total_runs": 2,
+    "completed_runs": 2,
+    "finite_rho_runs": 2,
+    "best_finite_hlld": {
+      "name": "hlld_glm0.18",
+      "riemann": "hlld",
+      "glm_cr": 0.18,
+      "returncode": 0,
+      "reused": false,
+      "elapsed_wall_s": 6.020054099964909,
+      "t": 0.3,
+      "steps": 238,
+      "divB_mean": 0.1932,
+      "divB_max": 6.339,
+      "diagnostics_line": "[mhd] t=0.300000 steps=238 divB_mean=1.932e-01 divB_max=6.339e+00",
+      "grid": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_divb_followup\\t030\\runs\\hlld_glm0.18\\grid.bin",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_divb_followup\\t030\\runs\\hlld_glm0.18\\metadata.json",
+      "grid_status": "read",
+      "finite_rho": true,
+      "rho_min": 0.6528854408565613,
+      "rho_max": 5.777973898558668
+    },
+    "hlld_adopted": false,
+    "decision": "HLLD remains diagnostic/deferred; this sweep is not production adoption. Use it only as local evidence for a later, separately recorded decision."
+  },
+  "runs": [
+    {
+      "name": "hll_glm0.18",
+      "riemann": "hll",
+      "glm_cr": 0.18,
+      "returncode": 0,
+      "reused": false,
+      "elapsed_wall_s": 5.142951200017706,
+      "t": 0.3,
+      "steps": 238,
+      "divB_mean": 0.1136,
+      "divB_max": 1.722,
+      "diagnostics_line": "[mhd] t=0.300000 steps=238 divB_mean=1.136e-01 divB_max=1.722e+00",
+      "grid": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_divb_followup\\t030\\runs\\hll_glm0.18\\grid.bin",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_divb_followup\\t030\\runs\\hll_glm0.18\\metadata.json",
+      "grid_status": "read",
+      "finite_rho": true,
+      "rho_min": 0.6728628044612829,
+      "rho_max": 5.26430532044296
+    },
+    {
+      "name": "hlld_glm0.18",
+      "riemann": "hlld",
+      "glm_cr": 0.18,
+      "returncode": 0,
+      "reused": false,
+      "elapsed_wall_s": 6.020054099964909,
+      "t": 0.3,
+      "steps": 238,
+      "divB_mean": 0.1932,
+      "divB_max": 6.339,
+      "diagnostics_line": "[mhd] t=0.300000 steps=238 divB_mean=1.932e-01 divB_max=6.339e+00",
+      "grid": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_divb_followup\\t030\\runs\\hlld_glm0.18\\grid.bin",
+      "metadata": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\hlld_divb_followup\\t030\\runs\\hlld_glm0.18\\metadata.json",
+      "grid_status": "read",
+      "finite_rho": true,
+      "rho_min": 0.6528854408565613,
+      "rho_max": 5.777973898558668
+    }
+  ]
+}
