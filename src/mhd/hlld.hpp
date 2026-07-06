@@ -149,9 +149,21 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hlld_flux(const Vec<Real, MhdNVars>& UL,
         return fallback();
 
     Vec<Real, MhdNVars> F;
-    if (SsL >= Real(0)) {
+    // RIEMANN_STRICT_INEQUALITY also flips tie ownership at the interior
+    // waves (SsL/SsR/SM == 0), mirroring the HLLC S* convention (overall.md:
+    // the flag controls <= vs < in HLLC/HLLD). The flux is value-continuous
+    // across each tie, so the variants can differ only where FP rounding
+    // decides the side.
+#ifdef RIEMANN_STRICT_INEQUALITY
+    const bool pick_star_left  = SsL > Real(0);
+    const bool pick_star_right = SsR < Real(0);
+#else
+    const bool pick_star_left  = SsL >= Real(0);
+    const bool pick_star_right = SsR <= Real(0);
+#endif
+    if (pick_star_left) {
         F = FL + SL * (UsL - ULf);                      // F*L
-    } else if (SsR <= Real(0)) {
+    } else if (pick_star_right) {
         F = FR + SR * (UsR - URf);                      // F*R
     } else {
         // Double-star region: combine the two single-star states across the
@@ -187,7 +199,12 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hlld_flux(const Vec<Real, MhdNVars>& UL,
             !build_dstar(rhosR, UsR, vyR, vzR, ByR, BzR, sqR, +sgn, UssR))
             return fallback();
 
-        if (SM >= Real(0))
+#ifdef RIEMANN_STRICT_INEQUALITY
+        const bool pick_dstar_left = SM > Real(0);
+#else
+        const bool pick_dstar_left = SM >= Real(0);
+#endif
+        if (pick_dstar_left)
             F = FL + SsL * UssL - (SsL - SL) * UsL - SL * ULf;  // F**L
         else
             F = FR + SsR * UssR - (SsR - SR) * UsR - SR * URf;  // F**R

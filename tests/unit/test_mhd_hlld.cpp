@@ -67,6 +67,32 @@ TEST_CASE("HLLD remains finite for near-zero GLM normal field stress", "[mhd][hl
     for (int k = 0; k < MhdNVars; ++k) REQUIRE(std::isfinite(F[k]));
 }
 
+TEST_CASE("HLLD preserves a stationary tangential discontinuity (SM=0 tie)", "[mhd][hlld]") {
+    // Bn=0, vx=0, equal total pressure (ptL = 1 + 0.5*1^2 = ptR = 1.375 +
+    // 0.5*0.5^2 = 1.5 exactly in FP): SM = SsL = SsR = 0 exactly, the MHD
+    // analogue of the Euler stationary-contact S*=0 case. Both tie owners
+    // (F*L via <=, the fall-through side via <) must produce the same exact
+    // no-transport flux, so this pins the tie contract for the
+    // RIEMANN_STRICT_INEQUALITY study axis: zero mass/energy/induction flux
+    // and the continuous total pressure in the normal momentum component.
+    const double gamma = 2.0, ch = 1.0;
+    MhdPrim<double> wl{}, wr{};
+    wl.rho = 1.0;   wl.By = 1.0; wl.p = 1.0;
+    wr.rho = 0.125; wr.By = 0.5; wr.p = 1.375;
+    Vec<double, MhdNVars> UL = prim_to_cons(wl, gamma), UR = prim_to_cons(wr, gamma);
+    Vec<double, MhdNVars> F = mhd_hlld_flux(UL, UR, gamma, ch);
+    const double pt = 1.5;
+    REQUIRE(F[MhdIdx::RHO] == Approx(0.0).margin(1e-14));
+    REQUIRE(F[MhdIdx::MX]  == Approx(pt).margin(1e-14));
+    REQUIRE(F[MhdIdx::MY]  == Approx(0.0).margin(1e-14));
+    REQUIRE(F[MhdIdx::MZ]  == Approx(0.0).margin(1e-14));
+    REQUIRE(F[MhdIdx::BX]  == Approx(0.0).margin(1e-14));
+    REQUIRE(F[MhdIdx::BY]  == Approx(0.0).margin(1e-14));
+    REQUIRE(F[MhdIdx::BZ]  == Approx(0.0).margin(1e-14));
+    REQUIRE(F[MhdIdx::E]   == Approx(0.0).margin(1e-14));
+    REQUIRE(F[MhdIdx::PSI] == Approx(0.0).margin(1e-14));
+}
+
 TEST_CASE("HLLD falls back to HLL for a degenerate (ch<=0) input", "[mhd][hlld]") {
     // The GLM split divides by ch; ch=0 must route to the HLL flux rather than
     // produce inf/nan. With identical Bx and psi=0 the two solvers also agree.
