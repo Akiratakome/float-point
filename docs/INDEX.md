@@ -240,6 +240,7 @@ C2 main result log: [experiment_logs/c2_real_float_vs_vprec.md](experiment_logs/
 | CMake says `No CMAKE_CXX_COMPILER could be found` | Plain PowerShell has not loaded VS BuildTools paths | Run through `VsDevCmd.bat` from `C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\` so CMake can find `cl` |
 | Bash redirect `./build-double/hrsc.exe ... > out.csv` produces 0 bytes | MSYS pipe handle quirk under PowerShell-spawned bash | Drive long pipelines from PowerShell directly (works); native Linux/WSL also works |
 | `unit_tests` boundary cases fail | Build out-of-date after BC changes | `cmake --build build-{double,float}` |
+| Header-only edits (`.hpp`) never rebuild; `ninja: no work to do`; binaries silently stale | ninja's MSVC header-dep database is empty (`ninja -t deps` shows `#deps 0`): the localized `cl /showIncludes` prefix recorded at configure time does not byte-match the compiler's build-time output on this zh-CN workstation | Delete and re-configure the build dir from the same console environment (the 2026-07-06 HLLD audit found `hrsc_mhd.exe` had silently missed commit `6491104`; after any toolchain/locale change, verify `ninja -t deps <obj>` reports nonzero deps before trusting incremental builds) |
 
 ---
 
