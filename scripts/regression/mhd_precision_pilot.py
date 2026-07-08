@@ -19,6 +19,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 CASE = ROOT / "tests" / "cases" / "brio_wu_1d" / "brio_wu.cfg"
 DEFAULT_OUT = ROOT / "experiments" / "week14" / "mhd_precision_pilot"
 EXPERIMENT = "week14-mhd-precision-pilot"
+SUPPORTED_SOLVERS = ("hll", "hlld")
 
 for path in (
     ROOT,
@@ -100,28 +101,37 @@ def build_variant(variant: BuildVariant) -> pathlib.Path:
     return resolve_binary(build_dir / "hrsc_mhd")
 
 
-def write_matrix_json(variants: list[BuildVariant], out_dir: pathlib.Path) -> pathlib.Path:
+def write_matrix_json(
+    variants: list[BuildVariant],
+    out_dir: pathlib.Path,
+    solver: str = "hll",
+) -> pathlib.Path:
     """Write a reproducible matrix manifest for the selected Brio-Wu runs."""
+    solver = _normalise_solver(solver)
     out = pathlib.Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     runs = []
     for variant in variants:
-        runs.append(
-            {
-                "name": variant.name,
-                "binary": str(_manifest_binary_path(variant)),
-                "config": str(CASE.relative_to(ROOT)).replace("\\", "/"),
-                "precision": variant.precision,
-                "build": variant.name,
-                "output_file": "grid.bin",
-            }
-        )
+        row = {
+            "name": variant.name,
+            "binary": str(_manifest_binary_path(variant)),
+            "config": str(CASE.relative_to(ROOT)).replace("\\", "/"),
+            "precision": variant.precision,
+            "build": variant.name,
+            "output_file": "grid.bin",
+        }
+        if solver != "hll":
+            row["solver"] = solver
+            row["extra_cfg"] = {"riemann": solver}
+        runs.append(row)
     path = out / "matrix.json"
     payload = {
         "experiment": EXPERIMENT,
         "output_root": str(out.relative_to(ROOT) if out.is_relative_to(ROOT) else out),
         "runs": runs,
     }
+    if solver != "hll":
+        payload["solver"] = solver
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -183,18 +193,25 @@ def _zero_norms() -> dict[str, float]:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
-    out = _resolve_out(args.out)
+    out = resolve_output_dir(args.out, args.solver)
     out.mkdir(parents=True, exist_ok=True)
 
     variants = select_variants(args.phase)
-    write_matrix_json(variants, out)
+    write_matrix_json(variants, out, solver=args.solver)
 
     commit = git_commit()
     gamma = _cfg_float(CASE, "gamma", 2.0)
-    rows = _run_deterministic(variants, out, gamma, commit, keep_grids=args.keep_grids)
-    mca = _load_or_run_mca(args, out)
+    rows = _run_deterministic(
+        variants,
+        out,
+        gamma,
+        commit,
+        keep_grids=args.keep_grids,
+        solver=args.solver,
+    )
+    mca = _load_or_run_mca(args, out, solver=args.solver)
 
-    summary = assemble_summary(rows, mca, commit)
+    summary = assemble_summary(rows, mca, commit, solver=args.solver)
     write_summaries(summary, out)
     plot_precision_variant_norms(summary, out / "figures" / "deterministic_norms.png")
     plot_mca_noise_floor(summary, out / "figures" / "mca_noise_floor.png")
@@ -210,14 +227,16 @@ def _run_deterministic(
     commit: str,
     *,
     keep_grids: bool,
+    solver: str,
 ) -> list[dict[str, Any]]:
+    solver = _normalise_solver(solver)
     ordered = ordered_variants_reference_first(variants)
     ref_arr = None
     rows = []
     for variant in ordered:
         binary = build_variant(variant)
         grid_path = out / "runs" / variant.name / "grid.bin"
-        meta, arr, header = _run_one(variant, binary, out, commit, grid_path)
+        meta, arr, header = _run_one(variant, binary, out, commit, grid_path, solver=solver)
         if ref_arr is None:
             ref_arr = arr
         rows.append(
@@ -242,8 +261,12 @@ def _run_one(
     out: pathlib.Path,
     commit: str,
     grid_path: pathlib.Path,
+    solver: str = "hll",
 ) -> tuple[dict[str, Any], np.ndarray, Any]:
+    solver = _normalise_solver(solver)
     cfg_text = CASE.read_text(encoding="utf-8")
+    if solver != "hll":
+        cfg_text = replace_or_append_cfg(cfg_text, "riemann", solver)
     cfg_text = replace_or_append_cfg(cfg_text, "output_format", "binary")
     cfg_text = replace_or_append_cfg(cfg_text, "output_file", str(grid_path))
     binary_sha = sha256_file(binary)
@@ -264,7 +287,8 @@ def _run_one(
     return meta, arr, header
 
 
-def _load_or_run_mca(args: argparse.Namespace, out: pathlib.Path) -> dict[str, Any]:
+def _load_or_run_mca(args: argparse.Namespace, out: pathlib.Path, solver: str) -> dict[str, Any]:
+    solver = _normalise_solver(solver)
     if args.skip_mca:
         return {
             "p53": core.blocked_mca_block("blocked_environment", "MCA skipped via --skip-mca"),
@@ -281,12 +305,14 @@ def _load_or_run_mca(args: argparse.Namespace, out: pathlib.Path) -> dict[str, A
                 precision=53,
                 samples=args.samples,
                 image=args.mca_image,
+                solver=solver,
             ),
             "p24": sampler.sample_precision(
                 mca_out / "p24",
                 precision=24,
                 samples=args.samples,
                 image=args.mca_image,
+                solver=solver,
             ),
         }
 
@@ -309,13 +335,30 @@ def _finite_float(value: Any) -> float:
     return number
 
 
+def resolve_output_dir(path: pathlib.Path | None, solver: str) -> pathlib.Path:
+    solver = _normalise_solver(solver)
+    if path is None:
+        if solver == "hll":
+            return DEFAULT_OUT
+        return DEFAULT_OUT.with_name(f"{DEFAULT_OUT.name}_{solver}")
+    return _resolve_out(path)
+
+
 def _resolve_out(path: pathlib.Path) -> pathlib.Path:
     return path if path.is_absolute() else ROOT / path
 
 
+def _normalise_solver(solver: str) -> str:
+    solver = str(solver).lower()
+    if solver not in SUPPORTED_SOLVERS:
+        raise ValueError(f"unsupported MHD precision-pilot solver: {solver}")
+    return solver
+
+
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT)
+    parser.add_argument("--out", type=pathlib.Path, default=None)
+    parser.add_argument("--solver", choices=SUPPORTED_SOLVERS, default="hll")
     parser.add_argument("--phase", choices=("p0", "p1"), default="p0")
     parser.add_argument("--samples", type=int, default=8)
     parser.add_argument("--keep-grids", action="store_true")

@@ -15,6 +15,7 @@ FIELDS = ("rho", "By", "p", "vx")
 NORMS = ("L1", "L2", "Linf")
 MCA_SPREAD_KEYS = ("spread_rho", "spread_By", "spread_p", "spread_vx")
 MCA_SNR_KEYS = ("snr_rho", "snr_By", "snr_p")
+MCA_BLOCK_ORDER = ("p53", "p24")
 
 
 def plot_precision_variant_norms(summary, path) -> None:
@@ -90,6 +91,68 @@ def plot_mca_noise_floor(summary, path) -> None:
     _save_png(fig, path)
 
 
+def plot_solver_summary_comparison(summaries, out_dir):
+    """Write HLL-vs-HLLD comparison figures from precision-pilot summaries."""
+    out = Path(out_dir)
+    slug = "_".join(_solver_label(summary).lower() for summary in summaries)
+    paths = [
+        out / f"compare_{slug}_deterministic_linf.png",
+        out / f"compare_{slug}_mca_spread.png",
+        out / f"compare_{slug}_mca_snr.png",
+    ]
+    plot_solver_deterministic_linf(summaries, paths[0])
+    plot_solver_mca_metric_comparison(summaries, paths[1], MCA_SPREAD_KEYS, "MCA spread", "spread")
+    plot_solver_mca_metric_comparison(summaries, paths[2], MCA_SNR_KEYS, "MCA SNR", "SNR")
+    return paths
+
+
+def plot_solver_deterministic_linf(summaries, path) -> None:
+    """Compare worst non-reference deterministic Linf errors by solver."""
+    labels = [_solver_label(summary).upper() for summary in summaries]
+    worst = [_worst_linf_by_field(summary) for summary in summaries]
+    fig, ax = plt.subplots(figsize=(7, 4))
+    width = 0.8 / max(len(summaries), 1)
+    x_positions = list(range(len(FIELDS)))
+    for offset, (label, values_by_field) in enumerate(zip(labels, worst)):
+        shift = (offset - (len(worst) - 1) / 2.0) * width
+        values = [_number(values_by_field.get(field)) or 0.0 for field in FIELDS]
+        ax.bar([x + shift for x in x_positions], values, width=width, label=label)
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels(FIELDS)
+    ax.set_title("HLL vs HLLD deterministic worst Linf")
+    ax.set_ylabel("max Linf vs reference")
+    if any(
+        value is not None and value > 0.0
+        for values_by_field in worst
+        for value in (_number(values_by_field.get(field)) for field in FIELDS)
+    ):
+        ax.set_yscale("log")
+    ax.grid(True, axis="y", alpha=0.3)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    _save_png(fig, path)
+
+
+def plot_solver_mca_metric_comparison(summaries, path, keys, title, ylabel) -> None:
+    """Compare completed MCA blocks by solver for the requested metric keys."""
+    names, blocks = _ordered_solver_mca_blocks(summaries)
+    fig, ax = plt.subplots(figsize=(8, 4))
+    _plot_grouped_bars(ax, names, blocks, keys)
+    ax.set_title(f"HLL vs HLLD {title}")
+    ax.set_ylabel(ylabel)
+    if _any_positive(list(zip(names, blocks)), keys):
+        ax.set_yscale("log")
+    if not blocks:
+        ax.text(0.5, 0.5, "No completed MCA evidence", ha="center", va="center",
+                transform=ax.transAxes)
+    ax.grid(True, axis="y", alpha=0.3)
+    handles, labels = ax.get_legend_handles_labels()
+    if handles and labels:
+        ax.legend(fontsize=8)
+    fig.tight_layout()
+    _save_png(fig, path)
+
+
 def _plot_grouped_bars(ax, names, blocks, keys):
     if not blocks:
         return
@@ -101,6 +164,40 @@ def _plot_grouped_bars(ax, names, blocks, keys):
         ax.bar([x + shift for x in x_positions], values, width=width, label=key)
     ax.set_xticks(x_positions)
     ax.set_xticklabels(names)
+
+
+def _solver_label(summary):
+    if isinstance(summary, dict):
+        solver = summary.get("solver")
+        if solver:
+            return str(solver)
+    return "solver"
+
+
+def _worst_linf_by_field(summary):
+    rows = [
+        row for row in summary.get("deterministic", [])
+        if isinstance(row, dict) and not row.get("is_reference")
+    ]
+    values = {}
+    for field in FIELDS:
+        candidates = [_number(row.get(f"Linf_{field}")) for row in rows]
+        finite = [value for value in candidates if value is not None]
+        values[field] = max(finite) if finite else 0.0
+    return values
+
+
+def _ordered_solver_mca_blocks(summaries):
+    names = []
+    blocks = []
+    for block_name in MCA_BLOCK_ORDER:
+        for summary in summaries:
+            block = summary.get("mca", {}).get(block_name)
+            if not isinstance(block, dict) or block.get("status") != "completed":
+                continue
+            names.append(f"{block_name} {_solver_label(summary).upper()}")
+            blocks.append(block)
+    return names, blocks
 
 
 def _number(value):

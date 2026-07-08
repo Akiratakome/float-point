@@ -87,13 +87,58 @@ def test_measure_run_uses_shared_field_norms(monkeypatch):
 def test_write_matrix_json(tmp_path):
     from scripts.build_matrix import generate_variants
     variants = generate_variants(filter=drv.p0_filter)
-    path = drv.write_matrix_json(variants, tmp_path)
+    path = drv.write_matrix_json(variants, tmp_path, solver="hlld")
     data = json.loads(path.read_text(encoding="utf-8"))
     assert data["experiment"] == "week14-mhd-precision-pilot"
+    assert data["solver"] == "hlld"
     assert len(data["runs"]) == 8
     assert all(r["config"].endswith("brio_wu.cfg") for r in data["runs"])
+    assert all(r["solver"] == "hlld" for r in data["runs"])
+    assert all(r["extra_cfg"] == {"riemann": "hlld"} for r in data["runs"])
     expected_binary = "hrsc_mhd.exe" if sys.platform.startswith("win") else "hrsc_mhd"
     assert all(Path(r["binary"]).name == expected_binary for r in data["runs"])
+
+    from scripts import run_matrix
+    run = run_matrix.normalise_run(data["runs"][0], output_root=tmp_path / "out")
+    generated_cfg = run_matrix.materialise_run_config(run)
+    assert "riemann = hlld\n" in generated_cfg.read_text(encoding="utf-8")
+
+
+def test_default_hlld_output_dir_is_separate_from_hll():
+    assert drv.resolve_output_dir(None, "hll") == drv.DEFAULT_OUT
+    assert drv.resolve_output_dir(None, "hlld") == drv.DEFAULT_OUT.with_name("mhd_precision_pilot_hlld")
+    custom = Path("experiments/week14/custom_hlld")
+    assert drv.resolve_output_dir(custom, "hlld") == drv.ROOT / custom
+
+
+def test_run_one_writes_hlld_riemann_key(tmp_path, monkeypatch):
+    seen = {}
+    grid_path = tmp_path / "runs" / "cpu-double-O2-ieee-leq" / "grid.bin"
+
+    def fake_run_case(label, cfg_text, run_dir, binary, case, commit, binary_sha,
+                      output_bin, experiment):
+        seen["cfg_text"] = cfg_text
+        output_bin.parent.mkdir(parents=True, exist_ok=True)
+        output_bin.write_bytes(b"fake")
+        return object(), {"stderr_diagnostics": {"steps": 761, "divB_max": 0.0}}, ""
+
+    class Header:
+        dx = 0.25
+
+    monkeypatch.setattr(drv, "run_case", fake_run_case)
+    monkeypatch.setattr(drv, "sha256_file", lambda path: "sha")
+    monkeypatch.setattr(drv, "read_binary", lambda path: (Header(), np.zeros((1, 1, 9))))
+
+    drv._run_one(
+        BuildVariant("double", "O2", False, False),
+        tmp_path / "hrsc_mhd",
+        tmp_path,
+        "deadbeef",
+        grid_path,
+        solver="hlld",
+    )
+
+    assert "riemann = hlld" in seen["cfg_text"]
 
 
 def test_build_variant_configures_release_build(monkeypatch):

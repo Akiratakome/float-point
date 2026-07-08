@@ -9,6 +9,14 @@ REFERENCE = "cpu-double-O2-ieee-leq"
 ANCHOR_STEPS = 759
 ANCHOR_DIVB_MAX = 4.441e-14
 ANCHOR_DIVB_ATOL = 1.0e-13
+HLLD_ANCHOR_STEPS = 761
+HLLD_ANCHOR_DIVB_MAX = 0.0
+HLLD_ANCHOR_DIVB_ATOL = 1.0e-15
+
+_ANCHORS = {
+    "hll": (ANCHOR_STEPS, ANCHOR_DIVB_MAX, ANCHOR_DIVB_ATOL),
+    "hlld": (HLLD_ANCHOR_STEPS, HLLD_ANCHOR_DIVB_MAX, HLLD_ANCHOR_DIVB_ATOL),
+}
 
 MCA_FIELD_KEYS = (
     "spread_rho",
@@ -101,11 +109,11 @@ def schema_valid(rows, mca):
     return all(_mca_block_schema_valid(block) for block in _mca_blocks(mca))
 
 
-def gate_g0(rows, mca):
+def gate_g0(rows, mca, solver="hll"):
     """Gate G0: finite deterministic runs, reproduced anchor, schema, MCA shape."""
     schema_ok = schema_valid(rows, mca)
     all_finite = bool(rows) and all(row.get("finite") is True for row in rows)
-    anchor_reproduced = _anchor_reproduced(rows)
+    anchor_reproduced = _anchor_reproduced(rows, solver)
     mca_representable = schema_ok and _mca_representable(mca)
     passed = all((all_finite, anchor_reproduced, schema_ok, mca_representable))
     return {
@@ -153,12 +161,12 @@ def ordering_flags(rows):
     return flags
 
 
-def gate_g1(rows):
+def gate_g1(rows, solver="hll"):
     """Gate G1 reports deterministic ordering soft flags."""
     flags = ordering_flags(rows)
     row_schema_ok = isinstance(rows, list) and all(_row_schema_valid(row) for row in rows)
     all_finite = bool(rows) and all(row.get("finite") is True for row in rows)
-    anchor_ok = _anchor_reproduced(rows)
+    anchor_ok = _anchor_reproduced(rows, solver)
     return {
         "pass": row_schema_ok and all_finite and anchor_ok,
         "row_schema_valid": row_schema_ok,
@@ -184,19 +192,20 @@ def gate_g2(mca):
     }
 
 
-def assemble_summary(rows, mca, git_commit):
+def assemble_summary(rows, mca, git_commit, solver="hll"):
     """Assemble the stable experiment summary payload."""
+    solver = _normalise_solver(solver)
     return {
         "experiment": "week14-mhd-precision-pilot",
         "case": "brio_wu_1d",
-        "solver": "hll",
+        "solver": solver,
         "reference": REFERENCE,
         "git_commit": git_commit,
         "deterministic": list(rows),
         "mca": mca,
         "gates": {
-            "G0": gate_g0(rows, mca),
-            "G1": gate_g1(rows),
+            "G0": gate_g0(rows, mca, solver=solver),
+            "G1": gate_g1(rows, solver=solver),
             "G2": gate_g2(mca),
         },
         "claims": {
@@ -370,16 +379,28 @@ def _mca_representable(mca):
     return True
 
 
-def _anchor_reproduced(rows):
+def _anchor_reproduced(rows, solver="hll"):
+    anchor_steps, anchor_divb, anchor_atol = _anchor_for_solver(solver)
     for row in rows:
         if not _is_reference_row(row):
             continue
-        if row.get("steps") != ANCHOR_STEPS:
+        if row.get("steps") != anchor_steps:
             continue
         divb = row.get("divB_max")
-        if _is_number(divb) and abs(divb - ANCHOR_DIVB_MAX) <= ANCHOR_DIVB_ATOL:
+        if _is_number(divb) and abs(divb - anchor_divb) <= anchor_atol:
             return True
     return False
+
+
+def _normalise_solver(solver):
+    solver = str(solver).lower()
+    if solver not in _ANCHORS:
+        raise ValueError(f"unsupported MHD precision-pilot solver: {solver}")
+    return solver
+
+
+def _anchor_for_solver(solver):
+    return _ANCHORS[_normalise_solver(solver)]
 
 
 def _is_reference_row(row):

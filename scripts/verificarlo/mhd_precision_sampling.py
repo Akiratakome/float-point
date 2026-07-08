@@ -46,6 +46,13 @@ DEFAULT_SAMPLES = 8
 DEFAULT_GAMMA = 2.0
 
 
+def _normalise_solver(solver: str) -> str:
+    solver = str(solver).lower()
+    if solver not in {"hll", "hlld"}:
+        raise ValueError(f"unsupported MHD MCA solver: {solver}")
+    return solver
+
+
 def _case_gamma(case: pathlib.Path = DEFAULT_CASE) -> float:
     """Read gamma from the cfg, matching the Brio-Wu default if absent."""
     if not case.is_file():
@@ -60,7 +67,13 @@ def _case_gamma(case: pathlib.Path = DEFAULT_CASE) -> float:
     return DEFAULT_GAMMA
 
 
-def _sample_args(out_dir: pathlib.Path, precision: int, samples: int, image: str) -> argparse.Namespace:
+def _sample_args(
+    out_dir: pathlib.Path,
+    precision: int,
+    samples: int,
+    image: str,
+    solver: str,
+) -> argparse.Namespace:
     return argparse.Namespace(
         case=DEFAULT_CASE,
         out=pathlib.Path(out_dir),
@@ -68,6 +81,7 @@ def _sample_args(out_dir: pathlib.Path, precision: int, samples: int, image: str
         precision=int(precision),
         image=image,
         probe_only=False,
+        solver=_normalise_solver(solver),
     )
 
 
@@ -85,7 +99,9 @@ def _base_environment_with_experiment_label(
     previous = smoke.EXPERIMENT
     smoke.EXPERIMENT = WEEK14_MCA_EXPERIMENT
     try:
-        return base_environment(args, probes, runner)
+        environment = base_environment(args, probes, runner)
+        environment["solver"] = args.solver
+        return environment
     finally:
         smoke.EXPERIMENT = previous
 
@@ -100,6 +116,7 @@ def _run_with_experiment_label(
     try:
         status, sample_rows, reason = run_samples(args, probes, runner)
         environment = base_environment(args, probes, runner)
+        environment["solver"] = args.solver
         return status, sample_rows, reason, environment
     finally:
         smoke.EXPERIMENT = previous
@@ -110,11 +127,13 @@ def sample_precision(
     precision: int,
     samples: int = DEFAULT_SAMPLES,
     image: str = DEFAULT_IMAGE,
+    solver: str = "hll",
 ) -> dict[str, Any]:
     """Run one MCA precision block and return schema-complete field metrics."""
+    solver = _normalise_solver(solver)
     probes = probe_runners(image)
     runner = choose_runner(probes)
-    args = _sample_args(pathlib.Path(out_dir), precision, samples, image)
+    args = _sample_args(pathlib.Path(out_dir), precision, samples, image, solver)
     args.out.mkdir(parents=True, exist_ok=True)
     if runner is None:
         environment = _base_environment_with_experiment_label(args, probes, None)
@@ -160,21 +179,35 @@ def sample_precision(
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT)
+    parser.add_argument("--out", type=pathlib.Path, default=None)
     parser.add_argument("--samples", type=int, default=DEFAULT_SAMPLES)
     parser.add_argument("--image", default=DEFAULT_IMAGE)
+    parser.add_argument("--solver", choices=("hll", "hlld"), default="hll")
     return parser.parse_args(argv)
+
+
+def resolve_output_dir(path: pathlib.Path | None, solver: str) -> pathlib.Path:
+    solver = _normalise_solver(solver)
+    if path is None:
+        if solver == "hll":
+            return DEFAULT_OUT
+        return DEFAULT_OUT.parent.with_name(f"{DEFAULT_OUT.parent.name}_{solver}") / DEFAULT_OUT.name
+    return path if path.is_absolute() else ROOT / path
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    out = args.out if args.out.is_absolute() else ROOT / args.out
+    out = resolve_output_dir(args.out, args.solver)
     out.mkdir(parents=True, exist_ok=True)
     mca = {
-        "p53": sample_precision(out / "p53", precision=53, samples=args.samples, image=args.image),
-        "p24": sample_precision(out / "p24", precision=24, samples=args.samples, image=args.image),
+        "p53": sample_precision(
+            out / "p53", precision=53, samples=args.samples, image=args.image, solver=args.solver
+        ),
+        "p24": sample_precision(
+            out / "p24", precision=24, samples=args.samples, image=args.image, solver=args.solver
+        ),
     }
-    summary = {"experiment": EXPERIMENT, "samples": args.samples, "mca": mca}
+    summary = {"experiment": EXPERIMENT, "samples": args.samples, "solver": args.solver, "mca": mca}
     write_json(out / "summary.json", summary)
     print(out / "summary.json")
     return 0

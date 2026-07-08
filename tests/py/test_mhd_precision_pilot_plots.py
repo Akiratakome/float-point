@@ -1,5 +1,6 @@
 import sys
 import math
+import copy
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -131,3 +132,23 @@ def test_number_treats_nonfinite_as_missing():
     assert _number(float("inf")) is None
     assert _number(-float("inf")) is None
     assert math.isclose(_number(1.25), 1.25)
+
+
+def test_solver_comparison_plots_write_three_pngs(tmp_path):
+    from mhd_precision_pilot_plots import plot_solver_summary_comparison
+
+    hll = _summary()
+    hll["solver"] = "hll"
+    hlld = copy.deepcopy(hll)
+    hlld["solver"] = "hlld"
+    hlld["deterministic"][1]["Linf_rho"] = 3.0e-4
+    hlld["mca"]["p24"]["spread_rho"] = 2.0e-7
+
+    paths = plot_solver_summary_comparison([hll, hlld], tmp_path)
+
+    assert [path.name for path in paths] == [
+        "compare_hll_hlld_deterministic_linf.png",
+        "compare_hll_hlld_mca_spread.png",
+        "compare_hll_hlld_mca_snr.png",
+    ]
+    assert all(path.stat().st_size > 0 for path in paths)

@@ -181,8 +181,12 @@ def choose_runner(probes: list[dict[str, Any]]) -> str | None:
     return None
 
 
-def make_sample_cfg(source_text: str, grid_path: pathlib.Path | str) -> str:
-    text = replace_or_append_cfg(source_text, "output_format", "binary")
+def make_sample_cfg(source_text: str, grid_path: pathlib.Path | str,
+                    solver: str | None = None) -> str:
+    text = source_text
+    if solver:
+        text = replace_or_append_cfg(text, "riemann", solver)
+    text = replace_or_append_cfg(text, "output_format", "binary")
     text = replace_or_append_cfg(text, "output_file", str(grid_path))
     return text
 
@@ -237,6 +241,7 @@ def base_environment(args: argparse.Namespace, probes: list[dict[str, Any]], run
         "output_root": str(args.out),
         "samples": args.samples,
         "precision": args.precision,
+        "solver": getattr(args, "solver", "hll"),
         "image": args.image,
         "probe_only": args.probe_only,
         "selected_runner": runner,
@@ -344,10 +349,16 @@ def build_commands_for_runner(runner: str, image: str, build_dir: pathlib.Path) 
 def sample_command_for_runner(runner: str, image: str, build_dir: pathlib.Path,
                               cfg_path: pathlib.Path, precision: int) -> list[str]:
     binary = build_dir / ("hrsc_mhd.exe" if runner == "native" and platform.system().lower().startswith("win") else "hrsc_mhd")
+    # Verificarlo 2.x interflop backends take precision as a VFC_BACKENDS
+    # argument; the legacy VFC_MCA_PRECISION_BINARY64 env var is silently
+    # ignored (same gotcha as VFC_BACKENDS_SEED; see noise_floor_run.sh). Inline
+    # --precision-binary64 so the p24 surrogate actually lowers binary64
+    # precision instead of silently running at the backend default (=53), which
+    # is what made p24 and p53 collapse to the same machine-eps noise floor.
+    vfc_backends = f"libinterflop_mca.so --mode=mca --precision-binary64={precision}"
     env_bits = (
-        "VFC_BACKENDS=libinterflop_mca.so "
+        f"VFC_BACKENDS='{vfc_backends}' "
         "VFC_BACKENDS_SILENT_LOAD=True "
-        f"VFC_MCA_PRECISION_BINARY64={precision} "
     )
     if runner == "docker":
         script = f"{env_bits}{runner_path(runner, binary)} {runner_path(runner, cfg_path)}"
@@ -358,17 +369,15 @@ def sample_command_for_runner(runner: str, image: str, build_dir: pathlib.Path,
         return ["wsl", "bash", "-lc", script]
     if platform.system().lower().startswith("win"):
         script = (
-            "$env:VFC_BACKENDS='libinterflop_mca.so'; "
+            f"$env:VFC_BACKENDS='{vfc_backends}'; "
             "$env:VFC_BACKENDS_SILENT_LOAD='True'; "
-            f"$env:VFC_MCA_PRECISION_BINARY64='{precision}'; "
             f"& '{binary}' '{cfg_path}'"
         )
         return ["powershell", "-NoProfile", "-Command", script]
     return [
         "env",
-        "VFC_BACKENDS=libinterflop_mca.so",
+        f"VFC_BACKENDS={vfc_backends}",
         "VFC_BACKENDS_SILENT_LOAD=True",
-        f"VFC_MCA_PRECISION_BINARY64={precision}",
         str(binary),
         str(cfg_path),
     ]
@@ -426,7 +435,11 @@ def run_samples(args: argparse.Namespace, probes: list[dict[str, Any]], runner: 
         for attempt in range(1, SAMPLE_MAX_ATTEMPTS + 1):
             if grid_path.exists():
                 grid_path.unlink()
-            cfg_text = make_sample_cfg(source_text, runner_path(runner, grid_path))
+            cfg_text = make_sample_cfg(
+                source_text,
+                runner_path(runner, grid_path),
+                solver=getattr(args, "solver", None),
+            )
             cfg_path.write_text(cfg_text, encoding="utf-8")
             command = sample_command_for_runner(runner, args.image, build_dir, cfg_path, args.precision)
             t0 = time.perf_counter()
@@ -462,6 +475,7 @@ def run_samples(args: argparse.Namespace, probes: list[dict[str, Any]], runner: 
                 "git_commit": git_commit(),
                 "runner": runner,
                 "precision": args.precision,
+                "solver": getattr(args, "solver", "hll"),
                 "sample": sample_name,
                 "attempt": attempt,
                 "max_attempts": SAMPLE_MAX_ATTEMPTS,
@@ -564,6 +578,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--precision", type=int, default=53)
     parser.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT)
     parser.add_argument("--image", default=DEFAULT_IMAGE)
+    parser.add_argument("--solver", choices=("hll", "hlld"), default="hll")
     parser.add_argument("--probe-only", action="store_true")
     return parser.parse_args(argv)
 

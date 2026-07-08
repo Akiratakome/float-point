@@ -36,6 +36,17 @@ def test_blocked_environment_is_valid_outcome(tmp_path, monkeypatch):
     environment = json.loads((out_dir / "environment.json").read_text(encoding="utf-8"))
     assert environment["status"] == "blocked_environment"
     assert environment["experiment"] == "week14-mhd-mca"
+    assert environment["solver"] == "hll"
+
+
+def test_default_hlld_sampler_output_dir_is_separate():
+    assert sampler.resolve_output_dir(None, "hll") == sampler.DEFAULT_OUT
+    assert (
+        sampler.resolve_output_dir(None, "hlld")
+        == sampler.DEFAULT_OUT.parent.with_name("mhd_precision_pilot_hlld") / "mca"
+    )
+    custom = Path("experiments/week14/custom_mca")
+    assert sampler.resolve_output_dir(custom, "hlld") == sampler.ROOT / custom
 
 
 def test_blocked_run_writes_week14_environment_and_restores_experiment(tmp_path, monkeypatch):
@@ -113,3 +124,39 @@ def test_completed_writes_week14_environment_and_restores_experiment(tmp_path, m
     assert environment["status"] == "completed"
     assert environment["experiment"] == "week14-mhd-mca"
     assert sampler.smoke.EXPERIMENT == original_experiment
+
+
+def test_sample_precision_passes_solver_to_smoke_runner(tmp_path, monkeypatch):
+    out_dir = tmp_path / "p53"
+    seen = {}
+
+    monkeypatch.setattr(sampler, "probe_runners", lambda image: [{"supported": True, "runner": "docker"}])
+    monkeypatch.setattr(sampler, "choose_runner", lambda probes: "docker")
+
+    def fake_run_samples(args, probes, runner):
+        seen["solver"] = args.solver
+        return "blocked_run", [], "stopped before sampling"
+
+    monkeypatch.setattr(sampler, "run_samples", fake_run_samples)
+    monkeypatch.setattr(
+        sampler,
+        "base_environment",
+        lambda args, probes, runner: {
+            "experiment": sampler.smoke.EXPERIMENT,
+            "selected_runner": runner,
+            "solver": args.solver,
+        },
+    )
+
+    block = sampler.sample_precision(
+        out_dir,
+        precision=53,
+        samples=8,
+        image="verificarlo/verificarlo",
+        solver="hlld",
+    )
+
+    assert seen["solver"] == "hlld"
+    assert block["status"] == "blocked_run"
+    environment = json.loads((out_dir / "environment.json").read_text(encoding="utf-8"))
+    assert environment["solver"] == "hlld"

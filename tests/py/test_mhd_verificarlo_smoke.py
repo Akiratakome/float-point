@@ -10,8 +10,13 @@ from scripts.verificarlo.mhd_verificarlo_smoke import (
     make_blocked_summary_md,
     make_probe_record,
     make_sample_cfg,
+    sample_command_for_runner,
 )
 import scripts.verificarlo.mhd_verificarlo_smoke as smoke
+
+
+def _joined(command: list[str]) -> str:
+    return " ".join(command)
 
 
 def test_make_probe_record_has_structured_command_result_fields():
@@ -56,6 +61,21 @@ def test_make_sample_cfg_preserves_docker_posix_output_path():
     assert "output_file = /workdir/experiments/week13/sample_01/grid.bin\n" in out
 
 
+def test_make_sample_cfg_can_override_mhd_riemann_solver():
+    source = "test = brio_wu\n"
+
+    out = make_sample_cfg(source, "runs/sample_01/grid.bin", solver="hlld")
+
+    assert "riemann = hlld\n" in out
+    assert "output_format = binary\n" in out
+
+
+def test_parse_args_accepts_hlld_solver():
+    args = smoke.parse_args(["--solver", "hlld"])
+
+    assert args.solver == "hlld"
+
+
 def test_blocked_summary_explicitly_says_no_mca_result_was_produced():
     probes = [
         make_probe_record(
@@ -74,6 +94,43 @@ def test_blocked_summary_explicitly_says_no_mca_result_was_produced():
     assert "no Verificarlo MCA result was produced" in text
     assert "no MCA evidence was generated" in text
     assert "permission denied" in text
+
+
+def test_sample_command_passes_mca_precision_as_backend_arg_docker():
+    # Verificarlo 2.x interflop backends read precision from a VFC_BACKENDS
+    # argument; the legacy VFC_MCA_PRECISION_BINARY64 env var is silently
+    # ignored (same class of gotcha as VFC_BACKENDS_SEED). If precision is not
+    # inlined into VFC_BACKENDS, both p24 and p53 run at the backend default
+    # (=53), which is the Week-14 p24-never-separates bug.
+    cmd = sample_command_for_runner(
+        "docker", "img", pathlib.Path("build-vfc"), pathlib.Path("config.cfg"), 24
+    )
+    text = _joined(cmd)
+
+    assert "--precision-binary64=24" in text
+    assert "VFC_MCA_PRECISION_BINARY64" not in text
+
+
+def test_sample_command_precision_tracks_argument_docker():
+    text = _joined(
+        sample_command_for_runner(
+            "docker", "img", pathlib.Path("build-vfc"), pathlib.Path("config.cfg"), 53
+        )
+    )
+
+    assert "--precision-binary64=53" in text
+    assert "VFC_MCA_PRECISION_BINARY64" not in text
+
+
+def test_sample_command_passes_mca_precision_as_backend_arg_wsl():
+    text = _joined(
+        sample_command_for_runner(
+            "wsl", "img", pathlib.Path("build-vfc"), pathlib.Path("config.cfg"), 24
+        )
+    )
+
+    assert "--precision-binary64=24" in text
+    assert "VFC_MCA_PRECISION_BINARY64" not in text
 
 
 def test_run_samples_retries_failed_mca_sample(tmp_path, monkeypatch):

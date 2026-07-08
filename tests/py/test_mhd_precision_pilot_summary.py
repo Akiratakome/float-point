@@ -8,6 +8,7 @@ sys.path.insert(0, str(ROOT / "scripts" / "regression"))
 
 from mhd_precision_pilot_core import (
     REFERENCE, ANCHOR_STEPS, ANCHOR_DIVB_MAX,
+    HLLD_ANCHOR_STEPS, HLLD_ANCHOR_DIVB_MAX,
     MCA_FIELD_KEYS, SUMMARY_CSV_COLUMNS,
     gate_g0, gate_g1, gate_g2, ordering_flags, assemble_summary,
     blocked_mca_block, schema_valid,
@@ -111,6 +112,15 @@ def test_g0_fails_when_reference_anchor_wrong():
     rows = [_row(REFERENCE, "double", "O2", False, "leq",
                  steps=700, divb=ANCHOR_DIVB_MAX, linf_rho=0.0, is_ref=True)]
     assert gate_g0(rows, _blocked_mca())["pass"] is False
+
+
+def test_g0_uses_hlld_anchor_when_solver_is_hlld():
+    rows = [_row(REFERENCE, "double", "O2", False, "leq",
+                 steps=HLLD_ANCHOR_STEPS, divb=HLLD_ANCHOR_DIVB_MAX,
+                 linf_rho=0.0, is_ref=True)]
+
+    assert gate_g0(rows, _blocked_mca(), solver="hlld")["pass"] is True
+    assert gate_g0(rows, _blocked_mca(), solver="hll")["pass"] is False
 
 
 def test_g0_requires_reference_variant_not_only_is_reference():
@@ -241,6 +251,18 @@ def test_assemble_summary_shape_and_claims():
     assert summary["gates"]["G2"]["status"] == "pending_depth"
     assert set(summary["claims"]) == {"morphology", "self_reference", "precision_noise"}
     assert summary["mca"]["p53"]["status"] == "blocked_environment"
+
+
+def test_assemble_summary_accepts_hlld_solver_and_anchor():
+    rows = [_row(REFERENCE, "double", "O2", False, "leq",
+                 steps=HLLD_ANCHOR_STEPS, divb=HLLD_ANCHOR_DIVB_MAX,
+                 linf_rho=0.0, is_ref=True)]
+
+    summary = assemble_summary(rows, _blocked_mca(), git_commit="deadbeef", solver="hlld")
+
+    assert summary["solver"] == "hlld"
+    assert summary["gates"]["G0"]["pass"] is True
+    assert summary["gates"]["G1"]["anchor_ok"] is True
 
 
 def test_write_summaries_emits_three_files(tmp_path):
