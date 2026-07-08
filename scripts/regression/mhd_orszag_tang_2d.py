@@ -36,8 +36,12 @@ PAPER_NOTE = (
 FIGURE_NAMES = (
     "ot_density_pressure.png",
     "ot_divb.png",
-    "ot_paper_style.png",
 )
+# ot_paper_style.png is rendered separately by
+# scripts/regression/mhd_paper_style_mk2005.py (matplotlib, gray-scale
+# temperature in the Toth-2000 / Miyoshi-Kusano-2005 layout) and is
+# intentionally NOT regenerated here so the regression path stays
+# matplotlib-free and does not clobber the paper-format figure.
 PAPER_SUMMARY = OUT / "paper_summary.md"
 
 
@@ -118,7 +122,6 @@ def write_validation_figures(header, arr) -> list[str]:
     prim = mhd_primitive(arr.astype(np.float64), GAMMA)
     density = prim["rho"]
     pressure = prim["p"]
-    magnetic_pressure = 0.5 * (prim["Bx"] ** 2 + prim["By"] ** 2 + prim["Bz"] ** 2)
     abs_divb = periodic_abs_divb(arr, header.dx, header.dy)
 
     paths = [
@@ -136,17 +139,6 @@ def write_validation_figures(header, arr) -> list[str]:
                 {"title": "abs divB log10", "field": abs_divb, "log10": True},
             ],
             columns=1,
-        ),
-        plot_heatmap_panels(
-            fig_dir / "ot_paper_style.png",
-            [
-                {"title": "density", "field": density},
-                {"title": "mag pressure", "field": magnetic_pressure},
-            ],
-            columns=2,
-            panel_size=430,
-            margin=52,
-            gap=76,
         ),
     ]
     return [path.relative_to(ROOT).as_posix() for path in paths]

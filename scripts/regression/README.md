@@ -9,6 +9,21 @@ This directory contains validation scripts and scalar summary generators.
 - `convergence.py`: convergence helper for exact/reference comparisons.
 - `verify_sod.py`, `verify_toro.py`: exact-solution validation helpers.
 
+## Report 2 MHD Validation
+
+- `_mhd_harness.py`: shared Week 13 MHD subprocess, metadata, binary-read, and
+  scalar-helper layer used by the 2D validation drivers.
+- `mhd_orszag_tang_2d.py`, `mhd_kh_2d.py`: HLL production validation/figure
+  drivers for the Week 13 2D MHD benchmarks.
+- `mhd_solver_compare_2d.py`: HLL-vs-HLLD Orszag-Tang diagnostic used for the
+  Week 13 deferred-HLLD decision; do not treat HLLD as the production solver
+  unless a later summary records a new decision.
+- `mhd_hlld_glm_sweep.py`, `mhd_hlld_diagnostics.py`: local HLLD diagnostics,
+  not production validation.
+- `mhd_paper_style_mk2005.py`: optional matplotlib renderer for paper-style
+  Week 13 figures; it consumes existing Week 13 binary grids and intentionally
+  stays separate from the numpy-only validation drivers.
+
 ## Compatibility / Provenance
 
 - `float_regression_report.py`: still useful and tested, but tied to the older

@@ -38,8 +38,11 @@ PAPER_NOTE = (
 FIGURE_NAMES = (
     "kh_density_bmag.png",
     "kh_divb.png",
-    "kh_paper_style.png",
 )
+# kh_paper_style.png is rendered separately by
+# scripts/regression/mhd_paper_style_mk2005.py (matplotlib, density isolines
+# in the Dedner-2002 Fig. 8 layout) and is intentionally NOT regenerated here
+# so the regression path stays matplotlib-free and does not clobber it.
 PAPER_SUMMARY = OUT / "paper_summary.md"
 
 
@@ -137,17 +140,6 @@ def write_validation_figures(header, arr) -> list[str]:
                 {"title": "abs divB log10", "field": abs_divb, "log10": True},
             ],
             columns=1,
-        ),
-        plot_heatmap_panels(
-            fig_dir / "kh_paper_style.png",
-            [
-                {"title": "density", "field": density},
-                {"title": "Bmag", "field": bmag},
-            ],
-            columns=2,
-            panel_size=430,
-            margin=52,
-            gap=76,
         ),
     ]
     return [path.relative_to(ROOT).as_posix() for path in paths]
