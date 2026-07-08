@@ -73,9 +73,10 @@ def _sample_args(
     samples: int,
     image: str,
     solver: str,
+    case: pathlib.Path = DEFAULT_CASE,
 ) -> argparse.Namespace:
     return argparse.Namespace(
-        case=DEFAULT_CASE,
+        case=pathlib.Path(case),
         out=pathlib.Path(out_dir),
         samples=int(samples),
         precision=int(precision),
@@ -95,9 +96,10 @@ def _base_environment_with_experiment_label(
     args: argparse.Namespace,
     probes: list[dict[str, Any]],
     runner: str | None,
+    experiment: str = WEEK14_MCA_EXPERIMENT,
 ) -> dict[str, Any]:
     previous = smoke.EXPERIMENT
-    smoke.EXPERIMENT = WEEK14_MCA_EXPERIMENT
+    smoke.EXPERIMENT = experiment
     try:
         environment = base_environment(args, probes, runner)
         environment["solver"] = args.solver
@@ -110,9 +112,10 @@ def _run_with_experiment_label(
     args: argparse.Namespace,
     probes: list[dict[str, Any]],
     runner: str,
+    experiment: str = WEEK14_MCA_EXPERIMENT,
 ) -> tuple[str, list[dict[str, Any]], str, dict[str, Any]]:
     previous = smoke.EXPERIMENT
-    smoke.EXPERIMENT = WEEK14_MCA_EXPERIMENT
+    smoke.EXPERIMENT = experiment
     try:
         status, sample_rows, reason = run_samples(args, probes, runner)
         environment = base_environment(args, probes, runner)
@@ -128,15 +131,17 @@ def sample_precision(
     samples: int = DEFAULT_SAMPLES,
     image: str = DEFAULT_IMAGE,
     solver: str = "hll",
+    case: pathlib.Path = DEFAULT_CASE,
+    experiment: str = WEEK14_MCA_EXPERIMENT,
 ) -> dict[str, Any]:
     """Run one MCA precision block and return schema-complete field metrics."""
     solver = _normalise_solver(solver)
     probes = probe_runners(image)
     runner = choose_runner(probes)
-    args = _sample_args(pathlib.Path(out_dir), precision, samples, image, solver)
+    args = _sample_args(pathlib.Path(out_dir), precision, samples, image, solver, pathlib.Path(case))
     args.out.mkdir(parents=True, exist_ok=True)
     if runner is None:
-        environment = _base_environment_with_experiment_label(args, probes, None)
+        environment = _base_environment_with_experiment_label(args, probes, None, experiment)
         environment["status"] = "blocked_environment"
         write_json(args.out / "environment.json", environment)
         return _blocked(
@@ -144,7 +149,7 @@ def sample_precision(
             "No supported native, WSL, or Docker Verificarlo runner was found.",
         )
 
-    status, sample_rows, reason, environment = _run_with_experiment_label(args, probes, runner)
+    status, sample_rows, reason, environment = _run_with_experiment_label(args, probes, runner, experiment)
     if status != "completed":
         environment["status"] = status
         write_json(args.out / "environment.json", environment)
@@ -183,6 +188,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--samples", type=int, default=DEFAULT_SAMPLES)
     parser.add_argument("--image", default=DEFAULT_IMAGE)
     parser.add_argument("--solver", choices=("hll", "hlld"), default="hll")
+    parser.add_argument("--case", type=pathlib.Path, default=DEFAULT_CASE)
+    parser.add_argument("--experiment", default=WEEK14_MCA_EXPERIMENT)
     return parser.parse_args(argv)
 
 
@@ -199,15 +206,24 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     out = resolve_output_dir(args.out, args.solver)
     out.mkdir(parents=True, exist_ok=True)
+    case = args.case if args.case.is_absolute() else ROOT / args.case
     mca = {
         "p53": sample_precision(
-            out / "p53", precision=53, samples=args.samples, image=args.image, solver=args.solver
+            out / "p53", precision=53, samples=args.samples, image=args.image,
+            solver=args.solver, case=case, experiment=args.experiment,
         ),
         "p24": sample_precision(
-            out / "p24", precision=24, samples=args.samples, image=args.image, solver=args.solver
+            out / "p24", precision=24, samples=args.samples, image=args.image,
+            solver=args.solver, case=case, experiment=args.experiment,
         ),
     }
-    summary = {"experiment": EXPERIMENT, "samples": args.samples, "solver": args.solver, "mca": mca}
+    summary = {
+        "experiment": args.experiment,
+        "case": str(case),
+        "samples": args.samples,
+        "solver": args.solver,
+        "mca": mca,
+    }
     write_json(out / "summary.json", summary)
     print(out / "summary.json")
     return 0

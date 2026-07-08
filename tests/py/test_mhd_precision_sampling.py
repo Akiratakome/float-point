@@ -160,3 +160,33 @@ def test_sample_precision_passes_solver_to_smoke_runner(tmp_path, monkeypatch):
     assert block["status"] == "blocked_run"
     environment = json.loads((out_dir / "environment.json").read_text(encoding="utf-8"))
     assert environment["solver"] == "hlld"
+
+
+def test_sample_precision_accepts_explicit_case_and_experiment(monkeypatch, tmp_path):
+    case = tmp_path / "ot.cfg"
+    case.write_text("test = orszag_tang\ngamma = 1.6666666666666667\n", encoding="utf-8")
+    seen = {}
+
+    monkeypatch.setattr(sampler, "probe_runners", lambda image: [{"runner": "docker", "supported": True}])
+    monkeypatch.setattr(sampler, "choose_runner", lambda probes: "docker")
+
+    def fake_run(args, probes, runner, experiment=sampler.WEEK14_MCA_EXPERIMENT):
+        seen["case"] = args.case
+        seen["experiment"] = experiment
+        return "blocked_run", [], "stop before aggregation", {"status": "blocked_run"}
+
+    monkeypatch.setattr(sampler, "_run_with_experiment_label", fake_run)
+
+    block = sampler.sample_precision(
+        tmp_path / "mca",
+        precision=53,
+        samples=1,
+        image="img",
+        solver="hlld",
+        case=case,
+        experiment="week15-mhd-mca",
+    )
+
+    assert seen["case"] == case
+    assert seen["experiment"] == "week15-mhd-mca"
+    assert block["status"] == "blocked_run"
