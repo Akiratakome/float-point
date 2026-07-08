@@ -3,18 +3,19 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import math
 import pathlib
 import sys
-from typing import Any
+from typing import Any, Sequence
 
 import numpy as np
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 CASE = ROOT / "tests" / "cases" / "orszag_tang_2d" / "orszag_tang.cfg"
-DEFAULT_OUT = ROOT / "experiments" / "week15" / "mhd_orszag_tang_precision_smoke"
+DEFAULT_OUT = ROOT / "experiments" / "week15" / "orszag_tang_precision_smoke"
 EXPERIMENT = "week15-mhd-orszag-tang-precision-smoke"
 DEFAULT_GAMMA = 5.0 / 3.0
 SUPPORTED_SOLVERS = ("hll", "hlld")
@@ -245,13 +246,14 @@ def write_outputs(
     profile: str,
     git_commit: str,
     figures: list[str],
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """Write JSON, CSV, and Markdown summaries for measured smoke rows."""
     solver = _normalise_solver(solver)
     profile = _normalise_profile(profile)
     out = pathlib.Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     safe_rows = _jsonable(rows)
+    anchor = anchor_gate(safe_rows, solver, profile)
     payload = {
         "experiment": EXPERIMENT,
         "case": CASE.name,
@@ -259,7 +261,7 @@ def write_outputs(
         "profile": profile,
         "git_commit": _jsonable(git_commit),
         "reference_variant": REFERENCE,
-        "gates": {"G0": anchor_gate(safe_rows, solver, profile)},
+        "gates": {"G0": anchor, "G0_anchor": anchor},
         "rows": safe_rows,
         "figures": _jsonable(figures),
         "notes": {
@@ -283,7 +285,10 @@ def write_outputs(
     md_path = out / "summary.md"
     md_path.write_text(_render_markdown(payload), encoding="utf-8")
 
-    return {"json": str(json_path), "csv": str(csv_path), "markdown": str(md_path)}
+    payload["json"] = str(json_path)
+    payload["csv"] = str(csv_path)
+    payload["markdown"] = str(md_path)
+    return payload
 
 
 def write_figures(
@@ -447,3 +452,115 @@ def _divb_within_rtol(value: Any, anchor: float) -> bool:
     if anchor == 0.0:
         return observed == 0.0
     return abs(observed - anchor) <= OT_ANCHOR_DIVB_RTOL * abs(anchor)
+
+
+def run_deterministic(
+    out_dir: str | pathlib.Path,
+    *,
+    solver: str = "hll",
+    profile: str = "gate",
+    variants: Sequence[Any] | None = None,
+    base_cfg_text: str | None = None,
+    builder=build_variant,
+    runner=run_case,
+    reader=read_binary,
+    keep_grids: bool = False,
+) -> dict[str, Any]:
+    solver = _normalise_solver(solver)
+    profile = _normalise_profile(profile)
+    out = pathlib.Path(out_dir)
+    selected = select_variants("p0") if variants is None else list(variants)
+    if not selected:
+        raise ValueError("variants must not be empty")
+    if not any(variant.name == REFERENCE for variant in selected):
+        raise ValueError(f"selected variants must include reference variant {REFERENCE}")
+    ordered = ordered_variants_reference_first(selected)
+    source = base_cfg_text if base_cfg_text is not None else CASE.read_text(encoding="utf-8")
+    gamma = case_gamma(source)
+    commit = git_commit()
+    staged: list[tuple[Any, dict[str, Any], pathlib.Path, pathlib.Path, Any, np.ndarray]] = []
+    for variant in ordered:
+        run_dir = out / "runs" / variant.name
+        grid = run_dir / "grid.bin"
+        cfg_text = orszag_tang_cfg(source, solver=solver, profile=profile, output_file=grid)
+        binary = pathlib.Path(builder(variant))
+        sha = sha256_file(binary) if binary.is_file() else "unknown"
+        _, meta, _ = runner(
+            variant.name,
+            cfg_text,
+            run_dir,
+            binary,
+            CASE,
+            commit,
+            sha,
+            output_bin=grid,
+            experiment=EXPERIMENT,
+        )
+        header, arr = reader(grid)
+        staged.append((variant, meta, run_dir, grid, header, arr))
+    ref_header, ref_arr = staged[0][4], staged[0][5]
+    rows = []
+    for variant, meta, run_dir, grid, header, arr in staged:
+        diagnostics = dict(meta.get("stderr_diagnostics", {}))
+        diagnostics.setdefault("rc", meta.get("returncode", meta.get("return_code", 0)))
+        row = measure_pair(
+            plan_row(variant, solver, profile),
+            arr,
+            ref_arr,
+            gamma=gamma,
+            dx=float(header.dx),
+            dy=float(header.dy),
+            diagnostics=diagnostics,
+            walltime_s=float(meta.get("elapsed_wall_s", 0.0)),
+        )
+        row["is_reference"] = variant.name == REFERENCE
+        row["run_dir"] = str(run_dir)
+        row["metadata_path"] = str(run_dir / "metadata.json")
+        rows.append(row)
+        if not keep_grids and grid.is_file():
+            grid.unlink()
+    drift = next(
+        (s for s in staged if s[0].precision == "float" and s[0].opt_level == "O2" and not s[0].strict_riemann),
+        staged[-1],
+    )
+    figures = []
+    if rows and rows[0]["finite"] and next((row["finite"] for row in rows if row["variant"] == drift[0].name), False):
+        figures = write_figures(
+            out, drift[5], ref_arr, gamma=gamma, dx=float(ref_header.dx), dy=float(ref_header.dy)
+        )
+    return write_outputs(out, rows, solver=solver, profile=profile, git_commit=commit, figures=figures)
+
+
+def resolve_output_dir(path: pathlib.Path | None, solver: str) -> pathlib.Path:
+    solver = _normalise_solver(solver)
+    if path is None:
+        if solver == "hll":
+            return DEFAULT_OUT
+        return DEFAULT_OUT.with_name(f"{DEFAULT_OUT.name}_{solver}")
+    return path if path.is_absolute() else ROOT / path
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--out", type=pathlib.Path, default=None)
+    parser.add_argument("--solver", choices=SUPPORTED_SOLVERS, default="hll")
+    parser.add_argument("--profile", choices=tuple(PROFILES), default="gate")
+    parser.add_argument("--keep-grids", action="store_true")
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    packet = resolve_output_dir(args.out, args.solver) / PROFILES[_normalise_profile(args.profile)]["subdir"]
+    payload = run_deterministic(
+        packet,
+        solver=args.solver,
+        profile=args.profile,
+        keep_grids=args.keep_grids,
+    )
+    print(packet / "summary.md")
+    return 0 if payload["gates"]["G0_anchor"]["pass"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

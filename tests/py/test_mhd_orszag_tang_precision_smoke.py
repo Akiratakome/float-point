@@ -239,6 +239,7 @@ def test_write_outputs_emits_json_csv_markdown_with_gates_and_figures(tmp_path):
     assert payload["git_commit"] == "deadbeef"
     assert payload["reference_variant"] == REFERENCE
     assert payload["gates"]["G0"]["pass"] is True
+    assert payload["gates"]["G0_anchor"]["pass"] is True
     assert payload["figures"] == figures
     assert isinstance(payload["rows"][0]["walltime_s"], float)
 
@@ -266,3 +267,174 @@ def test_write_figures_creates_nonempty_pngs(tmp_path):
         path = tmp_path / rel
         assert path.is_file()
         assert path.stat().st_size > 100
+
+
+def test_run_deterministic_uses_injected_hooks_and_deletes_grids(tmp_path):
+    base = "test = orszag_tang\nnx = 256\nny = 256\nt_end = 0.5\ngamma = 1.6666666666666667\n"
+
+    class Header:
+        nx = 4
+        ny = 4
+        dx = 0.25
+        dy = 0.25
+
+    arr = np.zeros((4, 4, 9), dtype=np.float64)
+    arr[..., 0] = 1.0
+    arr[..., 4] = 0.5
+    arr[..., 5] = 0.25
+    arr[..., 7] = 3.0
+
+    built = []
+
+    def fake_builder(variant):
+        built.append(variant.name)
+        binary = tmp_path / "hrsc_mhd.exe"
+        binary.write_bytes(b"exe")
+        return binary
+
+    def fake_runner(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha256, **kwargs):
+        assert "riemann = hlld" in cfg_text
+        assert "nx = 128" in cfg_text
+        grid = Path(kwargs["output_bin"])
+        grid.parent.mkdir(parents=True, exist_ok=True)
+        grid.write_bytes(b"grid")
+        meta = {
+            "elapsed_wall_s": 0.1,
+            "stderr_diagnostics": {"steps": 76, "divB_mean": 0.2, "divB_max": 1.085},
+        }
+        return object(), meta, "stderr"
+
+    def fake_reader(path):
+        return Header(), arr.copy()
+
+    payload = ot.run_deterministic(
+        tmp_path / "out",
+        solver="hlld",
+        profile="gate",
+        base_cfg_text=base,
+        builder=fake_builder,
+        runner=fake_runner,
+        reader=fake_reader,
+        keep_grids=False,
+    )
+
+    assert len(payload["rows"]) == 8
+    assert len(built) == 8
+    assert built[0] == "cpu-double-O2-ieee-leq"
+    assert payload["rows"][0]["is_reference"] is True
+    assert payload["rows"][1]["metadata_path"].endswith("metadata.json")
+    assert payload["gates"]["G0_anchor"]["pass"] is True
+    assert payload["figures"]
+    assert not list((tmp_path / "out").glob("**/grid.bin"))
+
+
+def test_run_deterministic_skips_drift_figures_when_drift_grid_is_nonfinite(tmp_path):
+    base = "test = orszag_tang\nnx = 256\nny = 256\nt_end = 0.5\ngamma = 1.6666666666666667\n"
+
+    class Header:
+        nx = 4
+        ny = 4
+        dx = 0.25
+        dy = 0.25
+
+    finite = np.zeros((4, 4, 9), dtype=np.float64)
+    finite[..., 0] = 1.0
+    finite[..., 4] = 0.5
+    finite[..., 5] = 0.25
+    finite[..., 7] = 3.0
+    nan_grid = np.full((4, 4, 9), np.nan, dtype=np.float64)
+
+    def fake_builder(variant):
+        binary = tmp_path / "hrsc_mhd.exe"
+        binary.write_bytes(b"exe")
+        return binary
+
+    def fake_runner(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha256, **kwargs):
+        grid = Path(kwargs["output_bin"])
+        grid.parent.mkdir(parents=True, exist_ok=True)
+        grid.write_bytes(b"grid")
+        meta = {
+            "elapsed_wall_s": 0.1,
+            "stderr_diagnostics": {"steps": 76, "divB_mean": 0.2, "divB_max": 1.085},
+        }
+        return object(), meta, "stderr"
+
+    def fake_reader(path):
+        if "cpu-float-O2-ieee-leq" in str(path):
+            return Header(), nan_grid.copy()
+        return Header(), finite.copy()
+
+    payload = ot.run_deterministic(
+        tmp_path / "out",
+        solver="hlld",
+        profile="gate",
+        base_cfg_text=base,
+        builder=fake_builder,
+        runner=fake_runner,
+        reader=fake_reader,
+        keep_grids=False,
+    )
+
+    assert payload["gates"]["G0_anchor"]["pass"] is False
+    assert payload["figures"] == []
+    assert (tmp_path / "out" / "summary.json").is_file()
+    assert (tmp_path / "out" / "summary.csv").is_file()
+    assert (tmp_path / "out" / "summary.md").is_file()
+    assert next(row for row in payload["rows"] if row["variant"] == "cpu-float-O2-ieee-leq")["finite"] is False
+
+
+def test_run_deterministic_rejects_empty_or_missing_reference_variants(tmp_path):
+    def fail_builder(variant):
+        pytest.fail("explicit variants=[] must not default to the full P0 plan")
+
+    with pytest.raises(ValueError, match="variants.*empty"):
+        ot.run_deterministic(tmp_path / "empty", variants=[], builder=fail_builder)
+
+    non_reference = next(variant for variant in ot.select_variants("p0") if variant.name != REFERENCE)
+
+    with pytest.raises(ValueError, match="reference variant"):
+        ot.run_deterministic(tmp_path / "missing-reference", variants=[non_reference], builder=fail_builder)
+
+
+def test_resolve_output_dir_and_profile_subdirs():
+    assert ot.DEFAULT_OUT == ot.ROOT / "experiments" / "week15" / "orszag_tang_precision_smoke"
+    assert ot.resolve_output_dir(None, "hll") == ot.DEFAULT_OUT
+    assert ot.resolve_output_dir(None, "hlld").name == f"{ot.DEFAULT_OUT.name}_hlld"
+    explicit = ot.resolve_output_dir(Path("experiments/x"), "hlld")
+    assert explicit.is_absolute()
+    assert ot.PROFILES["gate"]["subdir"] == "gate128"
+    assert ot.PROFILES["headline"]["subdir"] == "headline256"
+
+
+def test_main_prints_packet_summary_and_returns_anchor_gate_status(tmp_path, monkeypatch, capsys):
+    calls = []
+
+    def fake_run_deterministic(packet, *, solver, profile, keep_grids):
+        calls.append((packet, solver, profile, keep_grids))
+        return {"gates": {"G0_anchor": {"pass": True}}}
+
+    monkeypatch.setattr(ot, "run_deterministic", fake_run_deterministic)
+
+    rc = ot.main([
+        "--out",
+        str(tmp_path),
+        "--solver",
+        "hlld",
+        "--profile",
+        "headline",
+        "--keep-grids",
+    ])
+
+    packet = tmp_path / "headline256"
+    assert rc == 0
+    assert calls == [(packet, "hlld", "headline", True)]
+    assert capsys.readouterr().out.strip() == str(packet / "summary.md")
+
+
+def test_main_returns_one_when_anchor_gate_fails(tmp_path, monkeypatch):
+    def fake_run_deterministic(packet, *, solver, profile, keep_grids):
+        return {"gates": {"G0_anchor": {"pass": False}}}
+
+    monkeypatch.setattr(ot, "run_deterministic", fake_run_deterministic)
+
+    assert ot.main(["--out", str(tmp_path), "--solver", "hll", "--profile", "gate"]) == 1
