@@ -1,0 +1,5 @@
+# ninja log v5
+37	3497	1783329152829434900	CMakeFiles/hrsc_mhd.dir/src/mhd_main.cpp.o	d2fa6cb027bf437d
+34	5300	1783329154623353200	CMakeFiles/hrsc_mhd_lib.dir/src/mhd/mhd_solver.cpp.o	e424948acf167c83
+5314	5687	1783329155047424900	libhrsc_mhd_lib.a	b0d332674052579d
+5691	9276	1783329158608194100	hrsc_mhd	5060de49e25d25e0

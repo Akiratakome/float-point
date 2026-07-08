@@ -1,0 +1,43 @@
+{
+  "experiment": "week14-mhd-hll-vs-hlld-figure-comparison",
+  "timestamp_utc": "2026-07-06T13:03:24.785795+00:00",
+  "inputs": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot\\summary.json",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot_hlld\\summary.json"
+  ],
+  "outputs": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot_hlld\\figures\\compare_hll_hlld_deterministic_linf.png",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot_hlld\\figures\\compare_hll_hlld_mca_spread.png",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot_hlld\\figures\\compare_hll_hlld_mca_snr.png"
+  ],
+  "solvers": [
+    "hll",
+    "hlld"
+  ],
+  "mca": {
+    "hll": {
+      "p53": {
+        "status": "completed",
+        "n": 8,
+        "runner": "docker"
+      },
+      "p24": {
+        "status": "completed",
+        "n": 8,
+        "runner": "docker"
+      }
+    },
+    "hlld": {
+      "p53": {
+        "status": "completed",
+        "n": 8,
+        "runner": "docker"
+      },
+      "p24": {
+        "status": "completed",
+        "n": 8,
+        "runner": "docker"
+      }
+    }
+  }
+}

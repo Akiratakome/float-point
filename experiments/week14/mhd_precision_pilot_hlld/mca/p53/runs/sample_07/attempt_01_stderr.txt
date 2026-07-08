@@ -1,0 +1,3 @@
+[mhd] t=0.100000 steps=762 divB_mean=4.666e-14 divB_max=2.142e-13
+
+TimeoutExpired: Command '['docker', 'run', '--rm', '-v', 'C:\\Users\\tangy\\Desktop\\floatpoint:/workdir', '-w', '/workdir', 'verificarlo/verificarlo:cmake', 'bash', '-lc', "VFC_BACKENDS='libinterflop_mca.so --mode=mca --precision-binary64=53' VFC_BACKENDS_SILENT_LOAD=True /workdir/experiments/week14/mhd_precision_pilot_hlld/mca/p53/build-vfc-p53/hrsc_mhd /workdir/experiments/week14/mhd_precision_pilot_hlld/mca/p53/runs/sample_07/config.cfg"]' timed out after -8435.45299999998 seconds

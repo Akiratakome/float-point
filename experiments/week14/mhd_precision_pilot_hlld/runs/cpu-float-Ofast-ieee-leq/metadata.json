@@ -1,0 +1,29 @@
+{
+  "experiment": "week14-mhd-precision-pilot",
+  "name": "cpu-float-Ofast-ieee-leq",
+  "timestamp_utc": "2026-07-06T09:12:07.837044+00:00",
+  "git_commit": "0ab957cfb2a10fcfaeef5867a8deaa601259118e",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-Ofast-ieee-leq\\hrsc_mhd.exe",
+  "binary_sha256": "0edcb4cb2728829e89a85e3b7e5bf192d799f154c4b9eb5ad7772ca867772b31",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot_hlld\\runs\\cpu-float-Ofast-ieee-leq\\config.cfg",
+  "run_config_sha256": "212a6e48bb7cc1a3d56174efb322aa8a0df3370eb0430a1587dcb9640cc97ccd",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\nriemann = hlld\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot_hlld\\runs\\cpu-float-Ofast-ieee-leq\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-Ofast-ieee-leq\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot_hlld\\runs\\cpu-float-Ofast-ieee-leq\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.43438290001358837,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot_hlld\\runs\\cpu-float-Ofast-ieee-leq\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot_hlld\\runs\\cpu-float-Ofast-ieee-leq\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.1,
+    "steps": 761,
+    "divB_mean": 0.0,
+    "divB_max": 0.0,
+    "line": "[mhd] t=0.100000 steps=761 divB_mean=0.000e+00 divB_max=0.000e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week14\\mhd_precision_pilot_hlld\\runs\\cpu-float-Ofast-ieee-leq\\grid.bin"
+}
