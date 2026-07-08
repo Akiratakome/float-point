@@ -265,6 +265,44 @@ def test_metric_does_not_plot_nonfinite_rows_as_zero_drift():
     assert supp._metric({"finite": True, "Linf_rho": 0.0}, "Linf_rho") == np.finfo(np.float64).tiny
 
 
+def test_positive_metric_drops_zero_and_nonfinite_for_log_axis():
+    # Guards the resolution-ladder log-axis fix: an identically-zero
+    # self-reference point (or a non-finite row) must be excluded, not clamped
+    # to the float64 tiny floor, which otherwise stretched the y-axis to ~1e-300.
+    assert supp._positive_metric({"finite": True, "L1_rho": 0.0}, "L1_rho") is None
+    assert supp._positive_metric({"finite": False, "L1_rho": 0.5}, "L1_rho") is None
+    assert supp._positive_metric({"finite": True, "L1_rho": float("nan")}, "L1_rho") is None
+    assert supp._positive_metric({"finite": True, "L1_rho": 1.42e-7}, "L1_rho") == 1.42e-7
+
+
+def test_resolution_ladder_plot_keeps_a_sane_log_ylim_with_zero_reference(tmp_path, monkeypatch):
+    # Capture the axes the real plot builds; the fixed plot must set its log
+    # y-limits from the positive points only, never descending toward the
+    # ~1e-300 float64 tiny floor that the zero self-reference used to force.
+    captured = {}
+    real_savefig = supp._savefig
+
+    def capture(fig, path):
+        captured["ylim"] = fig.axes[0].get_ylim()
+        real_savefig(fig, path)
+
+    monkeypatch.setattr(supp, "_savefig", capture)
+    summary = {
+        "rows": [
+            {"nx": 200, "precision": "double", "finite": True, "L1_rho": 1.2e-2},
+            {"nx": 400, "precision": "double", "finite": True, "L1_rho": 6.6e-3},
+            {"nx": 1600, "precision": "double", "finite": True, "L1_rho": 0.0},
+            {"nx": 1600, "precision": "float", "finite": True, "L1_rho": 1.4e-7},
+        ]
+    }
+
+    supp.plot_resolution_ladder(summary, tmp_path / "resolution.png")
+
+    lo, hi = captured["ylim"]
+    assert lo >= 1e-8
+    assert hi <= 1.0
+
+
 def test_preserve_run_provenance_carries_metadata_after_remeasurement():
     measured = {"variant": "cpu-double-O2-ieee-leq", "L1_rho": 0.0}
     run_row = {

@@ -597,23 +597,51 @@ def plot_resolution_ladder(summary: Mapping[str, Any], path: str | pathlib.Path)
     plt = _pyplot()
     fig, ax = plt.subplots(figsize=(6.0, 4.0))
     rows = list(_summary_rows(summary))
+    plotted_values: list[float] = []
+    dropped_reference: list[tuple[str, int]] = []
     for precision in sorted({str(row.get("precision", "unknown")) for row in rows}):
         series = sorted(
             (row for row in rows if str(row.get("precision", "unknown")) == precision),
             key=lambda row: float(row.get("nx", 0)),
         )
-        ax.plot(
-            [float(row["nx"]) for row in series],
-            [_metric(row, "L1_rho") for row in series],
-            marker="o",
-            label=precision,
-        )
+        xs: list[float] = []
+        ys: list[float] = []
+        for row in series:
+            value = _positive_metric(row, "L1_rho")
+            if value is None:
+                # An identically-zero error is the self-reference point (the
+                # fp64 finest-grid run compared to itself). It cannot appear on
+                # a log axis; recording it for annotation avoids clamping it to
+                # the float64 tiny floor, which otherwise stretched the y-axis
+                # down to ~1e-300 and hid the real convergence trend.
+                dropped_reference.append((precision, int(float(row.get("nx", 0)))))
+                continue
+            xs.append(float(row["nx"]))
+            ys.append(value)
+            plotted_values.append(value)
+        if xs:
+            ax.plot(xs, ys, marker="o", label=precision)
     ax.set_xlabel("nx")
     ax.set_ylabel("L1 rho vs reference")
     ax.set_title("Brio-Wu resolution ladder")
     ax.set_xscale("log", base=2)
     ax.set_yscale("log")
+    if plotted_values:
+        lo = 10.0 ** math.floor(math.log10(min(plotted_values)))
+        hi = 10.0 ** math.ceil(math.log10(max(plotted_values)))
+        ax.set_ylim(lo, hi)
     ax.grid(True, which="both", alpha=0.3)
+    if dropped_reference:
+        note = ", ".join(f"{prec} nx={nx}" for prec, nx in dropped_reference)
+        ax.text(
+            0.02,
+            0.02,
+            f"reference (error=0, off log axis): {note}",
+            transform=ax.transAxes,
+            fontsize=7,
+            va="bottom",
+            alpha=0.7,
+        )
     ax.legend()
     _savefig(fig, path)
 
@@ -874,6 +902,20 @@ def _metric(row: Mapping[str, Any], key: str) -> float:
         return float("nan")
     value = float(row.get(key, 0.0))
     return max(value, np.finfo(np.float64).tiny)
+
+
+def _positive_metric(row: Mapping[str, Any], key: str) -> float | None:
+    """Return the raw finite metric for log plotting, or None if non-plottable.
+
+    A zero (self-reference) or non-finite value has no place on a log axis, so
+    callers can skip/annotate it rather than clamp it to the float64 tiny floor.
+    """
+    if row.get("finite") is False:
+        return None
+    value = float(row.get(key, 0.0))
+    if not math.isfinite(value) or value <= 0.0:
+        return None
+    return value
 
 
 def _pyplot():
