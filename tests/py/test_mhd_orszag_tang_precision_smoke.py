@@ -396,6 +396,59 @@ def test_run_deterministic_rejects_empty_or_missing_reference_variants(tmp_path)
         ot.run_deterministic(tmp_path / "missing-reference", variants=[non_reference], builder=fail_builder)
 
 
+def test_run_deterministic_p1_variant_set_builds_all_24_variants(tmp_path):
+    base = "test = orszag_tang\nnx = 256\nny = 256\nt_end = 0.5\ngamma = 1.6666666666666667\n"
+
+    class Header:
+        nx = 4
+        ny = 4
+        dx = 0.25
+        dy = 0.25
+
+    arr = np.zeros((4, 4, 9), dtype=np.float64)
+    arr[..., 0] = 1.0
+    arr[..., 4] = 0.5
+    arr[..., 5] = 0.25
+    arr[..., 7] = 3.0
+
+    built = []
+
+    def fake_builder(variant):
+        built.append(variant.name)
+        binary = tmp_path / "hrsc_mhd.exe"
+        binary.write_bytes(b"exe")
+        return binary
+
+    def fake_runner(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha256, **kwargs):
+        grid = Path(kwargs["output_bin"])
+        grid.parent.mkdir(parents=True, exist_ok=True)
+        grid.write_bytes(b"grid")
+        meta = {
+            "elapsed_wall_s": 0.1,
+            "stderr_diagnostics": {"steps": 806, "divB_mean": 0.5, "divB_max": 3.72},
+        }
+        return object(), meta, "stderr"
+
+    def fake_reader(path):
+        return Header(), arr.copy()
+
+    payload = ot.run_deterministic(
+        tmp_path / "out",
+        solver="hll",
+        profile="headline",
+        variant_set="p1",
+        base_cfg_text=base,
+        builder=fake_builder,
+        runner=fake_runner,
+        reader=fake_reader,
+        keep_grids=False,
+    )
+
+    assert len(built) == 24
+    assert len(payload["rows"]) == 24
+    assert payload["gates"]["G0_anchor"]["pass"] is True
+
+
 def test_resolve_output_dir_and_profile_subdirs():
     assert ot.DEFAULT_OUT == ot.ROOT / "experiments" / "week15" / "orszag_tang_precision_smoke"
     assert ot.resolve_output_dir(None, "hll") == ot.DEFAULT_OUT

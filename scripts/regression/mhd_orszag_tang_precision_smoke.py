@@ -461,6 +461,7 @@ def run_deterministic(
     *,
     solver: str = "hll",
     profile: str = "gate",
+    variant_set: str = "p0",
     variants: Sequence[Any] | None = None,
     base_cfg_text: str | None = None,
     builder=build_variant,
@@ -471,7 +472,7 @@ def run_deterministic(
     solver = _normalise_solver(solver)
     profile = _normalise_profile(profile)
     out = pathlib.Path(out_dir)
-    selected = select_variants("p0") if variants is None else list(variants)
+    selected = select_variants(variant_set) if variants is None else list(variants)
     if not selected:
         raise ValueError("variants must not be empty")
     if not any(variant.name == REFERENCE for variant in selected):
