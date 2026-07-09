@@ -29,7 +29,14 @@ DEFAULT_CASE = ROOT / "tests" / "cases" / "brio_wu_1d" / "brio_wu.cfg"
 DEFAULT_OUT = ROOT / "experiments" / "week13" / "mhd_verificarlo_smoke"
 DEFAULT_IMAGE = "verificarlo/verificarlo"
 EXPERIMENT = "week13-mhd-verificarlo-smoke"
-SAMPLE_MAX_ATTEMPTS = 3
+# Retries per MCA sample. At p24 (float-level virtual precision) the MCA
+# rounding occasionally drives the CFL timestep to ~0 and the solver aborts with
+# "did not advance time" — a stochastic, per-run transient (each Verificarlo run
+# reseeds). Measured ~19% per-attempt stall rate on Brio-Wu p24, so 3 attempts
+# left a ~0.7% chance of a sample exhausting all retries and blocking the whole
+# 30-sample block; 6 attempts drops that to ~1e-4 while never affecting samples
+# that succeed on the first try.
+SAMPLE_MAX_ATTEMPTS = 6
 
 sys.path.insert(0, str(ROOT / "scripts" / "regression"))
 from _mhd_harness import git_commit, replace_or_append_cfg, sha256_file  # noqa: E402
