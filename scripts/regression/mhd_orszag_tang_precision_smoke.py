@@ -146,11 +146,13 @@ def plan_row(variant: Any, solver: str, profile: str) -> dict[str, Any]:
     }
 
 
-def deterministic_plan(solver: str = "hll", profile: str = "gate") -> list[dict[str, Any]]:
-    """Return P0 deterministic smoke rows with the reference variant first."""
+def deterministic_plan(
+    solver: str = "hll", profile: str = "gate", variant_set: str = "p0"
+) -> list[dict[str, Any]]:
+    """Return deterministic smoke rows for the given variant tier ("p0"=8, "p1"=24), reference first."""
     solver = _normalise_solver(solver)
     profile = _normalise_profile(profile)
-    variants = ordered_variants_reference_first(select_variants("p0"))
+    variants = ordered_variants_reference_first(select_variants(variant_set))
     return [plan_row(variant, solver, profile) for variant in variants]
 
 

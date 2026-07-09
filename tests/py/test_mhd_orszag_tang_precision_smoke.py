@@ -438,3 +438,18 @@ def test_main_returns_one_when_anchor_gate_fails(tmp_path, monkeypatch):
     monkeypatch.setattr(ot, "run_deterministic", fake_run_deterministic)
 
     assert ot.main(["--out", str(tmp_path), "--solver", "hll", "--profile", "gate"]) == 1
+
+
+def test_deterministic_plan_p1_variant_set_returns_full_breadth_fan():
+    p0_rows = ot.deterministic_plan()
+    p1_rows = ot.deterministic_plan(solver="hlld", profile="headline", variant_set="p1")
+
+    assert len(p0_rows) == 8
+    assert len(p1_rows) == 24
+    assert p1_rows[0]["variant"] == REFERENCE
+    assert all(row["solver"] == "hlld" and row["profile"] == "headline" for row in p1_rows)
+    p1_names = {row["variant"] for row in p1_rows}
+    assert "cpu-double-O3-fastmath-leq" in p1_names
+    assert "cpu-float-O3-fastmath-strict" in p1_names
+    p0_names = {row["variant"] for row in p0_rows}
+    assert p0_names < p1_names
