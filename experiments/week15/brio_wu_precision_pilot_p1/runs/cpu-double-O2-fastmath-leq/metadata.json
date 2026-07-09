@@ -1,0 +1,29 @@
+{
+  "experiment": "week14-mhd-precision-pilot",
+  "name": "cpu-double-O2-fastmath-leq",
+  "timestamp_utc": "2026-07-09T11:20:04.936596+00:00",
+  "git_commit": "3728e1babddb799292b891a63b5e7022300a1171",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-fastmath-leq\\hrsc_mhd.exe",
+  "binary_sha256": "26149fd9f4d6212269bf6defdcb7e25895fb8cc3a3d0a9efd533c93168794e76",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-fastmath-leq\\config.cfg",
+  "run_config_sha256": "a37691a549487c103aa755304f9cb4b658cb7875c6c8e8ebbeafc4861f4f6fd1",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-fastmath-leq\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-fastmath-leq\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-fastmath-leq\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.17525539989583194,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-fastmath-leq\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-fastmath-leq\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.1,
+    "steps": 759,
+    "divB_mean": 0.0,
+    "divB_max": 0.0,
+    "line": "[mhd] t=0.100000 steps=759 divB_mean=0.000e+00 divB_max=0.000e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-fastmath-leq\\grid.bin"
+}

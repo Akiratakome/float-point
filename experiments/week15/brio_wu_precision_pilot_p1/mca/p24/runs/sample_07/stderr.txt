@@ -1,0 +1,1 @@
+[mhd] t=0.100000 steps=759 divB_mean=2.161e-05 divB_max=9.877e-05

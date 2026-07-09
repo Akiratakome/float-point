@@ -1,0 +1,198 @@
+{
+  "experiment": "week14-mhd-precision-pilot",
+  "output_root": "experiments\\week15\\brio_wu_precision_pilot_p1",
+  "runs": [
+    {
+      "name": "cpu-double-O2-ieee-leq",
+      "binary": "build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-O2-ieee-strict",
+      "binary": "build-matrix\\cpu-double-O2-ieee-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-O2-fastmath-leq",
+      "binary": "build-matrix\\cpu-double-O2-fastmath-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-fastmath-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-O2-fastmath-strict",
+      "binary": "build-matrix\\cpu-double-O2-fastmath-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-fastmath-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-O3-ieee-leq",
+      "binary": "build-matrix\\cpu-double-O3-ieee-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-O3-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-O3-ieee-strict",
+      "binary": "build-matrix\\cpu-double-O3-ieee-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-O3-ieee-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-O3-fastmath-leq",
+      "binary": "build-matrix\\cpu-double-O3-fastmath-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-O3-fastmath-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-O3-fastmath-strict",
+      "binary": "build-matrix\\cpu-double-O3-fastmath-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-O3-fastmath-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-Ofast-ieee-leq",
+      "binary": "build-matrix\\cpu-double-Ofast-ieee-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-Ofast-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-Ofast-ieee-strict",
+      "binary": "build-matrix\\cpu-double-Ofast-ieee-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-Ofast-ieee-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-Ofast-fastmath-leq",
+      "binary": "build-matrix\\cpu-double-Ofast-fastmath-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-Ofast-fastmath-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-double-Ofast-fastmath-strict",
+      "binary": "build-matrix\\cpu-double-Ofast-fastmath-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "double",
+      "build": "cpu-double-Ofast-fastmath-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-O2-ieee-leq",
+      "binary": "build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-O2-ieee-strict",
+      "binary": "build-matrix\\cpu-float-O2-ieee-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-ieee-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-O2-fastmath-leq",
+      "binary": "build-matrix\\cpu-float-O2-fastmath-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-fastmath-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-O2-fastmath-strict",
+      "binary": "build-matrix\\cpu-float-O2-fastmath-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-O2-fastmath-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-O3-ieee-leq",
+      "binary": "build-matrix\\cpu-float-O3-ieee-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-O3-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-O3-ieee-strict",
+      "binary": "build-matrix\\cpu-float-O3-ieee-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-O3-ieee-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-O3-fastmath-leq",
+      "binary": "build-matrix\\cpu-float-O3-fastmath-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-O3-fastmath-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-O3-fastmath-strict",
+      "binary": "build-matrix\\cpu-float-O3-fastmath-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-O3-fastmath-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-Ofast-ieee-leq",
+      "binary": "build-matrix\\cpu-float-Ofast-ieee-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-Ofast-ieee-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-Ofast-ieee-strict",
+      "binary": "build-matrix\\cpu-float-Ofast-ieee-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-Ofast-ieee-strict",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-Ofast-fastmath-leq",
+      "binary": "build-matrix\\cpu-float-Ofast-fastmath-leq\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-Ofast-fastmath-leq",
+      "output_file": "grid.bin"
+    },
+    {
+      "name": "cpu-float-Ofast-fastmath-strict",
+      "binary": "build-matrix\\cpu-float-Ofast-fastmath-strict\\hrsc_mhd.exe",
+      "config": "tests/cases/brio_wu_1d/brio_wu.cfg",
+      "precision": "float",
+      "build": "cpu-float-Ofast-fastmath-strict",
+      "output_file": "grid.bin"
+    }
+  ]
+}

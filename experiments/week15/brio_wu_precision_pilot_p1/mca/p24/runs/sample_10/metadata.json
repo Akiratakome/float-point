@@ -1,0 +1,39 @@
+{
+  "experiment": "week14-mhd-mca",
+  "timestamp_utc": "2026-07-09T11:24:09.661184+00:00",
+  "git_commit": "3728e1babddb799292b891a63b5e7022300a1171",
+  "runner": "docker",
+  "precision": 24,
+  "solver": "hll",
+  "sample": "sample_10",
+  "attempt": 1,
+  "max_attempts": 6,
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\mca\\p24\\runs\\sample_10\\config.cfg",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\nriemann = hll\noutput_format = binary\noutput_file = /workdir/experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_10/grid.bin\n",
+  "command": [
+    "docker",
+    "run",
+    "--rm",
+    "-v",
+    "C:\\Users\\tangy\\Desktop\\floatpoint:/workdir",
+    "-w",
+    "/workdir",
+    "verificarlo/verificarlo:cmake",
+    "bash",
+    "-lc",
+    "VFC_BACKENDS='libinterflop_mca.so --mode=mca --precision-binary64=24' VFC_BACKENDS_SILENT_LOAD=True /workdir/experiments/week15/brio_wu_precision_pilot_p1/mca/p24/build-vfc-p53/hrsc_mhd /workdir/experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_10/config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 59.07513289991766,
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\mca\\p24\\runs\\sample_10\\grid.bin",
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\mca\\p24\\runs\\sample_10\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\mca\\p24\\runs\\sample_10\\stderr.txt",
+  "grid_metrics": {
+    "grid_status": "read",
+    "rho_min": 0.11716043319718164,
+    "rho_max": 1.000000086871222,
+    "rho_mean": 0.562499977860051
+  }
+}

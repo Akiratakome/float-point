@@ -1,0 +1,29 @@
+{
+  "experiment": "week14-mhd-precision-pilot",
+  "name": "cpu-double-O3-ieee-leq",
+  "timestamp_utc": "2026-07-09T11:20:05.546485+00:00",
+  "git_commit": "3728e1babddb799292b891a63b5e7022300a1171",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O3-ieee-leq\\hrsc_mhd.exe",
+  "binary_sha256": "e4ac1fc3a3c77fd07a4a374c95b2a8837f62c610f8ad5a1443dd976b5d12cd6f",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O3-ieee-leq\\config.cfg",
+  "run_config_sha256": "377345f07d48ae4867a10e21dc332a564b702e79efffa6da14a9174511d54f4d",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O3-ieee-leq\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O3-ieee-leq\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O3-ieee-leq\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.17192999995313585,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O3-ieee-leq\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O3-ieee-leq\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.1,
+    "steps": 759,
+    "divB_mean": 3.339e-16,
+    "divB_max": 4.441e-14,
+    "line": "[mhd] t=0.100000 steps=759 divB_mean=3.339e-16 divB_max=4.441e-14"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O3-ieee-leq\\grid.bin"
+}

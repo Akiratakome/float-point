@@ -1,0 +1,66 @@
+{
+  "experiment": "week14-mhd-mca",
+  "timestamp_utc": "2026-07-09T11:27:28.301414+00:00",
+  "git_commit": "3728e1babddb799292b891a63b5e7022300a1171",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+  "case": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "case_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "output_root": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\mca\\p24",
+  "samples": 30,
+  "precision": 24,
+  "solver": "hll",
+  "image": "verificarlo/verificarlo:cmake",
+  "probe_only": false,
+  "selected_runner": "docker",
+  "probes": [
+    {
+      "name": "native",
+      "command": [
+        "verificarlo-c++",
+        "--version"
+      ],
+      "returncode": 127,
+      "stdout": "",
+      "stderr": "[WinError 2] \u7cfb\u7edf\u627e\u4e0d\u5230\u6307\u5b9a\u7684\u6587\u4ef6\u3002",
+      "supported": false,
+      "runner": null
+    },
+    {
+      "name": "wsl",
+      "command": [
+        "wsl",
+        "bash",
+        "-lc",
+        "verificarlo-c++ --version && cmake --version"
+      ],
+      "returncode": 127,
+      "stdout": "",
+      "stderr": "w s l :   \ufffdhKm0R  l o c a l h o s t   \ufffdN tM\ufffdn\u007f \ufffdFO*g\\\ufffd\ufffdP0R  W S L  0N A T   !j _ N\ufffdv  W S L   \nN/e c  l o c a l h o s t   \ufffdN t 0\n \n bash: line 1: verificarlo-c++: command not found\n",
+      "supported": false,
+      "runner": null
+    },
+    {
+      "name": "docker",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "-v",
+        "C:\\Users\\tangy\\Desktop\\floatpoint:/workdir",
+        "-w",
+        "/workdir",
+        "verificarlo/verificarlo:cmake",
+        "bash",
+        "-lc",
+        "verificarlo-c++ --version && cmake --version"
+      ],
+      "returncode": 0,
+      "stdout": "verificarlo 2.5.1\ncmake version 3.28.3\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\n",
+      "stderr": "",
+      "supported": true,
+      "runner": "docker"
+    }
+  ],
+  "status": "completed"
+}
