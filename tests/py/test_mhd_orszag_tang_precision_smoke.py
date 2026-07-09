@@ -506,3 +506,37 @@ def test_deterministic_plan_p1_variant_set_returns_full_breadth_fan():
     assert "cpu-float-O3-fastmath-strict" in p1_names
     p0_names = {row["variant"] for row in p0_rows}
     assert p0_names < p1_names
+
+
+def test_write_outputs_includes_g1_ordering_flags(tmp_path):
+    p0_written = ot.write_outputs(
+        tmp_path / "p0",
+        [_row(), _row(variant="cpu-float-O2-ieee-leq")],
+        solver="hll",
+        profile="gate",
+        git_commit="deadbeef",
+        figures=[],
+    )
+    assert p0_written["gates"]["G1"]["ordering_flags"] == []
+
+    ieee_row = _row(variant="cpu-float-O3-ieee-leq", solver="hll", profile="headline")
+    ieee_row["precision"] = "float"
+    ieee_row["opt"] = "O3"
+    ieee_row["Linf_rho"] = 0.5
+    fastmath_row = _row(variant="cpu-float-O3-fastmath-leq", solver="hll", profile="headline")
+    fastmath_row["precision"] = "float"
+    fastmath_row["opt"] = "O3"
+    fastmath_row["fastmath"] = True
+    fastmath_row["Linf_rho"] = 0.2
+
+    p1_written = ot.write_outputs(
+        tmp_path / "p1",
+        [_row(solver="hll", profile="headline"), ieee_row, fastmath_row],
+        solver="hll",
+        profile="headline",
+        git_commit="deadbeef",
+        figures=[],
+    )
+    flags = p1_written["gates"]["G1"]["ordering_flags"]
+    assert len(flags) == 1
+    assert flags[0]["axis"] == "fastmath"

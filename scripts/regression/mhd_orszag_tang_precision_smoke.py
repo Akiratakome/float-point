@@ -56,7 +56,7 @@ from mhd_precision_pilot import (  # noqa: E402
     ordered_variants_reference_first,
     select_variants,
 )
-from mhd_precision_pilot_core import REFERENCE  # noqa: E402
+from mhd_precision_pilot_core import REFERENCE, ordering_flags  # noqa: E402
 
 
 ROW_COLUMNS = (
@@ -263,7 +263,11 @@ def write_outputs(
         "profile": profile,
         "git_commit": _jsonable(git_commit),
         "reference_variant": REFERENCE,
-        "gates": {"G0": anchor, "G0_anchor": anchor},
+        "gates": {
+            "G0": anchor,
+            "G0_anchor": anchor,
+            "G1": {"ordering_flags": ordering_flags(safe_rows)},
+        },
         "rows": safe_rows,
         "figures": _jsonable(figures),
         "notes": {
