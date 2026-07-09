@@ -190,3 +190,15 @@ def test_sample_precision_accepts_explicit_case_and_experiment(monkeypatch, tmp_
     assert seen["case"] == case
     assert seen["experiment"] == "week15-mhd-mca"
     assert block["status"] == "blocked_run"
+
+
+def test_sample_args_threads_jobs_default_one():
+    ns = sampler._sample_args(Path("."), 53, 4, "img", "hll")
+    assert ns.jobs == 1
+    ns5 = sampler._sample_args(Path("."), 53, 4, "img", "hll", jobs=5)
+    assert ns5.jobs == 5
+
+
+def test_parse_args_accepts_jobs():
+    assert sampler.parse_args(["--jobs", "7"]).jobs == 7
+    assert sampler.parse_args([]).jobs == 1

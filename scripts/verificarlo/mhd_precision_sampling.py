@@ -74,6 +74,7 @@ def _sample_args(
     image: str,
     solver: str,
     case: pathlib.Path = DEFAULT_CASE,
+    jobs: int = 1,
 ) -> argparse.Namespace:
     return argparse.Namespace(
         case=pathlib.Path(case),
@@ -83,6 +84,7 @@ def _sample_args(
         image=image,
         probe_only=False,
         solver=_normalise_solver(solver),
+        jobs=max(1, int(jobs)),
     )
 
 
@@ -133,12 +135,17 @@ def sample_precision(
     solver: str = "hll",
     case: pathlib.Path = DEFAULT_CASE,
     experiment: str = WEEK14_MCA_EXPERIMENT,
+    jobs: int = 1,
 ) -> dict[str, Any]:
-    """Run one MCA precision block and return schema-complete field metrics."""
+    """Run one MCA precision block and return schema-complete field metrics.
+
+    ``jobs`` sets how many independent MCA sample containers run concurrently
+    (default 1 = sequential, historical behaviour).
+    """
     solver = _normalise_solver(solver)
     probes = probe_runners(image)
     runner = choose_runner(probes)
-    args = _sample_args(pathlib.Path(out_dir), precision, samples, image, solver, pathlib.Path(case))
+    args = _sample_args(pathlib.Path(out_dir), precision, samples, image, solver, pathlib.Path(case), jobs=jobs)
     args.out.mkdir(parents=True, exist_ok=True)
     if runner is None:
         environment = _base_environment_with_experiment_label(args, probes, None, experiment)
@@ -190,6 +197,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--solver", choices=("hll", "hlld"), default="hll")
     parser.add_argument("--case", type=pathlib.Path, default=DEFAULT_CASE)
     parser.add_argument("--experiment", default=WEEK14_MCA_EXPERIMENT)
+    parser.add_argument(
+        "--jobs", type=int, default=1,
+        help="Number of MCA sample containers to run concurrently (default 1).")
     return parser.parse_args(argv)
 
 
@@ -210,11 +220,11 @@ def main(argv: list[str] | None = None) -> int:
     mca = {
         "p53": sample_precision(
             out / "p53", precision=53, samples=args.samples, image=args.image,
-            solver=args.solver, case=case, experiment=args.experiment,
+            solver=args.solver, case=case, experiment=args.experiment, jobs=args.jobs,
         ),
         "p24": sample_precision(
             out / "p24", precision=24, samples=args.samples, image=args.image,
-            solver=args.solver, case=case, experiment=args.experiment,
+            solver=args.solver, case=case, experiment=args.experiment, jobs=args.jobs,
         ),
     }
     summary = {

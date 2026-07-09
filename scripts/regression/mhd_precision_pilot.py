@@ -306,6 +306,7 @@ def _load_or_run_mca(args: argparse.Namespace, out: pathlib.Path, solver: str) -
                 samples=args.samples,
                 image=args.mca_image,
                 solver=solver,
+                jobs=getattr(args, "jobs", 1),
             ),
             "p24": sampler.sample_precision(
                 mca_out / "p24",
@@ -313,6 +314,7 @@ def _load_or_run_mca(args: argparse.Namespace, out: pathlib.Path, solver: str) -
                 samples=args.samples,
                 image=args.mca_image,
                 solver=solver,
+                jobs=getattr(args, "jobs", 1),
             ),
         }
 
@@ -365,6 +367,9 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--skip-mca", action="store_true")
     parser.add_argument("--mca-summary", type=pathlib.Path)
     parser.add_argument("--mca-image", default="verificarlo/verificarlo")
+    parser.add_argument(
+        "--jobs", type=int, default=1,
+        help="Number of MCA sample containers to run concurrently (default 1).")
     return parser.parse_args(argv)
 
 

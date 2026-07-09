@@ -210,3 +210,28 @@ def test_measure_run_nonfinite_reference_returns_failing_row():
         "p24": drv.core.blocked_mca_block("blocked_environment", "test"),
     }
     assert drv.core.schema_valid([row], mca) is True
+
+
+def test_parse_args_accepts_jobs_default_one():
+    import types  # noqa: F401 (kept local; other tests build their own namespaces)
+    assert drv._parse_args([]).jobs == 1
+    assert drv._parse_args(["--jobs", "9"]).jobs == 9
+
+
+def test_load_or_run_mca_forwards_jobs(monkeypatch, tmp_path):
+    import types
+
+    captured = []
+
+    class FakeSampler:
+        @staticmethod
+        def sample_precision(out_dir, **kwargs):
+            captured.append((kwargs["precision"], kwargs["jobs"]))
+            return {"status": "completed"}
+
+    monkeypatch.setattr(drv.importlib, "import_module", lambda name: FakeSampler)
+    args = types.SimpleNamespace(
+        skip_mca=False, mca_summary=None, samples=3, mca_image="img", jobs=6)
+    drv._load_or_run_mca(args, tmp_path, solver="hll")
+    assert (53, 6) in captured
+    assert (24, 6) in captured

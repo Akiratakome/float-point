@@ -170,3 +170,78 @@ def test_run_samples_retries_failed_mca_sample(tmp_path, monkeypatch):
     assert rows[0]["attempt"] == 2
     assert commands.count(["sample"]) == 2
     assert "Produced 1 Verificarlo MCA sample grids" in reason
+
+
+def test_run_samples_jobs_runs_samples_concurrently_in_order(tmp_path, monkeypatch):
+    import threading
+    import time as _time
+
+    case = tmp_path / "brio_wu.cfg"
+    case.write_text("test = brio_wu\n", encoding="utf-8")
+    args = SimpleNamespace(out=tmp_path, case=case, samples=6, image="vfc", precision=53, jobs=3)
+
+    monkeypatch.setattr(smoke, "build_commands_for_runner", lambda runner, image, build_dir: [["build"]])
+    monkeypatch.setattr(smoke, "sample_command_for_runner", lambda *parts: ["sample"])
+
+    lock = threading.Lock()
+    active = 0
+    peak = 0
+
+    def fake_run_command(command, **kwargs):
+        nonlocal active, peak
+        if command == ["build"]:
+            return {"returncode": 0, "stdout": "", "stderr": ""}
+        with lock:
+            active += 1
+            peak = max(peak, active)
+        _time.sleep(0.05)
+        with lock:
+            active -= 1
+        return {"returncode": 0, "stdout": "", "stderr": ""}
+
+    monkeypatch.setattr(smoke, "run_command", fake_run_command)
+    monkeypatch.setattr(
+        smoke, "read_grid_metrics",
+        lambda path: {"grid_status": "read", "rho_min": 1.0, "rho_max": 1.0, "rho_mean": 1.0})
+    monkeypatch.setattr(smoke, "git_commit", lambda: "sha")
+    monkeypatch.setattr(smoke, "sha256_file", lambda path: "hash")
+
+    status, rows, reason = smoke.run_samples(args, [], "docker")
+
+    assert status == "completed"
+    assert len(rows) == 6
+    # Rows are returned in deterministic sample order regardless of completion order.
+    assert [row["sample"] for row in rows] == [f"sample_{i:02d}" for i in range(1, 7)]
+    # jobs=3 means at least two containers were genuinely in flight at once.
+    assert peak > 1
+    assert "Produced 6 Verificarlo MCA sample grids" in reason
+
+
+def test_run_samples_jobs_reports_blocked_run_when_a_sample_fails(tmp_path, monkeypatch):
+    case = tmp_path / "brio_wu.cfg"
+    case.write_text("test = brio_wu\n", encoding="utf-8")
+    args = SimpleNamespace(out=tmp_path, case=case, samples=4, image="vfc", precision=53, jobs=4)
+
+    monkeypatch.setattr(smoke, "build_commands_for_runner", lambda runner, image, build_dir: [["build"]])
+    monkeypatch.setattr(smoke, "sample_command_for_runner", lambda *parts: ["sample"])
+
+    def fake_run_command(command, **kwargs):
+        return {"returncode": 0, "stdout": "", "stderr": ""}
+
+    # sample_03 never produces a readable grid; the others always do.
+    def fake_grid_metrics(path):
+        if "sample_03" in str(path):
+            return {"grid_status": "missing", "rho_min": None, "rho_max": None, "rho_mean": None}
+        return {"grid_status": "read", "rho_min": 1.0, "rho_max": 1.0, "rho_mean": 1.0}
+
+    monkeypatch.setattr(smoke, "run_command", fake_run_command)
+    monkeypatch.setattr(smoke, "read_grid_metrics", fake_grid_metrics)
+    monkeypatch.setattr(smoke, "git_commit", lambda: "sha")
+    monkeypatch.setattr(smoke, "sha256_file", lambda path: "hash")
+
+    status, rows, reason = smoke.run_samples(args, [], "docker")
+
+    assert status == "blocked_run"
+    assert "sample_03" in reason
+    # The three healthy samples are still reported as produced rows.
+    assert {row["sample"] for row in rows} == {"sample_01", "sample_02", "sample_04"}

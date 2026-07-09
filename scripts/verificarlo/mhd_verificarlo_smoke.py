@@ -18,6 +18,7 @@ import shutil
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -425,85 +426,134 @@ def run_samples(args: argparse.Namespace, probes: list[dict[str, Any]], runner: 
             return "blocked_run", [], f"Verificarlo build failed for runner `{runner}` at build command {index}."
 
     source_text = args.case.read_text(encoding="utf-8")
-    sample_rows: list[dict[str, Any]] = []
-    for i in range(1, args.samples + 1):
-        sample_name = f"sample_{i:02d}"
-        run_dir = runs_dir / sample_name
-        run_dir.mkdir(parents=True, exist_ok=True)
-        grid_path = run_dir / "grid.bin"
-        cfg_path = run_dir / "config.cfg"
-        for attempt in range(1, SAMPLE_MAX_ATTEMPTS + 1):
-            if grid_path.exists():
-                grid_path.unlink()
-            cfg_text = make_sample_cfg(
-                source_text,
-                runner_path(runner, grid_path),
-                solver=getattr(args, "solver", None),
-            )
-            cfg_path.write_text(cfg_text, encoding="utf-8")
-            command = sample_command_for_runner(runner, args.image, build_dir, cfg_path, args.precision)
-            t0 = time.perf_counter()
-            result = run_command(command, timeout=300)
-            elapsed = time.perf_counter() - t0
-            stdout_path = run_dir / "stdout.txt"
-            stderr_path = run_dir / "stderr.txt"
-            stdout_path.write_text(result.get("stdout", ""), encoding="utf-8", errors="replace")
-            stderr_path.write_text(result.get("stderr", ""), encoding="utf-8", errors="replace")
-            (run_dir / f"attempt_{attempt:02d}_stdout.txt").write_text(
-                result.get("stdout", ""), encoding="utf-8", errors="replace")
-            (run_dir / f"attempt_{attempt:02d}_stderr.txt").write_text(
-                result.get("stderr", ""), encoding="utf-8", errors="replace")
-            metrics = read_grid_metrics(grid_path)
-            row = {
-                "sample": sample_name,
-                "attempt": attempt,
-                "max_attempts": SAMPLE_MAX_ATTEMPTS,
-                "returncode": result["returncode"],
-                "elapsed_wall_s": elapsed,
-                "config": str(cfg_path),
-                "output_binary": str(grid_path),
-                "stdout": str(stdout_path),
-                "stderr": str(stderr_path),
-                "command": command,
-                "runner": runner,
-                "precision": args.precision,
-            }
-            row.update(metrics)
-            metadata = {
-                "experiment": EXPERIMENT,
-                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                "git_commit": git_commit(),
-                "runner": runner,
-                "precision": args.precision,
-                "solver": getattr(args, "solver", "hll"),
-                "sample": sample_name,
-                "attempt": attempt,
-                "max_attempts": SAMPLE_MAX_ATTEMPTS,
-                "source_config": str(args.case),
-                "source_config_sha256": sha256_file(args.case),
-                "run_config": str(cfg_path),
-                "run_config_text": cfg_text,
-                "command": command,
-                "returncode": result["returncode"],
-                "elapsed_wall_s": elapsed,
-                "output_binary": str(grid_path),
-                "stdout": str(stdout_path),
-                "stderr": str(stderr_path),
-                "grid_metrics": metrics,
-            }
-            write_json(run_dir / "metadata.json", metadata)
-            if result["returncode"] == 0 and metrics["grid_status"] == "read":
-                sample_rows.append(row)
-                break
-        else:
-            return (
-                "blocked_run",
-                sample_rows,
-                f"Sample `{sample_name}` failed before producing a readable MCA grid "
-                f"after {SAMPLE_MAX_ATTEMPTS} attempts.",
-            )
+    # Hoisted out of the per-sample loop so parallel workers don't each spawn a
+    # `git rev-parse` / re-hash the (unchanging) source cfg.
+    commit = git_commit()
+    source_sha = sha256_file(args.case)
+    # Each sample runs an independent single-threaded container into its own run
+    # dir, so `jobs` MCA samples can execute concurrently to use idle cores.
+    # Default 1 preserves the historical sequential behaviour byte-for-byte.
+    jobs = max(1, int(getattr(args, "jobs", 1) or 1))
 
-    return "completed", sample_rows, f"Produced {len(sample_rows)} Verificarlo MCA sample grids with runner `{runner}`."
+    if jobs == 1:
+        sample_rows: list[dict[str, Any]] = []
+        for i in range(1, args.samples + 1):
+            _name, row, failure = _run_one_sample(
+                i, args, runner, build_dir, runs_dir, source_text, commit, source_sha)
+            if failure is not None:
+                return "blocked_run", sample_rows, failure
+            sample_rows.append(row)
+        return "completed", sample_rows, f"Produced {len(sample_rows)} Verificarlo MCA sample grids with runner `{runner}`."
+
+    results: list[tuple[str, dict[str, Any] | None, str | None] | None] = [None] * args.samples
+    with ThreadPoolExecutor(max_workers=jobs) as executor:
+        futures = {
+            executor.submit(
+                _run_one_sample, i, args, runner, build_dir, runs_dir, source_text, commit, source_sha
+            ): i
+            for i in range(1, args.samples + 1)
+        }
+        for future in as_completed(futures):
+            index = futures[future]
+            results[index - 1] = future.result()
+
+    # Report rows in deterministic sample order regardless of completion order.
+    completed_rows = [row for (_name, row, _failure) in results if row is not None]  # type: ignore[union-attr]
+    for _name, _row, failure in results:  # type: ignore[union-attr]
+        if failure is not None:
+            return "blocked_run", completed_rows, failure
+    return "completed", completed_rows, f"Produced {len(completed_rows)} Verificarlo MCA sample grids with runner `{runner}`."
+
+
+def _run_one_sample(
+    i: int,
+    args: argparse.Namespace,
+    runner: str,
+    build_dir: pathlib.Path,
+    runs_dir: pathlib.Path,
+    source_text: str,
+    commit: str,
+    source_sha: str,
+) -> tuple[str, dict[str, Any] | None, str | None]:
+    """Run one MCA sample (with retries) into its own run dir.
+
+    Returns ``(sample_name, row_or_None, failure_reason_or_None)``. The sample is
+    independent of every other sample (own run dir, cfg, grid), so callers may
+    invoke this concurrently across a thread pool.
+    """
+    sample_name = f"sample_{i:02d}"
+    run_dir = runs_dir / sample_name
+    run_dir.mkdir(parents=True, exist_ok=True)
+    grid_path = run_dir / "grid.bin"
+    cfg_path = run_dir / "config.cfg"
+    for attempt in range(1, SAMPLE_MAX_ATTEMPTS + 1):
+        if grid_path.exists():
+            grid_path.unlink()
+        cfg_text = make_sample_cfg(
+            source_text,
+            runner_path(runner, grid_path),
+            solver=getattr(args, "solver", None),
+        )
+        cfg_path.write_text(cfg_text, encoding="utf-8")
+        command = sample_command_for_runner(runner, args.image, build_dir, cfg_path, args.precision)
+        t0 = time.perf_counter()
+        result = run_command(command, timeout=300)
+        elapsed = time.perf_counter() - t0
+        stdout_path = run_dir / "stdout.txt"
+        stderr_path = run_dir / "stderr.txt"
+        stdout_path.write_text(result.get("stdout", ""), encoding="utf-8", errors="replace")
+        stderr_path.write_text(result.get("stderr", ""), encoding="utf-8", errors="replace")
+        (run_dir / f"attempt_{attempt:02d}_stdout.txt").write_text(
+            result.get("stdout", ""), encoding="utf-8", errors="replace")
+        (run_dir / f"attempt_{attempt:02d}_stderr.txt").write_text(
+            result.get("stderr", ""), encoding="utf-8", errors="replace")
+        metrics = read_grid_metrics(grid_path)
+        row = {
+            "sample": sample_name,
+            "attempt": attempt,
+            "max_attempts": SAMPLE_MAX_ATTEMPTS,
+            "returncode": result["returncode"],
+            "elapsed_wall_s": elapsed,
+            "config": str(cfg_path),
+            "output_binary": str(grid_path),
+            "stdout": str(stdout_path),
+            "stderr": str(stderr_path),
+            "command": command,
+            "runner": runner,
+            "precision": args.precision,
+        }
+        row.update(metrics)
+        metadata = {
+            "experiment": EXPERIMENT,
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "git_commit": commit,
+            "runner": runner,
+            "precision": args.precision,
+            "solver": getattr(args, "solver", "hll"),
+            "sample": sample_name,
+            "attempt": attempt,
+            "max_attempts": SAMPLE_MAX_ATTEMPTS,
+            "source_config": str(args.case),
+            "source_config_sha256": source_sha,
+            "run_config": str(cfg_path),
+            "run_config_text": cfg_text,
+            "command": command,
+            "returncode": result["returncode"],
+            "elapsed_wall_s": elapsed,
+            "output_binary": str(grid_path),
+            "stdout": str(stdout_path),
+            "stderr": str(stderr_path),
+            "grid_metrics": metrics,
+        }
+        write_json(run_dir / "metadata.json", metadata)
+        if result["returncode"] == 0 and metrics["grid_status"] == "read":
+            return sample_name, row, None
+    return (
+        sample_name,
+        None,
+        f"Sample `{sample_name}` failed before producing a readable MCA grid "
+        f"after {SAMPLE_MAX_ATTEMPTS} attempts.",
+    )
 
 
 def summarise_samples(sample_rows: list[dict[str, Any]]) -> dict[str, Any]:
