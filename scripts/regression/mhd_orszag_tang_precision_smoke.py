@@ -552,17 +552,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--out", type=pathlib.Path, default=None)
     parser.add_argument("--solver", choices=SUPPORTED_SOLVERS, default="hll")
     parser.add_argument("--profile", choices=tuple(PROFILES), default="gate")
+    parser.add_argument("--phase", choices=("p0", "p1"), default="p0")
     parser.add_argument("--keep-grids", action="store_true")
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    packet = resolve_output_dir(args.out, args.solver) / PROFILES[_normalise_profile(args.profile)]["subdir"]
+    profile = _normalise_profile(args.profile)
+    subdir = PROFILES[profile]["subdir"]
+    if args.phase == "p1":
+        subdir = f"{subdir}_p1"
+    packet = resolve_output_dir(args.out, args.solver) / subdir
     payload = run_deterministic(
         packet,
         solver=args.solver,
         profile=args.profile,
+        variant_set=args.phase,
         keep_grids=args.keep_grids,
     )
     print(packet / "summary.md")

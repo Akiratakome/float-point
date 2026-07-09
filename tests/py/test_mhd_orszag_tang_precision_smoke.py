@@ -462,8 +462,8 @@ def test_resolve_output_dir_and_profile_subdirs():
 def test_main_prints_packet_summary_and_returns_anchor_gate_status(tmp_path, monkeypatch, capsys):
     calls = []
 
-    def fake_run_deterministic(packet, *, solver, profile, keep_grids):
-        calls.append((packet, solver, profile, keep_grids))
+    def fake_run_deterministic(packet, *, solver, profile, variant_set, keep_grids):
+        calls.append((packet, solver, profile, variant_set, keep_grids))
         return {"gates": {"G0_anchor": {"pass": True}}}
 
     monkeypatch.setattr(ot, "run_deterministic", fake_run_deterministic)
@@ -480,17 +480,35 @@ def test_main_prints_packet_summary_and_returns_anchor_gate_status(tmp_path, mon
 
     packet = tmp_path / "headline256"
     assert rc == 0
-    assert calls == [(packet, "hlld", "headline", True)]
+    assert calls == [(packet, "hlld", "headline", "p0", True)]
     assert capsys.readouterr().out.strip() == str(packet / "summary.md")
 
 
 def test_main_returns_one_when_anchor_gate_fails(tmp_path, monkeypatch):
-    def fake_run_deterministic(packet, *, solver, profile, keep_grids):
+    def fake_run_deterministic(packet, *, solver, profile, variant_set, keep_grids):
         return {"gates": {"G0_anchor": {"pass": False}}}
 
     monkeypatch.setattr(ot, "run_deterministic", fake_run_deterministic)
 
     assert ot.main(["--out", str(tmp_path), "--solver", "hll", "--profile", "gate"]) == 1
+
+
+def test_main_phase_p1_appends_suffix_to_packet_dir_and_threads_variant_set(tmp_path, monkeypatch):
+    calls = []
+
+    def fake_run_deterministic(packet, *, solver, profile, variant_set, keep_grids):
+        calls.append((packet, solver, profile, variant_set, keep_grids))
+        return {"gates": {"G0_anchor": {"pass": True}}}
+
+    monkeypatch.setattr(ot, "run_deterministic", fake_run_deterministic)
+
+    rc = ot.main([
+        "--out", str(tmp_path), "--solver", "hll", "--profile", "headline", "--phase", "p1",
+    ])
+
+    packet = tmp_path / "headline256_p1"
+    assert rc == 0
+    assert calls == [(packet, "hll", "headline", "p1", False)]
 
 
 def test_deterministic_plan_p1_variant_set_returns_full_breadth_fan():
