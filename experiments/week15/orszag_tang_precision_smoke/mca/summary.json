@@ -1,0 +1,38 @@
+{
+  "experiment": "week15-mhd-mca",
+  "case": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang_mca64.cfg",
+  "samples": 3,
+  "solver": "hll",
+  "mca": {
+    "p53": {
+      "status": "completed",
+      "reason": "Produced 3 Verificarlo MCA sample grids with runner `docker`.",
+      "n": 3,
+      "runner": "docker",
+      "mca_evidence_generated": true,
+      "spread_rho": 2.682975169497797e-15,
+      "snr_rho": 3437159670961210.0,
+      "spread_vx": 1.7156897525489424e-15,
+      "spread_By": 2.8725679881818484e-15,
+      "snr_By": 752281849587505.6,
+      "spread_p": 3.607797795906347e-15,
+      "snr_p": 2062462235952145.8,
+      "rho_mean_spread": 8.881784197001252e-16
+    },
+    "p24": {
+      "status": "completed",
+      "reason": "Produced 3 Verificarlo MCA sample grids with runner `docker`.",
+      "n": 3,
+      "runner": "docker",
+      "mca_evidence_generated": true,
+      "spread_rho": 7.685263477493096e-07,
+      "snr_rho": 13597537.447546512,
+      "spread_vx": 5.574638397354343e-07,
+      "spread_By": 8.280515593402486e-07,
+      "snr_By": 2937544.4694798933,
+      "spread_p": 1.030742411122819e-06,
+      "snr_p": 7556788.146846411,
+      "rho_mean_spread": 1.236596416376301e-07
+    }
+  }
+}
