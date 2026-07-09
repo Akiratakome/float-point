@@ -23,6 +23,11 @@ This directory contains validation scripts and scalar summary generators.
 - `mhd_paper_style_mk2005.py`: optional matplotlib renderer for paper-style
   Week 13 figures; it consumes existing Week 13 binary grids and intentionally
   stays separate from the numpy-only validation drivers.
+- `mhd_orszag_tang_precision_smoke.py`: Week-15 solver-aware Orszag-Tang 2D
+  precision packets (`--solver hll|hlld` x `--profile gate|headline`):
+  deterministic P0 build fan vs the same-solver fp64 reference with an anchor
+  gate from the HLLD div(B) follow-up; MCA recorded separately via
+  `scripts/verificarlo/mhd_precision_sampling.py --case`.
 
 ## Compatibility / Provenance
 

@@ -1,4 +1,10 @@
 # Week 15 Orszag-Tang 2D Precision Smoke Implementation Plan
+> **SUPERSEDED (2026-07-08):** replaced by
+> [2026-07-08-week15-ot-2d-solver-aware-precision-smoke.md](2026-07-08-week15-ot-2d-solver-aware-precision-smoke.md)
+> (spec: [2026-07-08-week15-ot-2d-precision-design.md](../specs/2026-07-08-week15-ot-2d-precision-design.md)).
+> Written before the 2026-07-06 HLLD div(B) follow-up cleared HLLD; its
+> HLL-only constraint and its sampler `--case` task no longer match the code.
+> Do not execute this plan.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
