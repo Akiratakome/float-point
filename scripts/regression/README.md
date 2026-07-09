@@ -24,10 +24,13 @@ This directory contains validation scripts and scalar summary generators.
   Week 13 figures; it consumes existing Week 13 binary grids and intentionally
   stays separate from the numpy-only validation drivers.
 - `mhd_orszag_tang_precision_smoke.py`: Week-15 solver-aware Orszag-Tang 2D
-  precision packets (`--solver hll|hlld` x `--profile gate|headline`):
-  deterministic P0 build fan vs the same-solver fp64 reference with an anchor
-  gate from the HLLD div(B) follow-up; MCA recorded separately via
-  `scripts/verificarlo/mhd_precision_sampling.py --case`.
+  precision packets (`--solver hll|hlld` x `--profile gate|headline` x
+  `--phase p0|p1`): deterministic build fan (P0=8 variants, P1=24 variants
+  adding O3 + fastmath) vs the same-solver fp64 reference, with an anchor gate
+  from the HLLD div(B) follow-up and a soft `gates.G1.ordering_flags`
+  fastmath-vs-ieee check; MCA recorded separately via
+  `scripts/verificarlo/mhd_precision_sampling.py --case ... --samples N`
+  (n=3 smoke in `mca/`, n=30 depth in `mca_n30/`).
 
 ## Compatibility / Provenance
 
