@@ -1,0 +1,29 @@
+{
+  "experiment": "week14-mhd-precision-pilot",
+  "name": "cpu-double-Ofast-fastmath-leq",
+  "timestamp_utc": "2026-07-09T11:28:25.278808+00:00",
+  "git_commit": "76a168749269046c7a0c00b42f5cb2527689a11d",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-Ofast-fastmath-leq\\hrsc_mhd.exe",
+  "binary_sha256": "aeaa65eee232ef3f38157532b81cfaca781d7e2f4beb7198ae0f75ef089e4afb",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\config.cfg",
+  "run_config_sha256": "ea14746e10a80d0da766fb2418f9ddbcbc505696085daef03382aebf23ba62e9",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\nriemann = hlld\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-Ofast-fastmath-leq\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.17214200017042458,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.1,
+    "steps": 761,
+    "divB_mean": 0.0,
+    "divB_max": 0.0,
+    "line": "[mhd] t=0.100000 steps=761 divB_mean=0.000e+00 divB_max=0.000e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\grid.bin"
+}

@@ -1,0 +1,39 @@
+{
+  "experiment": "week14-mhd-mca",
+  "timestamp_utc": "2026-07-09T11:31:40.885256+00:00",
+  "git_commit": "76a168749269046c7a0c00b42f5cb2527689a11d",
+  "runner": "docker",
+  "precision": 53,
+  "solver": "hlld",
+  "sample": "sample_24",
+  "attempt": 1,
+  "max_attempts": 6,
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\mca\\p53\\runs\\sample_24\\config.cfg",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\nriemann = hlld\noutput_format = binary\noutput_file = /workdir/experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_24/grid.bin\n",
+  "command": [
+    "docker",
+    "run",
+    "--rm",
+    "-v",
+    "C:\\Users\\tangy\\Desktop\\floatpoint:/workdir",
+    "-w",
+    "/workdir",
+    "verificarlo/verificarlo:cmake",
+    "bash",
+    "-lc",
+    "VFC_BACKENDS='libinterflop_mca.so --mode=mca --precision-binary64=53' VFC_BACKENDS_SILENT_LOAD=True /workdir/experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/build-vfc-p53/hrsc_mhd /workdir/experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_24/config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 91.51641559996642,
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\mca\\p53\\runs\\sample_24\\grid.bin",
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\mca\\p53\\runs\\sample_24\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\mca\\p53\\runs\\sample_24\\stderr.txt",
+  "grid_metrics": {
+    "grid_status": "read",
+    "rho_min": 0.1168749089255484,
+    "rho_max": 1.0000000000000044,
+    "rho_mean": 0.5624999999999997
+  }
+}

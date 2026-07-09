@@ -1,0 +1,14 @@
+-- The CXX compiler identification is Clang 20.1.2
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/local/bin/verificarlo-c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- HRSC precision: double
+-- Configuring done (4.5s)
+-- Generating done (0.1s)
+-- Build files have been written to: /workdir/experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/build-vfc-p53
+[1/4] Building CXX object CMakeFiles/hrsc_mhd.dir/src/mhd_main.cpp.o
+[2/4] Building CXX object CMakeFiles/hrsc_mhd_lib.dir/src/mhd/mhd_solver.cpp.o
+[3/4] Linking CXX static library libhrsc_mhd_lib.a
+[4/4] Linking CXX executable hrsc_mhd
