@@ -1,0 +1,29 @@
+{
+  "experiment": "week15-mhd-orszag-tang-precision-smoke",
+  "name": "cpu-double-O3-fastmath-strict",
+  "timestamp_utc": "2026-07-09T08:19:16.397793+00:00",
+  "git_commit": "4d9697b933f5fa3e12164a3b05b814a7a191073c",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O3-fastmath-strict\\hrsc_mhd.exe",
+  "binary_sha256": "5a1a359b00816869db887ef4ca7e8533ff76193f2899afff79b8db4f2db51443",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+  "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O3-fastmath-strict\\config.cfg",
+  "run_config_sha256": "69bf5d0fa9dad889d3ea2cde93c435f43e7e4d1c9439a5659df0000ee96bfc66",
+  "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx = 256\nny = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hll\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O3-fastmath-strict\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O3-fastmath-strict\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O3-fastmath-strict\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 24.87022909987718,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O3-fastmath-strict\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O3-fastmath-strict\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.5,
+    "steps": 806,
+    "divB_mean": 0.1225,
+    "divB_max": 3.72,
+    "line": "[mhd] t=0.500000 steps=806 divB_mean=1.225e-01 divB_max=3.720e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O3-fastmath-strict\\grid.bin"
+}

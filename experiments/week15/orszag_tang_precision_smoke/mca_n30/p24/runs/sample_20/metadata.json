@@ -1,0 +1,39 @@
+{
+  "experiment": "week15-mhd-mca-n30",
+  "timestamp_utc": "2026-07-09T08:31:25.306970+00:00",
+  "git_commit": "4d9697b933f5fa3e12164a3b05b814a7a191073c",
+  "runner": "docker",
+  "precision": 24,
+  "solver": "hll",
+  "sample": "sample_20",
+  "attempt": 1,
+  "max_attempts": 3,
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang_mca64.cfg",
+  "source_config_sha256": "1e68225b9aa52e0fcf0260dbdd08fd3f5cd97d4a2caf125f862755373ed2ad24",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\mca_n30\\p24\\runs\\sample_20\\config.cfg",
+  "run_config_text": "# Week-15 MCA smoke grid for the Orszag-Tang vortex: same physics as\n# orszag_tang.cfg but 64^2 and t_end=0.05 so Verificarlo-instrumented samples\n# stay affordable. Deterministic Week-15 runs override orszag_tang.cfg\n# in-memory instead of using this file.\ntest    = orszag_tang\nnx      = 64\nny      = 64\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 0.05\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hll\noutput_format = binary\noutput_file = /workdir/experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_20/grid.bin\n",
+  "command": [
+    "docker",
+    "run",
+    "--rm",
+    "-v",
+    "C:\\Users\\tangy\\Desktop\\floatpoint:/workdir",
+    "-w",
+    "/workdir",
+    "verificarlo/verificarlo:cmake",
+    "bash",
+    "-lc",
+    "VFC_BACKENDS='libinterflop_mca.so --mode=mca --precision-binary64=24' VFC_BACKENDS_SILENT_LOAD=True /workdir/experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/build-vfc-p53/hrsc_mhd /workdir/experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_20/config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 11.265457600122318,
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\mca_n30\\p24\\runs\\sample_20\\grid.bin",
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\mca_n30\\p24\\runs\\sample_20\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\mca_n30\\p24\\runs\\sample_20\\stderr.txt",
+  "grid_metrics": {
+    "grid_status": "read",
+    "rho_min": 2.449073780604856,
+    "rho_max": 3.6135369403939057,
+    "rho_mean": 2.7777776280094537
+  }
+}
