@@ -50,6 +50,19 @@ CASES = {
         "fit_window": [0.1, 0.5],
     },
 }
+EXPECTED_SAMPLE_COUNTS = {
+    case: int(spec["n_slices"]) for case, spec in CASES.items()
+}
+EXPECTED_REPORT_RUNS = 2 * sum(EXPECTED_SAMPLE_COUNTS.values())
+REQUIRED_RUN_PROVENANCE = (
+    "git_commit",
+    "binary_sha256",
+    "run_config_sha256",
+    "source_config_sha256",
+    "source_config",
+    "run_config",
+    "run_config_text",
+)
 
 
 def slice_plan(case_name: str, smoke: bool = False) -> list[float]:
@@ -114,6 +127,25 @@ def resolve_binaries() -> dict[str, pathlib.Path]:
     return {precision: resolve_binary(path) for precision, path in BINARY_PATHS.items()}
 
 
+def route_output_dir(
+    requested_out: pathlib.Path,
+    *,
+    case: str,
+    smoke: bool,
+) -> pathlib.Path:
+    out = requested_out if requested_out.is_absolute() else ROOT / requested_out
+    if out.resolve() != DEFAULT_OUT.resolve():
+        return out
+    suffixes = []
+    if case != "all":
+        suffixes.append(case)
+    if smoke:
+        suffixes.append("smoke")
+    if not suffixes:
+        return DEFAULT_OUT
+    return DEFAULT_OUT.with_name("_".join((DEFAULT_OUT.name, *suffixes)))
+
+
 def run_case_series(
     case_name: str,
     out_dir: pathlib.Path,
@@ -172,22 +204,103 @@ def run_case_series(
     return {"record": record, "runs": runs}
 
 
-def evaluate_gates(records: Sequence[dict[str, Any]]) -> dict[str, Any]:
+def record_series_aligned(record: Mapping[str, Any]) -> bool:
+    try:
+        lengths = {len(record[key]) for key in ("times", "l1", "linf")}
+    except (KeyError, TypeError):
+        return False
+    return len(lengths) == 1
+
+
+def validate_record_alignment(records: Sequence[Mapping[str, Any]]) -> None:
+    for record in records:
+        if not record_series_aligned(record):
+            case = record.get("case", "<unknown>")
+            lengths = {
+                key: len(record.get(key, ())) for key in ("times", "l1", "linf")
+            }
+            raise ValueError(f"{case} series length mismatch: {lengths}")
+
+
+def evaluate_gates(
+    records: Sequence[dict[str, Any]],
+    runs: Sequence[dict[str, Any]],
+    *,
+    mode: str,
+    selected_cases: Sequence[str],
+) -> dict[str, Any]:
     by_case = {record["case"]: record for record in records}
-    finite_nonnegative = all(
-        math.isfinite(float(value)) and float(value) >= 0.0
-        for record in records
-        for key in ("l1", "linf")
-        for value in record[key]
-    )
+    try:
+        finite_nonnegative = all(
+            math.isfinite(float(value)) and float(value) >= 0.0
+            for record in records
+            for key in ("l1", "linf")
+            for value in record[key]
+        )
+    except (KeyError, TypeError, ValueError):
+        finite_nonnegative = False
     ot_lambda = by_case.get("orszag_tang_2d", {}).get("lambda_l1")
     ot_positive = ot_lambda is not None and math.isfinite(float(ot_lambda)) and float(ot_lambda) > 0.0
-    complete = set(by_case) == set(CASES)
+    complete = len(records) == len(CASES) and set(by_case) == set(CASES)
+    selected_complete = (
+        len(selected_cases) == len(CASES) and set(selected_cases) == set(CASES)
+    )
+    aligned = all(record_series_aligned(record) for record in records)
+    sample_counts_exact = complete and all(
+        len(by_case[case].get("times", ())) == expected
+        for case, expected in EXPECTED_SAMPLE_COUNTS.items()
+    )
+    try:
+        lambdas_finite = complete and all(
+            math.isfinite(float(by_case[case][key]))
+            for case in CASES
+            for key in ("lambda_l1", "lambda_linf")
+        )
+    except (KeyError, TypeError, ValueError):
+        lambdas_finite = False
+    try:
+        fits_sufficient = complete and all(
+            int(by_case[case][fit]["n_fit"]) >= 2
+            for case in CASES
+            for fit in ("fit_l1", "fit_linf")
+        )
+    except (KeyError, TypeError, ValueError):
+        fits_sufficient = False
+    run_count_exact = len(runs) == EXPECTED_REPORT_RUNS
+    runs_successful = run_count_exact and all(run.get("returncode") == 0 for run in runs)
+    provenance_complete = run_count_exact and all(
+        all(run.get(field) not in (None, "") for field in REQUIRED_RUN_PROVENANCE)
+        for run in runs
+    )
+    technical_pass = bool(complete and finite_nonnegative and ot_positive)
+    report_grade_pass = bool(
+        mode == "report-grade"
+        and selected_complete
+        and technical_pass
+        and aligned
+        and sample_counts_exact
+        and lambdas_finite
+        and fits_sufficient
+        and run_count_exact
+        and runs_successful
+        and provenance_complete
+    )
     return {
-        "pass": bool(complete and finite_nonnegative and ot_positive),
+        "pass": report_grade_pass,
+        "technical_pass": technical_pass,
+        "report_grade_pass": report_grade_pass,
+        "mode_is_report_grade": mode == "report-grade",
         "cases_complete": complete,
+        "selected_cases_complete": selected_complete,
         "all_drift_finite_nonnegative": finite_nonnegative,
         "orszag_tang_positive_lambda": ot_positive,
+        "series_aligned": aligned,
+        "sample_counts_exact": sample_counts_exact,
+        "required_lambdas_finite": lambdas_finite,
+        "fit_counts_sufficient": fits_sufficient,
+        "run_count_exact": run_count_exact,
+        "runs_successful": runs_successful,
+        "run_provenance_complete": provenance_complete,
     }
 
 
@@ -251,10 +364,19 @@ def write_outputs(
     out_dir: pathlib.Path,
     records: Sequence[dict[str, Any]],
     runs: Sequence[dict[str, Any]],
+    *,
+    mode: str = "diagnostic",
+    selected_cases: Sequence[str] | None = None,
 ) -> dict[str, Any]:
+    if mode not in ("diagnostic", "report-grade"):
+        raise ValueError(f"unknown mode {mode!r}")
+    selected = list(selected_cases) if selected_cases is not None else [
+        str(record["case"]) for record in records
+    ]
+    validate_record_alignment(records)
     out = pathlib.Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    gates = evaluate_gates(records)
+    gates = evaluate_gates(records, runs, mode=mode, selected_cases=selected)
     figure = plot_records(out, records)
     by_case = {record["case"]: record for record in records}
     brio_l1 = by_case.get("brio_wu_1d", {}).get("lambda_l1")
@@ -272,6 +394,8 @@ def write_outputs(
     })
     payload = {
         "experiment": "week15-mhd-temporal-divergence",
+        "mode": mode,
+        "selected_cases": selected,
         "git_commit": generation_commit,
         "git_commit_semantics": "summary-generation checkout",
         "analysis_generator": {
@@ -297,9 +421,11 @@ def write_outputs(
             "planned_ot_exceeds_brio_l1": planned_contrast,
             "orszag_tang_linf_positive": ot_linf_positive,
             "gate_scope": (
-                "The gate checks technical completeness, finite nonnegative drift samples, "
-                "and a positive Orszag-Tang L1 fit; it does not require OT>Brio-Wu ordering "
-                "or a positive Orszag-Tang Linf fit."
+                "technical_pass checks case presence, finite nonnegative drift samples, and "
+                "a positive Orszag-Tang L1 fit. gates.pass is report_grade_pass and also "
+                "requires exact samples, aligned series, finite fits, sufficient fit counts, "
+                "and 80 successful provenance-complete runs; neither gate requires "
+                "OT>Brio-Wu ordering or a positive Orszag-Tang Linf fit."
             ),
             "fit_quality": (
                 "Fit quality is not independently gated or quantified; physical interpretation "
@@ -312,7 +438,10 @@ def write_outputs(
     md_path = out / "summary.md"
     json_path.write_text(json.dumps(payload, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     with csv_path.open("w", newline="", encoding="utf-8") as handle:
-        columns = ("case", "pair", "variable", "time", "l1", "linf", "lambda_l1", "lambda_linf")
+        columns = (
+            "case", "pair", "variable", "time", "l1", "linf",
+            "lambda_l1", "lambda_linf", "n_fit_l1", "n_fit_linf",
+        )
         writer = csv.DictWriter(handle, fieldnames=columns)
         writer.writeheader()
         for record in records:
@@ -323,6 +452,8 @@ def write_outputs(
                     "l1": l1, "linf": linf,
                     "lambda_l1": record["lambda_l1"],
                     "lambda_linf": record["lambda_linf"],
+                    "n_fit_l1": record["fit_l1"]["n_fit"],
+                    "n_fit_linf": record["fit_linf"]["n_fit"],
                 })
 
     def fmt_lambda(value: Any) -> str:
@@ -330,19 +461,25 @@ def write_outputs(
 
     lines = [
         "# MHD Temporal Divergence", "",
-        "| case | samples | lambda L1 | lambda Linf | fit window |",
-        "|---|---:|---:|---:|---|",
+        "| case | samples | lambda L1 | lambda Linf | n_fit L1 | n_fit Linf | fit window |",
+        "|---|---:|---:|---:|---:|---:|---|",
     ]
     for record in records:
         lines.append(
             f"| {record['case']} | {len(record['times'])} | {fmt_lambda(record['lambda_l1'])} | "
-            f"{fmt_lambda(record['lambda_linf'])} | {record['fit_window']} |"
+            f"{fmt_lambda(record['lambda_linf'])} | {record['fit_l1']['n_fit']} | "
+            f"{record['fit_linf']['n_fit']} | {record['fit_window']} |"
         )
     lines.extend([
-        "", f"- Gate pass: {gates['pass']}",
+        "", f"- Mode: {mode}",
+        f"- Technical pass: {gates['technical_pass']}",
+        f"- Report-grade pass: {gates['report_grade_pass']}",
+        f"- Gate pass: {gates['pass']}",
         f"- Figure: `{payload['figure']}`", "",
-        "The gate checks technical completeness, finite nonnegative drift samples, and a "
-        "positive Orszag-Tang L1 fit. It does not require OT>Brio-Wu ordering or a positive "
+        "Technical pass checks case presence, finite nonnegative drift samples, and a "
+        "positive Orszag-Tang L1 fit. Report-grade pass additionally requires exact samples, "
+        "aligned series, finite fits, sufficient fit counts, and 80 successful "
+        "provenance-complete runs. Neither gate requires OT>Brio-Wu ordering or a positive "
         "Orszag-Tang Linf fit.", "",
         ordering_statement(planned_contrast, ot_l1=ot_l1, brio_l1=brio_l1),
         f"The OT Linf fit is {fmt_lambda(ot_linf)}. Fit quality is not independently gated or "
@@ -369,9 +506,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
-    out = args.out if args.out.is_absolute() else ROOT / args.out
+    out = route_output_dir(args.out, case=args.case, smoke=args.smoke)
     binaries = resolve_binaries()
     names = list(CASES) if args.case == "all" else [args.case]
+    mode = "report-grade" if args.case == "all" and not args.smoke else "diagnostic"
     records, runs = [], []
     for name in names:
         result = run_case_series(
@@ -379,7 +517,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         records.append(result["record"])
         runs.extend(result["runs"])
-    paths = write_outputs(out, records, runs)
+    paths = write_outputs(out, records, runs, mode=mode, selected_cases=names)
     print(paths["markdown"])
     return 0 if paths["payload"]["gates"]["pass"] else 1
 

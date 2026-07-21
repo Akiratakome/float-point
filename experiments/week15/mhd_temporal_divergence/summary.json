@@ -1,10 +1,15 @@
 {
   "experiment": "week15-mhd-temporal-divergence",
-  "git_commit": "47924244754fe3396face32de56c70ba483fbeb7",
+  "mode": "report-grade",
+  "selected_cases": [
+    "brio_wu_1d",
+    "orszag_tang_2d"
+  ],
+  "git_commit": "cf50f837dd2e74040c06f86af2f3c21a9b70ed58",
   "git_commit_semantics": "summary-generation checkout",
   "analysis_generator": {
     "path": "scripts/regression/mhd_temporal_divergence.py",
-    "sha256": "10a39ab0486492bc079499accd52e29980333f9d08f7e1dba9b10dfb5c1f54d7",
+    "sha256": "9dff0baf4134cff07f06e691502abaf19ac1e315f7d3428db94c2dd2bda4d7dc",
     "identity": "exact script content used to generate this summary"
   },
   "run_provenance": {
@@ -16,9 +21,20 @@
   },
   "gates": {
     "pass": true,
+    "technical_pass": true,
+    "report_grade_pass": true,
+    "mode_is_report_grade": true,
     "cases_complete": true,
+    "selected_cases_complete": true,
     "all_drift_finite_nonnegative": true,
-    "orszag_tang_positive_lambda": true
+    "orszag_tang_positive_lambda": true,
+    "series_aligned": true,
+    "sample_counts_exact": true,
+    "required_lambdas_finite": true,
+    "fit_counts_sufficient": true,
+    "run_count_exact": true,
+    "runs_successful": true,
+    "run_provenance_complete": true
   },
   "records": [
     {
@@ -3102,7 +3118,7 @@
     },
     "planned_ot_exceeds_brio_l1": false,
     "orszag_tang_linf_positive": false,
-    "gate_scope": "The gate checks technical completeness, finite nonnegative drift samples, and a positive Orszag-Tang L1 fit; it does not require OT>Brio-Wu ordering or a positive Orszag-Tang Linf fit.",
+    "gate_scope": "technical_pass checks case presence, finite nonnegative drift samples, and a positive Orszag-Tang L1 fit. gates.pass is report_grade_pass and also requires exact samples, aligned series, finite fits, sufficient fit counts, and 80 successful provenance-complete runs; neither gate requires OT>Brio-Wu ordering or a positive Orszag-Tang Linf fit.",
     "fit_quality": "Fit quality is not independently gated or quantified; physical interpretation is limited to these deterministic fixed-window engineering fits."
   }
 }

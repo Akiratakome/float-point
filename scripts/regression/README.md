@@ -37,8 +37,14 @@ This directory contains validation scripts and scalar summary generators.
   plus `figures/temporal_divergence.png`. Before the full run, use
   `mhd_temporal_divergence.py --smoke --out experiments/week15/mhd_temporal_divergence_smoke`
   so diagnostic output cannot overwrite canonical evidence.
+  With the default output, `--smoke` and `--case` are also routed automatically
+  to `_smoke`, `_<case>`, or `_<case>_smoke` sibling directories; passing the
+  canonical output explicitly does not bypass this protection. An explicit
+  noncanonical `--out` is honored. `gates.pass` is the report-grade gate;
+  diagnostic packets always have `mode=diagnostic` and `pass=false` while
+  retaining a separate `technical_pass` result.
   The fixed-window evidence does not show the planned OT>Brio-Wu L1 contrast;
-  the gate is a technical completeness check, not a physical-ordering claim.
+  neither gate is a physical-ordering claim.
 
 ## Compatibility / Provenance
 
