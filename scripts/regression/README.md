@@ -31,6 +31,12 @@ This directory contains validation scripts and scalar summary generators.
   fastmath-vs-ieee check; MCA recorded separately via
   `scripts/verificarlo/mhd_precision_sampling.py --case ... --samples N`
   (n=3 smoke in `mca/`, n=30 depth in `mca_n30/`).
+- `mhd_temporal_divergence.py`: runs fp32-vs-fp64 HLL time slices for Brio-Wu
+  1D and Orszag-Tang 2D, fits Lyapunov-like density-drift growth rates, and
+  writes `experiments/week15/mhd_temporal_divergence/summary.{json,csv,md}`
+  plus `figures/temporal_divergence.png`. Use `--smoke` before the full run.
+  The fixed-window evidence does not show the planned OT>Brio-Wu L1 contrast;
+  the gate is a technical completeness check, not a physical-ordering claim.
 
 ## Compatibility / Provenance
 

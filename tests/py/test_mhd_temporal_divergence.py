@@ -11,6 +11,14 @@ sys.path.insert(0, str(ROOT))
 import mhd_temporal_divergence as td
 
 
+def test_parse_args_defaults_to_all_full_runs():
+    args = td.parse_args([])
+    assert args.out == td.DEFAULT_OUT
+    assert args.case == "all"
+    assert args.smoke is False
+    assert args.keep_grids is False
+
+
 def test_slice_plan_is_monotone_and_within_bounds():
     ts = td.slice_plan("orszag_tang_2d")
     assert ts == sorted(ts)
@@ -100,12 +108,22 @@ def _record(case, lam, scale=1.0):
 
 
 def test_outputs_are_strict_json_and_register_figure(tmp_path):
-    records = [_record("brio_wu_1d", 0.1), _record("orszag_tang_2d", 2.0, 1e-6)]
+    brio = _record("brio_wu_1d", 30.0)
+    ot = _record("orszag_tang_2d", 0.03, 1e-6)
+    ot["lambda_linf"] = -0.04
+    ot["fit_linf"]["slope"] = -0.04
+    records = [brio, ot]
     paths = td.write_outputs(tmp_path, records, runs=[])
     payload = json.loads(paths["json"].read_text(encoding="utf-8"))
     assert payload["gates"]["pass"] is True
     assert payload["gates"]["orszag_tang_positive_lambda"] is True
     assert payload["interpretation"]["formal_maximal_lyapunov"] is False
+    assert payload["interpretation"]["planned_ot_exceeds_brio_l1"] is False
+    assert payload["interpretation"]["orszag_tang_linf_positive"] is False
+    assert "technical completeness" in payload["interpretation"]["gate_scope"]
+    markdown = paths["markdown"].read_text(encoding="utf-8")
+    assert "OT>Brio-Wu L1 contrast is not observed" in markdown
+    assert "fixed fit windows" in markdown
     assert paths["figure"].is_file()
 
 

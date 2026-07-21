@@ -240,6 +240,15 @@ def write_outputs(
     out.mkdir(parents=True, exist_ok=True)
     gates = evaluate_gates(records)
     figure = plot_records(out, records)
+    by_case = {record["case"]: record for record in records}
+    brio_l1 = by_case.get("brio_wu_1d", {}).get("lambda_l1")
+    ot_l1 = by_case.get("orszag_tang_2d", {}).get("lambda_l1")
+    ot_linf = by_case.get("orszag_tang_2d", {}).get("lambda_linf")
+    planned_contrast = (
+        None if brio_l1 is None or ot_l1 is None
+        else bool(float(ot_l1) > float(brio_l1))
+    )
+    ot_linf_positive = None if ot_linf is None else bool(float(ot_linf) > 0.0)
     payload = {
         "experiment": "week15-mhd-temporal-divergence",
         "git_commit": git_commit(),
@@ -250,6 +259,20 @@ def write_outputs(
         "interpretation": {
             "formal_maximal_lyapunov": False,
             "statement": "lambda is a Lyapunov-like growth rate of an fp32-vs-fp64 perturbation.",
+            "fixed_fit_windows": {
+                case: record.get("fit_window") for case, record in by_case.items()
+            },
+            "planned_ot_exceeds_brio_l1": planned_contrast,
+            "orszag_tang_linf_positive": ot_linf_positive,
+            "gate_scope": (
+                "The gate checks technical completeness, finite nonnegative drift samples, "
+                "and a positive Orszag-Tang L1 fit; it does not require OT>Brio-Wu ordering "
+                "or a positive Orszag-Tang Linf fit."
+            ),
+            "fit_quality": (
+                "Fit quality is not independently gated or quantified; physical interpretation "
+                "is limited to these deterministic fixed-window engineering fits."
+            ),
         },
     }
     json_path = out / "summary.json"
@@ -286,6 +309,14 @@ def write_outputs(
     lines.extend([
         "", f"- Gate pass: {gates['pass']}",
         f"- Figure: `{payload['figure']}`", "",
+        "The gate checks technical completeness, finite nonnegative drift samples, and a "
+        "positive Orszag-Tang L1 fit. It does not require OT>Brio-Wu ordering or a positive "
+        "Orszag-Tang Linf fit.", "",
+        "Bounded result: the planned OT>Brio-Wu L1 contrast is not observed under the fixed "
+        f"fit windows (OT {fmt_lambda(ot_l1)} vs Brio-Wu {fmt_lambda(brio_l1)}), and the OT "
+        f"Linf fit is {fmt_lambda(ot_linf)}. Fit quality is not independently gated or "
+        "quantified, so physical interpretation is limited to these deterministic "
+        "fixed-window engineering fits.", "",
         "The fitted lambda is a Lyapunov-like engineering growth rate of an "
         "fp32-vs-fp64 perturbation, not a formal maximal Lyapunov exponent.", "",
     ])
@@ -294,3 +325,33 @@ def write_outputs(
         "json": json_path, "csv": csv_path, "markdown": md_path,
         "figure": figure, "payload": payload,
     }
+
+
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT)
+    parser.add_argument("--case", choices=("all", *CASES), default="all")
+    parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--keep-grids", action="store_true")
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv)
+    out = args.out if args.out.is_absolute() else ROOT / args.out
+    binaries = resolve_binaries()
+    names = list(CASES) if args.case == "all" else [args.case]
+    records, runs = [], []
+    for name in names:
+        result = run_case_series(
+            name, out, binaries, smoke=args.smoke, keep_grids=args.keep_grids,
+        )
+        records.append(result["record"])
+        runs.extend(result["runs"])
+    paths = write_outputs(out, records, runs)
+    print(paths["markdown"])
+    return 0 if paths["payload"]["gates"]["pass"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
