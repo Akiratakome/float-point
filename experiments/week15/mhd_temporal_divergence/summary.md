@@ -10,6 +10,7 @@
 
 The gate checks technical completeness, finite nonnegative drift samples, and a positive Orszag-Tang L1 fit. It does not require OT>Brio-Wu ordering or a positive Orszag-Tang Linf fit.
 
-Bounded result: the planned OT>Brio-Wu L1 contrast is not observed under the fixed fit windows (OT 0.0293431 vs Brio-Wu 30.6153), and the OT Linf fit is -0.0422334. Fit quality is not independently gated or quantified, so physical interpretation is limited to these deterministic fixed-window engineering fits.
+Bounded result: the planned OT>Brio-Wu L1 contrast is not observed under the fixed fit windows (OT 0.0293431 vs Brio-Wu 30.6153).
+The OT Linf fit is -0.0422334. Fit quality is not independently gated or quantified, so physical interpretation is limited to these deterministic fixed-window engineering fits.
 
 The fitted lambda is a Lyapunov-like engineering growth rate of an fp32-vs-fp64 perturbation, not a formal maximal Lyapunov exponent.

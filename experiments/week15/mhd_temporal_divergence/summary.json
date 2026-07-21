@@ -1,6 +1,19 @@
 {
   "experiment": "week15-mhd-temporal-divergence",
-  "git_commit": "c26ab4a286066655b32f08cb6d22324bd922f99c",
+  "git_commit": "47924244754fe3396face32de56c70ba483fbeb7",
+  "git_commit_semantics": "summary-generation checkout",
+  "analysis_generator": {
+    "path": "scripts/regression/mhd_temporal_divergence.py",
+    "sha256": "10a39ab0486492bc079499accd52e29980333f9d08f7e1dba9b10dfb5c1f54d7",
+    "identity": "exact script content used to generate this summary"
+  },
+  "run_provenance": {
+    "git_commit_field": "runs[].git_commit",
+    "git_commits": [
+      "c26ab4a286066655b32f08cb6d22324bd922f99c"
+    ],
+    "semantics": "checkout recorded when each solver run was executed"
+  },
   "gates": {
     "pass": true,
     "cases_complete": true,

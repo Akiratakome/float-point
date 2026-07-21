@@ -231,6 +231,22 @@ def plot_records(out_dir: pathlib.Path, records: Sequence[dict[str, Any]]) -> pa
     return figure
 
 
+def ordering_statement(
+    planned_contrast: bool | None,
+    *,
+    ot_l1: Any,
+    brio_l1: Any,
+) -> str:
+    prefix = "Bounded result: the planned OT>Brio-Wu L1 contrast"
+    if planned_contrast is None:
+        return f"{prefix} is unavailable/not comparable because both case fits are required."
+    result = "is observed" if planned_contrast else "is not observed"
+    return (
+        f"{prefix} {result} under the fixed fit windows "
+        f"(OT {float(ot_l1):.6g} vs Brio-Wu {float(brio_l1):.6g})."
+    )
+
+
 def write_outputs(
     out_dir: pathlib.Path,
     records: Sequence[dict[str, Any]],
@@ -249,9 +265,25 @@ def write_outputs(
         else bool(float(ot_l1) > float(brio_l1))
     )
     ot_linf_positive = None if ot_linf is None else bool(float(ot_linf) > 0.0)
+    generation_commit = git_commit()
+    generator = pathlib.Path(__file__).resolve()
+    run_commits = sorted({
+        str(run["git_commit"]) for run in runs if run.get("git_commit") is not None
+    })
     payload = {
         "experiment": "week15-mhd-temporal-divergence",
-        "git_commit": git_commit(),
+        "git_commit": generation_commit,
+        "git_commit_semantics": "summary-generation checkout",
+        "analysis_generator": {
+            "path": generator.relative_to(ROOT).as_posix(),
+            "sha256": sha256_file(generator),
+            "identity": "exact script content used to generate this summary",
+        },
+        "run_provenance": {
+            "git_commit_field": "runs[].git_commit",
+            "git_commits": run_commits,
+            "semantics": "checkout recorded when each solver run was executed",
+        },
         "gates": gates,
         "records": list(records),
         "runs": list(runs),
@@ -312,9 +344,8 @@ def write_outputs(
         "The gate checks technical completeness, finite nonnegative drift samples, and a "
         "positive Orszag-Tang L1 fit. It does not require OT>Brio-Wu ordering or a positive "
         "Orszag-Tang Linf fit.", "",
-        "Bounded result: the planned OT>Brio-Wu L1 contrast is not observed under the fixed "
-        f"fit windows (OT {fmt_lambda(ot_l1)} vs Brio-Wu {fmt_lambda(brio_l1)}), and the OT "
-        f"Linf fit is {fmt_lambda(ot_linf)}. Fit quality is not independently gated or "
+        ordering_statement(planned_contrast, ot_l1=ot_l1, brio_l1=brio_l1),
+        f"The OT Linf fit is {fmt_lambda(ot_linf)}. Fit quality is not independently gated or "
         "quantified, so physical interpretation is limited to these deterministic "
         "fixed-window engineering fits.", "",
         "The fitted lambda is a Lyapunov-like engineering growth rate of an "

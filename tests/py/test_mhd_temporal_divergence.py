@@ -1,3 +1,4 @@
+import hashlib
 import json
 import math
 import sys
@@ -9,6 +10,21 @@ sys.path.insert(0, str(ROOT / "scripts" / "regression"))
 sys.path.insert(0, str(ROOT))
 
 import mhd_temporal_divergence as td
+
+
+def test_ordering_statement_reports_observed():
+    text = td.ordering_statement(True, ot_l1=31.0, brio_l1=30.0)
+    assert "OT>Brio-Wu L1 contrast is observed" in text
+
+
+def test_ordering_statement_reports_not_observed():
+    text = td.ordering_statement(False, ot_l1=0.03, brio_l1=30.0)
+    assert "OT>Brio-Wu L1 contrast is not observed" in text
+
+
+def test_ordering_statement_reports_unavailable_when_not_comparable():
+    text = td.ordering_statement(None, ot_l1=None, brio_l1=30.0)
+    assert "OT>Brio-Wu L1 contrast is unavailable/not comparable" in text
 
 
 def test_parse_args_defaults_to_all_full_runs():
@@ -121,6 +137,11 @@ def test_outputs_are_strict_json_and_register_figure(tmp_path):
     assert payload["interpretation"]["planned_ot_exceeds_brio_l1"] is False
     assert payload["interpretation"]["orszag_tang_linf_positive"] is False
     assert "technical completeness" in payload["interpretation"]["gate_scope"]
+    generator = ROOT / payload["analysis_generator"]["path"]
+    expected_hash = hashlib.sha256(generator.read_bytes()).hexdigest()
+    assert payload["analysis_generator"]["sha256"] == expected_hash
+    assert payload["git_commit_semantics"] == "summary-generation checkout"
+    assert payload["run_provenance"]["git_commit_field"] == "runs[].git_commit"
     markdown = paths["markdown"].read_text(encoding="utf-8")
     assert "OT>Brio-Wu L1 contrast is not observed" in markdown
     assert "fixed fit windows" in markdown
