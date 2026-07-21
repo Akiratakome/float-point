@@ -15,10 +15,21 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 for path in (ROOT, ROOT / "scripts", ROOT / "scripts" / "metrics", ROOT / "scripts" / "regression"):
     sys.path.insert(0, str(path))
 
-from _mhd_harness import replace_or_append_cfg
+from _mhd_harness import (
+    git_commit,
+    replace_or_append_cfg,
+    resolve_binary,
+    run_case,
+    sha256_file,
+)
+from scripts.metrics.drift_timeseries import analyse_pair
 
 DEFAULT_GAMMA = 5.0 / 3.0
 DEFAULT_OUT = ROOT / "experiments" / "week15" / "mhd_temporal_divergence"
+BINARY_PATHS = {
+    "double": ROOT / "build-matrix" / "cpu-double-O2-ieee-leq" / "hrsc_mhd",
+    "float": ROOT / "build-matrix" / "cpu-float-O2-ieee-leq" / "hrsc_mhd",
+}
 CASES = {
     "brio_wu_1d": {
         "cfg": ROOT / "tests" / "cases" / "brio_wu_1d" / "brio_wu.cfg",
@@ -97,3 +108,65 @@ def pair_entry(
         "spatial_tolerance": 1.0e-5,
         "notes": ["Lyapunov-like precision-perturbation growth rate; not a formal maximal exponent."],
     }
+
+
+def resolve_binaries() -> dict[str, pathlib.Path]:
+    return {precision: resolve_binary(path) for precision, path in BINARY_PATHS.items()}
+
+
+def run_case_series(
+    case_name: str,
+    out_dir: pathlib.Path,
+    binaries: Mapping[str, pathlib.Path],
+    *,
+    smoke: bool = False,
+    keep_grids: bool = False,
+    runner: Callable[..., Any] = run_case,
+    analyser: Callable[..., dict[str, Any]] = analyse_pair,
+) -> dict[str, Any]:
+    spec = CASES[case_name]
+    source_cfg = pathlib.Path(spec["cfg"])
+    base_text = source_cfg.read_text(encoding="utf-8")
+    gamma = case_gamma(base_text)
+    commit = git_commit()
+    grids: dict[str, list[pathlib.Path]] = {"double": [], "float": []}
+    runs: list[dict[str, Any]] = []
+    for precision in ("double", "float"):
+        binary = pathlib.Path(binaries[precision])
+        sha = sha256_file(binary) if binary.is_file() else "test-double"
+        for index, target in enumerate(slice_plan(case_name, smoke=smoke)):
+            run_dir = pathlib.Path(out_dir) / "runs" / case_name / precision / f"slice_{index:02d}"
+            grid = run_dir / "grid.bin"
+            cfg_text = temporal_cfg(
+                base_text,
+                nx=int(spec["nx"]),
+                ny=int(spec["ny"]),
+                t_end=target,
+                solver="hll",
+                output_file=grid,
+            )
+            _, meta, _ = runner(
+                f"{case_name}-{precision}-{index:02d}",
+                cfg_text,
+                run_dir,
+                binary,
+                source_cfg,
+                commit,
+                sha,
+                output_bin=grid,
+                experiment="week15-mhd-temporal-divergence",
+            )
+            grids[precision].append(grid)
+            runs.append(meta)
+    entry = pair_entry(
+        case_name,
+        gamma=gamma,
+        double_grids=grids["double"],
+        float_grids=grids["float"],
+    )
+    record = analyser(entry, fit_window=spec["fit_window"])
+    if not keep_grids:
+        for grid in grids["double"] + grids["float"]:
+            if grid.is_file():
+                grid.unlink()
+    return {"record": record, "runs": runs}
