@@ -1,4 +1,7 @@
+import json
+import math
 import sys
+import warnings
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -83,3 +86,36 @@ def test_run_case_series_records_both_precisions_and_cleans_grids(tmp_path):
     assert len(calls) == 6
     assert result["record"]["lambda_l1"] == 1.0
     assert not list(tmp_path.rglob("*.bin"))
+
+
+def _record(case, lam, scale=1.0):
+    return {
+        "case": case, "pair": "fp32-vs-fp64", "variable": "rho",
+        "times": [0.1, 0.2, 0.3], "l1": [scale, 2 * scale, 4 * scale],
+        "linf": [2 * scale, 4 * scale, 8 * scale], "lambda_l1": lam,
+        "lambda_linf": lam, "fit_l1": {"slope": lam, "intercept": math.log(scale)},
+        "fit_linf": {"slope": lam, "intercept": math.log(2 * scale)},
+        "fit_window": [0.1, 0.3], "notes": [], "samples": [],
+    }
+
+
+def test_outputs_are_strict_json_and_register_figure(tmp_path):
+    records = [_record("brio_wu_1d", 0.1), _record("orszag_tang_2d", 2.0, 1e-6)]
+    paths = td.write_outputs(tmp_path, records, runs=[])
+    payload = json.loads(paths["json"].read_text(encoding="utf-8"))
+    assert payload["gates"]["pass"] is True
+    assert payload["gates"]["orszag_tang_positive_lambda"] is True
+    assert payload["interpretation"]["formal_maximal_lyapunov"] is False
+    assert paths["figure"].is_file()
+
+
+def test_plot_records_masks_zero_drift_without_runtime_warnings(tmp_path):
+    record = _record("brio_wu_1d", 0.1)
+    record["l1"] = [0.0, 0.0, 0.0]
+    record["linf"] = [0.0, 0.0, 0.0]
+    record["fit_l1"] = {"slope": None, "intercept": None}
+    record["fit_window"] = None
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        figure = td.plot_records(tmp_path, [record])
+    assert figure.is_file()

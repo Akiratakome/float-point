@@ -170,3 +170,127 @@ def run_case_series(
             if grid.is_file():
                 grid.unlink()
     return {"record": record, "runs": runs}
+
+
+def evaluate_gates(records: Sequence[dict[str, Any]]) -> dict[str, Any]:
+    by_case = {record["case"]: record for record in records}
+    finite_nonnegative = all(
+        math.isfinite(float(value)) and float(value) >= 0.0
+        for record in records
+        for key in ("l1", "linf")
+        for value in record[key]
+    )
+    ot_lambda = by_case.get("orszag_tang_2d", {}).get("lambda_l1")
+    ot_positive = ot_lambda is not None and math.isfinite(float(ot_lambda)) and float(ot_lambda) > 0.0
+    complete = set(by_case) == set(CASES)
+    return {
+        "pass": bool(complete and finite_nonnegative and ot_positive),
+        "cases_complete": complete,
+        "all_drift_finite_nonnegative": finite_nonnegative,
+        "orszag_tang_positive_lambda": ot_positive,
+    }
+
+
+def plot_records(out_dir: pathlib.Path, records: Sequence[dict[str, Any]]) -> pathlib.Path:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    figure = pathlib.Path(out_dir) / "figures" / "temporal_divergence.png"
+    figure.parent.mkdir(parents=True, exist_ok=True)
+    with plt.rc_context({
+        "font.family": "serif", "font.size": 9,
+        "axes.grid": True, "grid.alpha": 0.25,
+        "figure.dpi": 120, "savefig.dpi": 300,
+    }):
+        fig, ax = plt.subplots(figsize=(6.6, 3.8), constrained_layout=True)
+        for record in records:
+            times = np.asarray(record["times"], dtype=np.float64)
+            l1 = np.asarray(record["l1"], dtype=np.float64)
+            log_l1 = np.full(l1.shape, np.nan, dtype=np.float64)
+            positive = np.isfinite(l1) & (l1 > 0.0)
+            log_l1[positive] = np.log10(l1[positive])
+            label = str(record["case"]).replace("_", " ")
+            line, = ax.plot(times, log_l1, marker="o", ms=3, lw=1.2, label=label)
+            fit = record["fit_l1"]
+            window = record["fit_window"]
+            if fit["slope"] is not None and window is not None:
+                fit_t = np.linspace(float(window[0]), float(window[1]), 100)
+                fit_log10 = (float(fit["slope"]) * fit_t + float(fit["intercept"])) / math.log(10.0)
+                ax.plot(fit_t, fit_log10, ls="--", lw=1.0, color=line.get_color())
+                ax.text(
+                    fit_t[-1], fit_log10[-1], f"lambda={float(fit['slope']):.3g}",
+                    color=line.get_color(), fontsize=8, ha="right", va="bottom",
+                )
+        ax.set_xlabel("time")
+        ax.set_ylabel("log10 L1 density drift")
+        ax.legend(frameon=False)
+        fig.savefig(figure)
+        plt.close(fig)
+    return figure
+
+
+def write_outputs(
+    out_dir: pathlib.Path,
+    records: Sequence[dict[str, Any]],
+    runs: Sequence[dict[str, Any]],
+) -> dict[str, Any]:
+    out = pathlib.Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    gates = evaluate_gates(records)
+    figure = plot_records(out, records)
+    payload = {
+        "experiment": "week15-mhd-temporal-divergence",
+        "git_commit": git_commit(),
+        "gates": gates,
+        "records": list(records),
+        "runs": list(runs),
+        "figure": figure.relative_to(out).as_posix(),
+        "interpretation": {
+            "formal_maximal_lyapunov": False,
+            "statement": "lambda is a Lyapunov-like growth rate of an fp32-vs-fp64 perturbation.",
+        },
+    }
+    json_path = out / "summary.json"
+    csv_path = out / "summary.csv"
+    md_path = out / "summary.md"
+    json_path.write_text(json.dumps(payload, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    with csv_path.open("w", newline="", encoding="utf-8") as handle:
+        columns = ("case", "pair", "variable", "time", "l1", "linf", "lambda_l1", "lambda_linf")
+        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer.writeheader()
+        for record in records:
+            for time_value, l1, linf in zip(record["times"], record["l1"], record["linf"]):
+                writer.writerow({
+                    "case": record["case"], "pair": record["pair"],
+                    "variable": record["variable"], "time": time_value,
+                    "l1": l1, "linf": linf,
+                    "lambda_l1": record["lambda_l1"],
+                    "lambda_linf": record["lambda_linf"],
+                })
+
+    def fmt_lambda(value: Any) -> str:
+        return "n/a" if value is None else f"{float(value):.6g}"
+
+    lines = [
+        "# MHD Temporal Divergence", "",
+        "| case | samples | lambda L1 | lambda Linf | fit window |",
+        "|---|---:|---:|---:|---|",
+    ]
+    for record in records:
+        lines.append(
+            f"| {record['case']} | {len(record['times'])} | {fmt_lambda(record['lambda_l1'])} | "
+            f"{fmt_lambda(record['lambda_linf'])} | {record['fit_window']} |"
+        )
+    lines.extend([
+        "", f"- Gate pass: {gates['pass']}",
+        f"- Figure: `{payload['figure']}`", "",
+        "The fitted lambda is a Lyapunov-like engineering growth rate of an "
+        "fp32-vs-fp64 perturbation, not a formal maximal Lyapunov exponent.", "",
+    ])
+    md_path.write_text("\n".join(lines), encoding="utf-8")
+    return {
+        "json": json_path, "csv": csv_path, "markdown": md_path,
+        "figure": figure, "payload": payload,
+    }
