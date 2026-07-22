@@ -53,6 +53,10 @@ public:
         m_entries[key] = value;
     }
 
+    bool contains(const std::string& key) const {
+        return m_entries.find(key) != m_entries.end();
+    }
+
     std::string get_string(const std::string& key,
                            const std::string& def = "") const {
         auto it = m_entries.find(key);

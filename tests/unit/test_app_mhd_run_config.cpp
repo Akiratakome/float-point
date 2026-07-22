@@ -83,6 +83,19 @@ TEST_CASE("MHD any configured output times are an unsupported capability", "[app
     }
 }
 
+TEST_CASE("MHD empty configured output times are an unsupported capability", "[app][mhd]") {
+    std::istringstream input("output_times =   \n");
+    Config cfg(input);
+
+    REQUIRE(cfg.get_string("output_times").empty());
+    try {
+        (void)parse_mhd_run_options(cfg);
+        FAIL("expected unsupported capability failure");
+    } catch (const RunFailure& failure) {
+        REQUIRE(failure.category() == FailureCategory::UnsupportedCapability);
+    }
+}
+
 TEST_CASE("MHD GPU is an explicit unsupported capability", "[app][mhd]") {
     Config cfg;
     cfg.set("device", "gpu");

@@ -65,9 +65,13 @@ def _hrsc_mhd_binary() -> Path:
             ROOT / "CMakeLists.txt",
             ROOT / "src" / "mhd_main.cpp",
             ROOT / "src" / "app" / "mhd_run_config.cpp",
+            ROOT / "src" / "app" / "mhd_run_config.hpp",
             ROOT / "src" / "app" / "mhd_result.cpp",
+            ROOT / "src" / "app" / "mhd_result.hpp",
             ROOT / "src" / "app" / "run_completion.cpp",
+            ROOT / "src" / "app" / "run_completion.hpp",
             ROOT / "src" / "app" / "validation.cpp",
+            ROOT / "src" / "app" / "validation.hpp",
         ),
     )
 
@@ -305,6 +309,25 @@ def test_binary_locator_rejects_stale_candidate(tmp_path: Path) -> None:
             env_name="HRSC_TEST_STALE_BINARY",
             candidates=(candidate,),
             sources=(source,),
+        )
+
+
+def test_binary_locator_rejects_binary_older_than_a_touched_header(
+    tmp_path: Path
+) -> None:
+    candidate = tmp_path / "hrsc_mhd.exe"
+    header = tmp_path / "mhd_result.hpp"
+    candidate.write_text("candidate", encoding="utf-8")
+    header.write_text("header", encoding="utf-8")
+    old = header.stat().st_mtime - 10
+    os.utime(candidate, (old, old))
+    header.touch()
+
+    with pytest.raises(pytest.fail.Exception, match="stale executable"):
+        _select_binary(
+            env_name="HRSC_TEST_STALE_HEADER_BINARY",
+            candidates=(candidate,),
+            sources=(header,),
         )
 
 
