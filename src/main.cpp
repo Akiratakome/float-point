@@ -2,6 +2,7 @@
 #include "app/diagnostics.hpp"
 #include "app/output.hpp"
 #include "app/run_config.hpp"
+#include "app/run_completion.hpp"
 #include "utils/config.hpp"
 #include "core/eos.hpp"
 #include "euler/euler_solver.hpp"
@@ -22,6 +23,7 @@
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
+#include <utility>
 
 #ifndef HRSC_REAL
 #define HRSC_REAL double   // fallback if built without PrecisionConfig
@@ -33,6 +35,17 @@ using Real = HRSC_REAL;
 
 using namespace hrsc;
 using namespace hrsc::app;
+
+template <typename Callable>
+static decltype(auto) advance_solver(Callable&& callable) {
+    try {
+        return std::forward<Callable>(callable)();
+    } catch (const RunFailure&) {
+        throw;
+    } catch (const std::exception& error) {
+        throw RunFailure(FailureCategory::NumericalFailure, error.what());
+    }
+}
 
 static void run_convergence(const Config& cfg) {
     std::string test = cfg.get_string("test");
@@ -81,7 +94,9 @@ static void run_convergence(const Config& cfg) {
         setup_case_ic(solver.grid_view(), test, gamma);
         Timer total;
         total.start();
-        solver.run();
+        advance_solver([&] { solver.run(); });
+        require_run_complete(
+            static_cast<double>(solver.time()), t_end, solver.step_count());
         total.stop();
         std::cerr << "[timing] total_s=" << total.elapsed_seconds()
                   << " nx=" << nx << "\n";
@@ -187,17 +202,21 @@ static void run_normal(const Config& cfg) {
         Timer total;
         total.start();
         if (diagnostics.enabled) {
-            run_with_diagnostics(
-                solver, nx, ny,
-                static_cast<Real>(dx), static_cast<Real>(dy),
-                t_end, output_file, output_times, diagnostics, gamma);
+            advance_solver([&] {
+                run_with_diagnostics(
+                    solver, nx, ny,
+                    static_cast<Real>(dx), static_cast<Real>(dy),
+                    t_end, output_file, output_times, diagnostics, gamma);
+            });
         } else if (output_times.empty()) {
-            solver.run(progress_interval_s);
+            advance_solver([&] { solver.run(progress_interval_s); });
         } else {
-            run_with_binary_checkpoints(
-                solver, nx, ny,
-                static_cast<Real>(dx), static_cast<Real>(dy),
-                t_end, output_file, output_times);
+            advance_solver([&] {
+                run_with_binary_checkpoints(
+                    solver, nx, ny,
+                    static_cast<Real>(dx), static_cast<Real>(dy),
+                    t_end, output_file, output_times);
+            });
         }
         hllc_trace::close();
         total.stop();
@@ -205,6 +224,11 @@ static void run_normal(const Config& cfg) {
 #ifdef HRSC_ENABLE_PROFILING
         write_profiling_timings(std::cerr, solver.profiling());
 #endif
+
+        require_run_complete(
+            static_cast<double>(solver.time()), t_end, solver.step_count());
+        write_run_success(
+            std::cerr, static_cast<double>(solver.time()), t_end, solver.step_count());
 
         std::cerr << "Finished: " << solver.step_count() << " steps, t = "
                   << solver.time() << "\n";
@@ -249,17 +273,21 @@ static void run_normal(const Config& cfg) {
     Timer total;
     total.start();
     if (diagnostics.enabled) {
-        run_with_diagnostics(
-            solver, nx, 1,
-            static_cast<Real>(dx), static_cast<Real>(dx),
-            t_end, output_file, output_times, diagnostics, gamma);
+        advance_solver([&] {
+            run_with_diagnostics(
+                solver, nx, 1,
+                static_cast<Real>(dx), static_cast<Real>(dx),
+                t_end, output_file, output_times, diagnostics, gamma);
+        });
     } else if (output_times.empty()) {
-        solver.run(progress_interval_s);
+        advance_solver([&] { solver.run(progress_interval_s); });
     } else {
-        run_with_binary_checkpoints(
-            solver, nx, 1,
-            static_cast<Real>(dx), static_cast<Real>(dx),
-            t_end, output_file, output_times);
+        advance_solver([&] {
+            run_with_binary_checkpoints(
+                solver, nx, 1,
+                static_cast<Real>(dx), static_cast<Real>(dx),
+                t_end, output_file, output_times);
+        });
     }
     hllc_trace::close();
     total.stop();
@@ -267,6 +295,11 @@ static void run_normal(const Config& cfg) {
 #ifdef HRSC_ENABLE_PROFILING
     write_profiling_timings(std::cerr, solver.profiling());
 #endif
+
+    require_run_complete(
+        static_cast<double>(solver.time()), t_end, solver.step_count());
+    write_run_success(
+        std::cerr, static_cast<double>(solver.time()), t_end, solver.step_count());
 
     std::cerr << "Finished: " << solver.step_count() << " steps, t = "
               << static_cast<double>(solver.time()) << "\n";
@@ -347,10 +380,15 @@ static void run_normal_gpu(const Config& cfg) {
 
     Timer total;
     total.start();
-    double run_s = solver.run();
+    double run_s = advance_solver([&] { return solver.run(); });
     total.stop();
     std::cerr << "[timing] total_s=" << total.elapsed_seconds()
               << " gpu_run_s=" << run_s << "\n";
+    require_run_complete(
+        static_cast<double>(solver.current_time()), t_end, solver.step_count());
+    write_run_success(
+        std::cerr, static_cast<double>(solver.current_time()), t_end,
+        solver.step_count());
     std::cerr << "Finished: " << solver.step_count() << " steps, t = "
               << static_cast<double>(solver.current_time()) << "\n";
 
@@ -406,25 +444,23 @@ int main(int argc, char* argv[]) try {
 
     Config cfg(argv[1]);
     RunMode mode = parse_mode(cfg);
-    const std::string device = cfg.get_string("device", "cpu");
-    if (device != "cpu" && device != "gpu") {
-        throw std::runtime_error("Invalid device='" + device + "'; expected 'cpu' or 'gpu'");
-    }
-    if (device == "gpu") {
+    const Device device = parse_device(cfg);
+    if (device == Device::Gpu) {
         LimiterScheme limiter = parse_limiter(cfg);
         if (limiter != LimiterScheme::Minbee) {
-            throw std::runtime_error(
+            throw RunFailure(FailureCategory::UnsupportedCapability,
                 "limiter selection is currently supported only for device=cpu; "
                 "GPU kernels use the default minbee limiter");
         }
 #ifndef HRSC_HAS_CUDA
-        throw std::runtime_error("device=gpu requires building with -DENABLE_CUDA=ON");
+        throw RunFailure(FailureCategory::UnsupportedCapability,
+                         "device=gpu requires building with -DENABLE_CUDA=ON");
 #else
         if (mode == RunMode::Convergence) {
             // Convergence sweep on GPU is out of scope for Week 6; the GPU
             // path is for the time-stepping smoke matrix and regression
             // gate. Convergence stays CPU-only until a later week.
-            throw std::runtime_error(
+            throw RunFailure(FailureCategory::UnsupportedCapability,
                 "device=gpu does not support mode=convergence yet");
         }
         run_normal_gpu(cfg);
@@ -437,9 +473,12 @@ int main(int argc, char* argv[]) try {
     } else {
         run_normal(cfg);
     }
-
     return 0;
-} catch (const std::exception& e) {
-    std::cerr << "[error] " << e.what() << "\n";
+} catch (const RunFailure& error) {
+    write_run_failure(std::cerr, error);
+    return 2;
+} catch (const std::exception& error) {
+    write_run_failure(
+        std::cerr, RunFailure(FailureCategory::ConfigurationError, error.what()));
     return 2;
 }
