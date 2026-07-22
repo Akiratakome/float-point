@@ -47,6 +47,24 @@ static decltype(auto) advance_solver(Callable&& callable) {
     }
 }
 
+template <typename Callable>
+static void write_final_artifact(Callable&& callable) {
+    try {
+        std::forward<Callable>(callable)();
+    } catch (const RunFailure&) {
+        throw;
+    } catch (const std::exception& error) {
+        throw RunFailure(FailureCategory::ArtifactError, error.what());
+    }
+}
+
+static void require_table_output() {
+    if (!std::cout) {
+        throw RunFailure(FailureCategory::ArtifactError,
+                         "failed to write table output");
+    }
+}
+
 static void run_convergence(const Config& cfg) {
     std::string test = cfg.get_string("test");
     // Read in double (Config API), cast on use to Real for solver state.
@@ -227,40 +245,42 @@ static void run_normal(const Config& cfg) {
 
         require_run_complete(
             static_cast<double>(solver.time()), t_end, solver.step_count());
-        write_run_success(
-            std::cerr, static_cast<double>(solver.time()), t_end, solver.step_count());
 
         std::cerr << "Finished: " << solver.step_count() << " steps, t = "
                   << solver.time() << "\n";
 
         if (output_format == "binary") {
-            write_binary<Real, EulerNVars>(
-                output_file, solver.grid_view(),
-                nx, ny, static_cast<Real>(dx), static_cast<Real>(dy),
-                static_cast<Real>(solver.time()));
-            return;
-        }
+            write_final_artifact([&] {
+                write_binary<Real, EulerNVars>(
+                    output_file, solver.grid_view(),
+                    nx, ny, static_cast<Real>(dx), static_cast<Real>(dy),
+                    static_cast<Real>(solver.time()));
+            });
+        } else {
+            auto gv = solver.grid_view();
+            std::cout << std::setprecision(out_prec);
+            // Gnuplot-friendly: one line per (i, j), blank line between j-blocks.
+            for (int j = 0; j < ny; ++j) {
+                double y = ymin + (j + 0.5) * dy;
+                for (int i = 0; i < nx; ++i) {
+                    double x = xmin + (i + 0.5) * dx;
+                    Vec<Real, EulerNVars> cons;
+                    for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, j, v);
+                    Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
 
-        auto gv = solver.grid_view();
-        std::cout << std::setprecision(out_prec);
-        // Gnuplot-friendly: one line per (i, j), blank line between j-blocks.
-        for (int j = 0; j < ny; ++j) {
-            double y = ymin + (j + 0.5) * dy;
-            for (int i = 0; i < nx; ++i) {
-                double x = xmin + (i + 0.5) * dx;
-                Vec<Real, EulerNVars> cons;
-                for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, j, v);
-                Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
-
-                std::cout << x                                 << "\t"
-                          << y                                 << "\t"
-                          << static_cast<double>(prim[PRHO])   << "\t"
-                          << static_cast<double>(prim[VX])     << "\t"
-                          << static_cast<double>(prim[VY])     << "\t"
-                          << static_cast<double>(prim[PRES])   << "\n";
+                    std::cout << x                                 << "\t"
+                              << y                                 << "\t"
+                              << static_cast<double>(prim[PRHO])   << "\t"
+                              << static_cast<double>(prim[VX])     << "\t"
+                              << static_cast<double>(prim[VY])     << "\t"
+                              << static_cast<double>(prim[PRES])   << "\n";
+                }
+                std::cout << "\n";
             }
-            std::cout << "\n";
+            require_table_output();
         }
+        write_run_success(
+            std::cerr, static_cast<double>(solver.time()), t_end, solver.step_count());
         return;
     }
 
@@ -298,33 +318,36 @@ static void run_normal(const Config& cfg) {
 
     require_run_complete(
         static_cast<double>(solver.time()), t_end, solver.step_count());
-    write_run_success(
-        std::cerr, static_cast<double>(solver.time()), t_end, solver.step_count());
 
     std::cerr << "Finished: " << solver.step_count() << " steps, t = "
               << static_cast<double>(solver.time()) << "\n";
 
     auto gv = solver.grid_view();
     if (output_format == "binary") {
-        write_binary<Real, EulerNVars>(
-            output_file, gv, nx, 1,
-            static_cast<Real>(dx), static_cast<Real>(dx),
-            static_cast<Real>(solver.time()));
-        return;
-    }
-    std::cout << std::setprecision(out_prec);
-    for (int i = 0; i < nx; ++i) {
-        double x = xmin + (i + 0.5) * dx;
-        Vec<Real, EulerNVars> cons;
-        for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, 0, v);
-        Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
+        write_final_artifact([&] {
+            write_binary<Real, EulerNVars>(
+                output_file, gv, nx, 1,
+                static_cast<Real>(dx), static_cast<Real>(dx),
+                static_cast<Real>(solver.time()));
+        });
+    } else {
+        std::cout << std::setprecision(out_prec);
+        for (int i = 0; i < nx; ++i) {
+            double x = xmin + (i + 0.5) * dx;
+            Vec<Real, EulerNVars> cons;
+            for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, 0, v);
+            Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
 
-        std::cout << x                                 << "\t"
-                  << static_cast<double>(prim[PRHO])   << "\t"
-                  << static_cast<double>(prim[VX])     << "\t"
-                  << static_cast<double>(prim[VY])     << "\t"
-                  << static_cast<double>(prim[PRES])   << "\n";
+            std::cout << x                                 << "\t"
+                      << static_cast<double>(prim[PRHO])   << "\t"
+                      << static_cast<double>(prim[VX])     << "\t"
+                      << static_cast<double>(prim[VY])     << "\t"
+                      << static_cast<double>(prim[PRES])   << "\n";
+        }
+        require_table_output();
     }
+    write_run_success(
+        std::cerr, static_cast<double>(solver.time()), t_end, solver.step_count());
 }
 
 #ifdef HRSC_HAS_CUDA
@@ -386,9 +409,6 @@ static void run_normal_gpu(const Config& cfg) {
               << " gpu_run_s=" << run_s << "\n";
     require_run_complete(
         static_cast<double>(solver.current_time()), t_end, solver.step_count());
-    write_run_success(
-        std::cerr, static_cast<double>(solver.current_time()), t_end,
-        solver.step_count());
     std::cerr << "Finished: " << solver.step_count() << " steps, t = "
               << static_cast<double>(solver.current_time()) << "\n";
 
@@ -396,43 +416,48 @@ static void run_normal_gpu(const Config& cfg) {
     GridView<Real, EulerNVars> gv = final_grid.view();
 
     if (output_format == "binary") {
-        write_binary<Real, EulerNVars>(
-            output_file, gv, nx, ny,
-            static_cast<Real>(dx), static_cast<Real>(dy),
-            static_cast<Real>(solver.current_time()));
-        return;
-    }
-
-    std::cout << std::setprecision(out_prec);
-    if (ny > 1) {
-        for (int j = 0; j < ny; ++j) {
-            double y = ymin + (j + 0.5) * dy;
+        write_final_artifact([&] {
+            write_binary<Real, EulerNVars>(
+                output_file, gv, nx, ny,
+                static_cast<Real>(dx), static_cast<Real>(dy),
+                static_cast<Real>(solver.current_time()));
+        });
+    } else {
+        std::cout << std::setprecision(out_prec);
+        if (ny > 1) {
+            for (int j = 0; j < ny; ++j) {
+                double y = ymin + (j + 0.5) * dy;
+                for (int i = 0; i < nx; ++i) {
+                    double x = xmin + (i + 0.5) * dx;
+                    Vec<Real, EulerNVars> cons;
+                    for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, j, v);
+                    Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
+                    std::cout << x << "\t" << y << "\t"
+                              << static_cast<double>(prim[PRHO]) << "\t"
+                              << static_cast<double>(prim[VX])   << "\t"
+                              << static_cast<double>(prim[VY])   << "\t"
+                              << static_cast<double>(prim[PRES]) << "\n";
+                }
+                std::cout << "\n";
+            }
+        } else {
             for (int i = 0; i < nx; ++i) {
                 double x = xmin + (i + 0.5) * dx;
                 Vec<Real, EulerNVars> cons;
-                for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, j, v);
+                for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, 0, v);
                 Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
-                std::cout << x << "\t" << y << "\t"
+                std::cout << x << "\t"
                           << static_cast<double>(prim[PRHO]) << "\t"
                           << static_cast<double>(prim[VX])   << "\t"
                           << static_cast<double>(prim[VY])   << "\t"
                           << static_cast<double>(prim[PRES]) << "\n";
             }
-            std::cout << "\n";
         }
-    } else {
-        for (int i = 0; i < nx; ++i) {
-            double x = xmin + (i + 0.5) * dx;
-            Vec<Real, EulerNVars> cons;
-            for (int v = 0; v < EulerNVars; ++v) cons[v] = gv(i, 0, v);
-            Vec<Real, EulerNVars> prim = cons_to_prim(cons, gamma);
-            std::cout << x << "\t"
-                      << static_cast<double>(prim[PRHO]) << "\t"
-                      << static_cast<double>(prim[VX])   << "\t"
-                      << static_cast<double>(prim[VY])   << "\t"
-                      << static_cast<double>(prim[PRES]) << "\n";
-        }
+        require_table_output();
     }
+    write_run_success(
+        std::cerr, static_cast<double>(solver.current_time()), t_end,
+        solver.step_count());
 }
 #endif // HRSC_HAS_CUDA
 

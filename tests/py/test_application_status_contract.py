@@ -11,6 +11,32 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def _application_source_dependencies(
+    root: Path, *, target: str
+) -> tuple[Path, ...]:
+    dependencies = {root / "CMakeLists.txt"}
+    dependencies.update(path for path in (root / "cmake").rglob("*") if path.is_file())
+    target_roots = {
+        "hrsc": ((root / "src" / "app"), (root / "src" / "core"),
+                 (root / "src" / "euler"), (root / "src" / "utils")),
+        "hrsc_mhd": ((root / "src" / "app"), (root / "src" / "core"),
+                     (root / "src" / "mhd")),
+    }
+    if target not in target_roots:
+        raise ValueError(f"unknown application target: {target}")
+    source_suffixes = {".c", ".cc", ".cpp", ".cu", ".cuh", ".h", ".hpp"}
+    dependencies.update(
+        path
+        for source_root in target_roots[target]
+        for path in source_root.rglob("*")
+        if path.is_file() and path.suffix.lower() in source_suffixes
+    )
+    entrypoint = root / "src" / ("main.cpp" if target == "hrsc" else "mhd_main.cpp")
+    if entrypoint.is_file():
+        dependencies.add(entrypoint)
+    return tuple(sorted(dependencies, key=lambda path: path.as_posix()))
+
+
 def _select_binary(
     *, env_name: str, candidates: tuple[Path, ...], sources: tuple[Path, ...]
 ) -> Path:
@@ -43,12 +69,7 @@ def _hrsc_binary() -> Path:
             ROOT / "build-double" / "hrsc.exe",
             ROOT / "build-double" / "hrsc",
         ),
-        sources=(
-            ROOT / "src" / "main.cpp",
-            ROOT / "src" / "app" / "run_config.cpp",
-            ROOT / "src" / "app" / "run_completion.cpp",
-            ROOT / "src" / "app" / "validation.cpp",
-        ),
+        sources=_application_source_dependencies(ROOT, target="hrsc"),
     )
 
 
@@ -61,18 +82,7 @@ def _hrsc_mhd_binary() -> Path:
             ROOT / "build-double" / "hrsc_mhd.exe",
             ROOT / "build-double" / "hrsc_mhd",
         ),
-        sources=(
-            ROOT / "CMakeLists.txt",
-            ROOT / "src" / "mhd_main.cpp",
-            ROOT / "src" / "app" / "mhd_run_config.cpp",
-            ROOT / "src" / "app" / "mhd_run_config.hpp",
-            ROOT / "src" / "app" / "mhd_result.cpp",
-            ROOT / "src" / "app" / "mhd_result.hpp",
-            ROOT / "src" / "app" / "run_completion.cpp",
-            ROOT / "src" / "app" / "run_completion.hpp",
-            ROOT / "src" / "app" / "validation.cpp",
-            ROOT / "src" / "app" / "validation.hpp",
-        ),
+        sources=_application_source_dependencies(ROOT, target="hrsc_mhd"),
     )
 
 
@@ -142,14 +152,14 @@ def _assert_path_local_output_order(path: str, output_marker: str, label: str) -
     assert output >= 0, f"{label} is missing {output_marker}"
     assert path.count(output_marker) == 1, f"{label} has an unexpected {output_marker} count"
 
-    success = path.rfind("write_run_success", 0, output)
-    completion = path.rfind("require_run_complete", 0, success)
+    success = path.find("write_run_success", output)
+    completion = path.rfind("require_run_complete", 0, output)
     advance = path.rfind("advance_solver", 0, completion)
 
     assert advance >= 0, f"{label} has no solver advance before final output"
     assert completion >= 0, f"{label} has no completion gate before final output"
-    assert success >= 0, f"{label} has no success status before final output"
-    assert advance < completion < success < output, f"{label} final output ordering changed"
+    assert success >= 0, f"{label} has no success status after final output"
+    assert advance < completion < output < success, f"{label} final output ordering changed"
 
 
 def test_cpu_euler_run_emits_success_status(tmp_path: Path) -> None:
@@ -181,6 +191,26 @@ def test_cpu_euler_binary_run_writes_artifact_after_success(tmp_path: Path) -> N
     assert result.returncode == 0, result.stderr
     assert "[run-status] status=success final_time=0 target_time=0 steps=0" in result.stderr
     assert output_file.is_file()
+
+
+def test_cpu_euler_binary_write_failure_is_an_artifact_error(tmp_path: Path) -> None:
+    binary = _hrsc_binary()
+    output_directory = tmp_path / "euler-output-directory"
+    output_directory.mkdir()
+    cfg = tmp_path / "euler-artifact-error.cfg"
+    cfg.write_text(
+        _zero_time_sod_cfg(output_format="binary", output_file=output_directory),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [str(binary), str(cfg)], capture_output=True, text=True, check=False
+    )
+
+    assert result.returncode == 2, result.stderr
+    assert "[run-status] status=failed reason=artifact_error" in result.stderr
+    assert "status=success" not in result.stderr
+    assert output_directory.is_dir()
 
 
 def test_cpu_mhd_run_emits_success_status_and_legacy_binary(tmp_path: Path) -> None:
@@ -312,6 +342,43 @@ def test_binary_locator_rejects_stale_candidate(tmp_path: Path) -> None:
         )
 
 
+def test_application_source_dependencies_are_dynamic_and_include_cmake_inputs(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "src" / "app").mkdir(parents=True)
+    (tmp_path / "cmake").mkdir()
+    (tmp_path / "src" / "app" / "new_source.cpp").write_text("source", encoding="utf-8")
+    (tmp_path / "src" / "app" / "new_header.hpp").write_text("header", encoding="utf-8")
+    (tmp_path / "cmake" / "new_flags.cmake").write_text("flags", encoding="utf-8")
+    (tmp_path / "CMakeLists.txt").write_text("cmake", encoding="utf-8")
+
+    dependencies = _application_source_dependencies(tmp_path, target="hrsc")
+
+    assert tmp_path / "src" / "app" / "new_source.cpp" in dependencies
+    assert tmp_path / "src" / "app" / "new_header.hpp" in dependencies
+    assert tmp_path / "cmake" / "new_flags.cmake" in dependencies
+    assert tmp_path / "CMakeLists.txt" in dependencies
+
+
+def test_binary_locator_rejects_new_dynamic_application_source(tmp_path: Path) -> None:
+    candidate = tmp_path / "app.exe"
+    candidate.write_text("candidate", encoding="utf-8")
+    (tmp_path / "src" / "app").mkdir(parents=True)
+    (tmp_path / "cmake").mkdir()
+    (tmp_path / "CMakeLists.txt").write_text("cmake", encoding="utf-8")
+    source = tmp_path / "src" / "app" / "new_source.cpp"
+    source.write_text("source", encoding="utf-8")
+    old = source.stat().st_mtime - 10
+    os.utime(candidate, (old, old))
+
+    with pytest.raises(pytest.fail.Exception, match="stale executable"):
+        _select_binary(
+            env_name="HRSC_TEST_DYNAMIC_STALE_BINARY",
+            candidates=(candidate,),
+            sources=_application_source_dependencies(tmp_path, target="hrsc"),
+        )
+
+
 def test_binary_locator_rejects_binary_older_than_a_touched_header(
     tmp_path: Path
 ) -> None:
@@ -368,6 +435,15 @@ def test_every_final_euler_output_path_follows_completion_contract() -> None:
     assert "run_with_diagnostics" in cpu_1d
     assert "checkpoint_output_file" not in source
     assert "write_diagnostic_dump" not in source
+
+
+def test_cuda_guard_closes_run_normal_gpu_once() -> None:
+    source = (ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
+    start = source.index("static void run_normal_gpu")
+    _, end = _braced_block(source, start)
+    guard_end = source.index("#endif // HRSC_HAS_CUDA", end)
+
+    assert source[end:guard_end].strip() == ""
 
 
 def test_mhd_result_follows_completion_contract() -> None:
