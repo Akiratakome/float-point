@@ -113,8 +113,6 @@ def run_case(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha2
     run_dir.mkdir(parents=True, exist_ok=True)
     cfg_path = run_dir / "config.cfg"
     cfg_path.write_text(cfg_text, encoding="utf-8")
-    if not pathlib.Path(bin_path).exists():
-        raise FileNotFoundError(2, "No such file or directory", str(bin_path))
     command = [str(bin_path), str(cfg_path)]
     output_bin_path = None
     if output_bin is not None:
@@ -153,6 +151,11 @@ def run_case(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha2
     meta = serialise_record(record, legacy)
     (run_dir / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
     if record.returncode != 0:
+        failure = record.failure or {}
+        if failure.get("exception_type") == "FileNotFoundError":
+            raise FileNotFoundError(
+                failure.get("errno"), failure.get("strerror"), failure.get("filename")
+            )
         raise RuntimeError(f"run '{label}' failed (rc={record.returncode}); see {record.stderr_path}")
     if record.status != "success":
         raise RuntimeError(

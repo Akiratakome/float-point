@@ -170,15 +170,23 @@ def test_run_case_replaces_non_utf8_stderr_and_accepts_required_output(tmp_path)
 
 def test_run_case_propagates_missing_binary_as_file_not_found(tmp_path):
     source_cfg = tmp_path / "source.cfg"
+    missing_binary = tmp_path / "missing-hrsc"
+    run_dir = tmp_path / "run"
     source_cfg.write_text("placeholder = 1\n", encoding="utf-8")
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(FileNotFoundError) as error:
         run_case(
             "missing-binary",
             "placeholder = 1\n",
-            tmp_path / "run",
-            tmp_path / "missing-hrsc",
+            run_dir,
+            missing_binary,
             source_cfg,
             "test-commit",
             "test-sha",
         )
+
+    assert error.value.filename == str(missing_binary)
+    metadata = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["status"] == "failed"
+    assert metadata["failure"]["category"] == "infrastructure_error"
+    assert metadata["failure"]["exception_type"] == "FileNotFoundError"

@@ -55,5 +55,5 @@ class RunRecord:
     stdout_path: Path
     stderr_path: Path
     status: str
-    failure: dict[str, str] | None = None
+    failure: dict[str, Any] | None = None
     completion: dict[str, Any] | None = None

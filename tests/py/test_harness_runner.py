@@ -1,5 +1,6 @@
 import sys
 import time
+from errno import ENOENT
 from pathlib import Path
 
 from scripts.harness.contracts import RequiredArtifact, RunSpec
@@ -95,3 +96,27 @@ def test_nonzero_returncode_overrides_structured_success(tmp_path: Path):
     assert record.returncode == 3
     assert record.status == "failed"
     assert record.failure["category"] == "infrastructure_error"
+
+
+def test_missing_executable_records_structured_launch_failure(tmp_path: Path):
+    cfg = tmp_path / "config.cfg"
+    missing_binary = tmp_path / "missing-hrsc"
+    cfg.write_text("x = 1\n", encoding="utf-8")
+    spec = RunSpec(
+        name="missing-executable",
+        experiment="pytest",
+        command=(str(missing_binary),),
+        run_dir=tmp_path / "run",
+        source_config=cfg,
+        run_config=cfg,
+    )
+
+    record = execute_run(spec)
+
+    assert record.returncode == -1
+    assert record.status == "failed"
+    assert record.failure["category"] == "infrastructure_error"
+    assert record.failure["exception_type"] == "FileNotFoundError"
+    assert record.failure["errno"] == ENOENT
+    assert record.failure["strerror"]
+    assert record.failure["filename"] == str(missing_binary)

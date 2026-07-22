@@ -14,7 +14,7 @@ _STATUS_RE = re.compile(r"^\[run-status\]\s+(?P<body>.+)$")
 
 def parse_run_status(
     stderr_text: str,
-) -> tuple[str | None, dict[str, Any] | None, dict[str, str] | None]:
+) -> tuple[str | None, dict[str, Any] | None, dict[str, Any] | None]:
     parsed = None
     for line in stderr_text.splitlines():
         match = _STATUS_RE.match(line.strip())
@@ -51,7 +51,7 @@ def git_provenance(repo_root: Path) -> dict[str, Any]:
     return {"commit": commit, "dirty": bool(status.strip())}
 
 
-def _failure(category: str, message: str) -> dict[str, str]:
+def _failure(category: str, message: str) -> dict[str, Any]:
     return {"category": category, "message": message}
 
 
@@ -71,7 +71,7 @@ def execute_run(spec: RunSpec, dry_run: bool = False) -> RunRecord:
     perf_start = time.perf_counter()
     returncode = -1
     status = "failed"
-    failure: dict[str, str] | None = None
+    failure: dict[str, Any] | None = None
     completion: dict[str, Any] | None = None
 
     try:
@@ -119,6 +119,13 @@ def execute_run(spec: RunSpec, dry_run: bool = False) -> RunRecord:
         failure = _failure("infrastructure_error", f"process timed out: {exc}")
     except Exception as exc:
         failure = _failure("infrastructure_error", str(exc))
+        failure["exception_type"] = type(exc).__name__
+        if isinstance(exc, FileNotFoundError):
+            failure.update(
+                errno=exc.errno,
+                strerror=exc.strerror,
+                filename=exc.filename or spec.command[0],
+            )
 
     return RunRecord(
         spec=spec,
