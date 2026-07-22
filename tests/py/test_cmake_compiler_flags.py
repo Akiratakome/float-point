@@ -64,7 +64,6 @@ def test_cmake_configures_valid_json_build_semantics_template():
     ],
 )
 def test_cmake_configure_generates_valid_build_semantics(
-    tmp_path: Path,
     opt_level: str,
     fast_math: bool,
     strict_ieee: bool,
@@ -74,7 +73,13 @@ def test_cmake_configure_generates_valid_build_semantics(
     if cmake is None:
         pytest.skip("CMake is unavailable")
 
-    build_dir = tmp_path / f"build-{opt_level}-{fast_math}-{strict_ieee}"
+    build_dir = (
+        ROOT
+        / ".superpowers"
+        / "sdd"
+        / f"cmake-semantics-{opt_level}-{fast_math}-{strict_ieee}"
+    )
+    shutil.rmtree(build_dir, ignore_errors=True)
     command = [
         cmake,
         "-S",
@@ -87,17 +92,22 @@ def test_cmake_configure_generates_valid_build_semantics(
         f"-DFAST_MATH={'ON' if fast_math else 'OFF'}",
         f"-DSTRICT_IEEE={'ON' if strict_ieee else 'OFF'}",
     ]
-    subprocess.run(command, check=True, capture_output=True, text=True)
+    try:
+        subprocess.run(command, check=True, capture_output=True, text=True)
 
-    semantics = json.loads((build_dir / "build_semantics.json").read_text(encoding="utf-8"))
-    assert semantics["schema"] == {"name": "hrsc.build-semantics", "version": 1}
-    assert semantics["requested"] == {
-        "opt_level": opt_level,
-        "fast_math": fast_math,
-        "strict_ieee": strict_ieee,
-    }
-    assert semantics["effective_math_mode"] == expected_mode
-    assert isinstance(semantics["compiler"]["id"], str) and semantics["compiler"]["id"]
-    assert isinstance(semantics["compiler"]["version"], str) and semantics["compiler"]["version"]
-    assert isinstance(semantics["compiler"]["path"], str) and semantics["compiler"]["path"]
-    assert "\\" not in semantics["compiler"]["path"]
+        semantics = json.loads(
+            (build_dir / "build_semantics.json").read_text(encoding="utf-8")
+        )
+        assert semantics["schema"] == {"name": "hrsc.build-semantics", "version": 1}
+        assert semantics["requested"] == {
+            "opt_level": opt_level,
+            "fast_math": fast_math,
+            "strict_ieee": strict_ieee,
+        }
+        assert semantics["effective_math_mode"] == expected_mode
+        assert isinstance(semantics["compiler"]["id"], str) and semantics["compiler"]["id"]
+        assert isinstance(semantics["compiler"]["version"], str) and semantics["compiler"]["version"]
+        assert isinstance(semantics["compiler"]["path"], str) and semantics["compiler"]["path"]
+        assert "\\" not in semantics["compiler"]["path"]
+    finally:
+        shutil.rmtree(build_dir, ignore_errors=True)
