@@ -104,6 +104,8 @@ add_library(hrsc_mhd_lib STATIC src/mhd/mhd_solver.cpp)
 target_link_libraries(hrsc_mhd_lib PUBLIC hrsc_core)
 
 add_library(hrsc_app_common STATIC
+    src/app/mhd_result.cpp
+    src/app/mhd_run_config.cpp
     src/app/run_completion.cpp
     src/app/validation.cpp)
 target_link_libraries(hrsc_app_common PUBLIC hrsc_core)
@@ -120,12 +122,12 @@ add_executable(hrsc src/main.cpp)
 target_link_libraries(hrsc PRIVATE hrsc_core hrsc_euler hrsc_app)
 
 add_executable(hrsc_mhd src/mhd_main.cpp)
-target_link_libraries(hrsc_mhd PRIVATE hrsc_core hrsc_mhd_lib)
+target_link_libraries(hrsc_mhd PRIVATE hrsc_core hrsc_mhd_lib hrsc_app_common)
 
 # --- Unit tests ---
 file(GLOB TEST_SOURCES CONFIGURE_DEPENDS tests/unit/test_*.cpp)
 add_executable(unit_tests ${TEST_SOURCES})
-target_link_libraries(unit_tests PRIVATE hrsc_core hrsc_euler hrsc_app hrsc_mhd_lib)
+target_link_libraries(unit_tests PRIVATE hrsc_core hrsc_euler hrsc_app_common hrsc_app hrsc_mhd_lib)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/external/catch2)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/toro_1d)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/liska_wendroff_2d)
