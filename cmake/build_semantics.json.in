@@ -1,0 +1,19 @@
+{
+  "schema": {"name": "hrsc.build-semantics", "version": 1},
+  "compiler": {
+    "id": "@CMAKE_CXX_COMPILER_ID@",
+    "version": "@CMAKE_CXX_COMPILER_VERSION@",
+    "path": "@HRSC_CXX_COMPILER_JSON_PATH@"
+  },
+  "requested": {
+    "opt_level": "@OPT_LEVEL@",
+    "fast_math": @HRSC_FAST_MATH_JSON@,
+    "strict_ieee": @HRSC_STRICT_IEEE_JSON@
+  },
+  "effective_math_mode": "@HRSC_EFFECTIVE_MATH_MODE@",
+  "flag_evidence": {
+    "optimization": "@_hrsc_opt_flags_msg@",
+    "fast_math": "@_hrsc_fast_math_flags_msg@",
+    "strict_ieee": "@HRSC_STRICT_IEEE_FLAG_EVIDENCE@"
+  }
+}

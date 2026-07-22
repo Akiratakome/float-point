@@ -14,7 +14,13 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.harness.config import materialise_config, replace_or_append_cfg
-from scripts.harness.contracts import RequiredArtifact, RunRecord, RunSpec
+from scripts.harness.contracts import (
+    BuildSemantics,
+    RequiredArtifact,
+    RunRecord,
+    RunSpec,
+    load_build_semantics,
+)
 from scripts.harness.metadata import serialise_record
 from scripts.harness.runner import execute_run, git_provenance
 
@@ -32,6 +38,7 @@ class MatrixRun:
     build: str | None = None
     raw_output: Path | None = None
     extra_cfg: dict[str, str] | None = None
+    build_semantics: BuildSemantics | None = None
 
 
 def _require_field(raw: dict[str, Any], field: str) -> Any:
@@ -50,15 +57,21 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
     raw_extra_cfg = raw.get("extra_cfg", {})
     if not isinstance(raw_extra_cfg, dict):
         raise ValueError(f"run '{name}' field 'extra_cfg' must be an object")
+    binary = Path(str(raw["binary"]))
+    build = raw.get("build")
     return MatrixRun(
         name=name,
-        binary=Path(str(raw["binary"])),
+        binary=binary,
         source_config=Path(str(raw["config"])),
         run_dir=run_dir,
         precision=raw.get("precision"),
-        build=raw.get("build"),
+        build=build,
         raw_output=(run_dir / str(raw_output)) if raw_output else None,
         extra_cfg={str(key): str(value) for key, value in raw_extra_cfg.items()},
+        build_semantics=load_build_semantics(
+            binary.parent / "build_semantics.json",
+            fallback_label=str(build) if build is not None else None,
+        ),
     )
 
 
@@ -120,6 +133,7 @@ def build_metadata(
         run_dir=run.run_dir,
         source_config=run.source_config,
         run_config=run.run_dir / "config.cfg",
+        build_semantics=run.build_semantics,
     )
     record = RunRecord(
         spec=spec,
@@ -169,6 +183,7 @@ def run_one(run: MatrixRun, experiment: str, dry_run: bool = False) -> dict[str,
         source_config=run.source_config,
         run_config=config,
         required_artifacts=(RequiredArtifact(run.raw_output),) if run.raw_output else (),
+        build_semantics=run.build_semantics,
     )
     record = execute_run(spec, dry_run=dry_run)
     stderr_text = (

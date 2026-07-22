@@ -25,6 +25,12 @@ class BuildVariant:
     def build_dir(self) -> Path:
         return Path("build-matrix") / self.name
 
+    @property
+    def effective_math_mode(self) -> str:
+        if self.opt_level == "Ofast" or self.fast_math:
+            return "fast"
+        return "compiler-default"
+
     def cmake_args(self) -> list[str]:
         return [
             f"-DFLOAT_PRECISION={self.precision}",

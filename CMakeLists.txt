@@ -38,6 +38,20 @@ if(STRICT_IEEE)
     message(STATUS "HRSC STRICT_IEEE: ON")
 endif()
 
+set(HRSC_FAST_MATH_JSON false)
+if(FAST_MATH)
+    set(HRSC_FAST_MATH_JSON true)
+endif()
+set(HRSC_STRICT_IEEE_JSON false)
+if(STRICT_IEEE)
+    set(HRSC_STRICT_IEEE_JSON true)
+endif()
+file(TO_CMAKE_PATH "${CMAKE_CXX_COMPILER}" HRSC_CXX_COMPILER_JSON_PATH)
+configure_file(
+    ${CMAKE_SOURCE_DIR}/cmake/build_semantics.json.in
+    ${CMAKE_BINARY_DIR}/build_semantics.json
+    @ONLY)
+
 # OpenMP parallelisation of the per-row / per-column sweep loops.
 # Disable with -DENABLE_OPENMP=OFF when running under Verificarlo MCA
 # (the libinterflop PRNG is not thread-safe; MCA runs must stay serial

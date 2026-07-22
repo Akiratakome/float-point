@@ -131,6 +131,76 @@ def test_run_matrix_writes_metadata_and_preserves_cfg(tmp_path: Path) -> None:
     assert set(metadata["provenance"]["git"]) == {"commit", "dirty"}
 
 
+def test_run_matrix_loads_build_semantics_beside_binary(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    build_dir = tmp_path / "build-double"
+    build_dir.mkdir()
+    binary = build_dir / "hrsc"
+    build_semantics = {
+        "schema": {"name": "hrsc.build-semantics", "version": 1},
+        "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+        "requested": {"opt_level": "Ofast", "fast_math": False, "strict_ieee": False},
+        "effective_math_mode": "fast",
+        "flag_evidence": {"optimization": "/Ox /fp:fast"},
+    }
+    (build_dir / "build_semantics.json").write_text(
+        json.dumps(build_semantics), encoding="utf-8"
+    )
+    cfg = tmp_path / "case.cfg"
+    cfg.write_text("test = sod\n", encoding="utf-8")
+
+    run = run_matrix.normalise_run(
+        {
+            "name": "sod-double",
+            "binary": str(binary),
+            "config": str(cfg),
+            "build": "cpu-double-Ofast-ieee-leq",
+        },
+        output_root=tmp_path / "out",
+    )
+    metadata = run_matrix.build_metadata(
+        run,
+        experiment="pytest",
+        command=[str(binary), str(cfg)],
+        git_commit="abc123",
+        returncode=0,
+    )
+
+    assert metadata["build_semantics"] == {
+        "requested_opt_level": "Ofast",
+        "requested_fast_math": False,
+        "requested_strict_ieee": False,
+        "effective_math_mode": "fast",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51",
+        "compiler_path": "C:/VS/cl.exe",
+        "evidence": {"optimization": "/Ox /fp:fast"},
+    }
+
+
+def test_run_matrix_fallback_does_not_infer_strict_from_ieee_label(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    cfg = tmp_path / "case.cfg"
+    cfg.write_text("test = sod\n", encoding="utf-8")
+    run = run_matrix.normalise_run(
+        {
+            "name": "sod-double",
+            "binary": str(tmp_path / "missing-build" / "hrsc"),
+            "config": str(cfg),
+            "build": "cpu-double-O2-ieee-leq",
+        },
+        output_root=tmp_path / "out",
+    )
+
+    assert run.build_semantics.requested_opt_level == "O2"
+    assert run.build_semantics.requested_fast_math is False
+    assert run.build_semantics.requested_strict_ieee is None
+    assert run.build_semantics.effective_math_mode == "compiler-default"
+    assert run.build_semantics.compiler_id is None
+
+
 def test_run_matrix_dry_run_serialises_shared_runner_record(tmp_path: Path) -> None:
     from scripts import run_matrix
 
