@@ -103,12 +103,17 @@ target_link_libraries(hrsc_euler PUBLIC hrsc_core)
 add_library(hrsc_mhd_lib STATIC src/mhd/mhd_solver.cpp)
 target_link_libraries(hrsc_mhd_lib PUBLIC hrsc_core)
 
+add_library(hrsc_app_common STATIC
+    src/app/run_completion.cpp
+    src/app/validation.cpp)
+target_link_libraries(hrsc_app_common PUBLIC hrsc_core)
+
 add_library(hrsc_app STATIC
     src/app/cases.cpp
     src/app/diagnostics.cpp
     src/app/output.cpp
     src/app/run_config.cpp)
-target_link_libraries(hrsc_app PUBLIC hrsc_core hrsc_euler)
+target_link_libraries(hrsc_app PUBLIC hrsc_app_common hrsc_euler)
 
 # --- Main executable ---
 add_executable(hrsc src/main.cpp)
@@ -118,7 +123,7 @@ add_executable(hrsc_mhd src/mhd_main.cpp)
 target_link_libraries(hrsc_mhd PRIVATE hrsc_core hrsc_mhd_lib)
 
 # --- Unit tests ---
-file(GLOB TEST_SOURCES tests/unit/test_*.cpp)
+file(GLOB TEST_SOURCES CONFIGURE_DEPENDS tests/unit/test_*.cpp)
 add_executable(unit_tests ${TEST_SOURCES})
 target_link_libraries(unit_tests PRIVATE hrsc_core hrsc_euler hrsc_app hrsc_mhd_lib)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/external/catch2)

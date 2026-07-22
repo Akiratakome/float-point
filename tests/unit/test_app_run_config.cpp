@@ -17,6 +17,18 @@ TEST_CASE("parse_mode accepts only supported run modes", "[app][config]") {
                         "Unknown mode: typo (expected 'normal' or 'convergence')");
 }
 
+TEST_CASE("parse_device defaults to CPU and validates values", "[app][config]") {
+    Config cfg;
+    REQUIRE(parse_device(cfg) == Device::Cpu);
+
+    cfg.set("device", "gpu");
+    REQUIRE(parse_device(cfg) == Device::Gpu);
+
+    cfg.set("device", "typo");
+    REQUIRE_THROWS_WITH(parse_device(cfg),
+                        "Invalid device='typo'; expected 'cpu' or 'gpu'");
+}
+
 TEST_CASE("validate_output_options rejects unreachable checkpoint times", "[app][config]") {
     const std::vector<double> output_times{0.01, 0.04};
 
