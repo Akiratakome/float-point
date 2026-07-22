@@ -35,12 +35,45 @@ class BuildSemantics:
     evidence: dict[str, Any] = field(default_factory=dict)
 
 
-def _optional_string(value: Any) -> str | None:
-    return value if isinstance(value, str) else None
+_BUILD_SEMANTICS_SCHEMA = {"name": "hrsc.build-semantics", "version": 1}
+_OPT_LEVELS = {"", "O2", "O3", "Ofast"}
+_EFFECTIVE_MATH_MODES = {"compiler-default", "fast", "strict"}
+_EVIDENCE_FIELDS = {"optimization", "fast_math", "strict_ieee"}
 
 
-def _optional_bool(value: Any) -> bool | None:
-    return value if isinstance(value, bool) else None
+def _require_object(value: Any, field: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ValueError(f"build semantics {field} must be an object")
+    return value
+
+
+def _require_exact_fields(value: dict[str, Any], fields: set[str], field: str) -> None:
+    missing = fields - value.keys()
+    unexpected = value.keys() - fields
+    if missing or unexpected:
+        details = []
+        if missing:
+            details.append(
+                f"missing {', '.join(f'{field}.{name}' for name in sorted(missing))}"
+            )
+        if unexpected:
+            details.append(
+                f"unexpected {', '.join(f'{field}.{name}' for name in sorted(unexpected))}"
+            )
+        raise ValueError(f"build semantics {field} has {'; '.join(details)} fields")
+
+
+def _require_string(value: Any, field: str, *, allow_empty: bool = False) -> str:
+    if not isinstance(value, str) or (not value and not allow_empty):
+        requirement = "a string" if allow_empty else "a non-empty string"
+        raise ValueError(f"build semantics {field} must be {requirement}")
+    return value
+
+
+def _require_bool(value: Any, field: str) -> bool:
+    if not isinstance(value, bool):
+        raise ValueError(f"build semantics {field} must be a boolean")
+    return value
 
 
 def _fallback_build_semantics(label: str | None) -> BuildSemantics:
@@ -63,26 +96,75 @@ def _fallback_build_semantics(label: str | None) -> BuildSemantics:
 
 def load_build_semantics(path: Path, fallback_label: str | None = None) -> BuildSemantics:
     """Load CMake build semantics, or derive only safe facts from a legacy label."""
-    if not path.is_file():
+    if not path.exists():
         return _fallback_build_semantics(fallback_label)
+    if not path.is_file():
+        raise ValueError(f"build semantics path is not a file: {path}")
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"invalid build semantics JSON: {path}") from exc
 
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(raw, dict):
-        raise ValueError(f"build semantics must be an object: {path}")
-    compiler = raw.get("compiler")
-    requested = raw.get("requested")
-    evidence = raw.get("flag_evidence")
-    compiler = compiler if isinstance(compiler, dict) else {}
-    requested = requested if isinstance(requested, dict) else {}
+    raw = _require_object(raw, "document")
+    _require_exact_fields(
+        raw,
+        {"schema", "compiler", "requested", "effective_math_mode", "flag_evidence"},
+        "document",
+    )
+    schema = _require_object(raw["schema"], "schema")
+    _require_exact_fields(schema, {"name", "version"}, "schema")
+    if schema["name"] != _BUILD_SEMANTICS_SCHEMA["name"]:
+        raise ValueError("unsupported build semantics schema name")
+    if schema["version"] != _BUILD_SEMANTICS_SCHEMA["version"] or isinstance(
+        schema["version"], bool
+    ):
+        raise ValueError("unsupported build semantics schema version")
+
+    compiler = _require_object(raw["compiler"], "compiler")
+    _require_exact_fields(compiler, {"id", "version", "path"}, "compiler")
+    requested = _require_object(raw["requested"], "requested")
+    _require_exact_fields(
+        requested, {"opt_level", "fast_math", "strict_ieee"}, "requested"
+    )
+    opt_level = _require_string(
+        requested["opt_level"], "requested.opt_level", allow_empty=True
+    )
+    if opt_level not in _OPT_LEVELS:
+        raise ValueError("build semantics requested.opt_level is unsupported")
+    fast_math = _require_bool(requested["fast_math"], "requested.fast_math")
+    strict_ieee = _require_bool(requested["strict_ieee"], "requested.strict_ieee")
+    effective_math_mode = _require_string(
+        raw["effective_math_mode"], "effective_math_mode"
+    )
+    if effective_math_mode not in _EFFECTIVE_MATH_MODES:
+        raise ValueError("build semantics effective_math_mode is unsupported")
+    expected_mode = (
+        "strict"
+        if strict_ieee
+        else "fast"
+        if fast_math or opt_level == "Ofast"
+        else "compiler-default"
+    )
+    if effective_math_mode != expected_mode:
+        raise ValueError("build semantics effective_math_mode conflicts with requested axes")
+
+    evidence = _require_object(raw["flag_evidence"], "flag_evidence")
+    _require_exact_fields(evidence, _EVIDENCE_FIELDS, "flag_evidence")
+
     return BuildSemantics(
-        requested_opt_level=_optional_string(requested.get("opt_level")),
-        requested_fast_math=_optional_bool(requested.get("fast_math")),
-        requested_strict_ieee=_optional_bool(requested.get("strict_ieee")),
-        effective_math_mode=_optional_string(raw.get("effective_math_mode")) or "unknown",
-        compiler_id=_optional_string(compiler.get("id")),
-        compiler_version=_optional_string(compiler.get("version")),
-        compiler_path=_optional_string(compiler.get("path")),
-        evidence=dict(evidence) if isinstance(evidence, dict) else {},
+        requested_opt_level=opt_level,
+        requested_fast_math=fast_math,
+        requested_strict_ieee=strict_ieee,
+        effective_math_mode=effective_math_mode,
+        compiler_id=_require_string(compiler["id"], "compiler.id"),
+        compiler_version=_require_string(compiler["version"], "compiler.version"),
+        compiler_path=_require_string(compiler["path"], "compiler.path"),
+        evidence={
+            field: _require_string(
+                evidence[field], f"flag_evidence.{field}", allow_empty=True
+            )
+            for field in _EVIDENCE_FIELDS
+        },
     )
 
 
