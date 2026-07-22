@@ -31,8 +31,16 @@ void require_finite(const char* name, double value) {
     }
 }
 
+void validate_mhd_coordinates(double xmin, double xmax, double ymin, double ymax) {
+    require_finite("xmin", xmin);
+    require_finite("xmax", xmax);
+    require_finite("ymin", ymin);
+    require_finite("ymax", ymax);
+}
+
 void validate_mhd_options(double x0, double glm_cr) {
     require_finite("x0", x0);
+    require_finite("glm_cr", glm_cr);
     if (!(glm_cr >= 0.0)) {
         throw std::invalid_argument("glm_cr must be >= 0");
     }
@@ -81,9 +89,15 @@ int run_mhd(int nx, int ny, double xmin, double ymin, double gamma, double cfl,
     hrsc::app::require_run_complete(
         static_cast<double>(solver.time()), t_end, solver.step_count());
     grid = solver.grid_view();
-    hrsc::app::write_mhd_result(
-        std::cerr, options, grid, nx, ny, dx, dy,
-        static_cast<Real>(solver.time()), solver.step_count());
+    try {
+        hrsc::app::write_mhd_result(
+            std::cerr, options, grid, nx, ny, dx, dy,
+            static_cast<Real>(solver.time()), solver.step_count());
+    } catch (const RunFailure&) {
+        throw;
+    } catch (const std::exception& error) {
+        throw RunFailure(FailureCategory::ArtifactError, error.what());
+    }
     hrsc::app::write_run_success(
         std::cerr, static_cast<double>(solver.time()), t_end, solver.step_count());
     return 0;
@@ -121,6 +135,7 @@ int main(int argc, char** argv) try {
     const hrsc::BoundaryType bc_y = hrsc::parse_mhd_boundary(
         cfg.get_string("bc_y", cfg.get_string("bc", "outflow")));
 
+    validate_mhd_coordinates(xmin, xmax, ymin, ymax);
     hrsc::app::validate_domain(nx, ny, xmin, xmax, ymin, ymax);
     hrsc::app::validate_physics(gamma, cfl, t_end);
     validate_mhd_options(x0, glm_cr);

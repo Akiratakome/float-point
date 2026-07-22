@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import subprocess
+import os
 from pathlib import Path
 
 import pytest
@@ -10,30 +11,65 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def _select_binary(
+    *, env_name: str, candidates: tuple[Path, ...], sources: tuple[Path, ...]
+) -> Path:
+    override = os.environ.get(env_name)
+    if override:
+        selected = Path(override)
+        if not selected.is_file():
+            pytest.fail(f"{env_name} does not name a file: {selected}")
+    else:
+        available = [candidate for candidate in candidates if candidate.is_file()]
+        if not available:
+            pytest.skip(f"no built executable found for {env_name}")
+        selected = max(available, key=lambda candidate: candidate.stat().st_mtime)
+
+    newest_source = max(source.stat().st_mtime for source in sources)
+    if selected.stat().st_mtime < newest_source:
+        pytest.fail(
+            f"stale executable for {env_name}: {selected}; rebuild it because it predates "
+            "the reviewed application sources"
+        )
+    return selected
+
+
 def _hrsc_binary() -> Path:
-    candidates = (
-        ROOT / "build-double" / "hrsc.exe",
-        ROOT / "build-double" / "hrsc",
-        ROOT / "build-double" / "Release" / "hrsc.exe",
-        ROOT / "build-double" / "Release" / "hrsc",
+    return _select_binary(
+        env_name="HRSC_TEST_HRSC_BINARY",
+        candidates=(
+            ROOT / "build-double" / "Release" / "hrsc.exe",
+            ROOT / "build-double" / "Release" / "hrsc",
+            ROOT / "build-double" / "hrsc.exe",
+            ROOT / "build-double" / "hrsc",
+        ),
+        sources=(
+            ROOT / "src" / "main.cpp",
+            ROOT / "src" / "app" / "run_config.cpp",
+            ROOT / "src" / "app" / "run_completion.cpp",
+            ROOT / "src" / "app" / "validation.cpp",
+        ),
     )
-    for candidate in candidates:
-        if candidate.is_file():
-            return candidate
-    pytest.skip("no built hrsc executable in build-double or build-double/Release")
 
 
 def _hrsc_mhd_binary() -> Path:
-    candidates = (
-        ROOT / "build-double" / "hrsc_mhd.exe",
-        ROOT / "build-double" / "hrsc_mhd",
-        ROOT / "build-double" / "Release" / "hrsc_mhd.exe",
-        ROOT / "build-double" / "Release" / "hrsc_mhd",
+    return _select_binary(
+        env_name="HRSC_TEST_HRSC_MHD_BINARY",
+        candidates=(
+            ROOT / "build-double" / "Release" / "hrsc_mhd.exe",
+            ROOT / "build-double" / "Release" / "hrsc_mhd",
+            ROOT / "build-double" / "hrsc_mhd.exe",
+            ROOT / "build-double" / "hrsc_mhd",
+        ),
+        sources=(
+            ROOT / "CMakeLists.txt",
+            ROOT / "src" / "mhd_main.cpp",
+            ROOT / "src" / "app" / "mhd_run_config.cpp",
+            ROOT / "src" / "app" / "mhd_result.cpp",
+            ROOT / "src" / "app" / "run_completion.cpp",
+            ROOT / "src" / "app" / "validation.cpp",
+        ),
     )
-    for candidate in candidates:
-        if candidate.is_file():
-            return candidate
-    pytest.skip("no built hrsc_mhd executable in build-double or build-double/Release")
 
 
 def _braced_block(source: str, start: int) -> tuple[str, int]:
@@ -173,6 +209,103 @@ def test_mhd_gpu_rejection_is_structured_and_writes_no_binary(tmp_path: Path) ->
     assert result.returncode == 2, result.stderr
     assert "[run-status] status=failed reason=unsupported_capability" in result.stderr
     assert not output_file.exists()
+
+
+@pytest.mark.parametrize(
+    ("key", "value"),
+    (
+        ("xmin", "nan"),
+        ("xmax", "inf"),
+        ("ymin", "-inf"),
+        ("ymax", "inf"),
+        ("x0", "nan"),
+        ("glm_cr", "inf"),
+    ),
+)
+def test_mhd_non_finite_config_is_a_structured_configuration_error(
+    tmp_path: Path, key: str, value: str
+) -> None:
+    binary = _hrsc_mhd_binary()
+    output_file = tmp_path / f"mhd-nonfinite-{key}.bin"
+    cfg = tmp_path / f"mhd-nonfinite-{key}.cfg"
+    cfg.write_text(
+        _zero_time_mhd_cfg(output_file=output_file) + f"{key} = {value}\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [str(binary), str(cfg)], capture_output=True, text=True, check=False
+    )
+
+    assert result.returncode == 2, result.stderr
+    assert "[run-status] status=failed reason=configuration_error" in result.stderr
+    assert "reason=numerical_failure" not in result.stderr
+    assert "status=success" not in result.stderr
+    assert not output_file.exists()
+
+
+def test_mhd_binary_write_failure_is_an_artifact_error(tmp_path: Path) -> None:
+    binary = _hrsc_mhd_binary()
+    output_directory = tmp_path / "mhd-output-directory"
+    output_directory.mkdir()
+    cfg = tmp_path / "mhd-artifact-error.cfg"
+    cfg.write_text(
+        _zero_time_mhd_cfg(output_file=output_directory), encoding="utf-8"
+    )
+
+    result = subprocess.run(
+        [str(binary), str(cfg)], capture_output=True, text=True, check=False
+    )
+
+    assert result.returncode == 2, result.stderr
+    assert "[run-status] status=failed reason=artifact_error" in result.stderr
+    assert "status=success" not in result.stderr
+    assert output_directory.is_dir()
+
+
+def test_binary_locator_prefers_newest_fresh_candidate_and_honors_override(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "source.cpp"
+    root_candidate = tmp_path / "root.exe"
+    release_candidate = tmp_path / "Release" / "app.exe"
+    release_candidate.parent.mkdir()
+    source.write_text("source", encoding="utf-8")
+    root_candidate.write_text("root", encoding="utf-8")
+    release_candidate.write_text("release", encoding="utf-8")
+
+    now = source.stat().st_mtime
+    os.utime(root_candidate, (now + 1, now + 1))
+    os.utime(release_candidate, (now + 2, now + 2))
+    selected = _select_binary(
+        env_name="HRSC_TEST_LOCATOR_BINARY",
+        candidates=(release_candidate, root_candidate),
+        sources=(source,),
+    )
+    assert selected == release_candidate
+
+    monkeypatch.setenv("HRSC_TEST_LOCATOR_BINARY", str(root_candidate))
+    assert _select_binary(
+        env_name="HRSC_TEST_LOCATOR_BINARY",
+        candidates=(release_candidate, root_candidate),
+        sources=(source,),
+    ) == root_candidate
+
+
+def test_binary_locator_rejects_stale_candidate(tmp_path: Path) -> None:
+    candidate = tmp_path / "old.exe"
+    source = tmp_path / "new.cpp"
+    candidate.write_text("candidate", encoding="utf-8")
+    source.write_text("source", encoding="utf-8")
+    old = source.stat().st_mtime - 10
+    os.utime(candidate, (old, old))
+
+    with pytest.raises(pytest.fail.Exception, match="stale executable"):
+        _select_binary(
+            env_name="HRSC_TEST_STALE_BINARY",
+            candidates=(candidate,),
+            sources=(source,),
+        )
 
 
 def test_every_final_euler_output_path_follows_completion_contract() -> None:

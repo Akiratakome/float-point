@@ -3,6 +3,9 @@
 #include "app/run_completion.hpp"
 #include "utils/config.hpp"
 
+#include <array>
+#include <string>
+
 using namespace hrsc;
 using namespace hrsc::app;
 
@@ -41,6 +44,17 @@ TEST_CASE("MHD binary output format requires an output file", "[app][mhd]") {
     }
 }
 
+TEST_CASE("MHD explicit binary output format preserves a configured path", "[app][mhd]") {
+    Config cfg;
+    cfg.set("output_format", "binary");
+    cfg.set("output_file", "grid.bin");
+
+    const auto options = parse_mhd_run_options(cfg);
+
+    REQUIRE(options.output_format == "binary");
+    REQUIRE(options.output_file == "grid.bin");
+}
+
 TEST_CASE("MHD table output is rejected as a configuration error", "[app][mhd]") {
     Config cfg;
     cfg.set("output_format", "table");
@@ -53,15 +67,19 @@ TEST_CASE("MHD table output is rejected as a configuration error", "[app][mhd]")
     }
 }
 
-TEST_CASE("MHD output times are an unsupported capability", "[app][mhd]") {
-    Config cfg;
-    cfg.set("output_times", "0.01");
+TEST_CASE("MHD any configured output times are an unsupported capability", "[app][mhd]") {
+    const std::array<const char*, 3> raw_values{{"0.01", "not-a-time", ", \t "}};
+    for (const char* raw_value : raw_values) {
+        CAPTURE(raw_value);
+        Config cfg;
+        cfg.set("output_times", raw_value);
 
-    try {
-        (void)parse_mhd_run_options(cfg);
-        FAIL("expected unsupported capability failure");
-    } catch (const RunFailure& failure) {
-        REQUIRE(failure.category() == FailureCategory::UnsupportedCapability);
+        try {
+            (void)parse_mhd_run_options(cfg);
+            FAIL("expected unsupported capability failure");
+        } catch (const RunFailure& failure) {
+            REQUIRE(failure.category() == FailureCategory::UnsupportedCapability);
+        }
     }
 }
 

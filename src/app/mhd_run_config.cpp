@@ -11,8 +11,7 @@ MhdRunOptions parse_mhd_run_options(const Config& cfg) {
     options.output_file = cfg.get_string("output_file", "");
     options.output_format = cfg.get_string("output_format", "");
 
-    const auto output_times = parse_output_times(cfg);
-    if (!output_times.empty()) {
+    if (!cfg.get_string("output_times", "").empty()) {
         throw RunFailure(FailureCategory::UnsupportedCapability,
                          "output_times is not supported by hrsc_mhd");
     }
