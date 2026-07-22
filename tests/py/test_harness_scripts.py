@@ -146,6 +146,7 @@ def test_run_matrix_applies_extra_cfg_overrides(tmp_path: Path) -> None:
             "device": "gpu",
             "solver": "rusanov",
             "output_format": "binary",
+            "output_file": "stale/path.bin",
         },
         "output_file": "grid.bin",
     }
