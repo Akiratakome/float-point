@@ -14,7 +14,6 @@ import json
 import pathlib
 import re
 import subprocess
-import time
 from datetime import datetime, timezone
 from typing import Any
 
@@ -25,6 +24,9 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))
 from io_helper import read_binary  # noqa: E402  (re-exported)
 from scripts.harness.config import replace_or_append_cfg  # noqa: E402
+from scripts.harness.contracts import RequiredArtifact, RunSpec  # noqa: E402
+from scripts.harness.metadata import serialise_record  # noqa: E402
+from scripts.harness.runner import execute_run  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 RHO, MX, MY, MZ, BX, BY, BZ, E, PSI = range(9)
@@ -111,36 +113,47 @@ def run_case(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha2
     run_dir.mkdir(parents=True, exist_ok=True)
     cfg_path = run_dir / "config.cfg"
     cfg_path.write_text(cfg_text, encoding="utf-8")
-    stdout_path, stderr_path = run_dir / "stdout.txt", run_dir / "stderr.txt"
     command = [str(bin_path), str(cfg_path)]
     output_bin_path = None
     if output_bin is not None:
         output_bin_path = pathlib.Path(output_bin)
         if not output_bin_path.is_absolute():
             output_bin_path = ROOT / output_bin_path
-    start = time.time()
-    t0 = time.perf_counter()
-    with stdout_path.open("w", encoding="utf-8") as fo, stderr_path.open("w", encoding="utf-8") as fe:
-        result = subprocess.run(command, cwd=str(ROOT), stdout=fo, stderr=fe, check=False)
-    elapsed = time.perf_counter() - t0
-    stderr_text = stderr_path.read_text(encoding="utf-8", errors="replace")
-    meta = {
+    spec = RunSpec(
+        name=label,
+        experiment=experiment,
+        command=tuple(command),
+        run_dir=run_dir,
+        source_config=source_cfg,
+        run_config=cfg_path,
+        cwd=ROOT,
+        required_artifacts=(RequiredArtifact(output_bin_path),) if output_bin_path else (),
+    )
+    record = execute_run(spec)
+    stderr_text = (
+        record.stderr_path.read_text(encoding="utf-8", errors="replace")
+        if record.stderr_path.exists()
+        else ""
+    )
+    legacy = {
         "experiment": experiment, "name": label,
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "git_commit": commit, "binary": str(bin_path), "binary_sha256": binary_sha256,
         "source_config": str(source_cfg), "source_config_sha256": sha256_file(source_cfg),
         "run_config": str(cfg_path), "run_config_sha256": sha256_file(cfg_path),
         "run_config_text": cfg_text, "command": command,
-        "returncode": result.returncode, "elapsed_wall_s": elapsed,
-        "stdout": str(stdout_path), "stderr": str(stderr_path),
+        "returncode": record.returncode, "elapsed_wall_s": record.elapsed_wall_s,
+        "stdout": str(record.stdout_path), "stderr": str(record.stderr_path),
         "stderr_diagnostics": parse_mhd_diagnostics(stderr_text),
     }
     if output_bin_path is not None:
-        meta["output_binary"] = str(output_bin_path)
+        legacy["output_binary"] = str(output_bin_path)
+    meta = serialise_record(record, legacy)
     (run_dir / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
-    if result.returncode != 0:
-        raise RuntimeError(f"run '{label}' failed (rc={result.returncode}); see {stderr_path}")
-    if output_bin_path is not None:
-        if not output_bin_path.is_file() or output_bin_path.stat().st_mtime < start:
-            raise RuntimeError(f"run '{label}' did not (re)produce {output_bin_path}; see {stderr_path}")
-    return result, meta, stderr_text
+    if record.returncode != 0:
+        raise RuntimeError(f"run '{label}' failed (rc={record.returncode}); see {record.stderr_path}")
+    if record.status != "success":
+        raise RuntimeError(
+            f"run '{label}' did not (re)produce {output_bin_path}; see {record.stderr_path}"
+        )
+    return subprocess.CompletedProcess(record.spec.command, record.returncode), meta, stderr_text

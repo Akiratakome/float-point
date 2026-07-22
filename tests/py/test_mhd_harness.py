@@ -1,7 +1,9 @@
+import json
 import pathlib
 import sys
 
 import numpy as np
+import pytest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts" / "regression"))
 from _mhd_harness import (
@@ -108,7 +110,32 @@ def test_run_case_checks_relative_output_bin_against_root(tmp_path):
             "test-sha",
             output_bin=rel_out,
         )
+        assert meta["schema"] == {"name": "hrsc.run-record", "version": 1}
+        assert meta["status"] == "success"
         assert meta["output_binary"] == str(abs_out)
+        assert meta["artifacts"]["primary_output"] == str(abs_out)
+        assert meta["elapsed_wall_s"] == meta["timing"]["elapsed_wall_s"]
+        assert meta["stderr_diagnostics"] == {}
     finally:
         if abs_out.exists():
             abs_out.unlink()
+
+
+def test_run_case_writes_failed_metadata_before_raising(tmp_path):
+    source_cfg = tmp_path / "source.cfg"
+    source_cfg.write_text("placeholder = 1\n", encoding="utf-8")
+    run_dir = tmp_path / "run"
+
+    with pytest.raises(RuntimeError, match=r"failed \(rc=7\)"):
+        run_case(
+            "failed-run",
+            "import sys\nsys.exit(7)\n",
+            run_dir,
+            pathlib.Path(sys.executable),
+            source_cfg,
+            "test-commit",
+            "test-sha",
+        )
+
+    metadata = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["status"] == "failed"
