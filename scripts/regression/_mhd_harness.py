@@ -22,7 +22,9 @@ import numpy as np
 
 import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))
 from io_helper import read_binary  # noqa: E402  (re-exported)
+from scripts.harness.config import replace_or_append_cfg  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 RHO, MX, MY, MZ, BX, BY, BZ, E, PSI = range(9)
@@ -75,28 +77,6 @@ def resolve_binary(path: pathlib.Path) -> pathlib.Path:
     if exe.is_file():
         return exe
     raise FileNotFoundError(f"missing MHD binary: {path} (or {exe})")
-
-
-def replace_or_append_cfg(text: str, key: str, value: str) -> str:
-    out, replaced = [], False
-    for line in text.splitlines():
-        if line.strip().startswith("#") or "=" not in line:
-            out.append(line)
-            continue
-        if line.split("=", 1)[0].strip() == key:
-            suffix = ""
-            comment_start = line.find("#")
-            if comment_start >= 0:
-                before_comment = line[:comment_start]
-                comment_gap = before_comment[len(before_comment.rstrip()):]
-                suffix = f"{comment_gap}{line[comment_start:]}"
-            out.append(f"{key} = {value}{suffix}")
-            replaced = True
-        else:
-            out.append(line)
-    if not replaced:
-        out.append(f"{key} = {value}")
-    return "\n".join(out) + "\n"
 
 
 def git_commit() -> str:

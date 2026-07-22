@@ -3,13 +3,17 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.harness.config import materialise_config, replace_or_append_cfg
 
 
 REQUIRED_RUN_FIELDS = ("name", "binary", "config")
@@ -55,40 +59,16 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
     )
 
 
-def _replace_or_append_cfg_line(text: str, key: str, value: str) -> str:
-    lines = text.splitlines()
-    prefix = f"{key}"
-    replaced = False
-    out: list[str] = []
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith("#") or "=" not in line:
-            out.append(line)
-            continue
-        lhs = line.split("=", 1)[0].strip()
-        if lhs == prefix:
-            out.append(f"{key} = {value}")
-            replaced = True
-        else:
-            out.append(line)
-    if not replaced:
-        out.append(f"{key} = {value}")
-    return "\n".join(out) + "\n"
+_replace_or_append_cfg_line = replace_or_append_cfg
 
 
 def materialise_run_config(run: MatrixRun) -> Path:
-    run.run_dir.mkdir(parents=True, exist_ok=True)
     target = run.run_dir / "config.cfg"
-    shutil.copy2(run.source_config, target)
-    if run.extra_cfg or run.raw_output is not None:
-        text = target.read_text(encoding="utf-8")
-        for key, value in (run.extra_cfg or {}).items():
-            text = _replace_or_append_cfg_line(text, key, value)
-        if run.raw_output is not None:
-            text = _replace_or_append_cfg_line(text, "output_format", "binary")
-            text = _replace_or_append_cfg_line(text, "output_file", str(run.raw_output))
-        target.write_text(text, encoding="utf-8")
-    return target
+    overrides = dict(run.extra_cfg or {})
+    if run.raw_output is not None:
+        overrides["output_format"] = "binary"
+        overrides["output_file"] = str(run.raw_output)
+    return materialise_config(run.source_config, target, overrides)
 
 
 def git_commit() -> str:
