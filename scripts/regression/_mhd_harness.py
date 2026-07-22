@@ -113,6 +113,8 @@ def run_case(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha2
     run_dir.mkdir(parents=True, exist_ok=True)
     cfg_path = run_dir / "config.cfg"
     cfg_path.write_text(cfg_text, encoding="utf-8")
+    if not pathlib.Path(bin_path).exists():
+        raise FileNotFoundError(2, "No such file or directory", str(bin_path))
     command = [str(bin_path), str(cfg_path)]
     output_bin_path = None
     if output_bin is not None:

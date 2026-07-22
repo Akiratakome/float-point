@@ -139,3 +139,46 @@ def test_run_case_writes_failed_metadata_before_raising(tmp_path):
 
     metadata = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
     assert metadata["status"] == "failed"
+
+
+def test_run_case_replaces_non_utf8_stderr_and_accepts_required_output(tmp_path):
+    source_cfg = tmp_path / "source.cfg"
+    output_bin = tmp_path / "output.bin"
+    source_cfg.write_text("placeholder = 1\n", encoding="utf-8")
+    cfg_text = (
+        "import pathlib\n"
+        "import sys\n"
+        f"pathlib.Path({str(output_bin)!r}).write_bytes(b'ok')\n"
+        "sys.stderr.buffer.write(b'\\x80')\n"
+    )
+
+    result, metadata, stderr_text = run_case(
+        "non-utf8-stderr",
+        cfg_text,
+        tmp_path / "run",
+        pathlib.Path(sys.executable),
+        source_cfg,
+        "test-commit",
+        "test-sha",
+        output_bin=output_bin,
+    )
+
+    assert result.returncode == 0
+    assert metadata["status"] == "success"
+    assert "\ufffd" in stderr_text
+
+
+def test_run_case_propagates_missing_binary_as_file_not_found(tmp_path):
+    source_cfg = tmp_path / "source.cfg"
+    source_cfg.write_text("placeholder = 1\n", encoding="utf-8")
+
+    with pytest.raises(FileNotFoundError):
+        run_case(
+            "missing-binary",
+            "placeholder = 1\n",
+            tmp_path / "run",
+            tmp_path / "missing-hrsc",
+            source_cfg,
+            "test-commit",
+            "test-sha",
+        )

@@ -96,7 +96,7 @@ def execute_run(spec: RunSpec, dry_run: bool = False) -> RunRecord:
                     check=False,
                 )
             returncode = result.returncode
-            stderr_text = stderr_path.read_text(encoding="utf-8")
+            stderr_text = stderr_path.read_text(encoding="utf-8", errors="replace")
             parsed_status, parsed_completion, parsed_failure = parse_run_status(stderr_text)
             if returncode != 0:
                 status = "failed"
