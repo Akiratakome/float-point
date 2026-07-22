@@ -61,6 +61,15 @@ def _write_valid_manifest(tmp_path: Path) -> Path:
     return path
 
 
+def _read_manifest(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _write_manifest(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data), encoding="utf-8")
+
+
 def test_report2_promoted_manifests_are_valid_and_evidence_exists() -> None:
     manifests = [load_valid_manifest(ROOT / path, ROOT) for path in MANIFESTS]
     assert {item["lifecycle"] for item in manifests} >= {
@@ -109,3 +118,168 @@ def test_superseded_manifest_requires_existing_safe_replacement(tmp_path: Path) 
     errors = validate_manifest(path, tmp_path)
 
     assert any("replacement" in error for error in errors)
+
+
+@pytest.mark.parametrize("field", ("pipeline.config", "evidence", "replacement"))
+def test_referenced_paths_must_be_existing_regular_files(tmp_path: Path, field: str) -> None:
+    path = _write_valid_manifest(tmp_path)
+    data = _read_manifest(path)
+    data["lifecycle"] = "superseded" if field == "replacement" else "canonical"
+    if field == "pipeline.config":
+        data["pipeline"]["config"] = ["inputs"]
+    elif field == "evidence":
+        data["evidence"] = ["evidence"]
+    else:
+        data["replacement"] = "inputs"
+    _write_manifest(path, data)
+
+    errors = validate_manifest(path, tmp_path)
+
+    assert any(field in error and "regular file" in error for error in errors)
+
+
+@pytest.mark.parametrize(
+    "bad_path",
+    (
+        "/absolute.cfg",
+        "../outside.cfg",
+        r"C:relative.cfg",
+        r"C:\\absolute.cfg",
+        r"\\\\server\\share\\case.cfg",
+        r"..\\outside.cfg",
+    ),
+)
+def test_cross_platform_absolute_and_traversal_paths_are_rejected(
+    tmp_path: Path, bad_path: str
+) -> None:
+    path = _write_valid_manifest(tmp_path)
+    data = _read_manifest(path)
+    data["pipeline"]["config"] = [bad_path]
+    _write_manifest(path, data)
+
+    errors = validate_manifest(path, tmp_path)
+
+    assert any("pipeline.config" in error for error in errors)
+    assert any("absolute" in error or "traversal" in error for error in errors)
+
+
+def test_manifest_must_be_regular_file_inside_repo_root(tmp_path: Path) -> None:
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    outside_manifest = _write_valid_manifest(tmp_path / "outside")
+    manifest_directory = repo_root / "manifest-directory"
+    manifest_directory.mkdir()
+
+    outside_errors = validate_manifest(outside_manifest, repo_root)
+    directory_errors = validate_manifest(manifest_directory, repo_root)
+
+    assert any("outside repo_root" in error for error in outside_errors)
+    assert any("regular file" in error for error in directory_errors)
+
+
+def test_symlink_escape_is_rejected(tmp_path: Path) -> None:
+    path = _write_valid_manifest(tmp_path)
+    outside = tmp_path.parent / "outside.cfg"
+    outside.write_text("outside\n", encoding="utf-8")
+    link = tmp_path / "inputs" / "escaped.cfg"
+    try:
+        link.symlink_to(outside)
+    except OSError as exc:
+        pytest.skip(f"symlink creation unavailable on this platform: {exc}")
+    data = _read_manifest(path)
+    data["pipeline"]["config"] = ["inputs/escaped.cfg"]
+    _write_manifest(path, data)
+
+    errors = validate_manifest(path, tmp_path)
+
+    assert any("pipeline.config" in error and "escapes" in error for error in errors)
+
+
+@pytest.mark.parametrize("version", (True, 1.0))
+def test_schema_version_must_be_non_bool_integer_one(tmp_path: Path, version: object) -> None:
+    path = _write_valid_manifest(tmp_path)
+    data = _read_manifest(path)
+    data["schema"]["version"] = version
+    _write_manifest(path, data)
+
+    errors = validate_manifest(path, tmp_path)
+
+    assert any("schema.version" in error for error in errors)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected"),
+    (
+        (lambda data: data["retention"].update(extra=[]), "retention has unknown fields"),
+        (lambda data: data["retention"].update(keep="summary.*"), "retention.keep"),
+        (lambda data: data["provenance"].update(extra="no"), "provenance has unknown fields"),
+        (lambda data: data["provenance"].update(notes=[]), "provenance.notes"),
+    ),
+)
+def test_retention_and_provenance_nested_schema_is_exact(
+    tmp_path: Path, mutation, expected: str
+) -> None:
+    path = _write_valid_manifest(tmp_path)
+    data = _read_manifest(path)
+    mutation(data)
+    _write_manifest(path, data)
+
+    errors = validate_manifest(path, tmp_path)
+
+    assert any(expected in error for error in errors)
+
+
+def test_self_replacement_cycle_is_rejected(tmp_path: Path) -> None:
+    path = _write_valid_manifest(tmp_path)
+    data = _read_manifest(path)
+    data["lifecycle"] = "superseded"
+    data["replacement"] = "manifest.json"
+    _write_manifest(path, data)
+
+    errors = validate_manifest(path, tmp_path)
+
+    assert any("replacement cycle" in error for error in errors)
+
+
+def test_two_manifest_replacement_cycle_is_rejected(tmp_path: Path) -> None:
+    path = _write_valid_manifest(tmp_path)
+    replacement = _write_valid_manifest(tmp_path / "replacement")
+    data = _read_manifest(path)
+    data["lifecycle"] = "superseded"
+    data["replacement"] = "replacement/manifest.json"
+    _write_manifest(path, data)
+    replacement_data = _read_manifest(replacement)
+    replacement_data["lifecycle"] = "superseded"
+    replacement_data["replacement"] = "manifest.json"
+    _write_manifest(replacement, replacement_data)
+
+    errors = validate_manifest(path, tmp_path)
+
+    assert any("replacement cycle" in error for error in errors)
+
+
+def test_recursively_valid_replacement_is_accepted(tmp_path: Path) -> None:
+    path = _write_valid_manifest(tmp_path)
+    _write_valid_manifest(tmp_path / "replacement")
+    data = _read_manifest(path)
+    data["lifecycle"] = "superseded"
+    data["replacement"] = "replacement/manifest.json"
+    _write_manifest(path, data)
+
+    assert validate_manifest(path, tmp_path) == []
+
+
+def test_validation_aggregates_independent_errors(tmp_path: Path) -> None:
+    path = _write_valid_manifest(tmp_path)
+    data = _read_manifest(path)
+    data["schema"]["version"] = True
+    data["lifecycle"] = "invalid"
+    data["pipeline"].pop("plot")
+    data["evidence"] = ["evidence/missing.md"]
+    data["retention"].update(extra=[])
+    _write_manifest(path, data)
+
+    errors = validate_manifest(path, tmp_path)
+
+    for expected in ("schema.version", "pipeline", "evidence", "retention", "exclusion_reason"):
+        assert any(expected in error for error in errors)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path, PureWindowsPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 
@@ -23,6 +23,8 @@ TOP_LEVEL_FIELDS = {
     "replacement",
     "exclusion_reason",
 }
+RETENTION_FIELDS = {"keep", "transient"}
+PROVENANCE_FIELDS = {"notes"}
 
 
 def _nonempty_string(value: Any) -> bool:
@@ -36,20 +38,28 @@ def _validate_existing_path(
         errors.append(f"{field} must be a nonempty repository-relative path")
         return None
 
-    raw_path = Path(value)
+    posix_path = PurePosixPath(value)
     windows_path = PureWindowsPath(value)
-    if raw_path.is_absolute() or windows_path.is_absolute() or windows_path.drive:
-        errors.append(f"{field} must be repository-relative: {value!r}")
+    if posix_path.is_absolute():
+        errors.append(f"{field} must not use a POSIX absolute path: {value!r}")
+        return None
+    if windows_path.drive or windows_path.root:
+        errors.append(
+            f"{field} must not use a Windows absolute or drive-relative path: {value!r}"
+        )
+        return None
+    if ".." in posix_path.parts or ".." in windows_path.parts:
+        errors.append(f"{field} must not contain traversal '..': {value!r}")
         return None
 
-    candidate = (repo_root / raw_path).resolve()
+    candidate = (repo_root / Path(value)).resolve()
     try:
         candidate.relative_to(repo_root)
     except ValueError:
         errors.append(f"{field} escapes the repository: {value!r}")
         return None
-    if not candidate.exists():
-        errors.append(f"{field} does not exist: {value!r}")
+    if not candidate.is_file():
+        errors.append(f"{field} must resolve to an existing regular file: {value!r}")
         return None
     return candidate
 
@@ -59,10 +69,14 @@ def _validate_manifest(
 ) -> list[str]:
     errors: list[str] = []
     manifest_path = path.resolve()
+    try:
+        manifest_path.relative_to(repo_root)
+    except ValueError:
+        return [f"manifest is outside repo_root: {path}"]
     if manifest_path in replacement_stack:
         return [f"replacement cycle includes {path}"]
     if not manifest_path.is_file():
-        return [f"manifest does not exist: {path}"]
+        return [f"manifest must be an existing regular file: {path}"]
 
     try:
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -80,7 +94,7 @@ def _validate_manifest(
     else:
         if schema.get("name") != SCHEMA["name"]:
             errors.append("schema.name must equal 'hrsc.experiment-manifest'")
-        if schema.get("version") != SCHEMA["version"]:
+        if type(schema.get("version")) is not int or schema["version"] != SCHEMA["version"]:
             errors.append("schema.version must equal 1")
         unknown_schema_fields = sorted(set(schema) - set(SCHEMA))
         if unknown_schema_fields:
@@ -125,7 +139,12 @@ def _validate_manifest(
     if not isinstance(retention, dict):
         errors.append("retention must be an object")
     else:
-        for field in ("keep", "transient"):
+        unknown_retention_fields = sorted(set(retention) - RETENTION_FIELDS)
+        if unknown_retention_fields:
+            errors.append(
+                f"retention has unknown fields: {', '.join(unknown_retention_fields)}"
+            )
+        for field in RETENTION_FIELDS:
             values = retention.get(field)
             if not isinstance(values, list) or not values or not all(
                 _nonempty_string(value) for value in values
@@ -133,10 +152,21 @@ def _validate_manifest(
                 errors.append(f"retention.{field} must be a nonempty list of strings")
 
     provenance = data.get("provenance")
-    if not isinstance(provenance, dict) or not _nonempty_string(provenance.get("notes")):
-        errors.append("provenance.notes must be a nonempty string")
+    if not isinstance(provenance, dict):
+        errors.append("provenance must be an object")
+    else:
+        unknown_provenance_fields = sorted(set(provenance) - PROVENANCE_FIELDS)
+        if unknown_provenance_fields:
+            errors.append(
+                f"provenance has unknown fields: {', '.join(unknown_provenance_fields)}"
+            )
+        if not _nonempty_string(provenance.get("notes")):
+            errors.append("provenance.notes must be a nonempty string")
 
-    if lifecycle == "invalid" and not _nonempty_string(data.get("exclusion_reason")):
+    exclusion_reason = data.get("exclusion_reason")
+    if "exclusion_reason" in data and not _nonempty_string(exclusion_reason):
+        errors.append("exclusion_reason must be a nonempty string")
+    if lifecycle == "invalid" and not _nonempty_string(exclusion_reason):
         errors.append("invalid lifecycle requires a nonempty exclusion_reason")
 
     replacement = data.get("replacement")
@@ -157,7 +187,10 @@ def _validate_manifest(
 def validate_manifest(path: Path, repo_root: Path) -> list[str]:
     """Return every schema, lifecycle, path, and evidence validation error."""
 
-    return _validate_manifest(path, repo_root.resolve(), set())
+    resolved_root = repo_root.resolve()
+    if not resolved_root.is_dir():
+        return [f"repo_root must be an existing directory: {repo_root}"]
+    return _validate_manifest(path, resolved_root, set())
 
 
 def load_valid_manifest(path: Path, repo_root: Path) -> dict[str, Any]:
