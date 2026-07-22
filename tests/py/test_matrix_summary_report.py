@@ -158,6 +158,55 @@ def test_cli_reports_implicit_precision_pairs_and_scalars(tmp_path: Path) -> Non
     assert any(row["row_type"] == "pair" and row["pair_label"] == "sod-cpu-o2-ieee-leq" for row in rows)
 
 
+def test_run_scalars_normalizes_canonical_and_legacy_metadata(tmp_path: Path) -> None:
+    from scripts.harness.metadata import normalise_metadata
+    from scripts.io_helper import read_binary
+    from scripts.regression.matrix_summary_report import RunData, _run_scalars
+
+    root = tmp_path / "matrix"
+    payload = np.ones((1, 2, 4), dtype=np.float64)
+    _write_run(root, "canonical", "double", "cpu-canonical", payload, total_s=9.0)
+    raw_output = root / "runs" / "canonical" / "grid.bin"
+    header, grid = read_binary(raw_output)
+
+    canonical = normalise_metadata(
+        {
+            "name": "canonical",
+            "precision": "double",
+            "build": "cpu-canonical",
+            "source_config": "source.cfg",
+            "returncode": 0,
+            "raw_output": "legacy.bin",
+            "output_binary": "older.bin",
+            "artifacts": {"primary_output": str(raw_output)},
+            "timing": {"elapsed_wall_s": 1.25, "total_s": 9.0},
+        }
+    )
+    canonical_row = _run_scalars(
+        RunData("canonical", canonical, root / "runs/canonical/metadata.json", header, grid)
+    )
+    assert canonical_row["raw_output"] == str(raw_output)
+    assert canonical_row["total_s"] == pytest.approx(1.25)
+
+    legacy = normalise_metadata(
+        {
+            "name": "legacy",
+            "precision": "float",
+            "build": "cpu-legacy",
+            "source_config": "source.cfg",
+            "returncode": 0,
+            "output_binary": "legacy.bin",
+            "elapsed_wall_s": 2.5,
+            "timing": {"total_s": 9.0},
+        }
+    )
+    legacy_row = _run_scalars(
+        RunData("legacy", legacy, root / "runs/legacy/metadata.json", header, grid)
+    )
+    assert legacy_row["raw_output"] == "legacy.bin"
+    assert legacy_row["total_s"] == pytest.approx(2.5)
+
+
 def test_cli_reports_explicit_pair_label(tmp_path: Path) -> None:
     matrix_summary = _synthetic_matrix(tmp_path)
     out_prefix = tmp_path / "explicit" / "axis_summary"

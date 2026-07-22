@@ -163,6 +163,20 @@ def test_cross_platform_absolute_and_traversal_paths_are_rejected(
     assert any("absolute" in error or "traversal" in error for error in errors)
 
 
+@pytest.mark.parametrize("bad_path", ("inputs/\x00case.cfg", "inputs/\ncase.cfg"))
+def test_control_characters_in_referenced_paths_return_diagnostics(
+    tmp_path: Path, bad_path: str
+) -> None:
+    path = _write_valid_manifest(tmp_path)
+    data = _read_manifest(path)
+    data["pipeline"]["config"] = [bad_path]
+    _write_manifest(path, data)
+
+    errors = validate_manifest(path, tmp_path)
+
+    assert any("pipeline.config" in error and "control" in error for error in errors)
+
+
 def test_manifest_must_be_regular_file_inside_repo_root(tmp_path: Path) -> None:
     repo_root = tmp_path / "repo"
     repo_root.mkdir()

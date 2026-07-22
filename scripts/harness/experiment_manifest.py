@@ -37,6 +37,9 @@ def _validate_existing_path(
     if not _nonempty_string(value):
         errors.append(f"{field} must be a nonempty repository-relative path")
         return None
+    if any(ord(character) < 32 or ord(character) == 127 for character in value):
+        errors.append(f"{field} must not contain control characters")
+        return None
 
     posix_path = PurePosixPath(value)
     windows_path = PureWindowsPath(value)
