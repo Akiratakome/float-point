@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 
@@ -8,6 +9,24 @@ EVIDENCE_MAP = DOCS / "experiment_logs" / "report2_evidence_map.md"
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def parse_evidence_inventory(text: str) -> list[dict[str, str]]:
+    lines = text.splitlines()
+    header_index = next(
+        index
+        for index, line in enumerate(lines)
+        if line.startswith("| Evidence | Status |")
+    )
+    headers = [cell.strip() for cell in lines[header_index].strip("|").split("|")]
+    rows = []
+    for line in lines[header_index + 2 :]:
+        if not line.startswith("|"):
+            break
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        assert len(cells) == len(headers), line
+        rows.append(dict(zip(headers, cells, strict=True)))
+    return rows
 
 
 def test_report2_evidence_map_has_required_status_and_assets():
@@ -39,6 +58,60 @@ def test_report2_evidence_map_has_required_status_and_assets():
     for relative in required_paths:
         assert relative in text
         assert (ROOT / relative).is_file()
+
+
+def test_evidence_inventory_binds_status_provenance_and_retention_contract():
+    inventory = parse_evidence_inventory(read(EVIDENCE_MAP))
+    required_columns = {
+        "Evidence",
+        "Status",
+        "Authority and facts",
+        "Supported claim",
+        "Excluded claims",
+        "Supersedes",
+        "Provenance",
+        "Retention",
+    }
+    assert set(inventory[0]) == required_columns
+
+    expected_statuses = {
+        "Week 12 Brio-Wu 1D": "`validation`",
+        "Week 12 2D invariance/GLM": "`validation`",
+        "Week 13 HLLD divB follow-up": "`validation`",
+        "Week 13 OT morphology": "`morphology-only`",
+        "Week 13 KH morphology": "`morphology-only`",
+        "Week 14 HLL MCA": "`invalid`",
+        "Week 14 pilots/smokes": "`superseded`",
+        "Week 15 Brio-Wu HLL": "`provisional`",
+        "Week 15 Brio-Wu HLLD": "`provisional`",
+        "Week 15 OT HLL": "`provisional`",
+        "Week 15 OT HLLD": "`provisional`",
+        "Temporal divergence": "`negative-result`",
+        "GPU HLL MHD": "`deferred`",
+        "CPU/GPU hardware axis": "`deferred`",
+        "KH report-grade precision": "`deferred`",
+        "OT/KH 512^2 consolidation": "`deferred`",
+    }
+    by_evidence = {row["Evidence"]: row for row in inventory}
+    assert set(by_evidence) == set(expected_statuses)
+    for evidence, expected_status in expected_statuses.items():
+        row = by_evidence[evidence]
+        assert row["Status"] == expected_status
+        for column in required_columns - {"Evidence", "Status"}:
+            assert row[column], f"{evidence}: empty {column}"
+
+    for evidence in (
+        "Week 15 Brio-Wu HLL",
+        "Week 15 Brio-Wu HLLD",
+        "Week 15 OT HLL",
+        "Week 15 OT HLLD",
+    ):
+        assert "N=30" in by_evidence[evidence]["Authority and facts"]
+
+    inventory_text = "\n".join(
+        " | ".join(row.values()) for row in inventory
+    )
+    assert not re.search(r"\b\d+\s+(?:tracked\s+)?files?\b", inventory_text, re.I)
 
 
 def test_week14_to_week16_have_canonical_navigation():
