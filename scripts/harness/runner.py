@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import math
 import re
 import subprocess
 import time
-import math
 from pathlib import Path
 from typing import Any
 
@@ -18,10 +18,26 @@ def parse_run_status(
     stderr_text: str,
 ) -> tuple[str | None, dict[str, Any] | None, dict[str, Any] | None]:
     parsed = None
+    parse_failure: dict[str, str] | None = None
     for line in stderr_text.splitlines():
         match = _STATUS_RE.match(line.strip())
         if match:
-            parsed = dict(token.split("=", 1) for token in match["body"].split())
+            try:
+                tokens = []
+                for token in match["body"].split():
+                    if "=" not in token:
+                        raise ValueError(f"token has no '=': {token!r}")
+                    key, value = token.split("=", 1)
+                    if not key:
+                        raise ValueError("token key is empty")
+                    tokens.append((key, value))
+                parsed = dict(tokens)
+                parse_failure = None
+            except ValueError as exc:
+                parsed = None
+                parse_failure = _failure("schema_error", f"malformed status line: {exc}")
+    if parse_failure is not None:
+        return "failed", None, parse_failure
     if parsed is None:
         return None, None, None
     if parsed.get("status") == "success":
@@ -77,11 +93,13 @@ def _artifact_failure(spec: RunSpec, wall_start_s: float) -> dict[str, str] | No
     for artifact in spec.required_artifacts:
         try:
             get_artifact_validator(artifact.kind)
-        except ArtifactValidationError as exc:
+            is_file = artifact.path.is_file()
+            artifact_mtime = artifact.path.stat().st_mtime if is_file else None
+        except (ArtifactValidationError, OSError) as exc:
             return _failure("artifact_error", str(exc))
-        if not artifact.path.is_file():
+        if not is_file:
             return _failure("artifact_error", f"missing required artifact: {artifact.path}")
-        if artifact.must_be_fresh and artifact.path.stat().st_mtime < wall_start_s:
+        if artifact.must_be_fresh and artifact_mtime < wall_start_s:
             return _failure("artifact_error", f"stale required artifact: {artifact.path}")
         try:
             validate_artifact(artifact.path, artifact.kind)

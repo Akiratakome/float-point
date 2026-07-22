@@ -22,6 +22,16 @@ def test_status_parser_reads_last_structured_line():
     assert failure is None
 
 
+def test_malformed_structured_status_token_is_schema_error():
+    status, completion, failure = parse_run_status(
+        "[run-status] status=success final_time=0.1 malformed steps=1\n"
+    )
+
+    assert status == "failed"
+    assert completion is None
+    assert failure["category"] == "schema_error"
+
+
 def test_missing_required_artifact_marks_record_failed(tmp_path: Path):
     cfg = tmp_path / "config.cfg"
     cfg.write_text("x = 1\n", encoding="utf-8")
@@ -297,3 +307,33 @@ def test_unknown_artifact_kind_fails_closed(tmp_path: Path):
     assert record.status == "failed"
     assert record.failure["category"] == "artifact_error"
     assert "unknown artifact kind" in record.failure["message"]
+
+
+def test_artifact_filesystem_error_is_artifact_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    cfg = tmp_path / "config.cfg"
+    artifact = tmp_path / "grid.bin"
+    cfg.write_text("x = 1\n", encoding="utf-8")
+    original_is_file = Path.is_file
+
+    def raise_for_artifact(path: Path) -> bool:
+        if path == artifact:
+            raise OSError("simulated artifact filesystem failure")
+        return original_is_file(path)
+
+    monkeypatch.setattr(Path, "is_file", raise_for_artifact)
+    spec = RunSpec(
+        name="artifact-filesystem-error",
+        experiment="pytest",
+        command=(sys.executable, "-c", "print('ok')"),
+        run_dir=tmp_path / "run",
+        source_config=cfg,
+        run_config=cfg,
+        required_artifacts=(RequiredArtifact(artifact, kind="hrsc_binary"),),
+    )
+
+    record = execute_run(spec)
+
+    assert record.status == "failed"
+    assert record.failure["category"] == "artifact_error"
