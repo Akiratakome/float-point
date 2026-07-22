@@ -1,4 +1,8 @@
 # Week 14 汇报（给导师）
+> **Historical snapshot:** This dated meeting document preserves what was known
+> at the time. It is not the current Report 2 status. See
+> [report2_evidence_map.md](../experiment_logs/report2_evidence_map.md) for
+> current evidence, supersession, and claim boundaries.
 
 > 生成于 2026-07-02。图在 `experiments/week14/` 下，数字都核对自各自的 `summary.json`。
 > 本周所有实验都在**最便宜的算例 Brio–Wu 1D（一维 MHD 激波管）+ HLL 求解器 + 纯 CPU** 上做，

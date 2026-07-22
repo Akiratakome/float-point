@@ -1,4 +1,8 @@
 # Week 15 — MHD Floating-Point Precision Study: Report-Grade Results
+> **Historical snapshot:** This dated meeting document preserves what was known
+> at the time. It is not the current Report 2 status. See
+> [report2_evidence_map.md](../experiment_logs/report2_evidence_map.md) for
+> current evidence, supersession, and claim boundaries.
 
 **Date:** 2026-07-09  ·  **Scope of this report:** CPU precision study, 1D + 2D MHD, both Riemann solvers.
 

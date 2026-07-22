@@ -1,4 +1,8 @@
 # Week 14 Supervisor Meeting
+> **Historical snapshot:** This dated meeting document preserves what was known
+> at the time. It is not the current Report 2 status. See
+> [report2_evidence_map.md](../experiment_logs/report2_evidence_map.md) for
+> current evidence, supersession, and claim boundaries.
 
 > Generated 2026-07-02. Figures live under `experiments/week14/`; all numbers were cross-checked
 > against each experiment's `summary.json`. Everything this week was run on the **cheapest case —

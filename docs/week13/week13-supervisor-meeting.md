@@ -1,4 +1,8 @@
 # Week 13 导师会议材料 — 2D MHD 基准 + HLLD 求解器
+> **Historical snapshot:** This dated meeting document preserves what was known
+> at the time. It is not the current Report 2 status. See
+> [report2_evidence_map.md](../experiment_logs/report2_evidence_map.md) for
+> current evidence, supersession, and claim boundaries.
 
 > 生成日期：2026-06-26。本文件用于导师会议汇报。配套图位于
 > `experiments/week13/`，原始数值诊断行（`[mhd] t=... divB_max=...`）均来自本仓库

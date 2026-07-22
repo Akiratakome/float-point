@@ -1,4 +1,8 @@
 # Week 15 汇报（给导师）
+> **Historical snapshot:** This dated meeting document preserves what was known
+> at the time. It is not the current Report 2 status. See
+> [report2_evidence_map.md](../experiment_logs/report2_evidence_map.md) for
+> current evidence, supersession, and claim boundaries.
 
 > 生成于 2026-07-09。图在 `docs/week15/figures/` 下（学术论文风），数字都核对自各自的 `summary.json`。
 > 本周把精度研究从**smoke 规模**升级到**report-grade**：从 Week-14 只做 Brio–Wu 1D / 8 变体 / MCA n=8，

@@ -1,4 +1,8 @@
 # Week 13 Supervisor Meeting Notes — 2D MHD Benchmarks + HLLD Solver
+> **Historical snapshot:** This dated meeting document preserves what was known
+> at the time. It is not the current Report 2 status. See
+> [report2_evidence_map.md](../experiment_logs/report2_evidence_map.md) for
+> current evidence, supersession, and claim boundaries.
 
 > Generated 2026-06-26. Companion figures live under `experiments/week13/`. Every
 > numerical diagnostic line (`[mhd] t=... divB_max=...`) is verbatim output from
