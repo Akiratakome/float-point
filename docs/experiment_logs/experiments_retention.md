@@ -9,7 +9,8 @@ It classifies artefacts so cleanup can be done without losing report evidence.
 Report 2 lifecycle manifests use these five values: `canonical` (current
 authority), `provenance` (retained historical support), `superseded` (replaced
 by a named manifest), `invalid` (not evidentially usable), and `generated`
-(reproducible generated material). Validate them with
+(reproducible generated material). Validate the 13 promoted Report 2 manifests
+enumerated by Task 9 with
 `python -m pytest tests/py/test_experiment_manifests.py -q`.
 
 ## Canonical Evidence

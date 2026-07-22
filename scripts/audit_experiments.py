@@ -29,14 +29,17 @@ def tracked_experiment_paths(repo_root: Path) -> list[Path]:
     """List tracked files below ``experiments/`` without invoking a shell."""
 
     result = subprocess.run(
-        ["git", "ls-files", "--", "experiments"],
+        ["git", "ls-files", "-z", "--", "experiments"],
         cwd=repo_root,
         check=True,
         capture_output=True,
-        text=True,
-        encoding="utf-8",
     )
-    paths = {_repo_relative(Path(line)) for line in result.stdout.splitlines() if line}
+    raw_paths = result.stdout.split(b"\0")
+    paths = {
+        _repo_relative(Path(os.fsdecode(raw_path)))
+        for raw_path in raw_paths
+        if raw_path
+    }
     return sorted(paths, key=lambda path: path.as_posix())
 
 
@@ -92,7 +95,7 @@ def build_report(repo_root: Path) -> dict[str, Any]:
     ]
     return {
         "audit_date": _audit_date(),
-        "root": repo_root.resolve().as_posix(),
+        "root": ".",
         "tracked_file_count": len(tracked),
         "candidate_root_count": len(candidates),
         "candidate_file_count": sum(len(entry["files"]) for entry in candidates),
@@ -146,8 +149,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.output is None:
         print(rendered, end="")
     else:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(rendered, encoding="utf-8", newline="\n")
+        output = args.output if args.output.is_absolute() else repo_root / args.output
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(rendered, encoding="utf-8", newline="\n")
     return 0
 
 

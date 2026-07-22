@@ -39,10 +39,16 @@ values:
 | `timing.elapsed_wall_s` | top-level `elapsed_wall_s`, `timing.total_s` |
 | `status` | inferred from `returncode` when absent |
 
-A run is reportable only after the application completion gate has passed, the
-required artifacts are valid and fresh, the process return code is zero, and
-the normalized metadata status is `success`. A zero return code alone does not
-override an explicit structured failure or an incomplete completion record.
+Migrated Euler and MHD application paths emit structured completion/success
+status after `require_run_complete` gates their final outputs. Their metadata
+has `status=success`, `completion.reported=true`, and the structured completion
+fields consumed by report-grade workflows. The generic runner also preserves
+legacy zero-returncode records from programs that emit no structured status;
+those records remain `status=success` with `completion.reported=false`. Consumers
+must distinguish these cases using `completion.reported` and the completion
+fields. A report-grade workflow requires the structured completion gate and
+fresh required artifacts; this compatibility distinction does not change the
+generic runner behavior.
 
 ## Build Semantics
 
@@ -64,7 +70,8 @@ evidence.
 Report 2 experiment lifecycle manifests use
 `hrsc.experiment-manifest` schema version 1 and one of five lifecycle values:
 `canonical`, `provenance`, `superseded`, `invalid`, or `generated`.
-Validate all committed manifests from the repository root with:
+Validate the 13 promoted Report 2 lifecycle manifests enumerated by Task 9
+from the repository root with:
 
 ```bash
 python -m pytest tests/py/test_experiment_manifests.py -q

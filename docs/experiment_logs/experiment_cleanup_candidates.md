@@ -1,7 +1,7 @@
 # Experiment Cleanup Candidates
 
 - Audit date: `2026-07-22`
-- Root: `C:/Users/tangy/Desktop/floatpoint/.worktrees/project-architecture-convergence`
+- Root: `.`
 - Tracked experiment files: 3203
 - Candidate build roots: 2
 - Total tracked candidate files: 36
