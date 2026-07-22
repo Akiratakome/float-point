@@ -40,15 +40,21 @@ values:
 | `status` | inferred from `returncode` when absent |
 
 Migrated Euler and MHD application paths emit structured completion/success
-status after `require_run_complete` gates their final outputs. Their metadata
-has `status=success`, `completion.reported=true`, and the structured completion
-fields consumed by report-grade workflows. The generic runner also preserves
-legacy zero-returncode records from programs that emit no structured status;
-those records remain `status=success` with `completion.reported=false`. Consumers
-must distinguish these cases using `completion.reported` and the completion
-fields. A report-grade workflow requires the structured completion gate and
-fresh required artifacts; this compatibility distinction does not change the
-generic runner behavior.
+status after the application completion gate (`require_run_complete`) gates
+their final outputs. Their metadata
+has `status=success`, `completion.reported=true`, and the required structured
+completion fields. The generic runner also preserves legacy zero-returncode
+records from programs that emit no structured status; those records remain
+`status=success` with `completion.reported=false`.
+
+The current generic `matrix_summary_report.py` consumer calls
+`require_successful_metadata` for compatibility. That function accepts
+normalized legacy success and does **not** enforce `completion.reported=true`;
+its output alone is not completion-attested. Any workflow making a
+completion-attested or report-grade claim must explicitly filter or validate
+`completion.reported=true`, the required completion fields, and the required
+fresh artifacts. This distinction documents consumer policy without changing
+the generic runner or compatibility behavior.
 
 ## Build Semantics
 

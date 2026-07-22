@@ -148,6 +148,7 @@ def test_renderers_agree_on_every_candidate_path_and_count():
     assert "Total tracked candidate files: 36" in markdown
     for candidate in json_data["candidates"]:
         assert candidate["root"] in markdown
+        assert f"| `{candidate['root']}` | {len(candidate['files'])} |" in markdown
         for path in candidate["files"]:
             assert path in markdown
 
