@@ -46,8 +46,11 @@ def normalise_metadata(raw: Mapping[str, Any]) -> dict[str, Any]:
     canonical = dict(raw)
     canonical["schema"] = _schema(raw)
 
+    returncode = raw.get("returncode")
     status = raw.get("status")
-    if status is None:
+    if returncode is not None and returncode != 0:
+        status = "failed"
+    elif status is None:
         status = "success" if raw.get("returncode") == 0 else "failed"
     canonical["status"] = status
 

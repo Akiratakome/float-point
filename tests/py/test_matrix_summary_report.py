@@ -499,6 +499,61 @@ def test_load_runs_rejects_failed_canonical_metadata(tmp_path: Path) -> None:
         matrix_summary_report._load_runs(matrix_path)
 
 
+def test_load_runs_rejects_success_metadata_with_nonzero_returncode(
+    tmp_path: Path,
+) -> None:
+    from scripts.regression import matrix_summary_report
+
+    root = tmp_path / "matrix"
+    run_dir = root / "runs" / "nonzero"
+    run_dir.mkdir(parents=True)
+    (run_dir / "metadata.json").write_text(
+        json.dumps(
+            {
+                "schema": {"name": "hrsc.run-record", "version": 1},
+                "name": "nonzero",
+                "status": "success",
+                "returncode": 3,
+            }
+        ),
+        encoding="utf-8",
+    )
+    matrix_path = root / "matrix_summary.json"
+    matrix_path.write_text(
+        json.dumps({"output_root": str(root), "runs": [{"name": "nonzero"}]}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="failed"):
+        matrix_summary_report._load_runs(matrix_path)
+
+
+def test_load_runs_reads_legacy_output_binary_alias(tmp_path: Path) -> None:
+    from scripts.regression import matrix_summary_report
+
+    root = tmp_path / "matrix"
+    run_dir = root / "runs" / "legacy"
+    output = run_dir / "grid.bin"
+    payload = np.ones((1, 4, 4), dtype=np.float64)
+    _write_binary(output, payload, dx=0.25, dy=1.0, t=0.2)
+    (run_dir / "metadata.json").write_text(
+        json.dumps(
+            {"name": "legacy", "returncode": 0, "output_binary": str(output)}
+        ),
+        encoding="utf-8",
+    )
+    matrix_path = root / "matrix_summary.json"
+    matrix_path.write_text(
+        json.dumps({"output_root": str(root), "runs": [{"name": "legacy"}]}),
+        encoding="utf-8",
+    )
+
+    runs = matrix_summary_report._load_runs(matrix_path)
+
+    assert runs[0].grid is not None
+    assert runs[0].grid.shape == (1, 4, 4)
+
+
 def test_scalar_only_import_does_not_require_phase_metric_module() -> None:
     code = f"""
 import importlib.abc

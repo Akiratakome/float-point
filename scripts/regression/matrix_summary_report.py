@@ -213,8 +213,11 @@ def _load_runs(matrix_path: Path) -> list[RunData]:
         metadata_path = _metadata_path_for_run(run, matrix_path, output_root)
         metadata = require_successful_metadata(_load_json(metadata_path))
         name = str(metadata.get("name") or run.get("name") or metadata_path.parent.name)
+        raw_output_value = metadata.get("raw_output")
+        if not raw_output_value:
+            raw_output_value = (metadata.get("artifacts") or {}).get("primary_output")
         raw_output = _resolve_recorded_path(
-            str(metadata.get("raw_output")) if metadata.get("raw_output") else None,
+            str(raw_output_value) if raw_output_value else None,
             output_root=output_root,
             matrix_parent=matrix_path.parent,
             local_bases=[metadata_path.parent],

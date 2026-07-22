@@ -127,3 +127,8 @@ def test_require_successful_metadata_names_failure_category():
             }
         )
 
+
+def test_normalise_does_not_allow_success_to_override_nonzero_returncode():
+    canonical = normalise_metadata({"status": "success", "returncode": 3})
+
+    assert canonical["status"] == "failed"
