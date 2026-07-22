@@ -131,6 +131,15 @@ def test_run_matrix_writes_metadata_and_preserves_cfg(tmp_path: Path) -> None:
     assert set(metadata["provenance"]["git"]) == {"commit", "dirty"}
 
 
+def test_load_matrix_accepts_windows_utf8_bom(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    path = tmp_path / "matrix.json"
+    path.write_bytes(b"\xef\xbb\xbf{\"experiment\": \"pytest\", \"runs\": []}")
+
+    assert run_matrix.load_matrix(path) == {"experiment": "pytest", "runs": []}
+
+
 def test_run_matrix_loads_build_semantics_beside_binary(tmp_path: Path) -> None:
     from scripts import run_matrix
 
@@ -262,6 +271,16 @@ def test_load_build_semantics_accepts_default_cmake_request(tmp_path: Path) -> N
         (
             {
                 "schema": {"name": "hrsc.build-semantics", "version": 2},
+                "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+                "requested": {"opt_level": "O2", "fast_math": False, "strict_ieee": False},
+                "effective_math_mode": "compiler-default",
+                "flag_evidence": {"optimization": "", "fast_math": "", "strict_ieee": ""},
+            },
+            "schema version",
+        ),
+        (
+            {
+                "schema": {"name": "hrsc.build-semantics", "version": 1.0},
                 "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
                 "requested": {"opt_level": "O2", "fast_math": False, "strict_ieee": False},
                 "effective_math_mode": "compiler-default",

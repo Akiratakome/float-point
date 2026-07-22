@@ -216,7 +216,7 @@ def run_one(run: MatrixRun, experiment: str, dry_run: bool = False) -> dict[str,
 
 
 def load_matrix(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def run_matrix(path: Path, dry_run: bool = False) -> dict[str, Any]:

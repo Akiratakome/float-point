@@ -115,8 +115,9 @@ def load_build_semantics(path: Path, fallback_label: str | None = None) -> Build
     _require_exact_fields(schema, {"name", "version"}, "schema")
     if schema["name"] != _BUILD_SEMANTICS_SCHEMA["name"]:
         raise ValueError("unsupported build semantics schema name")
-    if schema["version"] != _BUILD_SEMANTICS_SCHEMA["version"] or isinstance(
-        schema["version"], bool
+    if (
+        type(schema["version"]) is not int
+        or schema["version"] != _BUILD_SEMANTICS_SCHEMA["version"]
     ):
         raise ValueError("unsupported build semantics schema version")
 
