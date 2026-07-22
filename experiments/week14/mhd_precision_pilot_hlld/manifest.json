@@ -1,0 +1,19 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week14-hlld-precision-pilot",
+  "report": "report2",
+  "lifecycle": "superseded",
+  "purpose": "Retain the Week 14 HLLD deterministic and N=8 MCA pilot as development provenance only.",
+  "pipeline": {
+    "config": ["tests/cases/brio_wu_1d/brio_wu.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_precision_pilot.py"],
+    "measure": ["scripts/verificarlo/mhd_precision_sampling.py"],
+    "aggregate": ["experiments/week14/mhd_precision_pilot_hlld/summary.json"],
+    "plot": ["experiments/week14/mhd_precision_pilot_hlld/figures/deterministic_norms.png"]
+  },
+  "evidence": ["experiments/week14/mhd_precision_pilot_hlld/summary.md", "experiments/week14/mhd_precision_pilot_hlld/summary.json"],
+  "retention": {"keep": ["summary.*", "figures/"], "transient": ["generated grids"]},
+  "replacement": "experiments/week15/brio_wu_precision_pilot_hlld_p1/manifest.json",
+  "provenance": {"notes": "summary.md embeds generating commit 0ab957cfb2a10fcfaeef5867a8deaa601259118e; the Week 15 HLLD package is the replacement authority."}
+}

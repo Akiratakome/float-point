@@ -1,0 +1,22 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week12-brio-wu-1d",
+  "report": "report2",
+  "lifecycle": "canonical",
+  "purpose": "Validate monotonic Brio-Wu 1D MHD convergence on the recorded setup.",
+  "pipeline": {
+    "config": ["tests/cases/brio_wu_1d/brio_wu.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_brio_wu_1d.py"],
+    "measure": ["scripts/regression/mhd_brio_wu_1d.py"],
+    "aggregate": ["experiments/week12/brio_wu_1d/summary.json"],
+    "plot": ["experiments/week12/brio_wu_1d/figures/brio_wu_convergence.png"]
+  },
+  "evidence": [
+    "experiments/week12/brio_wu_1d/summary.md",
+    "experiments/week12/brio_wu_1d/summary.json",
+    "experiments/week12/brio_wu_1d/figures/brio_wu_convergence.png"
+  ],
+  "retention": {"keep": ["summary.*", "figures/"], "transient": ["generated grids"]},
+  "provenance": {"notes": "Tracked Git history is the authority; the summary contains no embedded generating commit."}
+}

@@ -1,0 +1,18 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week12-brio-wu-2d-invariance",
+  "report": "report2",
+  "lifecycle": "canonical",
+  "purpose": "Preserve the bounded Brio-Wu 2D transverse-invariance validation authority.",
+  "pipeline": {
+    "config": ["tests/cases/brio_wu_1d/brio_wu_2d.cfg", "tests/cases/brio_wu_1d/brio_wu.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_2d_week12.py"],
+    "measure": ["scripts/regression/mhd_2d_week12.py"],
+    "aggregate": ["experiments/week12/mhd_2d/brio_wu_2d/summary.json"],
+    "plot": ["scripts/figures/plot_mhd_2d_week12.py"]
+  },
+  "evidence": ["experiments/week12/mhd_2d/brio_wu_2d/summary.md", "experiments/week12/mhd_2d/brio_wu_2d/summary.json"],
+  "retention": {"keep": ["summary.*"], "transient": ["generated grids"]},
+  "provenance": {"notes": "Tracked Git history is the authority; this is validation evidence, not a precision-axis headline."}
+}

@@ -1,0 +1,20 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week14-hll-precision-pilot",
+  "report": "report2",
+  "lifecycle": "invalid",
+  "purpose": "Retain the Week 14 HLL pilot for diagnosis only; its p24 MCA instrumentation did not take effect.",
+  "pipeline": {
+    "config": ["tests/cases/brio_wu_1d/brio_wu.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_precision_pilot.py"],
+    "measure": ["scripts/verificarlo/mhd_precision_sampling.py"],
+    "aggregate": ["experiments/week14/mhd_precision_pilot/summary.json"],
+    "plot": ["experiments/week14/mhd_precision_pilot/figures/mca_noise_floor.png"]
+  },
+  "evidence": ["experiments/week14/mhd_precision_pilot/summary.md", "experiments/week14/mhd_precision_pilot/summary.json"],
+  "retention": {"keep": ["summary.*", "figures/"], "transient": ["generated grids"]},
+  "replacement": "experiments/week15/brio_wu_precision_pilot_p1/manifest.json",
+  "exclusion_reason": "The nominal p24 MCA rows did not exercise p24 instrumentation, so p24 noise or spread claims are invalid.",
+  "provenance": {"notes": "summary.md embeds generating commit 76d5e381b9074476526d6014d4e3fc98d2e7deae; Week 15 HLL N=30 replaces the invalid MCA interpretation."}
+}
