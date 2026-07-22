@@ -1,5 +1,10 @@
 # Implementation Plan: Effect of Floating-Point Precision and Hardware on HRSC Schemes
 
+> **Status note (2026-07-22):** This file preserves the baseline requirements
+> and original 20-week schedule. It is not the current implementation-status
+> authority. Use [report2_evidence_map.md](../experiment_logs/report2_evidence_map.md)
+> for delivered, superseded, negative, and deferred Report 2 evidence.
+
 ## Context
 
 This is an academic project investigating how floating-point precision, hardware (CPU vs GPU), compiler options, and subtle implementation differences affect the accuracy and reproducibility of High-Resolution Shock-Capturing (HRSC) finite-volume solvers. The project requires two reports:

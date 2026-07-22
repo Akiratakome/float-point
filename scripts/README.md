@@ -22,6 +22,7 @@ Use these first for new Report 2 work.
 | Measure | `metrics/` | Reusable scalar metrics and reference comparisons. |
 | Summarise | `regression/matrix_summary_report.py` | Preferred matrix-summary consumer for new harness runs. |
 | Summarise (MHD precision) | `regression/mhd_precision_pilot.py` | **canonical** Week-14 MHD precision-study aggregator; authoritative `summary.json`. `matrix_summary_report.py` is generic-checks-only here. |
+| Summarise (MHD temporal) | `regression/mhd_temporal_divergence.py` | **canonical** fixed-window, provenance-gated fp32/fp64 HLL temporal driver. |
 | Aggregate | `aggregate_metrics.py` | Thin JSON combiner for multiple summaries. |
 | Plot | `figures/plot_2d.py` plus selected `figures/` helpers | Keep generated figures under the owning experiment/report directory. |
 

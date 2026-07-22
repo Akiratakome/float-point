@@ -33,8 +33,10 @@ For script ownership and legacy/provenance boundaries, see
 - fast math: `OFF`, `ON`
 - HLLC branch rule: `<=`, `<`
 
-GPU is intentionally not included in the first harness pass because the GPU
-solver is still a Week 5/6 bring-up item.
+The canonical CPU matrix remains the default harness path. The Euler CUDA
+correctness path exists, but a report-grade generic GPU matrix and MHD GPU path
+are not yet complete. Hardware-axis conclusions therefore remain deferred; see
+`docs/experiment_logs/report2_evidence_map.md`.
 
 ## Run Matrix Schema
 

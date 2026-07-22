@@ -5,7 +5,7 @@
 **Project**: Effect of Floating-Point Precision and Hardware on HRSC Schemes (MSc, 20 weeks)
 **Reports**: Report 1 due 2026-05-29 (Week 10) · Report 2 due 2026-08-07 (Week 20)
 **Repo root**: `c:/Users/tangy/Desktop/floatpoint`
-**Default branch**: `main` · **Active branch**: `main`
+**Integration**: see Git topology and the Report 2 evidence map; do not infer status from a worktree branch name
 
 ---
 
@@ -20,11 +20,12 @@
 | Project briefs (PDFs from supervisor) | [requirement/](requirement/) (`*.pdf`) |
 | What's been done so far this project | per-week `weekN-summary.md` (see §2) |
 | What's planned this week | per-week `weekN-plan.md` (see §2) |
-| Supervisor correspondence + feedback artefacts | [emails/](emails/) — meeting scripts, replies, decision/comparison artefacts, supervisor-driven plans (named `weekN_<topic>_YYYY-MM-DD.md`) |
+| Supervisor correspondence + feedback artefacts | [emails/](emails/) — dated historical snapshots, meeting scripts, replies, decision/comparison artefacts, and supervisor-driven plans (named `weekN_<topic>_YYYY-MM-DD.md`); not current status authority |
 | Raw experiment data logs (deliverable artefacts) | [experiment_logs/](experiment_logs/) (named `weekN_<phase>_<topic>.md`) |
 | Report 1 final evidence map (which artefact lives where, what is superseded) | [experiment_logs/report1_evidence_map.md](experiment_logs/report1_evidence_map.md) |
 | Legacy Report 1 Week-7 task index | [experiment_logs/report1_evidence_index.md](experiment_logs/report1_evidence_index.md) |
-| Report 2 starting point | [requirement/overall.md](requirement/overall.md) Phase 2 + Report 1 conclusions in [experiment_logs/report1_evidence_map.md](experiment_logs/report1_evidence_map.md) |
+| Report 2 baseline requirements and schedule | [requirement/overall.md](requirement/overall.md) Phase 2 + Report 1 conclusions in [experiment_logs/report1_evidence_map.md](experiment_logs/report1_evidence_map.md) |
+| Report 2 current status, evidence priority, negative results, and deferred work | [experiment_logs/report2_evidence_map.md](experiment_logs/report2_evidence_map.md) |
 | Manual reproduction recipe (build → tests → regression) | [week4/week4-verification.md](week4/week4-verification.md) |
 | How Week N's state evolved from Week N-1 | `weekN/weekN-1_to_weekN_bridge.md` (kept at the target week) |
 
@@ -47,6 +48,9 @@ use `docs/weekN/...`.
 | 7 | [week7-plan.md](week7/week7-plan.md) | Report 1 evidence complete; see [report1_evidence_map.md](experiment_logs/report1_evidence_map.md) | (none) |
 | 12 | [week12-plan.md](week12/week12-plan.md) | [week12-summary.md](week12/week12-summary.md) | (none) |
 | 13 | [week13-plan.md](week13/week13-plan.md) | [week13-summary.md](week13/week13-summary.md) | (none) |
+| 14 | [week14-plan.md](week14/week14-plan.md) | [week14-summary.md](week14/week14-summary.md) | (none) |
+| 15 | [week15-plan.md](week15/week15-plan.md) | [week15-summary.md](week15/week15-summary.md) | (none) |
+| 16 | [week16-plan.md](week16/week16-plan.md) | [week16-summary.md](week16/week16-summary.md) | (none) |
 
 Week 4 also keeps:
 - [week4-verification.md](week4/week4-verification.md) — manual verification checklist (Phase B/C reproduction recipe)
@@ -76,8 +80,13 @@ Week 7 deliverables:
 
 Report 1 closeout / Report 2 transition:
 - Report 1 is complete. Use [report1_evidence_map.md](experiment_logs/report1_evidence_map.md) as the current source of truth for Report 1 evidence priority and exclusions.
-- Report 2 code work should start from [requirement/overall.md](requirement/overall.md) Phase 2, preserving the harness flow in [HARNESS.md](HARNESS.md).
-- Week 12 delivers the 1D MHD walking skeleton for Report 2: additive 9-variable ideal-MHD state/flux/HLL/solver code, a cfg-driven `hrsc_mhd` executable, Brio-Wu validation, and a `divB` sentinel while leaving Report-1 Euler numerics untouched.
+
+Report 2 current routing:
+- [report2_evidence_map.md](experiment_logs/report2_evidence_map.md) is the current status authority for delivered, superseded, negative, and deferred evidence.
+- [Week 15/16 completion design](superpowers/specs/2026-07-21-week15-16-completion-design.md) defines the current completion scope and deferred phases.
+- [GPU HLL MHD plan](superpowers/plans/2026-07-09-gpu-mhd-hll.md) defines the deferred GPU implementation path.
+- [Temporal divergence summary](../experiments/week15/mhd_temporal_divergence/summary.md) is the fixed-window negative result: the planned OT > Brio-Wu contrast was not observed.
+- Meeting reports, including the Week 15 English report, are dated historical snapshots; use the evidence map for current status and claim boundaries.
 
 ---
 
@@ -267,4 +276,4 @@ When a structured reorganization or multi-step task is in progress, three files 
 
 ---
 
-*Last updated: 2026-07-01 (clarified per-week path usage and added the project pytest environment note).*
+*Last updated: 2026-07-22.*
