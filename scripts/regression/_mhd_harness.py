@@ -127,7 +127,11 @@ def run_case(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha2
         source_config=source_cfg,
         run_config=cfg_path,
         cwd=ROOT,
-        required_artifacts=(RequiredArtifact(output_bin_path),) if output_bin_path else (),
+        required_artifacts=(
+            RequiredArtifact(output_bin_path, kind="hrsc_binary")
+            if output_bin_path
+            else ()
+        ),
     )
     record = execute_run(spec)
     stderr_text = (

@@ -3,10 +3,12 @@ from __future__ import annotations
 import re
 import subprocess
 import time
+import math
 from pathlib import Path
 from typing import Any
 
 from .contracts import RunRecord, RunSpec
+from .artifacts import ArtifactValidationError, get_artifact_validator, validate_artifact
 
 
 _STATUS_RE = re.compile(r"^\[run-status\]\s+(?P<body>.+)$")
@@ -23,10 +25,26 @@ def parse_run_status(
     if parsed is None:
         return None, None, None
     if parsed.get("status") == "success":
+        try:
+            final_time = float(parsed["final_time"])
+            target_time = float(parsed["target_time"])
+            steps = int(parsed["steps"])
+        except (KeyError, TypeError, ValueError, OverflowError) as exc:
+            return "failed", None, _failure("schema_error", f"invalid completion fields: {exc}")
+        if not math.isfinite(final_time) or not math.isfinite(target_time):
+            return "failed", None, _failure(
+                "schema_error", "completion times must be finite"
+            )
+        if steps < 0:
+            return "failed", None, _failure("schema_error", "completion steps must be non-negative")
+        if final_time < target_time:
+            return "failed", None, _failure(
+                "schema_error", "completion final_time must reach target_time"
+            )
         return "success", {
-            "final_time": float(parsed["final_time"]),
-            "target_time": float(parsed["target_time"]),
-            "steps": int(parsed["steps"]),
+            "final_time": final_time,
+            "target_time": target_time,
+            "steps": steps,
         }, None
     category = parsed.get("reason", "infrastructure_error")
     return "failed", None, {"category": category, "message": category}
@@ -57,10 +75,18 @@ def _failure(category: str, message: str) -> dict[str, Any]:
 
 def _artifact_failure(spec: RunSpec, wall_start_s: float) -> dict[str, str] | None:
     for artifact in spec.required_artifacts:
+        try:
+            get_artifact_validator(artifact.kind)
+        except ArtifactValidationError as exc:
+            return _failure("artifact_error", str(exc))
         if not artifact.path.is_file():
             return _failure("artifact_error", f"missing required artifact: {artifact.path}")
         if artifact.must_be_fresh and artifact.path.stat().st_mtime < wall_start_s:
             return _failure("artifact_error", f"stale required artifact: {artifact.path}")
+        try:
+            validate_artifact(artifact.path, artifact.kind)
+        except ArtifactValidationError as exc:
+            return _failure("artifact_error", str(exc))
     return None
 
 

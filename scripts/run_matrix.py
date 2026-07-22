@@ -182,7 +182,11 @@ def run_one(run: MatrixRun, experiment: str, dry_run: bool = False) -> dict[str,
         run_dir=run.run_dir,
         source_config=run.source_config,
         run_config=config,
-        required_artifacts=(RequiredArtifact(run.raw_output),) if run.raw_output else (),
+        required_artifacts=(
+            RequiredArtifact(run.raw_output, kind="hrsc_binary")
+            if run.raw_output
+            else ()
+        ),
         build_semantics=run.build_semantics,
     )
     record = execute_run(spec, dry_run=dry_run)

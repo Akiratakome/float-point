@@ -21,6 +21,7 @@ class FailureCategory(str, Enum):
 class RequiredArtifact:
     path: Path
     must_be_fresh: bool = True
+    kind: str = "file"
 
 
 @dataclass(frozen=True)
