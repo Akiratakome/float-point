@@ -18,6 +18,7 @@ Use these first for new Report 2 work.
 |---|---|---|
 | Build | `build_all.sh`, `build_matrix.py` | CPU build matrix and build labels. |
 | Run | `run_matrix.py` | Copies cfgs into run directories, writes metadata, and never edits source cfgs. |
+| Shared harness contracts | `harness/` | Versioned run metadata, config materialization, process execution, build semantics, and manifest validation. |
 | Read grids | `io_helper.py` | Shared binary-grid reader and primitive conversion helpers. |
 | Measure | `metrics/` | Reusable scalar metrics and reference comparisons. |
 | Summarise | `regression/matrix_summary_report.py` | Preferred matrix-summary consumer for new harness runs. |
@@ -25,6 +26,19 @@ Use these first for new Report 2 work.
 | Summarise (MHD temporal) | `regression/mhd_temporal_divergence.py` | **canonical** fixed-window, provenance-gated fp32/fp64 HLL temporal driver. |
 | Aggregate | `aggregate_metrics.py` | Thin JSON combiner for multiple summaries. |
 | Plot | `figures/plot_2d.py` plus selected `figures/` helpers | Keep generated figures under the owning experiment/report directory. |
+
+The architecture specification is
+[`docs/superpowers/specs/2026-07-22-project-architecture-convergence-design.md`](../docs/superpowers/specs/2026-07-22-project-architecture-convergence-design.md).
+Lifecycle manifests live with Report 2 experiment packets and are validated by
+the shared `scripts/harness/experiment_manifest.py` module. The read-only
+candidate report is generated with:
+
+```bash
+python scripts/audit_experiments.py --format markdown \
+  --output docs/experiment_logs/experiment_cleanup_candidates.md
+```
+
+The audit requires a human reference check and performs no deletion or move.
 
 ## Directory Roles
 

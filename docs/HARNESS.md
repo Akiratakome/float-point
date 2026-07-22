@@ -23,6 +23,56 @@ For script ownership and legacy/provenance boundaries, see
 | Existing 2D regression | `bash scripts/regression/float_regression_2d.sh` |
 | Matrix scalar report | `python scripts/regression/matrix_summary_report.py <matrix_summary.json>` |
 | 2D plotting | `python scripts/figures/plot_2d.py <grid.bin> --field rho --out <figure.png>` |
+| Experiment lifecycle audit | `python scripts/audit_experiments.py --format markdown` |
+
+## Run Contract
+
+New harness metadata uses schema `{"name": "hrsc.run-record", "version": 1}`.
+The canonical fields are `status`, `artifacts.primary_output`,
+`timing.elapsed_wall_s`, `failure`, `completion`, and `build_semantics`.
+Legacy fields remain accepted and are normalized without changing their stored
+values:
+
+| Canonical field | Legacy aliases |
+|---|---|
+| `artifacts.primary_output` | `raw_output`, `output_binary` |
+| `timing.elapsed_wall_s` | top-level `elapsed_wall_s`, `timing.total_s` |
+| `status` | inferred from `returncode` when absent |
+
+A run is reportable only after the application completion gate has passed, the
+required artifacts are valid and fresh, the process return code is zero, and
+the normalized metadata status is `success`. A zero return code alone does not
+override an explicit structured failure or an incomplete completion record.
+
+## Build Semantics
+
+Historical build directory names remain stable, including names such as
+`Ofast-ieee`. They are labels, not proof of the compiler mode. The harness
+records the effective math mode separately in `build_semantics` (`strict`,
+`fast`, or `compiler-default`) together with requested axes and compiler
+evidence.
+
+| Application/device | Support status | Entry rule |
+|---|---|---|
+| Euler / CPU | supported; default | standard CPU matrix |
+| Euler / GPU | supported as opt-in CUDA correctness path | explicitly enable CUDA |
+| MHD / CPU | supported | use the MHD application contract |
+| MHD / GPU | unsupported | fail explicitly; no GPU MHD implementation is implied |
+
+## Experiment Manifests And Retention
+
+Report 2 experiment lifecycle manifests use
+`hrsc.experiment-manifest` schema version 1 and one of five lifecycle values:
+`canonical`, `provenance`, `superseded`, `invalid`, or `generated`.
+Validate all committed manifests from the repository root with:
+
+```bash
+python -m pytest tests/py/test_experiment_manifests.py -q
+```
+
+The current cleanup audit is read-only and reports candidates for a separate
+reference check at
+[`experiment_cleanup_candidates.md`](experiment_logs/experiment_cleanup_candidates.md).
 
 ## Build Axes
 

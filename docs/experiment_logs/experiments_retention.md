@@ -6,6 +6,12 @@ complete and Report 2 code work is about to start.
 This document does not change solver numerics, cfg defaults, or output formats.
 It classifies artefacts so cleanup can be done without losing report evidence.
 
+Report 2 lifecycle manifests use these five values: `canonical` (current
+authority), `provenance` (retained historical support), `superseded` (replaced
+by a named manifest), `invalid` (not evidentially usable), and `generated`
+(reproducible generated material). Validate them with
+`python -m pytest tests/py/test_experiment_manifests.py -q`.
+
 ## Canonical Evidence
 
 Use [report1_evidence_map.md](report1_evidence_map.md) as the current source of
@@ -31,6 +37,11 @@ Priority meanings:
   to archive them externally.
 
 ## Cleanup Candidates
+
+The current read-only candidate inventory is
+[experiment_cleanup_candidates.md](experiment_cleanup_candidates.md). It is a
+discovery report only: every candidate still requires a reference audit before
+any action, and no deletion is performed by the audit.
 
 Do not delete these blindly; inspect first and remove only after confirming they
 are not needed for a pending report figure or rerun.
