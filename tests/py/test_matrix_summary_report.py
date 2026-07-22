@@ -471,6 +471,34 @@ def test_cli_resolves_canonical_run_matrix_relative_paths_from_different_cwd(tmp
     assert summary["runs"][0]["nx"] == 32
 
 
+def test_load_runs_rejects_failed_canonical_metadata(tmp_path: Path) -> None:
+    from scripts.regression import matrix_summary_report
+
+    root = tmp_path / "matrix"
+    run_dir = root / "runs" / "failed"
+    run_dir.mkdir(parents=True)
+    (run_dir / "metadata.json").write_text(
+        json.dumps(
+            {
+                "schema": {"name": "hrsc.run-record", "version": 1},
+                "name": "failed",
+                "status": "failed",
+                "failure": {"category": "numerical_failure", "message": "nan"},
+                "returncode": 1,
+            }
+        ),
+        encoding="utf-8",
+    )
+    matrix_path = root / "matrix_summary.json"
+    matrix_path.write_text(
+        json.dumps({"output_root": str(root), "runs": [{"name": "failed"}]}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="numerical_failure"):
+        matrix_summary_report._load_runs(matrix_path)
+
+
 def test_scalar_only_import_does_not_require_phase_metric_module() -> None:
     code = f"""
 import importlib.abc

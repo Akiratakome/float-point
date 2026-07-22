@@ -14,6 +14,9 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.harness.config import materialise_config, replace_or_append_cfg
+from scripts.harness.contracts import RequiredArtifact, RunRecord, RunSpec
+from scripts.harness.metadata import serialise_record
+from scripts.harness.runner import execute_run, git_provenance
 
 
 REQUIRED_RUN_FIELDS = ("name", "binary", "config")
@@ -109,11 +112,38 @@ def build_metadata(
     git_commit: str,
     returncode: int,
 ) -> dict[str, Any]:
+    legacy = _legacy_metadata(run, experiment, command, git_commit, returncode)
+    spec = RunSpec(
+        name=run.name,
+        experiment=experiment,
+        command=tuple(command),
+        run_dir=run.run_dir,
+        source_config=run.source_config,
+        run_config=run.run_dir / "config.cfg",
+    )
+    record = RunRecord(
+        spec=spec,
+        returncode=returncode,
+        elapsed_wall_s=0.0,
+        stdout_path=run.run_dir / "stdout.txt",
+        stderr_path=run.run_dir / "stderr.txt",
+        status="success" if returncode == 0 else "failed",
+    )
+    return serialise_record(record, legacy)
+
+
+def _legacy_metadata(
+    run: MatrixRun,
+    experiment: str,
+    command: list[str],
+    commit: str,
+    returncode: int,
+) -> dict[str, Any]:
     return {
         "experiment": experiment,
         "name": run.name,
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-        "git_commit": git_commit,
+        "git_commit": commit,
         "binary": str(run.binary),
         "source_config": str(run.source_config),
         "run_config": str(run.run_dir / "config.cfg"),
@@ -123,32 +153,50 @@ def build_metadata(
         "extra_cfg": run.extra_cfg or {},
         "command": command,
         "returncode": returncode,
+        "provenance": {
+            "git": git_provenance(Path(__file__).resolve().parents[1])
+        },
     }
 
 
 def run_one(run: MatrixRun, experiment: str, dry_run: bool = False) -> dict[str, Any]:
     config = materialise_run_config(run)
-    command = [str(run.binary), str(config)]
-    stdout_path = run.run_dir / "stdout.txt"
-    stderr_path = run.run_dir / "stderr.txt"
-    if dry_run:
-        result_code = 0
-        stdout_path.write_text("", encoding="utf-8")
-        stderr_path.write_text("dry-run\n", encoding="utf-8")
-    else:
-        with stdout_path.open("w", encoding="utf-8") as stdout, stderr_path.open("w", encoding="utf-8") as stderr:
-            result = subprocess.run(command, stdout=stdout, stderr=stderr, check=False)
-        result_code = result.returncode
-
-    metadata = build_metadata(run, experiment, command, git_commit(), result_code)
-    if not dry_run:
-        total_s = parse_timing_total_s(stderr_path.read_text(encoding="utf-8"))
-        metadata["timing"] = {"total_s": total_s}
-    metadata["stdout"] = str(stdout_path)
-    metadata["stderr"] = str(stderr_path)
+    spec = RunSpec(
+        name=run.name,
+        experiment=experiment,
+        command=(str(run.binary), str(config)),
+        run_dir=run.run_dir,
+        source_config=run.source_config,
+        run_config=config,
+        required_artifacts=(RequiredArtifact(run.raw_output),) if run.raw_output else (),
+    )
+    record = execute_run(spec, dry_run=dry_run)
+    stderr_text = (
+        record.stderr_path.read_text(encoding="utf-8")
+        if record.stderr_path.exists()
+        else ""
+    )
+    legacy = _legacy_metadata(
+        run,
+        experiment,
+        list(spec.command),
+        git_commit(),
+        record.returncode,
+    )
+    legacy.update(
+        {
+            "timing": {"total_s": parse_timing_total_s(stderr_text)},
+            "stdout": str(record.stdout_path),
+            "stderr": str(record.stderr_path),
+        }
+    )
+    metadata = serialise_record(record, legacy)
     (run.run_dir / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
-    if result_code != 0:
-        raise RuntimeError(f"run failed: {run.name} exited {result_code}; see {stderr_path}")
+    if record.status != "success":
+        category = (record.failure or {}).get("category", "infrastructure_error")
+        raise RuntimeError(
+            f"run failed: {run.name} ({category}); see {record.stderr_path}"
+        )
     return metadata
 
 

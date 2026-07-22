@@ -19,6 +19,7 @@ sys.path.insert(0, str(_SCRIPTS_ROOT))
 sys.path.insert(0, str(_SCRIPTS_ROOT / "metrics"))
 
 from io_helper import cons_to_prim, read_binary  # noqa: E402
+from harness.metadata import require_successful_metadata  # noqa: E402
 
 
 VAR_NAMES = ("rho", "rhou", "rhov", "E")
@@ -210,7 +211,7 @@ def _load_runs(matrix_path: Path) -> list[RunData]:
         if not isinstance(run, dict):
             raise ValueError("matrix_summary runs must be objects")
         metadata_path = _metadata_path_for_run(run, matrix_path, output_root)
-        metadata = _load_json(metadata_path)
+        metadata = require_successful_metadata(_load_json(metadata_path))
         name = str(metadata.get("name") or run.get("name") or metadata_path.parent.name)
         raw_output = _resolve_recorded_path(
             str(metadata.get("raw_output")) if metadata.get("raw_output") else None,

@@ -126,6 +126,29 @@ def test_run_matrix_writes_metadata_and_preserves_cfg(tmp_path: Path) -> None:
     assert metadata["precision"] == "double"
     assert metadata["raw_output"] == str(run.raw_output)
     assert metadata["git_commit"] == "abc123"
+    assert metadata["schema"] == {"name": "hrsc.run-record", "version": 1}
+    assert metadata["status"] == "success"
+    assert set(metadata["provenance"]["git"]) == {"commit", "dirty"}
+
+
+def test_run_matrix_dry_run_serialises_shared_runner_record(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    cfg = tmp_path / "case.cfg"
+    cfg.write_text("test = sod\n", encoding="utf-8")
+    run = run_matrix.normalise_run(
+        {"name": "dry", "binary": "build-double/hrsc", "config": str(cfg)},
+        output_root=tmp_path / "out",
+    )
+
+    metadata = run_matrix.run_one(run, experiment="pytest", dry_run=True)
+
+    assert metadata["status"] == "success"
+    assert metadata["completion"] == {"reported": False}
+    assert metadata["timing"]["total_s"] is None
+    assert metadata["timing"]["elapsed_wall_s"] >= 0.0
+    assert metadata["stdout"] == str(run.run_dir / "stdout.txt")
+    assert metadata["stderr"] == str(run.run_dir / "stderr.txt")
 
 
 def test_run_matrix_applies_extra_cfg_overrides(tmp_path: Path) -> None:
