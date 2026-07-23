@@ -12,10 +12,11 @@
 ## Scope
 
 Phase 1 completed the temporal-divergence analysis. The GPU HLL MHD prerequisite
-is now implemented and validated as an opt-in CUDA path for `hrsc_mhd`
+is implemented and validated as an opt-in CUDA path for `hrsc_mhd`
 `device=gpu` HLL runs.
 
-The remaining phases are the matched CPU/GPU hardware-axis evidence packet, KH
-report-grade precision, and OT/KH 512^2 consolidation. They remain deferred and
-are not implied by either the completed temporal analysis or the GPU solver
-validation gate.
+The Week 16 evidence-completion pass added the matched CPU/GPU hardware-axis
+packet, KH 512^2 validation plus deterministic HLL/HLLD precision packets, and
+the OT/KH 512^2 consolidation summary. KH MCA remains blocked by the local
+Docker daemon, so the KH row is provisional rather than report-grade for a
+combined deterministic-plus-MCA precision claim.

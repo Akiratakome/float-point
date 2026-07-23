@@ -54,6 +54,11 @@ def test_report2_evidence_map_has_required_status_and_assets():
         "experiments/week15/orszag_tang_precision_smoke/headline256_p1/summary.md",
         "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/summary.md",
         "experiments/week15/mhd_temporal_divergence/summary.md",
+        "experiments/week16/cpu_gpu_hardware_axis/summary.md",
+        "experiments/week16/kelvin_helmholtz_precision/validation/summary.md",
+        "experiments/week16/kelvin_helmholtz_precision/hll_p1/summary.md",
+        "experiments/week16/kelvin_helmholtz_precision/hlld_p1/summary.md",
+        "experiments/week16/ot_kh_512_consolidation/summary.md",
     )
     for relative in required_paths:
         assert relative in text
@@ -88,9 +93,9 @@ def test_evidence_inventory_binds_status_provenance_and_retention_contract():
         "Week 15 OT HLLD": "`provisional`",
         "Temporal divergence": "`negative-result`",
         "GPU HLL MHD": "`validation`",
-        "CPU/GPU hardware axis": "`deferred`",
-        "KH report-grade precision": "`deferred`",
-        "OT/KH 512^2 consolidation": "`deferred`",
+        "CPU/GPU hardware axis": "`report-grade`",
+        "KH report-grade precision": "`provisional`",
+        "OT/KH 512^2 consolidation": "`report-grade`",
     }
     by_evidence = {row["Evidence"]: row for row in inventory}
     assert set(by_evidence) == set(expected_statuses)

@@ -1,0 +1,3 @@
+case,authority,L1_rho,L2_rho,Linf_rho,mass_rel,divB_max,gate_norms,gate_mass,gate_divb,gate_pass
+orszag_tang,experiments/week13/orszag_tang/summary.json,0.07721667483938416,0.1136370392858288,0.6459439448974966,0.0,3.72,True,True,True,True
+kelvin_helmholtz,experiments/week16/kelvin_helmholtz_precision/validation/summary.json,0.0018363795865694958,0.0022487408048023536,0.006375537923796637,0.0,0.0006714,True,True,True,True

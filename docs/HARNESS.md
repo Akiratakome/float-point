@@ -33,9 +33,10 @@ For script ownership and legacy/provenance boundaries, see
 - fast math: `OFF`, `ON`
 - HLLC branch rule: `<=`, `<`
 
-The canonical CPU matrix remains the default harness path. The Euler CUDA
-correctness path exists, but a report-grade generic GPU matrix and MHD GPU path
-are not yet complete. Hardware-axis conclusions therefore remain deferred; see
+The canonical CPU matrix remains the default harness path. Euler CUDA and
+opt-in HLL MHD CUDA correctness paths exist. Week 16 adds a bounded matched
+CPU/GPU HLL hardware-axis packet for Brio-Wu 1D and Orszag-Tang 2D, but a
+generic GPU matrix, HLLD-on-GPU, KH-on-GPU, and GPU MCA remain out of scope; see
 `docs/experiment_logs/report2_evidence_map.md`.
 
 ## Run Matrix Schema

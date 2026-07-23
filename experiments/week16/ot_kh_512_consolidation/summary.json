@@ -1,0 +1,41 @@
+{
+  "experiment": "week16-ot-kh-512-consolidation",
+  "git_commit": "8a4b1d1f74c2924035e82d8e94133055feeb4c7d",
+  "gates": {
+    "all_512_gates_pass": true,
+    "asymptotic_convergence_claim": false
+  },
+  "claim_boundary": "The paired 256^2-vs-512^2 gates are engineering sensitivity checks. Two resolutions do not establish asymptotic convergence.",
+  "records": [
+    {
+      "case": "orszag_tang",
+      "authority": "experiments/week13/orszag_tang/summary.json",
+      "source_experiment": "week13-orszag-tang",
+      "source_git_commit": "9946a07b8622373e83c3582cce24a6ff7c5825f3",
+      "L1_rho": 0.07721667483938416,
+      "L2_rho": 0.1136370392858288,
+      "Linf_rho": 0.6459439448974966,
+      "mass_rel": 0.0,
+      "divB_max": 3.72,
+      "gate_norms": true,
+      "gate_mass": true,
+      "gate_divb": true,
+      "gate_pass": true
+    },
+    {
+      "case": "kelvin_helmholtz",
+      "authority": "experiments/week16/kelvin_helmholtz_precision/validation/summary.json",
+      "source_experiment": "week16-kelvin-helmholtz-validation",
+      "source_git_commit": "3fe51d033d0584ef5f0604189d47305ab872f191",
+      "L1_rho": 0.0018363795865694958,
+      "L2_rho": 0.0022487408048023536,
+      "Linf_rho": 0.006375537923796637,
+      "mass_rel": 0.0,
+      "divB_max": 0.0006714,
+      "gate_norms": true,
+      "gate_mass": true,
+      "gate_divb": true,
+      "gate_pass": true
+    }
+  ]
+}

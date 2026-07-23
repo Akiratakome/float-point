@@ -45,6 +45,20 @@ This directory contains validation scripts and scalar summary generators.
   retaining a separate `technical_pass` result.
   The fixed-window evidence does not show the planned OT>Brio-Wu L1 contrast;
   neither gate is a physical-ordering claim.
+- `mhd_gpu_hardware_axis.py`: Week-16 matched HLL CPU/GPU evidence driver for
+  Brio-Wu 1D and Orszag-Tang 2D in float and double. It writes
+  `experiments/week16/cpu_gpu_hardware_axis/summary.{json,csv,md}` plus
+  figures, removes generated grids after measurement, and gates on exact
+  same-precision CPU/GPU output (`ulp_max=0`) for the covered cases.
+- `mhd_kh_precision.py`: Week-16 KH deterministic precision driver for HLL and
+  HLLD. Use `--smoke --phase p0` before a full `--phase p1` run. The current
+  Windows workstation records MCA as `blocked_environment` when Docker is not
+  available, so no KH MCA claim is made from that packet.
+- `mhd_512_consolidation.py`: reads the completed Orszag-Tang and
+  Kelvin-Helmholtz 256^2-vs-512^2 validation summaries and writes
+  `experiments/week16/ot_kh_512_consolidation/summary.{json,csv,md}`. Its
+  gate is a bounded engineering sensitivity checkpoint, not an asymptotic
+  convergence claim.
 
 ## Compatibility / Provenance
 
