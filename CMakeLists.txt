@@ -177,4 +177,22 @@ if(ENABLE_CUDA)
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
     target_link_libraries(hrsc_euler PUBLIC CUDA::cudart)
+
+    # GPU MHD solver bodies + kernels (single TU each).
+    target_sources(hrsc_mhd_lib PRIVATE
+        src/gpu/mhd_gpu_solver.cu
+        src/gpu/mhd_kernels.cu)
+    set_source_files_properties(
+        src/gpu/mhd_gpu_solver.cu
+        src/gpu/mhd_kernels.cu
+        PROPERTIES LANGUAGE CUDA)
+    # Match MSVC /fp:precise (no x64 FMA) so CPU-vs-GPU agreement is not
+    # perturbed by implicit device multiply-add contraction.
+    set_source_files_properties(
+        src/gpu/mhd_kernels.cu
+        PROPERTIES COMPILE_OPTIONS "--fmad=false")
+    set_target_properties(hrsc_mhd_lib PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
+        CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+    target_link_libraries(hrsc_mhd_lib PUBLIC CUDA::cudart)
 endif()
