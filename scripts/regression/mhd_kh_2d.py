@@ -44,6 +44,29 @@ FIGURE_NAMES = (
 # in the Dedner-2002 Fig. 8 layout) and is intentionally NOT regenerated here
 # so the regression path stays matplotlib-free and does not clobber it.
 PAPER_SUMMARY = OUT / "paper_summary.md"
+SMOKE_CANDIDATE_OVERRIDES = {"nx": 64, "ny": 64, "t_end": 0.05}
+SMOKE_REFERENCE_OVERRIDES = {"nx": 128, "ny": 128, "t_end": 0.05}
+
+
+def resolve_output_dir(path: pathlib.Path) -> pathlib.Path:
+    return path if path.is_absolute() else ROOT / path
+
+
+def set_output_dir(path: pathlib.Path) -> None:
+    global OUT, PAPER_SUMMARY
+    OUT = resolve_output_dir(path)
+    PAPER_SUMMARY = OUT / "paper_summary.md"
+
+
+def validation_cfg_text(cfg_path: pathlib.Path, out_bin: pathlib.Path, extra=None) -> str:
+    if "replace_or_append_cfg" not in globals():
+        import_runtime_helpers()
+    text = cfg_path.read_text(encoding="utf-8")
+    text = replace_or_append_cfg(text, "output_format", "binary")
+    text = replace_or_append_cfg(text, "output_file", str(out_bin))
+    for k, v in (extra or {}).items():
+        text = replace_or_append_cfg(text, k, str(v))
+    return text
 
 
 def clear_scalar_summaries() -> None:
@@ -98,11 +121,7 @@ def run_grid(label, cfg_path, out_bin, bin_path, commit, sha, extra=None):
     out_bin.parent.mkdir(parents=True, exist_ok=True)
     if out_bin.exists():
         out_bin.unlink()
-    text = cfg_path.read_text(encoding="utf-8")
-    text = replace_or_append_cfg(text, "output_format", "binary")
-    text = replace_or_append_cfg(text, "output_file", str(out_bin))
-    for k, v in (extra or {}).items():
-        text = replace_or_append_cfg(text, k, str(v))
+    text = validation_cfg_text(cfg_path, out_bin, extra)
     _, meta, _ = run_case(label, text, OUT / "runs" / label, bin_path, cfg_path,
                           commit, sha, output_bin=out_bin)
     return meta
@@ -221,7 +240,7 @@ def paper_figures_only() -> None:
     print(PAPER_SUMMARY.read_text(encoding="utf-8"), end="")
 
 
-def main() -> None:
+def main(smoke: bool = False) -> None:
     import_runtime_helpers()
 
     OUT.mkdir(parents=True, exist_ok=True)
@@ -232,13 +251,18 @@ def main() -> None:
 
     cand_bin = OUT / "kh_256.bin"
     ref_bin = OUT / "kh_512_ref.bin"
-    meta_c = run_grid("kh_256", CFG, cand_bin, bin_path, commit, sha)
-    meta_r = run_grid("kh_512_ref", CFG_REF, ref_bin, bin_path, commit, sha)
+    candidate_overrides = SMOKE_CANDIDATE_OVERRIDES if smoke else None
+    reference_overrides = SMOKE_REFERENCE_OVERRIDES if smoke else None
+    meta_c = run_grid("kh_256", CFG, cand_bin, bin_path, commit, sha,
+                      extra=candidate_overrides)
+    meta_r = run_grid("kh_512_ref", CFG_REF, ref_bin, bin_path, commit, sha,
+                      extra=reference_overrides)
     meta_ctrl = run_grid("kh_256_cr0", CFG, OUT / "kh_256_cr0.bin", bin_path,
-                         commit, sha, extra={"glm_cr": 0.0})
+                         commit, sha,
+                         extra={**(candidate_overrides or {}), "glm_cr": 0.0})
 
-    _, cand = read_binary(cand_bin)
-    _, ref = read_binary(ref_bin)
+    cand_header, cand = read_binary(cand_bin)
+    ref_header, ref = read_binary(ref_bin)
     rho_c = cand[..., RHO].astype(np.float64)
     rho_ref = block_average_2d(ref[..., RHO].astype(np.float64), rho_c.shape[0], rho_c.shape[1])
 
@@ -285,17 +309,30 @@ def main() -> None:
                "gate_mass": bool(gate_mass), "gate_divb": bool(gate_divb)}
 
     safe_results = sanitize_scalar_results(results)
+    experiment_name = (
+        "week16-kelvin-helmholtz-validation"
+        if "week16" in {part.lower() for part in OUT.parts}
+        else "week13-kelvin-helmholtz"
+    )
     json_payload = {
-        "experiment": "week13-kelvin-helmholtz", "git_commit": commit,
+        "experiment": experiment_name,
+        "mode": "smoke" if smoke else "report-grade",
+        "git_commit": commit,
         "binary_sha256": sha, "results": safe_results,
         "runs": {"cand": json_safe_run_meta(meta_c),
                  "ref": json_safe_run_meta(meta_r),
                  "ctrl": json_safe_run_meta(meta_ctrl)},
     }
     json_text = json.dumps(json_payload, indent=2, allow_nan=False) + "\n"
+    week_label = "Week 16" if experiment_name.startswith("week16") else "Week 13"
     md = [
-        "# Week 13 Kelvin-Helmholtz 2D Validation", "",
-        "256^2 candidate vs 512^2 double reference (block-averaged), gamma=5/3, t=1.0.", "",
+        f"# {week_label} Kelvin-Helmholtz 2D Validation", "",
+        (
+            f"{cand_header.nx}^2 candidate vs {ref_header.nx}^2 double reference "
+            f"(block-averaged), gamma=5/3, t={cand_header.t:g}."
+        ),
+        f"Mode: {'smoke' if smoke else 'report-grade'}.",
+        "",
         "| metric | value | gate | pass? |", "|---|---:|---|---:|",
         f"| L1(rho) | {fmt_optional(safe_results['L1_rho'])} | < {L1_CEILING} | {gate_norms} |",
         f"| L2(rho) | {fmt_optional(safe_results['L2_rho'])} | finite | {gate_norms} |",
@@ -326,10 +363,15 @@ def main() -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--out", type=pathlib.Path, default=OUT,
+                        help="output directory for summaries, runs, and figures")
+    parser.add_argument("--smoke", action="store_true",
+                        help="run reduced 64^2 candidate vs 128^2 reference validation")
     parser.add_argument("--paper-figures-only", action="store_true",
                         help="write KH paper-style figures from the 256^2 candidate without claiming the full validation gate")
     args = parser.parse_args()
+    set_output_dir(args.out)
     if args.paper_figures_only:
         paper_figures_only()
     else:
-        main()
+        main(smoke=args.smoke)
