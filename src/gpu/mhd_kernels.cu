@@ -234,6 +234,47 @@ __global__ void mhd_outflow_y_kernel(Real* data, int nx, int ny) {
 }
 
 template <typename Real>
+__global__ void mhd_periodic_x_kernel(Real* data, int nx, int ny) {
+    constexpr int ng = GridView<Real, MhdNVars>::ng;
+    const int row = blockIdx.x * blockDim.x + threadIdx.x;
+    const int rows = ny + 2 * ng;
+    if (row >= rows) return;
+
+    const int j = row - ng;
+    const int js = ((j % ny) + ny) % ny;
+    for (int var = 0; var < MhdNVars; ++var) {
+        for (int g = 1; g <= ng; ++g) {
+            const int src_left = ((nx - g) % nx + nx) % nx;
+            const int src_right = ((g - 1) % nx + nx) % nx;
+            data[mhd_grid_index<Real>(-g, j, var, nx)] =
+                data[mhd_grid_index<Real>(src_left, js, var, nx)];
+            data[mhd_grid_index<Real>(nx - 1 + g, j, var, nx)] =
+                data[mhd_grid_index<Real>(src_right, js, var, nx)];
+        }
+    }
+}
+
+template <typename Real>
+__global__ void mhd_periodic_y_kernel(Real* data, int nx, int ny) {
+    constexpr int ng = GridView<Real, MhdNVars>::ng;
+    const int col = blockIdx.x * blockDim.x + threadIdx.x;
+    const int cols = nx + 2 * ng;
+    if (col >= cols) return;
+
+    const int i = col - ng;
+    for (int var = 0; var < MhdNVars; ++var) {
+        for (int g = 1; g <= ng; ++g) {
+            const int src_bottom = ((ny - g) % ny + ny) % ny;
+            const int src_top = ((g - 1) % ny + ny) % ny;
+            data[mhd_grid_index<Real>(i, -g, var, nx)] =
+                data[mhd_grid_index<Real>(i, src_bottom, var, nx)];
+            data[mhd_grid_index<Real>(i, ny - 1 + g, var, nx)] =
+                data[mhd_grid_index<Real>(i, src_top, var, nx)];
+        }
+    }
+}
+
+template <typename Real>
 __global__ void mhd_update_x_kernel(Real* data, int nx, int ny,
                                     const Vec<Real, MhdNVars>* flux_x,
                                     Real dtdx) {
@@ -246,6 +287,49 @@ __global__ void mhd_update_x_kernel(Real* data, int nx, int ny,
     const Vec<Real, MhdNVars> fR = flux_x[row_base + i + 1];
     for (int k = 0; k < MhdNVars; ++k) {
         data[mhd_grid_index<Real>(i, j, k, nx)] -= dtdx * (fR[k] - fL[k]);
+    }
+}
+
+template <typename Real>
+__global__ void mhd_hll_face_y_kernel(
+    const Real* data, int nx, int ny, Real dt, Real dy, Real gamma, Real ch,
+    Vec<Real, MhdNVars>* flux_y) {
+    const int jf = blockIdx.x * blockDim.x + threadIdx.x;
+    const int i = blockIdx.y * blockDim.y + threadIdx.y;
+    if (jf > ny || i >= nx) return;
+
+    const int jL = jf - 1;
+    const int jR = jf;
+
+    Vec<Real, MhdNVars> lcl{}, lcr{}, rcl{}, rcr{};
+    mhd_predict_faces_device(
+        mhd_swap_xy(mhd_load_cell_device(data, nx, i, jL - 1)),
+        mhd_swap_xy(mhd_load_cell_device(data, nx, i, jL)),
+        mhd_swap_xy(mhd_load_cell_device(data, nx, i, jL + 1)),
+        dt, gamma, ch, dy, lcl, lcr);
+    mhd_predict_faces_device(
+        mhd_swap_xy(mhd_load_cell_device(data, nx, i, jR - 1)),
+        mhd_swap_xy(mhd_load_cell_device(data, nx, i, jR)),
+        mhd_swap_xy(mhd_load_cell_device(data, nx, i, jR + 1)),
+        dt, gamma, ch, dy, rcl, rcr);
+
+    flux_y[i * (ny + 1) + jf] =
+        mhd_swap_xy(mhd_hll_flux_device(lcr, rcl, gamma, ch));
+}
+
+template <typename Real>
+__global__ void mhd_update_y_kernel(Real* data, int nx, int ny,
+                                    const Vec<Real, MhdNVars>* flux_y,
+                                    Real dtdy) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nx || j >= ny) return;
+
+    const int col_base = i * (ny + 1);
+    const Vec<Real, MhdNVars> fL = flux_y[col_base + j];
+    const Vec<Real, MhdNVars> fR = flux_y[col_base + j + 1];
+    for (int k = 0; k < MhdNVars; ++k) {
+        data[mhd_grid_index<Real>(i, j, k, nx)] -= dtdy * (fR[k] - fL[k]);
     }
 }
 
@@ -345,6 +429,25 @@ void apply_outflow_bc_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Axis axis) {
 }
 
 template <typename Real>
+void apply_periodic_bc_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Axis axis) {
+    constexpr int threads = 128;
+    constexpr int ng = GridView<Real, MhdNVars>::ng;
+    if (axis == Axis::X) {
+        const int rows = g.ny() + 2 * ng;
+        const int blocks = (rows + threads - 1) / threads;
+        mhd_periodic_x_kernel<Real><<<blocks, threads>>>(
+            g.data(), g.nx(), g.ny());
+    } else {
+        const int cols = g.nx() + 2 * ng;
+        const int blocks = (cols + threads - 1) / threads;
+        mhd_periodic_y_kernel<Real><<<blocks, threads>>>(
+            g.data(), g.nx(), g.ny());
+    }
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename Real>
 void sweep_x_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real dt, Real gamma, Real ch) {
     const int nx = g.nx();
     const int ny = g.ny();
@@ -366,6 +469,32 @@ void sweep_x_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real dt, Real gamma, Real ch) {
                              (ny + threads.y - 1) / threads.y);
     mhd_update_x_kernel<Real><<<update_blocks, threads>>>(
         g.data(), nx, ny, flux_x.data(), dtdx);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename Real>
+void sweep_y_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real dt, Real gamma, Real ch) {
+    const int nx = g.nx();
+    const int ny = g.ny();
+    const std::size_t nface =
+        static_cast<std::size_t>(nx) * static_cast<std::size_t>(ny + 1);
+
+    DeviceArray<Vec<Real, MhdNVars>> flux_y(nface);
+
+    const dim3 threads(kMhdSweepBlockX, kMhdSweepBlockY);
+    const dim3 face_blocks(((ny + 1) + threads.x - 1) / threads.x,
+                           (nx + threads.y - 1) / threads.y);
+    mhd_hll_face_y_kernel<Real><<<face_blocks, threads>>>(
+        g.data(), nx, ny, dt, g.dy(), gamma, ch, flux_y.data());
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+
+    const Real dtdy = dt / g.dy();
+    const dim3 update_blocks((nx + threads.x - 1) / threads.x,
+                             (ny + threads.y - 1) / threads.y);
+    mhd_update_y_kernel<Real><<<update_blocks, threads>>>(
+        g.data(), nx, ny, flux_y.data(), dtdy);
     HRSC_CUDA_CHECK(cudaGetLastError());
     HRSC_CUDA_CHECK(cudaDeviceSynchronize());
 }
@@ -432,9 +561,19 @@ template void apply_outflow_bc_mhd_gpu<float>(
 template void apply_outflow_bc_mhd_gpu<double>(
     GpuGrid<double, MhdNVars>& g, Axis axis);
 
+template void apply_periodic_bc_mhd_gpu<float>(
+    GpuGrid<float, MhdNVars>& g, Axis axis);
+template void apply_periodic_bc_mhd_gpu<double>(
+    GpuGrid<double, MhdNVars>& g, Axis axis);
+
 template void sweep_x_mhd_gpu<float>(
     GpuGrid<float, MhdNVars>& g, float dt, float gamma, float ch);
 template void sweep_x_mhd_gpu<double>(
+    GpuGrid<double, MhdNVars>& g, double dt, double gamma, double ch);
+
+template void sweep_y_mhd_gpu<float>(
+    GpuGrid<float, MhdNVars>& g, float dt, float gamma, float ch);
+template void sweep_y_mhd_gpu<double>(
     GpuGrid<double, MhdNVars>& g, double dt, double gamma, double ch);
 
 template void glm_damp_mhd_gpu<float>(

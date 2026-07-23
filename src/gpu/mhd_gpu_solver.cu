@@ -19,16 +19,22 @@ namespace {
 template <typename Real>
 void apply_bcs_mhd_gpu(GpuGrid<Real, MhdNVars>& g,
                        BoundaryType bc_x, BoundaryType bc_y) {
-    if (bc_x != BoundaryType::Outflow) {
-        throw std::logic_error("MhdGpuSolver currently supports only outflow X BC");
+    if (bc_x == BoundaryType::Outflow) {
+        apply_outflow_bc_mhd_gpu<Real>(g, Axis::X);
+    } else if (bc_x == BoundaryType::Periodic) {
+        apply_periodic_bc_mhd_gpu<Real>(g, Axis::X);
+    } else {
+        throw std::logic_error("MhdGpuSolver currently supports only outflow/periodic X BC");
     }
-    apply_outflow_bc_mhd_gpu<Real>(g, Axis::X);
 
     if (g.ny() > 1) {
-        if (bc_y != BoundaryType::Outflow) {
-            throw std::logic_error("MhdGpuSolver currently supports only outflow Y BC");
+        if (bc_y == BoundaryType::Outflow) {
+            apply_outflow_bc_mhd_gpu<Real>(g, Axis::Y);
+        } else if (bc_y == BoundaryType::Periodic) {
+            apply_periodic_bc_mhd_gpu<Real>(g, Axis::Y);
+        } else {
+            throw std::logic_error("MhdGpuSolver currently supports only outflow/periodic Y BC");
         }
-        apply_outflow_bc_mhd_gpu<Real>(g, Axis::Y);
     } else {
         (void)bc_y;
     }
@@ -74,7 +80,8 @@ void MhdGpuSolver<Real>::step(TimeReal dt) {
     const Real dt_real = static_cast<Real>(dt);
     sweep_x_mhd_gpu<Real>(m_dev_grid, dt_real, m_gamma, ch);
     if (m_dev_grid.ny() > 1) {
-        throw std::logic_error("MhdGpuSolver y-sweep is not implemented yet");
+        apply_bcs_mhd_gpu<Real>(m_dev_grid, m_bc_x, m_bc_y);
+        sweep_y_mhd_gpu<Real>(m_dev_grid, dt_real, m_gamma, ch);
     }
     glm_damp_mhd_gpu<Real>(m_dev_grid, ch, m_glm_cr, dt_real);
 
@@ -98,7 +105,8 @@ double MhdGpuSolver<Real>::run() {
         const Real dt_real = static_cast<Real>(dt);
         sweep_x_mhd_gpu<Real>(m_dev_grid, dt_real, m_gamma, ch);
         if (m_dev_grid.ny() > 1) {
-            throw std::logic_error("MhdGpuSolver y-sweep is not implemented yet");
+            apply_bcs_mhd_gpu<Real>(m_dev_grid, m_bc_x, m_bc_y);
+            sweep_y_mhd_gpu<Real>(m_dev_grid, dt_real, m_gamma, ch);
         }
         glm_damp_mhd_gpu<Real>(m_dev_grid, ch, m_glm_cr, dt_real);
         m_time += dt;
