@@ -7,6 +7,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))
 
 from scripts.verificarlo.mhd_verificarlo_smoke import (
     ProbeRecord,
+    apptainer_command,
+    apptainer_probe_command,
     make_blocked_summary_md,
     make_probe_record,
     make_sample_cfg,
@@ -119,6 +121,43 @@ def test_sample_command_precision_tracks_argument_docker():
     )
 
     assert "--precision-binary64=53" in text
+    assert "VFC_MCA_PRECISION_BINARY64" not in text
+
+
+def test_apptainer_probe_uses_sif_without_docker():
+    cmd = apptainer_probe_command("verificarlo-cmake.sif")
+    text = _joined(cmd)
+
+    assert cmd[:2] == ["apptainer", "exec"]
+    assert "verificarlo-cmake.sif" in cmd
+    assert "docker" not in text.lower()
+    assert "verificarlo-c++ --version" in text
+    assert "cmake --version" in text
+
+
+def test_apptainer_command_binds_repo_to_workdir():
+    cmd = apptainer_command("verificarlo-cmake.sif", "echo ok")
+    text = _joined(cmd)
+
+    assert cmd[:2] == ["apptainer", "exec"]
+    assert "--bind" in cmd
+    assert ":/workdir" in text
+    assert "--pwd /workdir" in text
+    assert "docker" not in text.lower()
+
+
+def test_sample_command_passes_mca_precision_as_backend_arg_apptainer():
+    text = _joined(
+        sample_command_for_runner(
+            "apptainer", "verificarlo-cmake.sif", pathlib.Path("build-vfc"), pathlib.Path("config.cfg"), 24
+        )
+    )
+
+    assert "apptainer exec" in text
+    assert "--precision-binary64=24" in text
+    assert "/workdir/build-vfc/hrsc_mhd" in text
+    assert "/workdir/config.cfg" in text
+    assert "docker" not in text.lower()
     assert "VFC_MCA_PRECISION_BINARY64" not in text
 
 

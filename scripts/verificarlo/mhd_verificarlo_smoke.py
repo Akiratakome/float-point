@@ -151,6 +151,10 @@ def docker_probe_command(image: str, repo: pathlib.Path = ROOT) -> list[str]:
     ]
 
 
+def apptainer_probe_command(image: str, repo: pathlib.Path = ROOT) -> list[str]:
+    return apptainer_command(image, "verificarlo-c++ --version && cmake --version", repo=repo)
+
+
 def wsl_probe_command() -> list[str]:
     return ["wsl", "bash", "-lc", "verificarlo-c++ --version && cmake --version"]
 
@@ -163,6 +167,7 @@ def probe_runners(image: str) -> list[dict[str, Any]]:
     probes: list[dict[str, Any]] = []
     for name, command, runner in (
         ("native", native_probe_command(), "native"),
+        ("apptainer", apptainer_probe_command(image), "apptainer"),
         ("wsl", wsl_probe_command(), "wsl"),
         ("docker", docker_probe_command(image), "docker"),
     ):
@@ -183,7 +188,7 @@ def probe_runners(image: str) -> list[dict[str, Any]]:
 
 def choose_runner(probes: list[dict[str, Any]]) -> str | None:
     supported = {probe.get("runner") for probe in probes if probe.get("supported")}
-    for runner in ("docker", "native", "wsl"):
+    for runner in ("docker", "apptainer", "native", "wsl"):
         if runner in supported:
             return runner
     return None
@@ -293,7 +298,7 @@ def rel_to_root(path: pathlib.Path) -> pathlib.Path:
 
 
 def runner_path(runner: str, path: pathlib.Path) -> str:
-    if runner == "docker":
+    if runner in {"docker", "apptainer"}:
         rel = rel_to_root(path)
         return "/workdir" if str(rel) == "." else f"/workdir/{rel.as_posix()}"
     if runner == "wsl":
@@ -303,6 +308,21 @@ def runner_path(runner: str, path: pathlib.Path) -> str:
 
 def docker_command(image: str, shell_script: str) -> list[str]:
     return ["docker", "run", "--rm", "-v", docker_repo_mount(), "-w", "/workdir", image, "bash", "-lc", shell_script]
+
+
+def apptainer_command(image: str, shell_script: str, repo: pathlib.Path = ROOT) -> list[str]:
+    return [
+        "apptainer",
+        "exec",
+        "--bind",
+        f"{repo}:/workdir",
+        "--pwd",
+        "/workdir",
+        image,
+        "bash",
+        "-lc",
+        shell_script,
+    ]
 
 
 def native_build_command(build_dir: pathlib.Path) -> list[str]:
@@ -332,7 +352,7 @@ def wsl_path(path: pathlib.Path) -> str:
 
 
 def build_commands_for_runner(runner: str, image: str, build_dir: pathlib.Path) -> list[list[str]]:
-    if runner == "docker":
+    if runner in {"docker", "apptainer"}:
         build_dir_arg = runner_path(runner, build_dir)
         build = (
             f"cmake -S . -B {build_dir_arg} -G Ninja "
@@ -340,6 +360,8 @@ def build_commands_for_runner(runner: str, image: str, build_dir: pathlib.Path) 
             "-DCMAKE_BUILD_TYPE=Release -DENABLE_OPENMP=OFF && "
             f"cmake --build {build_dir_arg} --target hrsc_mhd"
         )
+        if runner == "apptainer":
+            return [apptainer_command(image, build)]
         return [docker_command(image, build)]
     if runner == "wsl":
         repo = wsl_path(ROOT)
@@ -368,8 +390,10 @@ def sample_command_for_runner(runner: str, image: str, build_dir: pathlib.Path,
         f"VFC_BACKENDS='{vfc_backends}' "
         "VFC_BACKENDS_SILENT_LOAD=True "
     )
-    if runner == "docker":
+    if runner in {"docker", "apptainer"}:
         script = f"{env_bits}{runner_path(runner, binary)} {runner_path(runner, cfg_path)}"
+        if runner == "apptainer":
+            return apptainer_command(image, script)
         return docker_command(image, script)
     if runner == "wsl":
         repo = wsl_path(ROOT)
@@ -652,7 +676,7 @@ def main(argv: list[str] | None = None) -> int:
     probes = probe_runners(args.image)
     runner = choose_runner(probes)
     if runner is None:
-        reason = "No supported native, WSL, or Docker Verificarlo runner was found."
+        reason = "No supported native, Apptainer, WSL, or Docker Verificarlo runner was found."
         write_probe_outputs(args, probes, "blocked_environment", None, reason)
         print(reason)
         print(args.out / "summary.md")

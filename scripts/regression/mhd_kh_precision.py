@@ -154,6 +154,17 @@ def blocked_mca(reason: str) -> dict[str, dict[str, Any]]:
     }
 
 
+def load_mca_summary(path: pathlib.Path) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    mca = payload.get("mca", payload)
+    if not isinstance(mca, dict):
+        raise ValueError(f"MCA summary must contain an object, got {type(mca).__name__}")
+    for name in ("p53", "p24"):
+        if not isinstance(mca.get(name), dict):
+            raise ValueError(f"MCA summary is missing `{name}` block")
+    return mca
+
+
 def build_variant_binary(variant: BuildVariant) -> pathlib.Path:
     build_dir = ROOT / variant.build_dir
     cmd = [
@@ -176,7 +187,8 @@ def build_variant_binary(variant: BuildVariant) -> pathlib.Path:
 
 
 def run_packet(out: pathlib.Path, *, solver: str, phase: str, smoke: bool,
-               mca_block_reason: str, keep_grids: bool = False) -> dict[str, Any]:
+               mca_block_reason: str, keep_grids: bool = False,
+               mca_summary: pathlib.Path | None = None) -> dict[str, Any]:
     solver = normalise_solver(solver)
     variants = ordered_reference_first(select_variants(phase))
     out.mkdir(parents=True, exist_ok=True)
@@ -217,9 +229,10 @@ def run_packet(out: pathlib.Path, *, solver: str, phase: str, smoke: bool,
         rows.append(row)
         if not keep_grids and grid.is_file():
             grid.unlink()
+    mca = load_mca_summary(mca_summary) if mca_summary is not None else blocked_mca(mca_block_reason)
     summary = assemble_summary(
         rows,
-        blocked_mca(mca_block_reason),
+        mca,
         commit,
         solver=solver,
         phase=phase,
@@ -262,7 +275,7 @@ def assemble_summary(rows: list[dict[str, Any]], mca: dict[str, Any], commit: st
         "case": "kelvin_helmholtz_2d",
         "solver": normalise_solver(solver),
         "phase": phase,
-        "mode": "smoke" if smoke else "deterministic-with-blocked-mca",
+        "mode": "smoke" if smoke else ("deterministic-with-mca" if mca_pass else "deterministic-with-blocked-mca"),
         "git_commit": commit,
         "reference": REFERENCE,
         "deterministic": rows,
@@ -284,7 +297,11 @@ def assemble_summary(rows: list[dict[str, Any]], mca: dict[str, Any], commit: st
         },
         "claims": {
             "deterministic": "CPU deterministic KH precision rows are measured against the same-grid cpu-double-O2-ieee-leq reference.",
-            "mca": "MCA precision-noise claims are blocked until Docker/Verificarlo is available.",
+            "mca": (
+                "Docker Verificarlo MCA p53 and p24 blocks are completed for this KH packet."
+                if mca_pass
+                else "MCA precision-noise claims are blocked until Docker/Verificarlo is available."
+            ),
         },
     }
 
@@ -340,12 +357,19 @@ def render_markdown(summary: dict[str, Any]) -> str:
             f"{row['divB_max']:.6e} | {row['Linf_rho']:.6e} | "
             f"{row['Linf_By']:.6e} | {row['walltime_s']:.3f} |"
         )
-    lines.extend([
-        "",
-        "MCA blocks are schema-complete but blocked by the local Docker daemon.",
-        "No KH MCA precision-noise claim is made from this packet.",
-        "",
-    ])
+    lines.extend([""])
+    if summary["gates"]["mca"]["pass"]:
+        lines.extend([
+            "MCA blocks are completed with Docker Verificarlo p53/p24 evidence.",
+            "KH deterministic-plus-MCA precision-noise claims are report-grade within this packet's bounds.",
+            "",
+        ])
+    else:
+        lines.extend([
+            "MCA blocks are schema-complete but blocked by the local Docker daemon.",
+            "No KH MCA precision-noise claim is made from this packet.",
+            "",
+        ])
     return "\n".join(lines)
 
 
@@ -393,6 +417,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--mca-block-reason",
         default="Docker daemon unavailable; Verificarlo MCA not run in this environment.",
     )
+    parser.add_argument("--mca-summary", type=pathlib.Path)
     return parser.parse_args(argv)
 
 
@@ -410,6 +435,7 @@ def main(argv: list[str] | None = None) -> int:
         smoke=args.smoke,
         keep_grids=args.keep_grids,
         mca_block_reason=args.mca_block_reason,
+        mca_summary=args.mca_summary,
     )
     print((out / "summary.md").read_text(encoding="utf-8"), end="")
     return 0 if summary["gates"]["deterministic"]["pass"] else 1

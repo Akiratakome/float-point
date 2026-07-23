@@ -31,16 +31,23 @@ def load_json(repo_root: Path, relative_path: str) -> dict[str, Any]:
     return json.loads((repo_root / relative_path).read_text(encoding="utf-8"))
 
 
+def load_summary(repo_root: Path, name: str) -> dict[str, Any]:
+    return load_json(repo_root, SOURCE_SUMMARIES[name])
+
+
 def _git_commit(repo_root: Path) -> str:
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=repo_root,
-        text=True,
-        encoding="utf-8",
-        capture_output=True,
-        check=True,
-    )
-    return result.stdout.strip()
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=repo_root,
+            text=True,
+            encoding="utf-8",
+            capture_output=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except Exception:
+        return "unknown"
 
 
 def _rows_from_precision_packet(packet: dict[str, Any]) -> list[dict[str, Any]]:
@@ -171,8 +178,8 @@ def _case_sensitivity(summaries: dict[str, dict[str, Any]]) -> list[dict[str, An
 
 def build_synthesis(repo_root: Path) -> dict[str, Any]:
     summaries = {
-        name: load_json(repo_root, path)
-        for name, path in SOURCE_SUMMARIES.items()
+        name: load_summary(repo_root, name)
+        for name in SOURCE_SUMMARIES
     }
     precision_rows = _collect_precision_rows(summaries)
     max_float_linf = _max_linf_rho(precision_rows, "float")
@@ -183,6 +190,14 @@ def build_synthesis(repo_root: Path) -> dict[str, Any]:
     temporal = _temporal_records(summaries["temporal_divergence"])
     ot_lambda = next(row["lambda_l1"] for row in temporal if row["case"].startswith("orszag_tang"))
     brio_lambda = next(row["lambda_l1"] for row in temporal if row["case"].startswith("brio_wu"))
+    kh_mca_completed = (
+        summaries["kh_hll_precision"]["gates"]["mca"]["status"] == "completed"
+        and summaries["kh_hlld_precision"]["gates"]["mca"]["status"] == "completed"
+    )
+    kh_mca_blocked = (
+        summaries["kh_hll_precision"]["gates"]["mca"]["status"] == "blocked_environment"
+        and summaries["kh_hlld_precision"]["gates"]["mca"]["status"] == "blocked_environment"
+    )
 
     axis_ranking = [
         {
@@ -221,8 +236,8 @@ def build_synthesis(repo_root: Path) -> dict[str, Any]:
         "gates": {
             "synthesis_complete": True,
             "source_summaries_present": all((repo_root / path).is_file() for path in SOURCE_SUMMARIES.values()),
-            "kh_mca_block_recorded": summaries["kh_hll_precision"]["gates"]["mca"]["status"] == "blocked_environment"
-            and summaries["kh_hlld_precision"]["gates"]["mca"]["status"] == "blocked_environment",
+            "kh_mca_block_recorded": kh_mca_blocked,
+            "kh_mca_completed": kh_mca_completed,
             "hardware_gate_passed": summaries["hardware_axis"]["gate"]["pass"] is True,
             "ot_kh_512_gate_passed": summaries["ot_kh_512"]["gates"]["all_512_gates_pass"] is True,
         },
@@ -240,7 +255,7 @@ def build_synthesis(repo_root: Path) -> dict[str, Any]:
             "future_work": "MPI thread and reduction ordering could be explored separately after Report 2",
         },
         "claim_boundaries": {
-            "kh_mca": "blocked_environment",
+            "kh_mca": "completed" if kh_mca_completed else "blocked_environment",
             "asymptotic_convergence": False,
             "formal_lyapunov_exponent": False,
             "hll_gpu_scope": ["brio_wu_1d", "orszag_tang_2d"],

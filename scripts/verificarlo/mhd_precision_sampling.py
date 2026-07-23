@@ -153,7 +153,7 @@ def sample_precision(
         write_json(args.out / "environment.json", environment)
         return _blocked(
             "blocked_environment",
-            "No supported native, WSL, or Docker Verificarlo runner was found.",
+            "No supported native, Apptainer, WSL, or Docker Verificarlo runner was found.",
         )
 
     status, sample_rows, reason, environment = _run_with_experiment_label(args, probes, runner, experiment)
