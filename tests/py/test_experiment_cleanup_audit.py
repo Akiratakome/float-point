@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -28,6 +29,20 @@ def run_audit(*args: str) -> subprocess.CompletedProcess[str]:
         encoding="utf-8",
         capture_output=True,
         check=True,
+    )
+
+
+def tracked_repo_snapshot() -> list[str]:
+    result = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+    )
+    return sorted(
+        Path(os.fsdecode(raw_path)).as_posix()
+        for raw_path in result.stdout.split(b"\0")
+        if raw_path
     )
 
 
@@ -69,9 +84,9 @@ def test_nested_build_results_are_sorted_and_marker_driven(tmp_path: Path):
 
 
 def test_markdown_cli_reports_candidates_without_mutating_files(tmp_path: Path):
-    before = sorted(path.as_posix() for path in ROOT.rglob("*"))
+    before = tracked_repo_snapshot()
     result = run_audit("--format", "markdown")
-    after = sorted(path.as_posix() for path in ROOT.rglob("*"))
+    after = tracked_repo_snapshot()
     assert before == after
     assert "reference audit required" in result.stdout
     assert "no deletion performed" in result.stdout
