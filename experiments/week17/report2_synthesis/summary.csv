@@ -1,0 +1,16 @@
+section,item,status,metric,value,authority
+axis_ranking,precision,bounded_primary_effect,rank,1,multiple committed Week 15-16 precision summaries
+axis_ranking,compiler_flags,bounded_cpu_deterministic_variation,rank,2,multiple committed Week 15-16 precision summaries
+axis_ranking,hardware,report-grade,rank,3,experiments/week16/cpu_gpu_hardware_axis/summary.json
+axis_ranking,implementation_variant,small_or_zero_in_available_packets,rank,4,multiple committed Week 15-16 precision summaries
+temporal_divergence,brio_wu_1d,negative-result,lambda_l1,30.61534848986609,experiments/week15/mhd_temporal_divergence/summary.json
+temporal_divergence,orszag_tang_2d,negative-result,lambda_l1,0.029343098002640955,experiments/week15/mhd_temporal_divergence/summary.json
+case_sensitivity,orszag_tang,gate_pass,L1_rho,0.07721667483938416,experiments/week16/ot_kh_512_consolidation/summary.json
+case_sensitivity,kelvin_helmholtz,gate_pass,L1_rho,0.0018363795865694958,experiments/week16/ot_kh_512_consolidation/summary.json
+report_method,mpi_omission,justified_future_work,reason,"single-node OpenMP and CUDA isolate precision, compiler, and hardware effects without MPI reduction-order variability",docs/requirement/overall.md
+claim_boundaries,kh_mca,bounded,value,blocked_environment,docs/experiment_logs/report2_evidence_map.md
+claim_boundaries,asymptotic_convergence,bounded,value,False,docs/experiment_logs/report2_evidence_map.md
+claim_boundaries,formal_lyapunov_exponent,bounded,value,False,docs/experiment_logs/report2_evidence_map.md
+claim_boundaries,hll_gpu_scope,bounded,value,"[""brio_wu_1d"", ""orszag_tang_2d""]",docs/experiment_logs/report2_evidence_map.md
+claim_boundaries,hll_gpu_excluded,bounded,value,"[""hlld_on_gpu"", ""kh_on_gpu"", ""gpu_mca"", ""broad_gpu_matrix""]",docs/experiment_logs/report2_evidence_map.md
+claim_boundaries,provisional_rows_promoted,bounded,value,False,docs/experiment_logs/report2_evidence_map.md

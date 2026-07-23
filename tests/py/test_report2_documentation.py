@@ -59,6 +59,7 @@ def test_report2_evidence_map_has_required_status_and_assets():
         "experiments/week16/kelvin_helmholtz_precision/hll_p1/summary.md",
         "experiments/week16/kelvin_helmholtz_precision/hlld_p1/summary.md",
         "experiments/week16/ot_kh_512_consolidation/summary.md",
+        "experiments/week17/report2_synthesis/summary.md",
     )
     for relative in required_paths:
         assert relative in text
@@ -96,6 +97,7 @@ def test_evidence_inventory_binds_status_provenance_and_retention_contract():
         "CPU/GPU hardware axis": "`report-grade`",
         "KH report-grade precision": "`provisional`",
         "OT/KH 512^2 consolidation": "`report-grade`",
+        "Week 17 Report 2 synthesis": "`report-grade`",
     }
     by_evidence = {row["Evidence"]: row for row in inventory}
     assert set(by_evidence) == set(expected_statuses)
@@ -119,9 +121,9 @@ def test_evidence_inventory_binds_status_provenance_and_retention_contract():
     assert not re.search(r"\b\d+\s+(?:tracked\s+)?files?\b", inventory_text, re.I)
 
 
-def test_week14_to_week16_have_canonical_navigation():
+def test_week14_to_week17_have_canonical_navigation():
     index = read(DOCS / "INDEX.md")
-    for week in (14, 15, 16):
+    for week in (14, 15, 16, 17):
         plan = DOCS / f"week{week}" / f"week{week}-plan.md"
         summary = DOCS / f"week{week}" / f"week{week}-summary.md"
         assert plan.is_file()

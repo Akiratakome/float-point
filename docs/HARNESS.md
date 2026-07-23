@@ -69,7 +69,7 @@ evidence.
 | Euler / CPU | supported; default | standard CPU matrix |
 | Euler / GPU | supported as opt-in CUDA correctness path | explicitly enable CUDA |
 | MHD / CPU | supported | use the MHD application contract |
-| MHD / GPU | unsupported | fail explicitly; no GPU MHD implementation is implied |
+| MHD / GPU | supported as bounded HLL correctness path | opt-in CUDA path; Brio-Wu and Orszag-Tang only |
 
 ## Experiment Manifests And Retention
 

@@ -1,0 +1,178 @@
+{
+  "axis_ranking": [
+    {
+      "authority": "multiple committed Week 15-16 precision summaries",
+      "axis": "precision",
+      "bounded_result": "float_rows_depart_from_double_baselines_in_available_packets",
+      "max_double_linf_rho": 8.836043008386696e-12,
+      "max_float_linf_rho": 0.003121124636215278,
+      "rank": 1,
+      "status": "bounded_primary_effect"
+    },
+    {
+      "authority": "multiple committed Week 15-16 precision summaries",
+      "axis": "compiler_flags",
+      "bounded_result": "optimization_and_fastmath_change_some deterministic packets but do not form a unified report-grade gate",
+      "max_fastmath_delta_linf_rho": 6.453719898491528e-07,
+      "rank": 2,
+      "status": "bounded_cpu_deterministic_variation"
+    },
+    {
+      "authority": "experiments/week16/cpu_gpu_hardware_axis/summary.json",
+      "axis": "hardware",
+      "bounded_result": "bit_exact_for_covered_hll_cases",
+      "covered_rows": 4,
+      "max_ulp": 0,
+      "ot_speedup_max": 6.352997178972207,
+      "ot_speedup_min": 5.9646376663186755,
+      "rank": 3,
+      "status": "report-grade"
+    },
+    {
+      "authority": "multiple committed Week 15-16 precision summaries",
+      "axis": "implementation_variant",
+      "bounded_result": "leq_vs_strict differences are small relative to precision effects in the available CPU packets",
+      "max_riemann_delta_linf_rho": 4.929892858385188e-07,
+      "rank": 4,
+      "status": "small_or_zero_in_available_packets"
+    }
+  ],
+  "case_sensitivity": [
+    {
+      "L1_rho": 0.07721667483938416,
+      "Linf_rho": 0.6459439448974966,
+      "authority": "experiments/week16/ot_kh_512_consolidation/summary.json",
+      "case": "orszag_tang",
+      "divB_max": 3.72,
+      "gate_pass": true
+    },
+    {
+      "L1_rho": 0.0018363795865694958,
+      "Linf_rho": 0.006375537923796637,
+      "authority": "experiments/week16/ot_kh_512_consolidation/summary.json",
+      "case": "kelvin_helmholtz",
+      "divB_max": 0.0006714,
+      "gate_pass": true
+    }
+  ],
+  "claim_boundaries": {
+    "asymptotic_convergence": false,
+    "formal_lyapunov_exponent": false,
+    "hll_gpu_excluded": [
+      "hlld_on_gpu",
+      "kh_on_gpu",
+      "gpu_mca",
+      "broad_gpu_matrix"
+    ],
+    "hll_gpu_scope": [
+      "brio_wu_1d",
+      "orszag_tang_2d"
+    ],
+    "kh_mca": "blocked_environment",
+    "provisional_rows_promoted": false
+  },
+  "experiment": "week17-report2-results-synthesis",
+  "gates": {
+    "hardware_gate_passed": true,
+    "kh_mca_block_recorded": true,
+    "ot_kh_512_gate_passed": true,
+    "source_summaries_present": true,
+    "synthesis_complete": true
+  },
+  "git_commit": "9d83a6dec5c7bd5bdc9f51cd35c6b813c291781d",
+  "mpi_omission": {
+    "future_work": "MPI thread and reduction ordering could be explored separately after Report 2",
+    "reason": "single-node OpenMP and CUDA isolate precision, compiler, and hardware effects without MPI reduction-order variability",
+    "status": "justified_future_work"
+  },
+  "schema": {
+    "name": "hrsc.report2-synthesis",
+    "version": 1
+  },
+  "source_summaries": [
+    {
+      "git_commit": "3728e1babddb799292b891a63b5e7022300a1171",
+      "name": "brio_wu_hll",
+      "path": "experiments/week15/brio_wu_precision_pilot_p1/summary.json"
+    },
+    {
+      "git_commit": "76a168749269046c7a0c00b42f5cb2527689a11d",
+      "name": "brio_wu_hlld",
+      "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/summary.json"
+    },
+    {
+      "git_commit": "4d9697b933f5fa3e12164a3b05b814a7a191073c",
+      "name": "ot_hll",
+      "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/summary.json"
+    },
+    {
+      "git_commit": null,
+      "name": "ot_hll_mca",
+      "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/summary.json"
+    },
+    {
+      "git_commit": "0221e05cc75394ac76f1d79afbc53cdd30550177",
+      "name": "ot_hlld",
+      "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/summary.json"
+    },
+    {
+      "git_commit": null,
+      "name": "ot_hlld_mca",
+      "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/summary.json"
+    },
+    {
+      "git_commit": "cf50f837dd2e74040c06f86af2f3c21a9b70ed58",
+      "name": "temporal_divergence",
+      "path": "experiments/week15/mhd_temporal_divergence/summary.json"
+    },
+    {
+      "git_commit": "2514e74bfd850d7134e5346e3845ca01c285606e",
+      "name": "hardware_axis",
+      "path": "experiments/week16/cpu_gpu_hardware_axis/summary.json"
+    },
+    {
+      "git_commit": "2082dd5e2825a42038c8e9ceb050092c6211adc8",
+      "name": "kh_hll_precision",
+      "path": "experiments/week16/kelvin_helmholtz_precision/hll_p1/summary.json"
+    },
+    {
+      "git_commit": "2082dd5e2825a42038c8e9ceb050092c6211adc8",
+      "name": "kh_hlld_precision",
+      "path": "experiments/week16/kelvin_helmholtz_precision/hlld_p1/summary.json"
+    },
+    {
+      "git_commit": "8a4b1d1f74c2924035e82d8e94133055feeb4c7d",
+      "name": "ot_kh_512",
+      "path": "experiments/week16/ot_kh_512_consolidation/summary.json"
+    }
+  ],
+  "temporal_divergence": [
+    {
+      "authority": "experiments/week15/mhd_temporal_divergence/summary.json",
+      "case": "brio_wu_1d",
+      "fit_window": [
+        0.01,
+        0.1
+      ],
+      "lambda_l1": 30.61534848986609,
+      "lambda_linf": 18.57906146565356,
+      "samples": 15
+    },
+    {
+      "authority": "experiments/week15/mhd_temporal_divergence/summary.json",
+      "case": "orszag_tang_2d",
+      "fit_window": [
+        0.1,
+        0.5
+      ],
+      "lambda_l1": 0.029343098002640955,
+      "lambda_linf": -0.04223342136545145,
+      "samples": 25
+    }
+  ],
+  "temporal_interpretation": {
+    "authority": "experiments/week15/mhd_temporal_divergence/summary.json",
+    "planned_ot_gt_brio_wu_observed": false,
+    "status": "negative-result"
+  }
+}

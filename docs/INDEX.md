@@ -53,6 +53,7 @@ use `docs/weekN/...`.
 | 14 | [week14-plan.md](week14/week14-plan.md) | [week14-summary.md](week14/week14-summary.md) | (none) |
 | 15 | [week15-plan.md](week15/week15-plan.md) | [week15-summary.md](week15/week15-summary.md) | (none) |
 | 16 | [week16-plan.md](week16/week16-plan.md) | [week16-summary.md](week16/week16-summary.md) | (none) |
+| 17 | [week17-plan.md](week17/week17-plan.md) | [week17-summary.md](week17/week17-summary.md) | (none) |
 
 Week 4 also keeps:
 - [week4-verification.md](week4/week4-verification.md) — manual verification checklist (Phase B/C reproduction recipe)
@@ -92,6 +93,7 @@ Report 2 current routing:
 - [GPU HLL MHD plan](superpowers/plans/2026-07-09-gpu-mhd-hll.md) is executed for the HLL validation path; matched hardware-axis evidence is recorded under `experiments/week16/cpu_gpu_hardware_axis/`.
 - [Temporal divergence summary](../experiments/week15/mhd_temporal_divergence/summary.md) is the fixed-window negative result: the planned OT > Brio-Wu contrast was not observed.
 - Week 16 KH and 512-grid summaries live under `experiments/week16/kelvin_helmholtz_precision/` and `experiments/week16/ot_kh_512_consolidation/`; KH MCA remains blocked by local Docker.
+- Week 17 report-facing synthesis is [experiments/week17/report2_synthesis/summary.md](../experiments/week17/report2_synthesis/summary.md); it aggregates existing evidence and does not widen claim boundaries.
 - Meeting reports, including the Week 15 English report, are dated historical snapshots; use the evidence map for current status and claim boundaries.
 
 ---
@@ -235,6 +237,7 @@ For the full step-by-step manual recipe see [week4/week4-verification.md](week4/
 | `experiments/week16/cpu_gpu_hardware_axis/` | Week-16 matched HLL CPU/GPU hardware-axis evidence for Brio-Wu 1D and Orszag-Tang 2D in float and double: all four covered rows have `ulp_max=0`; OT GPU speedups are 5.965x double and 6.353x float. Unified `summary.{csv,json,md}` + speedup/ULP figures; generated grids are removed. |
 | `experiments/week16/kelvin_helmholtz_precision/` | Week-16 KH 2D evidence: `validation/` passes 256^2-vs-512^2 validation; `hll_p1/` and `hlld_p1/` contain 24-variant deterministic precision packets with finite/positive states and fixed 1148-step completion. MCA rows are schema-complete but `blocked_environment` because Docker is unavailable, so no KH MCA noise-floor claim is made. |
 | `experiments/week16/ot_kh_512_consolidation/` | Week-16 OT/KH 512^2 consolidation: both self-reference gates pass and the summary explicitly records that two resolutions do not establish asymptotic convergence. |
+| `experiments/week17/report2_synthesis/` | Week-17 Report 2 synthesis packet: bounded primary-axis ranking, temporal negative-result summary, OT/KH 512 gate table, MPI-omission justification, and final report figures. It aggregates committed evidence only and does not promote provisional source rows. |
 | `experiments/week4/float_regression/1d/` | Phase C1 1D: 12 CSVs (sod, toro2-5, stationary_contact × {double, float}) + summary.{md,json} |
 | `experiments/week4/float_regression/2d/` | Phase C1 2D: 4 candidates + 16 difference heatmaps + summary.{md,json}; current rerun uses the Week 7 1600² reference when available |
 | `experiments/week8/report1_2d_config12_fill/` | Second 2D Euler Riemann evidence packet (LW12/config12): strict CPU/GPU, fp32/fp64, N=800 reference comparison, figures |
