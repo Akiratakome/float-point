@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cmath>
+#include <utility>
 
 #ifdef HRSC_HAS_CUDA
 
@@ -41,6 +42,14 @@ __device__ bool mhd_device_isfinite(double x) {
     return isfinite(x);
 }
 
+__device__ float mhd_device_abs(float x) {
+    return fabsf(x);
+}
+
+__device__ double mhd_device_abs(double x) {
+    return fabs(x);
+}
+
 template <typename Real>
 __device__ bool mhd_is_physical_device(const Vec<Real, MhdNVars>& U,
                                        Real gamma) {
@@ -64,6 +73,20 @@ __device__ Real mhd_device_min(Real a, Real b) {
 template <typename Real>
 __device__ Real mhd_device_max(Real a, Real b) {
     return (a < b) ? b : a;
+}
+
+template <typename Real>
+__device__ Real mhd_signal_speed_device(const Real* data, int nx, int ny,
+                                        int i, int j, Real gamma) {
+    const Vec<Real, MhdNVars> U = mhd_load_cell_device(data, nx, i, j);
+    const MhdPrim<Real> w = cons_to_prim(U, gamma);
+    Real ch = mhd_device_abs(w.vx) + fast_speed_x(w, gamma);
+    if (ny > 1) {
+        ch = mhd_device_max(
+            ch,
+            mhd_device_abs(w.vy) + fast_speed_x(mhd_swap_xy_prim(w), gamma));
+    }
+    return ch;
 }
 
 template <typename Real>
@@ -188,6 +211,71 @@ __global__ void mhd_glm_damp_kernel(Real* data, int nx, int ny, Real factor) {
     data[mhd_grid_index<Real>(i, j, MhdIdx::PSI, nx)] *= factor;
 }
 
+template <typename Real>
+__global__ void mhd_signal_block_max_kernel(const Real* data, int nx, int ny,
+                                            Real gamma, Real* block_max) {
+    extern __shared__ unsigned char shared_raw[];
+    Real* shared_max = reinterpret_cast<Real*>(shared_raw);
+
+    const int tid = threadIdx.x;
+    const int global_tid = blockIdx.x * blockDim.x + tid;
+    const int stride = blockDim.x * gridDim.x;
+    const int ncells = nx * ny;
+
+    Real local_max = Real(0);
+    for (int cell = global_tid; cell < ncells; cell += stride) {
+        const int i = cell % nx;
+        const int j = cell / nx;
+        local_max = mhd_device_max(
+            local_max, mhd_signal_speed_device(data, nx, ny, i, j, gamma));
+    }
+
+    shared_max[tid] = local_max;
+    __syncthreads();
+
+    for (int offset = blockDim.x / 2; offset > 0; offset >>= 1) {
+        if (tid < offset) {
+            shared_max[tid] =
+                mhd_device_max(shared_max[tid], shared_max[tid + offset]);
+        }
+        __syncthreads();
+    }
+
+    if (tid == 0) {
+        block_max[blockIdx.x] = shared_max[0];
+    }
+}
+
+template <typename Real>
+__global__ void mhd_reduce_max_kernel(const Real* in, int n, Real* out) {
+    extern __shared__ unsigned char shared_raw[];
+    Real* shared_max = reinterpret_cast<Real*>(shared_raw);
+
+    const int tid = threadIdx.x;
+    const int global_tid = blockIdx.x * blockDim.x + tid;
+    const int stride = blockDim.x * gridDim.x;
+
+    Real local_max = Real(0);
+    for (int idx = global_tid; idx < n; idx += stride) {
+        local_max = mhd_device_max(local_max, in[idx]);
+    }
+
+    shared_max[tid] = local_max;
+    __syncthreads();
+
+    for (int offset = blockDim.x / 2; offset > 0; offset >>= 1) {
+        if (tid < offset) {
+            shared_max[tid] =
+                mhd_device_max(shared_max[tid], shared_max[tid + offset]);
+        }
+        __syncthreads();
+    }
+
+    if (tid == 0) {
+        out[blockIdx.x] = shared_max[0];
+    }
+}
+
 } // namespace
 
 template <typename Real>
@@ -232,6 +320,42 @@ void glm_damp_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real ch, Real cr, Real dt) {
     HRSC_CUDA_CHECK(cudaDeviceSynchronize());
 }
 
+template <typename Real>
+TimeReal compute_dt_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real gamma, Real cfl) {
+    constexpr int threads = 256;
+    const int ncells = g.nx() * g.ny();
+    int count = (ncells + threads - 1) / threads;
+    DeviceArray<Real> current(static_cast<std::size_t>(count));
+
+    mhd_signal_block_max_kernel<Real>
+        <<<count, threads, threads * sizeof(Real)>>>(
+            g.data(), g.nx(), g.ny(), gamma, current.data());
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+
+    while (count > 1) {
+        const int next_count = (count + threads - 1) / threads;
+        DeviceArray<Real> next(static_cast<std::size_t>(next_count));
+        mhd_reduce_max_kernel<Real>
+            <<<next_count, threads, threads * sizeof(Real)>>>(
+                current.data(), count, next.data());
+        HRSC_CUDA_CHECK(cudaGetLastError());
+        HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+        current = std::move(next);
+        count = next_count;
+    }
+
+    Real ch = Real(0);
+    current.copy_to_host(&ch, 1);
+
+    const Real denom = (ch < Real(1e-30)) ? Real(1e-30) : ch;
+    const Real h = (g.ny() > 1)
+                       ? ((g.dy() < g.dx()) ? g.dy() : g.dx())
+                       : g.dx();
+    return static_cast<TimeReal>(cfl) * static_cast<TimeReal>(h) /
+           static_cast<TimeReal>(denom);
+}
+
 template void sweep_x_mhd_gpu<float>(
     GpuGrid<float, MhdNVars>& g, float dt, float gamma, float ch);
 template void sweep_x_mhd_gpu<double>(
@@ -241,6 +365,11 @@ template void glm_damp_mhd_gpu<float>(
     GpuGrid<float, MhdNVars>& g, float ch, float cr, float dt);
 template void glm_damp_mhd_gpu<double>(
     GpuGrid<double, MhdNVars>& g, double ch, double cr, double dt);
+
+template TimeReal compute_dt_mhd_gpu<float>(
+    GpuGrid<float, MhdNVars>& g, float gamma, float cfl);
+template TimeReal compute_dt_mhd_gpu<double>(
+    GpuGrid<double, MhdNVars>& g, double gamma, double cfl);
 
 } // namespace hrsc
 
