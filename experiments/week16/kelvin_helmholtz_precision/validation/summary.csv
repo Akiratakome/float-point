@@ -1,0 +1,2 @@
+L1_rho,L2_rho,Linf_rho,mass_rel,divB_max_cr018,divB_max_cr0,divB_max_cr0_status,cleaning_ratio_diagnostic,cleaning_ratio_status,reflect_y_residual,gate_norms,gate_mass,gate_divb
+0.0018363795865694958,0.0022487408048023536,0.006375537923796637,0.0,0.0006714,0.0007736,finite,0.8678903826266804,finite,0.0065138161024342845,True,True,True
