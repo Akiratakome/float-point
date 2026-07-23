@@ -41,3 +41,19 @@ TEST_CASE("parse_mhd_riemann rejects unsupported solvers with value", "[mhd][con
     }
     REQUIRE(caught);
 }
+
+TEST_CASE("parse_mhd_device accepts cpu and gpu", "[mhd][config]") {
+    REQUIRE(parse_mhd_device("cpu") == MhdDevice::Cpu);
+    REQUIRE(parse_mhd_device("gpu") == MhdDevice::Gpu);
+}
+
+TEST_CASE("parse_mhd_device rejects unsupported values with value", "[mhd][config]") {
+    bool caught = false;
+    try {
+        (void)parse_mhd_device("tpu");
+    } catch (const std::invalid_argument& e) {
+        caught = true;
+        REQUIRE(std::string(e.what()) == "unsupported MHD device: tpu");
+    }
+    REQUIRE(caught);
+}

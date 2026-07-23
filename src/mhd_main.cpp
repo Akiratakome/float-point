@@ -6,6 +6,10 @@
 #include "mhd/mhd_config.hpp"
 #include "mhd/mhd_solver.hpp"
 
+#ifdef HRSC_HAS_CUDA
+#include "gpu/mhd_gpu_solver.hpp"
+#endif
+
 #include <cmath>
 #include <cstdio>
 #include <stdexcept>
@@ -94,6 +98,70 @@ int run_mhd(int nx, int ny, double xmin, double ymin, double gamma, double cfl,
     return 0;
 }
 
+hrsc::Grid2D<Real, hrsc::MhdNVars> make_mhd_initial_grid(
+    int nx, int ny, double xmin, double ymin, double gamma, double x0,
+    Real dx, Real dy, hrsc::MhdTestCase test) {
+    hrsc::Grid2D<Real, hrsc::MhdNVars> grid(nx, ny);
+    grid.dx = dx;
+    grid.dy = dy;
+
+    auto gv = grid.view();
+    if (test == hrsc::MhdTestCase::BrioWu) {
+        for (int j = 0; j < ny; ++j) {
+            hrsc::setup_brio_wu_row<Real>(
+                gv, nx, dx, (Real)xmin, (Real)gamma, (Real)x0, j);
+        }
+    } else if (test == hrsc::MhdTestCase::OrszagTang) {
+        hrsc::setup_orszag_tang<Real>(
+            gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
+    } else if (test == hrsc::MhdTestCase::KelvinHelmholtz) {
+        hrsc::setup_kelvin_helmholtz<Real>(
+            gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
+    } else if (test == hrsc::MhdTestCase::DivbBlob) {
+        hrsc::setup_divb_blob<Real>(
+            gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
+    } else {
+        throw std::invalid_argument("unsupported MHD test case dispatch");
+    }
+
+    return grid;
+}
+
+int run_mhd_gpu(int nx, int ny, double xmin, double ymin, double gamma,
+                double cfl, double t_end, double x0, double glm_cr,
+                hrsc::MhdTestCase test, hrsc::BoundaryType bc,
+                hrsc::BoundaryType bc_y, Real dx, Real dy,
+                const std::string& out) {
+#ifdef HRSC_HAS_CUDA
+    auto grid = make_mhd_initial_grid(
+        nx, ny, xmin, ymin, gamma, x0, dx, dy, test);
+    hrsc::MhdGpuSolver<Real> solver(
+        grid, (Real)xmin, (Real)ymin, (Real)gamma, (Real)cfl, t_end,
+        (Real)glm_cr, bc, bc_y);
+
+    solver.run();
+
+    hrsc::Grid2D<Real, hrsc::MhdNVars> final_grid = solver.download_host_grid();
+    auto gv = final_grid.view();
+    hrsc::DivBNorms<Real> db =
+        hrsc::compute_divB_norms<Real>(gv, nx, ny, dx, dy);
+    std::fprintf(stderr, "[mhd] t=%.6f steps=%d divB_mean=%.3e divB_max=%.3e\n",
+                 solver.current_time(), solver.step_count(),
+                 (double)db.mean, (double)db.max);
+
+    if (!out.empty()) {
+        hrsc::write_binary<Real, hrsc::MhdNVars>(
+            out, gv, nx, ny, dx, dy, (Real)solver.current_time());
+    }
+    return 0;
+#else
+    (void)nx; (void)ny; (void)xmin; (void)ymin; (void)gamma; (void)cfl;
+    (void)t_end; (void)x0; (void)glm_cr; (void)test; (void)bc; (void)bc_y;
+    (void)dx; (void)dy; (void)out;
+    throw std::runtime_error("device=gpu requires building with -DENABLE_CUDA=ON");
+#endif
+}
+
 } // namespace
 
 int main(int argc, char** argv) try {
@@ -113,6 +181,7 @@ int main(int argc, char** argv) try {
     const double glm_cr  = cfg.get_double("glm_cr", ny > 1 ? 0.18 : 0.0);
     const hrsc::MhdTestCase test = hrsc::parse_mhd_test(cfg.get_string("test", "brio_wu"));
     const hrsc::MhdRiemann riemann = hrsc::parse_mhd_riemann(cfg.get_string("riemann", "hll"));
+    const hrsc::MhdDevice device = hrsc::parse_mhd_device(cfg.get_string("device", "cpu"));
     const hrsc::BoundaryType bc   = hrsc::parse_mhd_boundary(cfg.get_string("bc", "outflow"));
     const hrsc::BoundaryType bc_y = hrsc::parse_mhd_boundary(cfg.get_string("bc_y", cfg.get_string("bc", "outflow")));
     const std::string out = cfg.get_string("output_file", "");
@@ -121,6 +190,14 @@ int main(int argc, char** argv) try {
 
     const Real dx = static_cast<Real>((xmax - xmin) / nx);
     const Real dy = (ny > 1) ? static_cast<Real>((ymax - ymin) / ny) : dx;
+
+    if (device == hrsc::MhdDevice::Gpu) {
+        if (riemann != hrsc::MhdRiemann::Hll) {
+            throw std::invalid_argument("device=gpu supports only riemann=hll");
+        }
+        return run_mhd_gpu(nx, ny, xmin, ymin, gamma, cfl, t_end, x0,
+                           glm_cr, test, bc, bc_y, dx, dy, out);
+    }
 
     if (riemann == hrsc::MhdRiemann::Hlld) {
         return run_mhd<hrsc::HlldFlux>(nx, ny, xmin, ymin, gamma, cfl, t_end,
