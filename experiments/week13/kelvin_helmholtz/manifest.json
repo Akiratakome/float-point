@@ -1,0 +1,18 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week13-kelvin-helmholtz-morphology",
+  "report": "report2",
+  "lifecycle": "canonical",
+  "purpose": "Preserve the morphology-only Week 13 Kelvin-Helmholtz authority without claiming precision or convergence.",
+  "pipeline": {
+    "config": ["tests/cases/kelvin_helmholtz_2d/kh.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_kh_2d.py"],
+    "measure": ["scripts/regression/mhd_kh_2d.py"],
+    "aggregate": ["experiments/week13/kelvin_helmholtz/paper_summary.md"],
+    "plot": ["experiments/week13/kelvin_helmholtz/figures/kh_paper_style.png"]
+  },
+  "evidence": ["experiments/week13/kelvin_helmholtz/paper_summary.md", "experiments/week13/kelvin_helmholtz/figures/kh_paper_style.png"],
+  "retention": {"keep": ["paper_summary.md", "figures/"], "transient": ["unretained self-reference grids"]},
+  "provenance": {"notes": "Tracked Git history is the authority; this canonical lifecycle record retains the bounded morphology-only evidential status."}
+}

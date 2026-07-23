@@ -259,4 +259,15 @@ TEST_CASE("EulerGpuSolver LW Config 3 n=200 1-step bit-exact to CPU",
     body(float{});
 }
 
+TEST_CASE("EulerGpuSolver rejects a non-positive CFL step", "[gpu][completion]") {
+    Grid2D<double, EulerNVars> grid(4, 1);
+    grid.dx = 0.25;
+    grid.dy = 0.25;
+    setup_sod<double>(grid.view(), 1.4);
+    EulerGpuSolver<double> solver(
+        std::move(grid), 0.0, 0.0, 1.4, 0.0, 0.1,
+        FluxScheme::Rusanov, BoundaryType::Outflow, BoundaryType::Outflow);
+    REQUIRE_THROWS(solver.run());
+}
+
 #endif // HRSC_HAS_CUDA

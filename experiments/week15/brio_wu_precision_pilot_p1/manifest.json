@@ -1,0 +1,18 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week15-brio-wu-hll",
+  "report": "report2",
+  "lifecycle": "canonical",
+  "purpose": "Preserve bounded CPU HLL deterministic and N=30 MCA observations against the project baseline.",
+  "pipeline": {
+    "config": ["tests/cases/brio_wu_1d/brio_wu.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_precision_pilot.py"],
+    "measure": ["scripts/verificarlo/mhd_precision_sampling.py"],
+    "aggregate": ["experiments/week15/brio_wu_precision_pilot_p1/summary.json"],
+    "plot": ["experiments/week15/brio_wu_precision_pilot_p1/figures/mca_noise_floor.png"]
+  },
+  "evidence": ["experiments/week15/brio_wu_precision_pilot_p1/summary.md", "experiments/week15/brio_wu_precision_pilot_p1/summary.json", "experiments/week15/brio_wu_precision_pilot_p1/figures/deterministic_norms.png", "experiments/week15/brio_wu_precision_pilot_p1/figures/mca_noise_floor.png"],
+  "retention": {"keep": ["summary.*", "figures/"], "transient": ["generated run outputs and grids"]},
+  "provenance": {"notes": "summary.md embeds generating commit 3728e1babddb799292b891a63b5e7022300a1171; bounded evidence status remains provisional in the Report 2 evidence map."}
+}

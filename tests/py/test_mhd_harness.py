@@ -1,7 +1,9 @@
+import json
 import pathlib
 import sys
 
 import numpy as np
+import pytest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts" / "regression"))
 from _mhd_harness import (
@@ -108,7 +110,83 @@ def test_run_case_checks_relative_output_bin_against_root(tmp_path):
             "test-sha",
             output_bin=rel_out,
         )
+        assert meta["schema"] == {"name": "hrsc.run-record", "version": 1}
+        assert meta["status"] == "success"
         assert meta["output_binary"] == str(abs_out)
+        assert meta["artifacts"]["primary_output"] == str(abs_out)
+        assert meta["elapsed_wall_s"] == meta["timing"]["elapsed_wall_s"]
+        assert meta["stderr_diagnostics"] == {}
     finally:
         if abs_out.exists():
             abs_out.unlink()
+
+
+def test_run_case_writes_failed_metadata_before_raising(tmp_path):
+    source_cfg = tmp_path / "source.cfg"
+    source_cfg.write_text("placeholder = 1\n", encoding="utf-8")
+    run_dir = tmp_path / "run"
+
+    with pytest.raises(RuntimeError, match=r"failed \(rc=7\)"):
+        run_case(
+            "failed-run",
+            "import sys\nsys.exit(7)\n",
+            run_dir,
+            pathlib.Path(sys.executable),
+            source_cfg,
+            "test-commit",
+            "test-sha",
+        )
+
+    metadata = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["status"] == "failed"
+
+
+def test_run_case_replaces_non_utf8_stderr_and_accepts_required_output(tmp_path):
+    source_cfg = tmp_path / "source.cfg"
+    output_bin = tmp_path / "output.bin"
+    source_cfg.write_text("placeholder = 1\n", encoding="utf-8")
+    cfg_text = (
+        "import pathlib\n"
+        "import sys\n"
+        f"pathlib.Path({str(output_bin)!r}).write_bytes(b'ok')\n"
+        "sys.stderr.buffer.write(b'\\x80')\n"
+    )
+
+    result, metadata, stderr_text = run_case(
+        "non-utf8-stderr",
+        cfg_text,
+        tmp_path / "run",
+        pathlib.Path(sys.executable),
+        source_cfg,
+        "test-commit",
+        "test-sha",
+        output_bin=output_bin,
+    )
+
+    assert result.returncode == 0
+    assert metadata["status"] == "success"
+    assert "\ufffd" in stderr_text
+
+
+def test_run_case_propagates_missing_binary_as_file_not_found(tmp_path):
+    source_cfg = tmp_path / "source.cfg"
+    missing_binary = tmp_path / "missing-hrsc"
+    run_dir = tmp_path / "run"
+    source_cfg.write_text("placeholder = 1\n", encoding="utf-8")
+
+    with pytest.raises(FileNotFoundError) as error:
+        run_case(
+            "missing-binary",
+            "placeholder = 1\n",
+            run_dir,
+            missing_binary,
+            source_cfg,
+            "test-commit",
+            "test-sha",
+        )
+
+    assert error.value.filename == str(missing_binary)
+    metadata = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["status"] == "failed"
+    assert metadata["failure"]["category"] == "infrastructure_error"
+    assert metadata["failure"]["exception_type"] == "FileNotFoundError"

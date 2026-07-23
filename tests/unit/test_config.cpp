@@ -30,6 +30,15 @@ TEST_CASE("Config returns defaults for missing keys", "[config]") {
     REQUIRE(cfg.get_bool("missing_key", true) == true);
 }
 
+TEST_CASE("Config retains the presence of keys with empty values", "[config]") {
+    std::istringstream is("output_times =   \n");
+    Config cfg(is);
+
+    REQUIRE_FALSE(cfg.contains("missing_key"));
+    REQUIRE(cfg.contains("output_times"));
+    REQUIRE(cfg.get_string("output_times").empty());
+}
+
 TEST_CASE("Config skips comments and blank lines", "[config]") {
     std::istringstream is(
         "# This is a comment\n"

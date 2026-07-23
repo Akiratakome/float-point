@@ -19,6 +19,7 @@ sys.path.insert(0, str(_SCRIPTS_ROOT))
 sys.path.insert(0, str(_SCRIPTS_ROOT / "metrics"))
 
 from io_helper import cons_to_prim, read_binary  # noqa: E402
+from harness.metadata import require_successful_metadata  # noqa: E402
 
 
 VAR_NAMES = ("rho", "rhou", "rhov", "E")
@@ -210,10 +211,13 @@ def _load_runs(matrix_path: Path) -> list[RunData]:
         if not isinstance(run, dict):
             raise ValueError("matrix_summary runs must be objects")
         metadata_path = _metadata_path_for_run(run, matrix_path, output_root)
-        metadata = _load_json(metadata_path)
+        metadata = require_successful_metadata(_load_json(metadata_path))
         name = str(metadata.get("name") or run.get("name") or metadata_path.parent.name)
+        raw_output_value = (metadata.get("artifacts") or {}).get("primary_output")
+        if not raw_output_value:
+            raw_output_value = metadata.get("raw_output") or metadata.get("output_binary")
         raw_output = _resolve_recorded_path(
-            str(metadata.get("raw_output")) if metadata.get("raw_output") else None,
+            str(raw_output_value) if raw_output_value else None,
             output_root=output_root,
             matrix_parent=matrix_path.parent,
             local_bases=[metadata_path.parent],
@@ -229,14 +233,22 @@ def _load_runs(matrix_path: Path) -> list[RunData]:
 
 
 def _run_scalars(run: RunData) -> dict[str, Any]:
+    artifacts = run.metadata.get("artifacts") or {}
+    timing = run.metadata.get("timing") or {}
     row: dict[str, Any] = {
         "name": run.name,
         "precision": run.precision,
         "build": run.build,
         "source_config": run.metadata.get("source_config"),
         "metadata": str(run.metadata_path),
-        "raw_output": run.metadata.get("raw_output"),
-        "total_s": (run.metadata.get("timing") or {}).get("total_s"),
+        "raw_output": artifacts.get("primary_output")
+        or run.metadata.get("raw_output")
+        or run.metadata.get("output_binary"),
+        "total_s": timing.get("elapsed_wall_s")
+        if timing.get("elapsed_wall_s") is not None
+        else run.metadata.get("elapsed_wall_s")
+        if run.metadata.get("elapsed_wall_s") is not None
+        else timing.get("total_s"),
         "nx": None,
         "ny": None,
         "t_end": None,

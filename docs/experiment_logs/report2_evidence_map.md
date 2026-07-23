@@ -19,6 +19,10 @@
 
 A status applies only to the bounded claim in the same inventory row. It does
 not promote a related solver, case, precision axis, or retained asset.
+Lifecycle manifests complement this bounded evidence inventory; they do not
+replace statuses such as `provisional` or `negative-result`, nor do they widen
+the claims supported by a summary. The manifests describe retention and
+pipeline ownership while this map remains the authority for evidential status.
 
 ## Evidence inventory
 

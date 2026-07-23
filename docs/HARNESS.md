@@ -23,6 +23,69 @@ For script ownership and legacy/provenance boundaries, see
 | Existing 2D regression | `bash scripts/regression/float_regression_2d.sh` |
 | Matrix scalar report | `python scripts/regression/matrix_summary_report.py <matrix_summary.json>` |
 | 2D plotting | `python scripts/figures/plot_2d.py <grid.bin> --field rho --out <figure.png>` |
+| Experiment lifecycle audit | `python scripts/audit_experiments.py --format markdown` |
+
+## Run Contract
+
+New harness metadata uses schema `{"name": "hrsc.run-record", "version": 1}`.
+The canonical fields are `status`, `artifacts.primary_output`,
+`timing.elapsed_wall_s`, `failure`, `completion`, and `build_semantics`.
+Legacy fields remain accepted and are normalized without changing their stored
+values:
+
+| Canonical field | Legacy aliases |
+|---|---|
+| `artifacts.primary_output` | `raw_output`, `output_binary` |
+| `timing.elapsed_wall_s` | top-level `elapsed_wall_s`, `timing.total_s` |
+| `status` | inferred from `returncode` when absent |
+
+Migrated Euler and MHD application paths emit structured completion/success
+status after the application completion gate (`require_run_complete`) gates
+their final outputs. Their metadata
+has `status=success`, `completion.reported=true`, and the required structured
+completion fields. The generic runner also preserves legacy zero-returncode
+records from programs that emit no structured status; those records remain
+`status=success` with `completion.reported=false`.
+
+The current generic `matrix_summary_report.py` consumer calls
+`require_successful_metadata` for compatibility. That function accepts
+normalized legacy success and does **not** enforce `completion.reported=true`;
+its output alone is not completion-attested. Any workflow making a
+completion-attested or report-grade claim must explicitly filter or validate
+`completion.reported=true`, the required completion fields, and the required
+fresh artifacts. This distinction documents consumer policy without changing
+the generic runner or compatibility behavior.
+
+## Build Semantics
+
+Historical build directory names remain stable, including names such as
+`Ofast-ieee`. They are labels, not proof of the compiler mode. The harness
+records the effective math mode separately in `build_semantics` (`strict`,
+`fast`, or `compiler-default`) together with requested axes and compiler
+evidence.
+
+| Application/device | Support status | Entry rule |
+|---|---|---|
+| Euler / CPU | supported; default | standard CPU matrix |
+| Euler / GPU | supported as opt-in CUDA correctness path | explicitly enable CUDA |
+| MHD / CPU | supported | use the MHD application contract |
+| MHD / GPU | unsupported | fail explicitly; no GPU MHD implementation is implied |
+
+## Experiment Manifests And Retention
+
+Report 2 experiment lifecycle manifests use
+`hrsc.experiment-manifest` schema version 1 and one of five lifecycle values:
+`canonical`, `provenance`, `superseded`, `invalid`, or `generated`.
+Validate the 13 promoted Report 2 lifecycle manifests enumerated by Task 9
+from the repository root with:
+
+```bash
+python -m pytest tests/py/test_experiment_manifests.py -q
+```
+
+The current cleanup audit is read-only and reports candidates for a separate
+reference check at
+[`experiment_cleanup_candidates.md`](experiment_logs/experiment_cleanup_candidates.md).
 
 ## Build Axes
 

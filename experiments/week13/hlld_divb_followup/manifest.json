@@ -1,0 +1,18 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week13-hlld-divb-followup",
+  "report": "report2",
+  "lifecycle": "canonical",
+  "purpose": "Preserve the bounded HLLD div(B) follow-up explaining the stale-binary interpretation.",
+  "pipeline": {
+    "config": ["tests/cases/orszag_tang_2d/orszag_tang.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_hlld_glm_sweep.py"],
+    "measure": ["scripts/regression/mhd_hlld_glm_sweep.py"],
+    "aggregate": ["experiments/week13/hlld_divb_followup/n256_t050/summary.json"],
+    "plot": ["scripts/regression/mhd_hlld_diagnostics.py"]
+  },
+  "evidence": ["experiments/week13/hlld_divb_followup/summary.md", "experiments/week13/hlld_divb_followup/n256_t050/summary.json"],
+  "retention": {"keep": ["summary.*", "diagnostic provenance"], "transient": ["generated grids"]},
+  "provenance": {"notes": "Tracked Git history is the authority; summary.md records solver-fix commit 6491104 as interpretive provenance."}
+}

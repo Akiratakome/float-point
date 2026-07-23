@@ -55,3 +55,18 @@ def test_filter_selects_exactly_p0_eight():
         "cpu-float-Ofast-ieee-leq",
         "cpu-float-Ofast-ieee-strict",
     ]
+
+
+def test_ofast_is_recorded_as_effective_fast_without_renaming():
+    variant = BuildVariant("double", "Ofast", False, False)
+
+    assert variant.name == "cpu-double-Ofast-ieee-leq"
+    assert variant.build_dir == Path("build-matrix/cpu-double-Ofast-ieee-leq")
+    assert variant.effective_math_mode == "fast"
+
+
+def test_o2_without_fast_math_is_compiler_default_not_claimed_ieee():
+    variant = BuildVariant("double", "O2", False, False)
+
+    assert variant.name == "cpu-double-O2-ieee-leq"
+    assert variant.effective_math_mode == "compiler-default"
