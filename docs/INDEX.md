@@ -16,6 +16,7 @@
 | Project requirements, deliverables, deadlines | [requirement/overall.md](requirement/overall.md) |
 | Canonical experiment harness workflow | [HARNESS.md](HARNESS.md) |
 | Script architecture, canonical entry points, legacy/provenance boundaries | [../scripts/README.md](../scripts/README.md) |
+| Shared harness contracts and manifest validation | [../scripts/harness/](../scripts/harness/) |
 | Coding conventions, style, FP guidance | [requirement/coding guidance.md](requirement/coding%20guidance.md) |
 | Project briefs (PDFs from supervisor) | [requirement/](requirement/) (`*.pdf`) |
 | What's been done so far this project | per-week `weekN-summary.md` (see §2) |
@@ -26,6 +27,7 @@
 | Legacy Report 1 Week-7 task index | [experiment_logs/report1_evidence_index.md](experiment_logs/report1_evidence_index.md) |
 | Report 2 baseline requirements and schedule | [requirement/overall.md](requirement/overall.md) Phase 2 + Report 1 conclusions in [experiment_logs/report1_evidence_map.md](experiment_logs/report1_evidence_map.md) |
 | Report 2 current status, evidence priority, negative results, and deferred work | [experiment_logs/report2_evidence_map.md](experiment_logs/report2_evidence_map.md) |
+| Report 2 lifecycle manifests and read-only cleanup candidates | [experiment_cleanup_candidates.md](experiment_logs/experiment_cleanup_candidates.md) |
 | Manual reproduction recipe (build → tests → regression) | [week4/week4-verification.md](week4/week4-verification.md) |
 | How Week N's state evolved from Week N-1 | `weekN/weekN-1_to_weekN_bridge.md` (kept at the target week) |
 
@@ -83,6 +85,9 @@ Report 1 closeout / Report 2 transition:
 
 Report 2 current routing:
 - [report2_evidence_map.md](experiment_logs/report2_evidence_map.md) is the current status authority for delivered, superseded, negative, and deferred evidence.
+- [experiment_cleanup_candidates.md](experiment_logs/experiment_cleanup_candidates.md) is the read-only audit entry; it requires a reference audit and performs no deletion.
+- Report 2 lifecycle manifests are validated through `scripts/harness/experiment_manifest.py` and complement, but do not replace, evidence-map statuses.
+- The architecture specification is [2026-07-22-project-architecture-convergence-design.md](superpowers/specs/2026-07-22-project-architecture-convergence-design.md).
 - [Week 15/16 completion design](superpowers/specs/2026-07-21-week15-16-completion-design.md) defines the current completion scope and deferred phases.
 - [GPU HLL MHD plan](superpowers/plans/2026-07-09-gpu-mhd-hll.md) defines the deferred GPU implementation path.
 - [Temporal divergence summary](../experiments/week15/mhd_temporal_divergence/summary.md) is the fixed-window negative result: the planned OT > Brio-Wu contrast was not observed.

@@ -149,3 +149,30 @@ def test_temporal_claim_is_bounded():
     assert "planned OT > Brio-Wu contrast was not observed" in text
     assert "formal maximal Lyapunov exponent" in text
     assert "not claimed" in text
+
+
+def test_current_harness_and_manifest_routing_is_explicit():
+    harness = read(DOCS / "HARNESS.md")
+    scripts = read(ROOT / "scripts" / "README.md")
+    index = read(DOCS / "INDEX.md")
+    retention = read(DOCS / "experiment_logs" / "experiments_retention.md")
+    cleanup = DOCS / "experiment_logs" / "experiment_cleanup_candidates.md"
+
+    assert '{"name": "hrsc.run-record", "version": 1}' in harness
+    for alias in ("raw_output", "output_binary", "elapsed_wall_s", "timing.total_s"):
+        assert alias in harness
+    assert "completion gate" in harness
+    assert "completion.reported=true" in harness
+    assert "completion.reported=false" in harness
+    assert "effective math mode" in harness
+    assert "Euler / GPU" in harness
+    assert "MHD / GPU" in harness
+    for lifecycle in ("canonical", "provenance", "superseded", "invalid", "generated"):
+        assert f"`{lifecycle}`" in harness
+        assert f"`{lifecycle}`" in retention
+    assert "13 promoted Report 2 lifecycle manifests" in harness
+    assert "13 promoted Report 2 manifests" in retention
+    assert "scripts/harness/" in scripts
+    assert "audit_experiments.py" in scripts
+    assert "experiment_cleanup_candidates.md" in index
+    assert cleanup.is_file()

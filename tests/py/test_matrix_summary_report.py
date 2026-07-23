@@ -158,6 +158,55 @@ def test_cli_reports_implicit_precision_pairs_and_scalars(tmp_path: Path) -> Non
     assert any(row["row_type"] == "pair" and row["pair_label"] == "sod-cpu-o2-ieee-leq" for row in rows)
 
 
+def test_run_scalars_normalizes_canonical_and_legacy_metadata(tmp_path: Path) -> None:
+    from scripts.harness.metadata import normalise_metadata
+    from scripts.io_helper import read_binary
+    from scripts.regression.matrix_summary_report import RunData, _run_scalars
+
+    root = tmp_path / "matrix"
+    payload = np.ones((1, 2, 4), dtype=np.float64)
+    _write_run(root, "canonical", "double", "cpu-canonical", payload, total_s=9.0)
+    raw_output = root / "runs" / "canonical" / "grid.bin"
+    header, grid = read_binary(raw_output)
+
+    canonical = normalise_metadata(
+        {
+            "name": "canonical",
+            "precision": "double",
+            "build": "cpu-canonical",
+            "source_config": "source.cfg",
+            "returncode": 0,
+            "raw_output": "legacy.bin",
+            "output_binary": "older.bin",
+            "artifacts": {"primary_output": str(raw_output)},
+            "timing": {"elapsed_wall_s": 1.25, "total_s": 9.0},
+        }
+    )
+    canonical_row = _run_scalars(
+        RunData("canonical", canonical, root / "runs/canonical/metadata.json", header, grid)
+    )
+    assert canonical_row["raw_output"] == str(raw_output)
+    assert canonical_row["total_s"] == pytest.approx(1.25)
+
+    legacy = normalise_metadata(
+        {
+            "name": "legacy",
+            "precision": "float",
+            "build": "cpu-legacy",
+            "source_config": "source.cfg",
+            "returncode": 0,
+            "output_binary": "legacy.bin",
+            "elapsed_wall_s": 2.5,
+            "timing": {"total_s": 9.0},
+        }
+    )
+    legacy_row = _run_scalars(
+        RunData("legacy", legacy, root / "runs/legacy/metadata.json", header, grid)
+    )
+    assert legacy_row["raw_output"] == "legacy.bin"
+    assert legacy_row["total_s"] == pytest.approx(2.5)
+
+
 def test_cli_reports_explicit_pair_label(tmp_path: Path) -> None:
     matrix_summary = _synthetic_matrix(tmp_path)
     out_prefix = tmp_path / "explicit" / "axis_summary"
@@ -469,6 +518,89 @@ def test_cli_resolves_canonical_run_matrix_relative_paths_from_different_cwd(tmp
     assert summary["run_count"] == 2
     assert summary["pair_count"] == 1
     assert summary["runs"][0]["nx"] == 32
+
+
+def test_load_runs_rejects_failed_canonical_metadata(tmp_path: Path) -> None:
+    from scripts.regression import matrix_summary_report
+
+    root = tmp_path / "matrix"
+    run_dir = root / "runs" / "failed"
+    run_dir.mkdir(parents=True)
+    (run_dir / "metadata.json").write_text(
+        json.dumps(
+            {
+                "schema": {"name": "hrsc.run-record", "version": 1},
+                "name": "failed",
+                "status": "failed",
+                "failure": {"category": "numerical_failure", "message": "nan"},
+                "returncode": 1,
+            }
+        ),
+        encoding="utf-8",
+    )
+    matrix_path = root / "matrix_summary.json"
+    matrix_path.write_text(
+        json.dumps({"output_root": str(root), "runs": [{"name": "failed"}]}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="numerical_failure"):
+        matrix_summary_report._load_runs(matrix_path)
+
+
+def test_load_runs_rejects_success_metadata_with_nonzero_returncode(
+    tmp_path: Path,
+) -> None:
+    from scripts.regression import matrix_summary_report
+
+    root = tmp_path / "matrix"
+    run_dir = root / "runs" / "nonzero"
+    run_dir.mkdir(parents=True)
+    (run_dir / "metadata.json").write_text(
+        json.dumps(
+            {
+                "schema": {"name": "hrsc.run-record", "version": 1},
+                "name": "nonzero",
+                "status": "success",
+                "returncode": 3,
+            }
+        ),
+        encoding="utf-8",
+    )
+    matrix_path = root / "matrix_summary.json"
+    matrix_path.write_text(
+        json.dumps({"output_root": str(root), "runs": [{"name": "nonzero"}]}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="failed"):
+        matrix_summary_report._load_runs(matrix_path)
+
+
+def test_load_runs_reads_legacy_output_binary_alias(tmp_path: Path) -> None:
+    from scripts.regression import matrix_summary_report
+
+    root = tmp_path / "matrix"
+    run_dir = root / "runs" / "legacy"
+    output = run_dir / "grid.bin"
+    payload = np.ones((1, 4, 4), dtype=np.float64)
+    _write_binary(output, payload, dx=0.25, dy=1.0, t=0.2)
+    (run_dir / "metadata.json").write_text(
+        json.dumps(
+            {"name": "legacy", "returncode": 0, "output_binary": str(output)}
+        ),
+        encoding="utf-8",
+    )
+    matrix_path = root / "matrix_summary.json"
+    matrix_path.write_text(
+        json.dumps({"output_root": str(root), "runs": [{"name": "legacy"}]}),
+        encoding="utf-8",
+    )
+
+    runs = matrix_summary_report._load_runs(matrix_path)
+
+    assert runs[0].grid is not None
+    assert runs[0].grid.shape == (1, 4, 4)
 
 
 def test_scalar_only_import_does_not_require_phase_metric_module() -> None:

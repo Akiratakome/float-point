@@ -3,13 +3,26 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.harness.config import materialise_config, replace_or_append_cfg
+from scripts.harness.contracts import (
+    BuildSemantics,
+    RequiredArtifact,
+    RunRecord,
+    RunSpec,
+    load_build_semantics,
+)
+from scripts.harness.metadata import serialise_record
+from scripts.harness.runner import execute_run, git_provenance
 
 
 REQUIRED_RUN_FIELDS = ("name", "binary", "config")
@@ -25,6 +38,7 @@ class MatrixRun:
     build: str | None = None
     raw_output: Path | None = None
     extra_cfg: dict[str, str] | None = None
+    build_semantics: BuildSemantics | None = None
 
 
 def _require_field(raw: dict[str, Any], field: str) -> Any:
@@ -43,52 +57,34 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
     raw_extra_cfg = raw.get("extra_cfg", {})
     if not isinstance(raw_extra_cfg, dict):
         raise ValueError(f"run '{name}' field 'extra_cfg' must be an object")
+    binary = Path(str(raw["binary"]))
+    build = raw.get("build")
     return MatrixRun(
         name=name,
-        binary=Path(str(raw["binary"])),
+        binary=binary,
         source_config=Path(str(raw["config"])),
         run_dir=run_dir,
         precision=raw.get("precision"),
-        build=raw.get("build"),
+        build=build,
         raw_output=(run_dir / str(raw_output)) if raw_output else None,
         extra_cfg={str(key): str(value) for key, value in raw_extra_cfg.items()},
+        build_semantics=load_build_semantics(
+            binary.parent / "build_semantics.json",
+            fallback_label=str(build) if build is not None else None,
+        ),
     )
 
 
-def _replace_or_append_cfg_line(text: str, key: str, value: str) -> str:
-    lines = text.splitlines()
-    prefix = f"{key}"
-    replaced = False
-    out: list[str] = []
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith("#") or "=" not in line:
-            out.append(line)
-            continue
-        lhs = line.split("=", 1)[0].strip()
-        if lhs == prefix:
-            out.append(f"{key} = {value}")
-            replaced = True
-        else:
-            out.append(line)
-    if not replaced:
-        out.append(f"{key} = {value}")
-    return "\n".join(out) + "\n"
+_replace_or_append_cfg_line = replace_or_append_cfg
 
 
 def materialise_run_config(run: MatrixRun) -> Path:
-    run.run_dir.mkdir(parents=True, exist_ok=True)
     target = run.run_dir / "config.cfg"
-    shutil.copy2(run.source_config, target)
-    if run.extra_cfg or run.raw_output is not None:
-        text = target.read_text(encoding="utf-8")
-        for key, value in (run.extra_cfg or {}).items():
-            text = _replace_or_append_cfg_line(text, key, value)
-        if run.raw_output is not None:
-            text = _replace_or_append_cfg_line(text, "output_format", "binary")
-            text = _replace_or_append_cfg_line(text, "output_file", str(run.raw_output))
-        target.write_text(text, encoding="utf-8")
-    return target
+    overrides = dict(run.extra_cfg or {})
+    if run.raw_output is not None:
+        overrides["output_format"] = "binary"
+        overrides["output_file"] = str(run.raw_output)
+    return materialise_config(run.source_config, target, overrides)
 
 
 def git_commit() -> str:
@@ -129,11 +125,39 @@ def build_metadata(
     git_commit: str,
     returncode: int,
 ) -> dict[str, Any]:
+    legacy = _legacy_metadata(run, experiment, command, git_commit, returncode)
+    spec = RunSpec(
+        name=run.name,
+        experiment=experiment,
+        command=tuple(command),
+        run_dir=run.run_dir,
+        source_config=run.source_config,
+        run_config=run.run_dir / "config.cfg",
+        build_semantics=run.build_semantics,
+    )
+    record = RunRecord(
+        spec=spec,
+        returncode=returncode,
+        elapsed_wall_s=0.0,
+        stdout_path=run.run_dir / "stdout.txt",
+        stderr_path=run.run_dir / "stderr.txt",
+        status="success" if returncode == 0 else "failed",
+    )
+    return serialise_record(record, legacy)
+
+
+def _legacy_metadata(
+    run: MatrixRun,
+    experiment: str,
+    command: list[str],
+    commit: str,
+    returncode: int,
+) -> dict[str, Any]:
     return {
         "experiment": experiment,
         "name": run.name,
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-        "git_commit": git_commit,
+        "git_commit": commit,
         "binary": str(run.binary),
         "source_config": str(run.source_config),
         "run_config": str(run.run_dir / "config.cfg"),
@@ -143,37 +167,60 @@ def build_metadata(
         "extra_cfg": run.extra_cfg or {},
         "command": command,
         "returncode": returncode,
+        "provenance": {
+            "git": git_provenance(Path(__file__).resolve().parents[1])
+        },
     }
 
 
 def run_one(run: MatrixRun, experiment: str, dry_run: bool = False) -> dict[str, Any]:
     config = materialise_run_config(run)
-    command = [str(run.binary), str(config)]
-    stdout_path = run.run_dir / "stdout.txt"
-    stderr_path = run.run_dir / "stderr.txt"
-    if dry_run:
-        result_code = 0
-        stdout_path.write_text("", encoding="utf-8")
-        stderr_path.write_text("dry-run\n", encoding="utf-8")
-    else:
-        with stdout_path.open("w", encoding="utf-8") as stdout, stderr_path.open("w", encoding="utf-8") as stderr:
-            result = subprocess.run(command, stdout=stdout, stderr=stderr, check=False)
-        result_code = result.returncode
-
-    metadata = build_metadata(run, experiment, command, git_commit(), result_code)
-    if not dry_run:
-        total_s = parse_timing_total_s(stderr_path.read_text(encoding="utf-8"))
-        metadata["timing"] = {"total_s": total_s}
-    metadata["stdout"] = str(stdout_path)
-    metadata["stderr"] = str(stderr_path)
+    spec = RunSpec(
+        name=run.name,
+        experiment=experiment,
+        command=(str(run.binary), str(config)),
+        run_dir=run.run_dir,
+        source_config=run.source_config,
+        run_config=config,
+        required_artifacts=(
+            RequiredArtifact(run.raw_output, kind="hrsc_binary")
+            if run.raw_output
+            else ()
+        ),
+        build_semantics=run.build_semantics,
+    )
+    record = execute_run(spec, dry_run=dry_run)
+    stderr_text = (
+        record.stderr_path.read_text(encoding="utf-8")
+        if record.stderr_path.exists()
+        else ""
+    )
+    legacy = _legacy_metadata(
+        run,
+        experiment,
+        list(spec.command),
+        git_commit(),
+        record.returncode,
+    )
+    legacy.update(
+        {
+            "timing": {"total_s": parse_timing_total_s(stderr_text)},
+            "stdout": str(record.stdout_path),
+            "stderr": str(record.stderr_path),
+        }
+    )
+    metadata = serialise_record(record, legacy)
     (run.run_dir / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
-    if result_code != 0:
-        raise RuntimeError(f"run failed: {run.name} exited {result_code}; see {stderr_path}")
+    if record.status != "success":
+        category = (record.failure or {}).get("category", "infrastructure_error")
+        raise RuntimeError(
+            f"run failed: {run.name} ({category}); see {record.stderr_path}"
+        )
     return metadata
 
 
 def load_matrix(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def run_matrix(path: Path, dry_run: bool = False) -> dict[str, Any]:

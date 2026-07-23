@@ -1,0 +1,18 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week12-divb-cleaning",
+  "report": "report2",
+  "lifecycle": "canonical",
+  "purpose": "Preserve the bounded Week 12 GLM div(B) cleaning decay validation authority.",
+  "pipeline": {
+    "config": ["tests/cases/mhd_divb_clean/divb_blob.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_2d_week12.py"],
+    "measure": ["scripts/regression/mhd_2d_week12.py"],
+    "aggregate": ["experiments/week12/mhd_2d/divb_clean/summary.json"],
+    "plot": ["scripts/figures/plot_mhd_2d_week12.py"]
+  },
+  "evidence": ["experiments/week12/mhd_2d/divb_clean/summary.md", "experiments/week12/mhd_2d/divb_clean/summary.json"],
+  "retention": {"keep": ["summary.*"], "transient": ["generated grids"]},
+  "provenance": {"notes": "Tracked Git history is the authority; this is validation evidence, not a precision-axis headline."}
+}

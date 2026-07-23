@@ -10,6 +10,7 @@
 #include "gpu/euler_kernels.cuh"
 #include "utils/timer.hpp"
 
+#include <cmath>
 #include <stdexcept>
 #include <utility>
 
@@ -88,7 +89,10 @@ double EulerGpuSolver<Real>::run() {
     wall.start();
     while (m_time < m_t_end) {
         TimeReal dt = compute_dt_gpu<Real>(m_dev_grid, m_gamma, m_cfl);
-        if (dt <= TimeReal(0)) break;
+        if (!std::isfinite(static_cast<double>(dt)) || dt <= TimeReal(0)) {
+            throw std::runtime_error(
+                "EulerGpuSolver produced a non-finite or non-positive dt");
+        }
         if (m_time + dt > m_t_end) dt = m_t_end - m_time;
         step(dt);
     }

@@ -1,0 +1,18 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week15-orszag-tang-hlld",
+  "report": "report2",
+  "lifecycle": "canonical",
+  "purpose": "Preserve bounded HLLD deterministic sensitivity and separate N=30 MCA observations without claiming a unified gate.",
+  "pipeline": {
+    "config": ["tests/cases/orszag_tang_2d/orszag_tang.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_orszag_tang_precision_smoke.py"],
+    "measure": ["scripts/verificarlo/mhd_precision_sampling.py"],
+    "aggregate": ["experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/summary.json", "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/summary.json"],
+    "plot": ["experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/figures/drift_fields.png"]
+  },
+  "evidence": ["experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/summary.md", "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/summary.json", "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/figures/drift_fields.png", "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/summary.json"],
+  "retention": {"keep": ["headline256_p1/summary.*", "headline256_p1/figures/", "mca_n30/summary.json"], "transient": ["generated grids"]},
+  "provenance": {"notes": "headline256_p1/summary.md embeds generating commit 0221e05cc75394ac76f1d79afbc53cdd30550177; mca_n30 has no generating commit, so tracked Git history is its provenance. Bounded evidence status remains provisional."}
+}

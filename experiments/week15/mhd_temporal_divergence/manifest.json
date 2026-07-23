@@ -1,0 +1,18 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week15-temporal-divergence",
+  "report": "report2",
+  "lifecycle": "canonical",
+  "purpose": "Preserve the fixed-window temporal-divergence negative result: the planned OT greater-than Brio-Wu contrast was not observed.",
+  "pipeline": {
+    "config": ["tests/cases/brio_wu_1d/brio_wu.cfg", "tests/cases/orszag_tang_2d/orszag_tang.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_temporal_divergence.py"],
+    "measure": ["scripts/regression/mhd_temporal_divergence.py"],
+    "aggregate": ["experiments/week15/mhd_temporal_divergence/summary.json"],
+    "plot": ["experiments/week15/mhd_temporal_divergence/figures/temporal_divergence.png"]
+  },
+  "evidence": ["experiments/week15/mhd_temporal_divergence/summary.md", "experiments/week15/mhd_temporal_divergence/summary.json", "experiments/week15/mhd_temporal_divergence/figures/temporal_divergence.png"],
+  "retention": {"keep": ["summary.*", "figures/"], "transient": ["generated configs, logs, metadata, and grids"]},
+  "provenance": {"notes": "summary.json embeds generation checkout cf50f837dd2e74040c06f86af2f3c21a9b70ed58 and recorded run checkout c26ab4a286066655b32f08cb6d22324bd922f99c; bounded evidence status remains negative-result."}
+}

@@ -126,6 +126,281 @@ def test_run_matrix_writes_metadata_and_preserves_cfg(tmp_path: Path) -> None:
     assert metadata["precision"] == "double"
     assert metadata["raw_output"] == str(run.raw_output)
     assert metadata["git_commit"] == "abc123"
+    assert metadata["schema"] == {"name": "hrsc.run-record", "version": 1}
+    assert metadata["status"] == "success"
+    assert set(metadata["provenance"]["git"]) == {"commit", "dirty"}
+
+
+def test_load_matrix_accepts_windows_utf8_bom(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    path = tmp_path / "matrix.json"
+    path.write_bytes(b"\xef\xbb\xbf{\"experiment\": \"pytest\", \"runs\": []}")
+
+    assert run_matrix.load_matrix(path) == {"experiment": "pytest", "runs": []}
+
+
+def test_run_matrix_loads_build_semantics_beside_binary(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    build_dir = tmp_path / "build-double"
+    build_dir.mkdir()
+    binary = build_dir / "hrsc"
+    build_semantics = {
+        "schema": {"name": "hrsc.build-semantics", "version": 1},
+        "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+        "requested": {"opt_level": "Ofast", "fast_math": False, "strict_ieee": False},
+        "effective_math_mode": "fast",
+        "flag_evidence": {
+            "optimization": "/Ox /fp:fast",
+            "fast_math": "",
+            "strict_ieee": "",
+        },
+    }
+    (build_dir / "build_semantics.json").write_text(
+        json.dumps(build_semantics), encoding="utf-8"
+    )
+    cfg = tmp_path / "case.cfg"
+    cfg.write_text("test = sod\n", encoding="utf-8")
+
+    run = run_matrix.normalise_run(
+        {
+            "name": "sod-double",
+            "binary": str(binary),
+            "config": str(cfg),
+            "build": "cpu-double-Ofast-ieee-leq",
+        },
+        output_root=tmp_path / "out",
+    )
+    metadata = run_matrix.build_metadata(
+        run,
+        experiment="pytest",
+        command=[str(binary), str(cfg)],
+        git_commit="abc123",
+        returncode=0,
+    )
+
+    assert metadata["build_semantics"] == {
+        "requested_opt_level": "Ofast",
+        "requested_fast_math": False,
+        "requested_strict_ieee": False,
+        "effective_math_mode": "fast",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51",
+        "compiler_path": "C:/VS/cl.exe",
+        "evidence": {
+            "optimization": "/Ox /fp:fast",
+            "fast_math": "",
+            "strict_ieee": "",
+        },
+    }
+
+
+def test_run_matrix_fallback_does_not_infer_strict_from_ieee_label(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    cfg = tmp_path / "case.cfg"
+    cfg.write_text("test = sod\n", encoding="utf-8")
+    run = run_matrix.normalise_run(
+        {
+            "name": "sod-double",
+            "binary": str(tmp_path / "missing-build" / "hrsc"),
+            "config": str(cfg),
+            "build": "cpu-double-O2-ieee-leq",
+        },
+        output_root=tmp_path / "out",
+    )
+
+    assert run.build_semantics.requested_opt_level == "O2"
+    assert run.build_semantics.requested_fast_math is False
+    assert run.build_semantics.requested_strict_ieee is None
+    assert run.build_semantics.effective_math_mode == "compiler-default"
+    assert run.build_semantics.compiler_id is None
+
+
+def test_load_build_semantics_missing_file_uses_safe_label_fallback(tmp_path: Path) -> None:
+    from scripts.harness.contracts import load_build_semantics
+
+    semantics = load_build_semantics(
+        tmp_path / "missing.json", fallback_label="cpu-double-Ofast-ieee-leq"
+    )
+
+    assert semantics.requested_opt_level == "Ofast"
+    assert semantics.requested_fast_math is False
+    assert semantics.requested_strict_ieee is None
+    assert semantics.effective_math_mode == "fast"
+    assert semantics.compiler_id is None
+
+
+def test_load_build_semantics_accepts_default_cmake_request(tmp_path: Path) -> None:
+    from scripts.harness.contracts import load_build_semantics
+
+    path = tmp_path / "build_semantics.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema": {"name": "hrsc.build-semantics", "version": 1},
+                "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+                "requested": {"opt_level": "", "fast_math": False, "strict_ieee": False},
+                "effective_math_mode": "compiler-default",
+                "flag_evidence": {"optimization": "", "fast_math": "", "strict_ieee": ""},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    semantics = load_build_semantics(path)
+
+    assert semantics.requested_opt_level == ""
+    assert semantics.effective_math_mode == "compiler-default"
+
+
+@pytest.mark.parametrize(
+    ("payload", "match"),
+    [
+        (
+            {
+                "schema": {"name": "other", "version": 1},
+                "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+                "requested": {"opt_level": "O2", "fast_math": False, "strict_ieee": False},
+                "effective_math_mode": "compiler-default",
+                "flag_evidence": {"optimization": "", "fast_math": "", "strict_ieee": ""},
+            },
+            "schema name",
+        ),
+        (
+            {
+                "schema": {"name": "hrsc.build-semantics", "version": 2},
+                "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+                "requested": {"opt_level": "O2", "fast_math": False, "strict_ieee": False},
+                "effective_math_mode": "compiler-default",
+                "flag_evidence": {"optimization": "", "fast_math": "", "strict_ieee": ""},
+            },
+            "schema version",
+        ),
+        (
+            {
+                "schema": {"name": "hrsc.build-semantics", "version": 1.0},
+                "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+                "requested": {"opt_level": "O2", "fast_math": False, "strict_ieee": False},
+                "effective_math_mode": "compiler-default",
+                "flag_evidence": {"optimization": "", "fast_math": "", "strict_ieee": ""},
+            },
+            "schema version",
+        ),
+        (
+            {
+                "schema": {"name": "hrsc.build-semantics", "version": 1},
+                "compiler": {"id": "MSVC", "version": "19.51"},
+                "requested": {"opt_level": "O2", "fast_math": False, "strict_ieee": False},
+                "effective_math_mode": "compiler-default",
+                "flag_evidence": {"optimization": "", "fast_math": "", "strict_ieee": ""},
+            },
+            "compiler.path",
+        ),
+        (
+            {
+                "schema": {"name": "hrsc.build-semantics", "version": 1},
+                "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+                "requested": {"opt_level": "O9", "fast_math": "false", "strict_ieee": False},
+                "effective_math_mode": "ieee",
+                "flag_evidence": [],
+            },
+            "requested.opt_level",
+        ),
+        (
+            {
+                "schema": {"name": "hrsc.build-semantics", "version": 1},
+                "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+                "requested": {"opt_level": "O2", "fast_math": "false", "strict_ieee": False},
+                "effective_math_mode": "compiler-default",
+                "flag_evidence": {"optimization": "", "fast_math": "", "strict_ieee": ""},
+            },
+            "requested.fast_math",
+        ),
+        (
+            {
+                "schema": {"name": "hrsc.build-semantics", "version": 1},
+                "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+                "requested": {"opt_level": "O2", "fast_math": False, "strict_ieee": False},
+                "effective_math_mode": "compiler-default",
+                "flag_evidence": {"optimization": "", "fast_math": ""},
+            },
+            "flag_evidence",
+        ),
+    ],
+)
+def test_load_build_semantics_rejects_incompatible_existing_files(
+    tmp_path: Path, payload: dict[str, object], match: str
+) -> None:
+    from scripts.harness.contracts import load_build_semantics
+
+    path = tmp_path / "build_semantics.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=match):
+        load_build_semantics(path, fallback_label="cpu-double-O2-ieee-leq")
+
+
+@pytest.mark.parametrize(
+    ("payload", "match"),
+    [
+        (
+            "{not valid json",
+            "invalid build semantics JSON",
+        ),
+        (
+            {
+                "schema": {"name": "hrsc.build-semantics", "version": 1},
+                "compiler": {"id": "MSVC", "version": 19.51, "path": "C:/VS/cl.exe"},
+                "requested": {"opt_level": "O2", "fast_math": False, "strict_ieee": False},
+                "effective_math_mode": "compiler-default",
+                "flag_evidence": {"optimization": "", "fast_math": "", "strict_ieee": ""},
+            },
+            "compiler.version",
+        ),
+        (
+            {
+                "schema": {"name": "hrsc.build-semantics", "version": 1},
+                "compiler": {"id": "MSVC", "version": "19.51", "path": "C:/VS/cl.exe"},
+                "requested": {"opt_level": "O2", "fast_math": False, "strict_ieee": False},
+                "effective_math_mode": "not-a-mode",
+                "flag_evidence": {"optimization": "", "fast_math": "", "strict_ieee": ""},
+            },
+            "effective_math_mode",
+        ),
+    ],
+)
+def test_load_build_semantics_rejects_malformed_values(
+    tmp_path: Path, payload: str | dict[str, object], match: str
+) -> None:
+    from scripts.harness.contracts import load_build_semantics
+
+    path = tmp_path / "build_semantics.json"
+    path.write_text(payload if isinstance(payload, str) else json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=match):
+        load_build_semantics(path)
+
+
+def test_run_matrix_dry_run_serialises_shared_runner_record(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    cfg = tmp_path / "case.cfg"
+    cfg.write_text("test = sod\n", encoding="utf-8")
+    run = run_matrix.normalise_run(
+        {"name": "dry", "binary": "build-double/hrsc", "config": str(cfg)},
+        output_root=tmp_path / "out",
+    )
+
+    metadata = run_matrix.run_one(run, experiment="pytest", dry_run=True)
+
+    assert metadata["status"] == "success"
+    assert metadata["completion"] == {"reported": False}
+    assert metadata["timing"]["total_s"] is None
+    assert metadata["timing"]["elapsed_wall_s"] >= 0.0
+    assert metadata["stdout"] == str(run.run_dir / "stdout.txt")
+    assert metadata["stderr"] == str(run.run_dir / "stderr.txt")
 
 
 def test_run_matrix_applies_extra_cfg_overrides(tmp_path: Path) -> None:
@@ -146,6 +421,7 @@ def test_run_matrix_applies_extra_cfg_overrides(tmp_path: Path) -> None:
             "device": "gpu",
             "solver": "rusanov",
             "output_format": "binary",
+            "output_file": "stale/path.bin",
         },
         "output_file": "grid.bin",
     }

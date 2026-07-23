@@ -38,6 +38,20 @@ if(STRICT_IEEE)
     message(STATUS "HRSC STRICT_IEEE: ON")
 endif()
 
+set(HRSC_FAST_MATH_JSON false)
+if(FAST_MATH)
+    set(HRSC_FAST_MATH_JSON true)
+endif()
+set(HRSC_STRICT_IEEE_JSON false)
+if(STRICT_IEEE)
+    set(HRSC_STRICT_IEEE_JSON true)
+endif()
+file(TO_CMAKE_PATH "${CMAKE_CXX_COMPILER}" HRSC_CXX_COMPILER_JSON_PATH)
+configure_file(
+    ${CMAKE_SOURCE_DIR}/cmake/build_semantics.json.in
+    ${CMAKE_BINARY_DIR}/build_semantics.json
+    @ONLY)
+
 # OpenMP parallelisation of the per-row / per-column sweep loops.
 # Disable with -DENABLE_OPENMP=OFF when running under Verificarlo MCA
 # (the libinterflop PRNG is not thread-safe; MCA runs must stay serial
@@ -89,24 +103,31 @@ target_link_libraries(hrsc_euler PUBLIC hrsc_core)
 add_library(hrsc_mhd_lib STATIC src/mhd/mhd_solver.cpp)
 target_link_libraries(hrsc_mhd_lib PUBLIC hrsc_core)
 
+add_library(hrsc_app_common STATIC
+    src/app/mhd_result.cpp
+    src/app/mhd_run_config.cpp
+    src/app/run_completion.cpp
+    src/app/validation.cpp)
+target_link_libraries(hrsc_app_common PUBLIC hrsc_core)
+
 add_library(hrsc_app STATIC
     src/app/cases.cpp
     src/app/diagnostics.cpp
     src/app/output.cpp
     src/app/run_config.cpp)
-target_link_libraries(hrsc_app PUBLIC hrsc_core hrsc_euler)
+target_link_libraries(hrsc_app PUBLIC hrsc_app_common hrsc_euler)
 
 # --- Main executable ---
 add_executable(hrsc src/main.cpp)
 target_link_libraries(hrsc PRIVATE hrsc_core hrsc_euler hrsc_app)
 
 add_executable(hrsc_mhd src/mhd_main.cpp)
-target_link_libraries(hrsc_mhd PRIVATE hrsc_core hrsc_mhd_lib)
+target_link_libraries(hrsc_mhd PRIVATE hrsc_core hrsc_mhd_lib hrsc_app_common)
 
 # --- Unit tests ---
-file(GLOB TEST_SOURCES tests/unit/test_*.cpp)
+file(GLOB TEST_SOURCES CONFIGURE_DEPENDS tests/unit/test_*.cpp)
 add_executable(unit_tests ${TEST_SOURCES})
-target_link_libraries(unit_tests PRIVATE hrsc_core hrsc_euler hrsc_app hrsc_mhd_lib)
+target_link_libraries(unit_tests PRIVATE hrsc_core hrsc_euler hrsc_app_common hrsc_app hrsc_mhd_lib)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/external/catch2)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/toro_1d)
 target_include_directories(unit_tests PRIVATE ${CMAKE_SOURCE_DIR}/tests/cases/liska_wendroff_2d)

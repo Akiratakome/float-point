@@ -8,6 +8,10 @@ set_property(CACHE OPT_LEVEL PROPERTY STRINGS "" O2 O3 Ofast)
 
 option(FAST_MATH "Enable fast-math flags for experiment builds" OFF)
 
+set(_hrsc_opt_flags_msg "")
+set(_hrsc_fast_math_flags_msg "")
+set(HRSC_STRICT_IEEE_FLAG_EVIDENCE "")
+
 if(OPT_LEVEL)
     if(NOT OPT_LEVEL STREQUAL "O2" AND
        NOT OPT_LEVEL STREQUAL "O3" AND
@@ -98,3 +102,13 @@ function(hrsc_apply_strict_ieee_cuda target)
         "$<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CXX_COMPILER_ID:MSVC>>:-Xcompiler=/O2;-Xcompiler=/fp:strict;-Xcompiler=/Oi->"
     )
 endfunction()
+
+if(STRICT_IEEE)
+    set(HRSC_EFFECTIVE_MATH_MODE "strict")
+    set(HRSC_STRICT_IEEE_FLAG_EVIDENCE
+        "target-specific strict CPU/CUDA flags from hrsc_apply_strict_ieee_*")
+elseif(FAST_MATH OR OPT_LEVEL STREQUAL "Ofast")
+    set(HRSC_EFFECTIVE_MATH_MODE "fast")
+else()
+    set(HRSC_EFFECTIVE_MATH_MODE "compiler-default")
+endif()
