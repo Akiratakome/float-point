@@ -12,6 +12,11 @@ fp32-vs-fp64 Lyapunov-like engineering fits did not observe the planned
 OT > Brio-Wu contrast. It does not claim a formal maximal Lyapunov exponent,
 a physical instability rate, or a general OT/KH ordering.
 
-The following work is incomplete: GPU HLL MHD, hardware-axis evidence, KH
-report-grade precision evidence, and OT/KH 512^2 consolidation. Their current
+The GPU HLL MHD prerequisite is now implemented behind `-DENABLE_CUDA=ON`:
+`device=gpu` is available for `hrsc_mhd` HLL runs, with Brio-Wu 1D and
+Orszag-Tang 2D CPU-vs-GPU validation in float and double. This is a solver
+validation gate, not yet the matched hardware-axis experiment packet.
+
+The following work is still incomplete: matched CPU/GPU hardware-axis evidence,
+KH report-grade precision evidence, and OT/KH 512^2 consolidation. Their current
 status and dependencies are recorded in the [Report 2 evidence map](../experiment_logs/report2_evidence_map.md).

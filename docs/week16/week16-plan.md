@@ -11,7 +11,11 @@
 
 ## Scope
 
-Phase 1 completes the temporal-divergence analysis. The remaining phases are
-GPU HLL MHD, matched CPU/GPU hardware-axis evidence, KH report-grade precision,
-and OT/KH 512^2 consolidation. They remain deferred and are not implied by the
-completed temporal analysis.
+Phase 1 completed the temporal-divergence analysis. The GPU HLL MHD prerequisite
+is now implemented and validated as an opt-in CUDA path for `hrsc_mhd`
+`device=gpu` HLL runs.
+
+The remaining phases are the matched CPU/GPU hardware-axis evidence packet, KH
+report-grade precision, and OT/KH 512^2 consolidation. They remain deferred and
+are not implied by either the completed temporal analysis or the GPU solver
+validation gate.

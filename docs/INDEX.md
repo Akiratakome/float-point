@@ -25,7 +25,7 @@
 | Report 1 final evidence map (which artefact lives where, what is superseded) | [experiment_logs/report1_evidence_map.md](experiment_logs/report1_evidence_map.md) |
 | Legacy Report 1 Week-7 task index | [experiment_logs/report1_evidence_index.md](experiment_logs/report1_evidence_index.md) |
 | Report 2 baseline requirements and schedule | [requirement/overall.md](requirement/overall.md) Phase 2 + Report 1 conclusions in [experiment_logs/report1_evidence_map.md](experiment_logs/report1_evidence_map.md) |
-| Report 2 current status, evidence priority, negative results, and deferred work | [experiment_logs/report2_evidence_map.md](experiment_logs/report2_evidence_map.md) |
+| Report 2 current status, evidence priority, negative results, GPU validation status, and deferred work | [experiment_logs/report2_evidence_map.md](experiment_logs/report2_evidence_map.md) |
 | Manual reproduction recipe (build → tests → regression) | [week4/week4-verification.md](week4/week4-verification.md) |
 | How Week N's state evolved from Week N-1 | `weekN/weekN-1_to_weekN_bridge.md` (kept at the target week) |
 
@@ -84,7 +84,7 @@ Report 1 closeout / Report 2 transition:
 Report 2 current routing:
 - [report2_evidence_map.md](experiment_logs/report2_evidence_map.md) is the current status authority for delivered, superseded, negative, and deferred evidence.
 - [Week 15/16 completion design](superpowers/specs/2026-07-21-week15-16-completion-design.md) defines the current completion scope and deferred phases.
-- [GPU HLL MHD plan](superpowers/plans/2026-07-09-gpu-mhd-hll.md) defines the deferred GPU implementation path.
+- [GPU HLL MHD plan](superpowers/plans/2026-07-09-gpu-mhd-hll.md) is executed for the HLL validation path; matched hardware-axis experiment evidence remains separate.
 - [Temporal divergence summary](../experiments/week15/mhd_temporal_divergence/summary.md) is the fixed-window negative result: the planned OT > Brio-Wu contrast was not observed.
 - Meeting reports, including the Week 15 English report, are dated historical snapshots; use the evidence map for current status and claim boundaries.
 
@@ -103,8 +103,9 @@ src/
 ├── euler/          # euler_solver.{hpp,cpp} (split for explicit instantiation)
 │                   # hllc.hpp, rusanov.hpp, muscl.hpp, hancock.hpp,
 │                   # euler_flux.hpp, exact_riemann.hpp
-├── gpu/            # opt-in CUDA Euler path: euler_gpu_solver.{hpp,cu},
-│                   # euler_kernels.{cuh,cu}, gpu_grid/cuda utilities
+├── gpu/            # opt-in CUDA Euler and MHD paths:
+│                   # euler_gpu_solver.{hpp,cu}, mhd_gpu_solver.{hpp,cu},
+│                   # *_kernels.{cuh,cu}, gpu_grid/cuda utilities
 ├── utils/          # io.hpp (binary reader/writer; auto-creates parent dir),
 │                   # config.hpp (key=value parser)
 └── main.cpp        # cfg-driven executable entry; run dispatch and formatted
@@ -276,4 +277,4 @@ When a structured reorganization or multi-step task is in progress, three files 
 
 ---
 
-*Last updated: 2026-07-22.*
+*Last updated: 2026-07-23.*

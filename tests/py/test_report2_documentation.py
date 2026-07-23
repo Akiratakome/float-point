@@ -87,7 +87,7 @@ def test_evidence_inventory_binds_status_provenance_and_retention_contract():
         "Week 15 OT HLL": "`provisional`",
         "Week 15 OT HLLD": "`provisional`",
         "Temporal divergence": "`negative-result`",
-        "GPU HLL MHD": "`deferred`",
+        "GPU HLL MHD": "`validation`",
         "CPU/GPU hardware axis": "`deferred`",
         "KH report-grade precision": "`deferred`",
         "OT/KH 512^2 consolidation": "`deferred`",
