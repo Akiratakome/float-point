@@ -1,7 +1,6 @@
 // src/gpu/mhd_gpu_solver.cu
 //
-// Stubbed CUDA MHD solver body. Real kernels land behind tests in follow-up
-// tasks; this file establishes device residency and explicit instantiation.
+// CUDA MHD solver body. Kernel launch details live in mhd_kernels.cu.
 
 #include "gpu/mhd_gpu_solver.hpp"
 
@@ -10,9 +9,42 @@
 #include "gpu/mhd_kernels.cuh"
 #include "utils/timer.hpp"
 
+#include <stdexcept>
 #include <utility>
 
 namespace hrsc {
+
+namespace {
+
+template <typename Real>
+void apply_bcs_mhd_gpu(GpuGrid<Real, MhdNVars>& g,
+                       BoundaryType bc_x, BoundaryType bc_y) {
+    if (bc_x != BoundaryType::Outflow) {
+        throw std::logic_error("MhdGpuSolver currently supports only outflow X BC");
+    }
+    apply_outflow_bc_mhd_gpu<Real>(g, Axis::X);
+
+    if (g.ny() > 1) {
+        if (bc_y != BoundaryType::Outflow) {
+            throw std::logic_error("MhdGpuSolver currently supports only outflow Y BC");
+        }
+        apply_outflow_bc_mhd_gpu<Real>(g, Axis::Y);
+    } else {
+        (void)bc_y;
+    }
+}
+
+template <typename Real>
+TimeReal mhd_dt_from_ch(GpuGrid<Real, MhdNVars>& g, Real cfl, Real ch) {
+    const Real denom = (ch < Real(1e-30)) ? Real(1e-30) : ch;
+    const Real h = (g.ny() > 1)
+                       ? ((g.dy() < g.dx()) ? g.dy() : g.dx())
+                       : g.dx();
+    return static_cast<TimeReal>(cfl) * static_cast<TimeReal>(h) /
+           static_cast<TimeReal>(denom);
+}
+
+} // namespace
 
 template <typename Real>
 MhdGpuSolver<Real>::MhdGpuSolver(
@@ -36,6 +68,16 @@ MhdGpuSolver<Real>::MhdGpuSolver(
 template <typename Real>
 void MhdGpuSolver<Real>::step(TimeReal dt) {
     if (dt <= TimeReal(0)) return;
+
+    apply_bcs_mhd_gpu<Real>(m_dev_grid, m_bc_x, m_bc_y);
+    const Real ch = compute_ch_mhd_gpu<Real>(m_dev_grid, m_gamma);
+    const Real dt_real = static_cast<Real>(dt);
+    sweep_x_mhd_gpu<Real>(m_dev_grid, dt_real, m_gamma, ch);
+    if (m_dev_grid.ny() > 1) {
+        throw std::logic_error("MhdGpuSolver y-sweep is not implemented yet");
+    }
+    glm_damp_mhd_gpu<Real>(m_dev_grid, ch, m_glm_cr, dt_real);
+
     m_time += dt;
     m_step += 1;
 }
@@ -45,9 +87,22 @@ double MhdGpuSolver<Real>::run() {
     Timer wall;
     wall.start();
     while (m_time < m_t_end) {
-        const TimeReal dt = m_t_end - m_time;
+        apply_bcs_mhd_gpu<Real>(m_dev_grid, m_bc_x, m_bc_y);
+        const Real ch = compute_ch_mhd_gpu<Real>(m_dev_grid, m_gamma);
+        TimeReal dt = mhd_dt_from_ch<Real>(m_dev_grid, m_cfl, ch);
         if (dt <= TimeReal(0)) break;
-        step(dt);
+        if (m_time + dt > m_t_end) {
+            dt = m_t_end - m_time;
+        }
+
+        const Real dt_real = static_cast<Real>(dt);
+        sweep_x_mhd_gpu<Real>(m_dev_grid, dt_real, m_gamma, ch);
+        if (m_dev_grid.ny() > 1) {
+            throw std::logic_error("MhdGpuSolver y-sweep is not implemented yet");
+        }
+        glm_damp_mhd_gpu<Real>(m_dev_grid, ch, m_glm_cr, dt_real);
+        m_time += dt;
+        m_step += 1;
     }
     wall.stop();
     return wall.elapsed_seconds();

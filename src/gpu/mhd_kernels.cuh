@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "core/boundary.hpp"
 #include "core/grid.hpp"
 #include "core/vec.hpp"
 #include "mhd/mhd_state.hpp"
@@ -15,6 +16,9 @@
 namespace hrsc {
 
 template <typename Real>
+void apply_outflow_bc_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Axis axis);
+
+template <typename Real>
 void sweep_x_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real dt, Real gamma, Real ch);
 
 template <typename Real>
@@ -22,6 +26,14 @@ void glm_damp_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real ch, Real cr, Real dt);
 
 template <typename Real>
 TimeReal compute_dt_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real gamma, Real cfl);
+
+template <typename Real>
+Real compute_ch_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real gamma);
+
+extern template void apply_outflow_bc_mhd_gpu<float>(
+    GpuGrid<float, MhdNVars>& g, Axis axis);
+extern template void apply_outflow_bc_mhd_gpu<double>(
+    GpuGrid<double, MhdNVars>& g, Axis axis);
 
 extern template void sweep_x_mhd_gpu<float>(
     GpuGrid<float, MhdNVars>& g, float dt, float gamma, float ch);
@@ -37,6 +49,11 @@ extern template TimeReal compute_dt_mhd_gpu<float>(
     GpuGrid<float, MhdNVars>& g, float gamma, float cfl);
 extern template TimeReal compute_dt_mhd_gpu<double>(
     GpuGrid<double, MhdNVars>& g, double gamma, double cfl);
+
+extern template float compute_ch_mhd_gpu<float>(
+    GpuGrid<float, MhdNVars>& g, float gamma);
+extern template double compute_ch_mhd_gpu<double>(
+    GpuGrid<double, MhdNVars>& g, double gamma);
 
 } // namespace hrsc
 

@@ -187,6 +187,53 @@ __global__ void mhd_hll_face_x_kernel(
 }
 
 template <typename Real>
+__global__ void mhd_outflow_x_kernel(Real* data, int nx, int ny) {
+    constexpr int ng = GridView<Real, MhdNVars>::ng;
+    const int row = blockIdx.x * blockDim.x + threadIdx.x;
+    const int rows = ny + 2 * ng;
+    if (row >= rows) return;
+
+    const int j = row - ng;
+    const int js = (j < 0) ? 0 : (j >= ny ? ny - 1 : j);
+    for (int var = 0; var < MhdNVars; ++var) {
+        for (int g = 1; g <= ng; ++g) {
+            data[mhd_grid_index<Real>(-g, j, var, nx)] =
+                data[mhd_grid_index<Real>(0, js, var, nx)];
+            data[mhd_grid_index<Real>(nx - 1 + g, j, var, nx)] =
+                data[mhd_grid_index<Real>(nx - 1, js, var, nx)];
+        }
+    }
+
+    for (int g = 1; g <= ng; ++g) {
+        data[mhd_grid_index<Real>(-g, j, MhdIdx::PSI, nx)] = Real(0);
+        data[mhd_grid_index<Real>(nx - 1 + g, j, MhdIdx::PSI, nx)] = Real(0);
+    }
+}
+
+template <typename Real>
+__global__ void mhd_outflow_y_kernel(Real* data, int nx, int ny) {
+    constexpr int ng = GridView<Real, MhdNVars>::ng;
+    const int col = blockIdx.x * blockDim.x + threadIdx.x;
+    const int cols = nx + 2 * ng;
+    if (col >= cols) return;
+
+    const int i = col - ng;
+    for (int var = 0; var < MhdNVars; ++var) {
+        for (int g = 1; g <= ng; ++g) {
+            data[mhd_grid_index<Real>(i, -g, var, nx)] =
+                data[mhd_grid_index<Real>(i, 0, var, nx)];
+            data[mhd_grid_index<Real>(i, ny - 1 + g, var, nx)] =
+                data[mhd_grid_index<Real>(i, ny - 1, var, nx)];
+        }
+    }
+
+    for (int g = 1; g <= ng; ++g) {
+        data[mhd_grid_index<Real>(i, -g, MhdIdx::PSI, nx)] = Real(0);
+        data[mhd_grid_index<Real>(i, ny - 1 + g, MhdIdx::PSI, nx)] = Real(0);
+    }
+}
+
+template <typename Real>
 __global__ void mhd_update_x_kernel(Real* data, int nx, int ny,
                                     const Vec<Real, MhdNVars>* flux_x,
                                     Real dtdx) {
@@ -279,6 +326,25 @@ __global__ void mhd_reduce_max_kernel(const Real* in, int n, Real* out) {
 } // namespace
 
 template <typename Real>
+void apply_outflow_bc_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Axis axis) {
+    constexpr int threads = 128;
+    constexpr int ng = GridView<Real, MhdNVars>::ng;
+    if (axis == Axis::X) {
+        const int rows = g.ny() + 2 * ng;
+        const int blocks = (rows + threads - 1) / threads;
+        mhd_outflow_x_kernel<Real><<<blocks, threads>>>(
+            g.data(), g.nx(), g.ny());
+    } else {
+        const int cols = g.nx() + 2 * ng;
+        const int blocks = (cols + threads - 1) / threads;
+        mhd_outflow_y_kernel<Real><<<blocks, threads>>>(
+            g.data(), g.nx(), g.ny());
+    }
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename Real>
 void sweep_x_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real dt, Real gamma, Real ch) {
     const int nx = g.nx();
     const int ny = g.ny();
@@ -321,7 +387,7 @@ void glm_damp_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real ch, Real cr, Real dt) {
 }
 
 template <typename Real>
-TimeReal compute_dt_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real gamma, Real cfl) {
+Real compute_ch_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real gamma) {
     constexpr int threads = 256;
     const int ncells = g.nx() * g.ny();
     int count = (ncells + threads - 1) / threads;
@@ -347,7 +413,12 @@ TimeReal compute_dt_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real gamma, Real cfl) {
 
     Real ch = Real(0);
     current.copy_to_host(&ch, 1);
+    return ch;
+}
 
+template <typename Real>
+TimeReal compute_dt_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real gamma, Real cfl) {
+    const Real ch = compute_ch_mhd_gpu(g, gamma);
     const Real denom = (ch < Real(1e-30)) ? Real(1e-30) : ch;
     const Real h = (g.ny() > 1)
                        ? ((g.dy() < g.dx()) ? g.dy() : g.dx())
@@ -355,6 +426,11 @@ TimeReal compute_dt_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real gamma, Real cfl) {
     return static_cast<TimeReal>(cfl) * static_cast<TimeReal>(h) /
            static_cast<TimeReal>(denom);
 }
+
+template void apply_outflow_bc_mhd_gpu<float>(
+    GpuGrid<float, MhdNVars>& g, Axis axis);
+template void apply_outflow_bc_mhd_gpu<double>(
+    GpuGrid<double, MhdNVars>& g, Axis axis);
 
 template void sweep_x_mhd_gpu<float>(
     GpuGrid<float, MhdNVars>& g, float dt, float gamma, float ch);
@@ -370,6 +446,11 @@ template TimeReal compute_dt_mhd_gpu<float>(
     GpuGrid<float, MhdNVars>& g, float gamma, float cfl);
 template TimeReal compute_dt_mhd_gpu<double>(
     GpuGrid<double, MhdNVars>& g, double gamma, double cfl);
+
+template float compute_ch_mhd_gpu<float>(
+    GpuGrid<float, MhdNVars>& g, float gamma);
+template double compute_ch_mhd_gpu<double>(
+    GpuGrid<double, MhdNVars>& g, double gamma);
 
 } // namespace hrsc
 
