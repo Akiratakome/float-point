@@ -179,6 +179,15 @@ __global__ void mhd_update_x_kernel(Real* data, int nx, int ny,
     }
 }
 
+template <typename Real>
+__global__ void mhd_glm_damp_kernel(Real* data, int nx, int ny, Real factor) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nx || j >= ny) return;
+
+    data[mhd_grid_index<Real>(i, j, MhdIdx::PSI, nx)] *= factor;
+}
+
 } // namespace
 
 template <typename Real>
@@ -207,10 +216,31 @@ void sweep_x_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real dt, Real gamma, Real ch) {
     HRSC_CUDA_CHECK(cudaDeviceSynchronize());
 }
 
+template <typename Real>
+void glm_damp_mhd_gpu(GpuGrid<Real, MhdNVars>& g, Real ch, Real cr, Real dt) {
+    if (ch <= Real(0) || cr <= Real(0)) {
+        return;
+    }
+
+    const Real factor = std::exp(-dt * (ch / cr));
+    const dim3 threads(kMhdSweepBlockX, kMhdSweepBlockY);
+    const dim3 blocks((g.nx() + threads.x - 1) / threads.x,
+                      (g.ny() + threads.y - 1) / threads.y);
+    mhd_glm_damp_kernel<Real><<<blocks, threads>>>(
+        g.data(), g.nx(), g.ny(), factor);
+    HRSC_CUDA_CHECK(cudaGetLastError());
+    HRSC_CUDA_CHECK(cudaDeviceSynchronize());
+}
+
 template void sweep_x_mhd_gpu<float>(
     GpuGrid<float, MhdNVars>& g, float dt, float gamma, float ch);
 template void sweep_x_mhd_gpu<double>(
     GpuGrid<double, MhdNVars>& g, double dt, double gamma, double ch);
+
+template void glm_damp_mhd_gpu<float>(
+    GpuGrid<float, MhdNVars>& g, float ch, float cr, float dt);
+template void glm_damp_mhd_gpu<double>(
+    GpuGrid<double, MhdNVars>& g, double ch, double cr, double dt);
 
 } // namespace hrsc
 
