@@ -222,6 +222,51 @@ def validate_record_alignment(records: Sequence[Mapping[str, Any]]) -> None:
             raise ValueError(f"{case} series length mismatch: {lengths}")
 
 
+def quantify_fit_quality(records: Sequence[dict[str, Any]]) -> None:
+    """Attach fixed-window log-fit residual diagnostics without changing slopes."""
+    for record in records:
+        times = np.asarray(record["times"], dtype=np.float64)
+        for metric, fit_key in (("l1", "fit_l1"), ("linf", "fit_linf")):
+            values = np.asarray(record[metric], dtype=np.float64)
+            fit = record[fit_key]
+            slope = fit.get("slope")
+            intercept = fit.get("intercept")
+            used = np.asarray(fit.get("times_used", ()), dtype=np.float64)
+            mask = np.isfinite(times) & np.isfinite(values) & (values > 0.0)
+            if used.size:
+                mask &= np.any(
+                    np.isclose(times[:, None], used[None, :], rtol=0.0, atol=1.0e-12),
+                    axis=1,
+                )
+            else:
+                window = fit.get("fit_window") or record.get("fit_window")
+                if window is not None:
+                    mask &= (times >= float(window[0])) & (times <= float(window[1]))
+            fit_t = times[mask]
+            fit_values = values[mask]
+            if slope is None or intercept is None or fit_t.size < 2:
+                fit.update({
+                    "r2_log": None,
+                    "rmse_log": None,
+                    "max_abs_residual_log": None,
+                })
+                continue
+            log_values = np.log(fit_values)
+            fitted = float(slope) * fit_t + float(intercept)
+            residual = log_values - fitted
+            ss_res = float(np.sum(residual * residual))
+            centred = log_values - float(np.mean(log_values))
+            ss_tot = float(np.sum(centred * centred))
+            r2 = 1.0 if ss_tot == 0.0 and ss_res == 0.0 else (
+                None if ss_tot == 0.0 else 1.0 - ss_res / ss_tot
+            )
+            fit.update({
+                "r2_log": None if r2 is None else float(r2),
+                "rmse_log": float(np.sqrt(np.mean(residual * residual))),
+                "max_abs_residual_log": float(np.max(np.abs(residual))),
+            })
+
+
 def evaluate_gates(
     records: Sequence[dict[str, Any]],
     runs: Sequence[dict[str, Any]],
@@ -229,6 +274,7 @@ def evaluate_gates(
     mode: str,
     selected_cases: Sequence[str],
 ) -> dict[str, Any]:
+    quantify_fit_quality(records)
     by_case = {record["case"]: record for record in records}
     try:
         finite_nonnegative = all(
@@ -266,6 +312,15 @@ def evaluate_gates(
         )
     except (KeyError, TypeError, ValueError):
         fits_sufficient = False
+    try:
+        fit_quality_quantified = complete and all(
+            math.isfinite(float(by_case[case][fit][metric]))
+            for case in CASES
+            for fit in ("fit_l1", "fit_linf")
+            for metric in ("r2_log", "rmse_log", "max_abs_residual_log")
+        )
+    except (KeyError, TypeError, ValueError):
+        fit_quality_quantified = False
     run_count_exact = len(runs) == EXPECTED_REPORT_RUNS
     runs_successful = run_count_exact and all(run.get("returncode") == 0 for run in runs)
     provenance_complete = run_count_exact and all(
@@ -281,6 +336,7 @@ def evaluate_gates(
         and sample_counts_exact
         and lambdas_finite
         and fits_sufficient
+        and fit_quality_quantified
         and run_count_exact
         and runs_successful
         and provenance_complete
@@ -298,6 +354,7 @@ def evaluate_gates(
         "sample_counts_exact": sample_counts_exact,
         "required_lambdas_finite": lambdas_finite,
         "fit_counts_sufficient": fits_sufficient,
+        "fit_quality_quantified": fit_quality_quantified,
         "run_count_exact": run_count_exact,
         "runs_successful": runs_successful,
         "run_provenance_complete": provenance_complete,
@@ -333,7 +390,8 @@ def plot_records(out_dir: pathlib.Path, records: Sequence[dict[str, Any]]) -> pa
                 fit_log10 = (float(fit["slope"]) * fit_t + float(fit["intercept"])) / math.log(10.0)
                 ax.plot(fit_t, fit_log10, ls="--", lw=1.0, color=line.get_color())
                 ax.text(
-                    fit_t[-1], fit_log10[-1], f"lambda={float(fit['slope']):.3g}",
+                    fit_t[-1], fit_log10[-1],
+                    f"lambda={float(fit['slope']):.3g}; R2={float(fit['r2_log']):.3f}",
                     color=line.get_color(), fontsize=8, ha="right", va="bottom",
                 )
         ax.set_xlabel("time")
@@ -423,14 +481,25 @@ def write_outputs(
             "gate_scope": (
                 "technical_pass checks case presence, finite nonnegative drift samples, and "
                 "a positive Orszag-Tang L1 fit. gates.pass is report_grade_pass and also "
-                "requires exact samples, aligned series, finite fits, sufficient fit counts, "
-                "and 80 successful provenance-complete runs; neither gate requires "
+                "requires exact samples, aligned series, finite fits, quantified residual "
+                "diagnostics, sufficient fit counts, and 80 successful provenance-complete "
+                "runs; neither gate requires "
                 "OT>Brio-Wu ordering or a positive Orszag-Tang Linf fit."
             ),
             "fit_quality": (
-                "Fit quality is not independently gated or quantified; physical interpretation "
-                "is limited to these deterministic fixed-window engineering fits."
+                "Fixed-window log-linear fit quality is quantified by R2 and log-residual "
+                "diagnostics. No minimum R2 is required for the negative-result gate; low R2 "
+                "limits interpretation of the fitted slope."
             ),
+            "fit_quality_by_case": {
+                case: {
+                    "l1_r2_log": record["fit_l1"]["r2_log"],
+                    "l1_rmse_log": record["fit_l1"]["rmse_log"],
+                    "linf_r2_log": record["fit_linf"]["r2_log"],
+                    "linf_rmse_log": record["fit_linf"]["rmse_log"],
+                }
+                for case, record in by_case.items()
+            },
         },
     }
     json_path = out / "summary.json"
@@ -440,7 +509,8 @@ def write_outputs(
     with csv_path.open("w", newline="", encoding="utf-8") as handle:
         columns = (
             "case", "pair", "variable", "time", "l1", "linf",
-            "lambda_l1", "lambda_linf", "n_fit_l1", "n_fit_linf",
+            "lambda_l1", "lambda_linf", "r2_l1", "r2_linf", "rmse_log_l1",
+            "rmse_log_linf", "n_fit_l1", "n_fit_linf",
         )
         writer = csv.DictWriter(handle, fieldnames=columns)
         writer.writeheader()
@@ -452,6 +522,10 @@ def write_outputs(
                     "l1": l1, "linf": linf,
                     "lambda_l1": record["lambda_l1"],
                     "lambda_linf": record["lambda_linf"],
+                    "r2_l1": record["fit_l1"]["r2_log"],
+                    "r2_linf": record["fit_linf"]["r2_log"],
+                    "rmse_log_l1": record["fit_l1"]["rmse_log"],
+                    "rmse_log_linf": record["fit_linf"]["rmse_log"],
                     "n_fit_l1": record["fit_l1"]["n_fit"],
                     "n_fit_linf": record["fit_linf"]["n_fit"],
                 })
@@ -461,13 +535,14 @@ def write_outputs(
 
     lines = [
         "# MHD Temporal Divergence", "",
-        "| case | samples | lambda L1 | lambda Linf | n_fit L1 | n_fit Linf | fit window |",
-        "|---|---:|---:|---:|---:|---:|---|",
+        "| case | samples | lambda L1 | R2 L1 | lambda Linf | R2 Linf | n_fit L1 | n_fit Linf | fit window |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for record in records:
         lines.append(
             f"| {record['case']} | {len(record['times'])} | {fmt_lambda(record['lambda_l1'])} | "
-            f"{fmt_lambda(record['lambda_linf'])} | {record['fit_l1']['n_fit']} | "
+            f"{float(record['fit_l1']['r2_log']):.4f} | {fmt_lambda(record['lambda_linf'])} | "
+            f"{float(record['fit_linf']['r2_log']):.4f} | {record['fit_l1']['n_fit']} | "
             f"{record['fit_linf']['n_fit']} | {record['fit_window']} |"
         )
     lines.extend([
@@ -478,13 +553,16 @@ def write_outputs(
         f"- Figure: `{payload['figure']}`", "",
         "Technical pass checks case presence, finite nonnegative drift samples, and a "
         "positive Orszag-Tang L1 fit. Report-grade pass additionally requires exact samples, "
-        "aligned series, finite fits, sufficient fit counts, and 80 successful "
+        "aligned series, finite fits, quantified residual diagnostics, sufficient fit counts, and 80 successful "
         "provenance-complete runs. Neither gate requires OT>Brio-Wu ordering or a positive "
         "Orszag-Tang Linf fit.", "",
         ordering_statement(planned_contrast, ot_l1=ot_l1, brio_l1=brio_l1),
-        f"The OT Linf fit is {fmt_lambda(ot_linf)}. Fit quality is not independently gated or "
-        "quantified, so physical interpretation is limited to these deterministic "
-        "fixed-window engineering fits.", "",
+        f"The OT Linf fit is {fmt_lambda(ot_linf)}. Fixed-window log-linear R2 values are "
+        f"{by_case['brio_wu_1d']['fit_l1']['r2_log']:.4f}/"
+        f"{by_case['brio_wu_1d']['fit_linf']['r2_log']:.4f} for Brio-Wu L1/Linf and "
+        f"{by_case['orszag_tang_2d']['fit_l1']['r2_log']:.4f}/"
+        f"{by_case['orszag_tang_2d']['fit_linf']['r2_log']:.4f} for OT. The near-zero OT "
+        "values limit slope interpretation; no minimum R2 is required for the negative-result gate.", "",
         "The fitted lambda is a Lyapunov-like engineering growth rate of an "
         "fp32-vs-fp64 perturbation, not a formal maximal Lyapunov exponent.", "",
     ])
@@ -495,18 +573,42 @@ def write_outputs(
     }
 
 
+def refresh_outputs_from_summary(out_dir: pathlib.Path) -> dict[str, Any]:
+    """Rebuild analysis products from retained records/runs without solver reruns."""
+    summary_path = pathlib.Path(out_dir) / "summary.json"
+    payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    return write_outputs(
+        out_dir,
+        payload["records"],
+        payload["runs"],
+        mode=str(payload.get("mode", "report-grade")),
+        selected_cases=payload.get("selected_cases", list(CASES)),
+    )
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT)
     parser.add_argument("--case", choices=("all", *CASES), default="all")
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--keep-grids", action="store_true")
+    parser.add_argument(
+        "--refresh-summary",
+        action="store_true",
+        help="Recompute fit diagnostics and outputs from retained summary records; run no solver jobs.",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     out = route_output_dir(args.out, case=args.case, smoke=args.smoke)
+    if args.refresh_summary:
+        if args.case != "all" or args.smoke or args.keep_grids:
+            raise ValueError("--refresh-summary cannot be combined with --case, --smoke, or --keep-grids")
+        paths = refresh_outputs_from_summary(out)
+        print(paths["markdown"])
+        return 0 if paths["payload"]["gates"]["pass"] else 1
     binaries = resolve_binaries()
     names = list(CASES) if args.case == "all" else [args.case]
     mode = "report-grade" if args.case == "all" and not args.smoke else "diagnostic"

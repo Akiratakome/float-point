@@ -57,9 +57,21 @@ def fit_exponential_growth(
             "skipped": skipped,
             "fit_window": window,
             "times_used": fit_t.tolist(),
+            "r2_log": None,
+            "rmse_log": None,
+            "max_abs_residual_log": None,
         }
 
-    slope, intercept = np.polyfit(fit_t, np.log(fit_e), 1)
+    log_e = np.log(fit_e)
+    slope, intercept = np.polyfit(fit_t, log_e, 1)
+    fitted = slope * fit_t + intercept
+    residual = log_e - fitted
+    ss_res = float(np.sum(residual * residual))
+    centred = log_e - float(np.mean(log_e))
+    ss_tot = float(np.sum(centred * centred))
+    r2 = 1.0 if ss_tot == 0.0 and ss_res == 0.0 else (
+        None if ss_tot == 0.0 else 1.0 - ss_res / ss_tot
+    )
     return {
         "lambda": float(slope),
         "slope": float(slope),
@@ -68,6 +80,9 @@ def fit_exponential_growth(
         "skipped": skipped,
         "fit_window": window,
         "times_used": fit_t.tolist(),
+        "r2_log": None if r2 is None else float(r2),
+        "rmse_log": float(np.sqrt(np.mean(residual * residual))),
+        "max_abs_residual_log": float(np.max(np.abs(residual))),
     }
 
 

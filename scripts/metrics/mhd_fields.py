@@ -48,9 +48,18 @@ def mhd_primitive_fields(arr: np.ndarray, gamma: float) -> dict[str, np.ndarray]
 
 
 def field_norms(
-    candidate: np.ndarray, reference: np.ndarray, gamma: float, dx: float
+    candidate: np.ndarray,
+    reference: np.ndarray,
+    gamma: float,
+    dx: float,
+    dy: float | None = None,
 ) -> dict[str, float]:
-    """Compute L1, L2, and Linf primitive-field differences on the same grid."""
+    """Compute physical-domain L1, L2, and Linf same-grid differences.
+
+    Arrays with one row are treated as one-dimensional.  For two-dimensional
+    arrays, ``dy`` defaults to ``dx`` for the square grids used by the existing
+    experiment drivers.
+    """
 
     cand = _as_mhd_array(candidate, "candidate")
     ref = _as_mhd_array(reference, "reference")
@@ -58,6 +67,10 @@ def field_norms(
         raise ValueError("candidate and reference must have matching shapes")
     if not np.isfinite(dx) or dx <= 0.0:
         raise ValueError("dx must be finite and > 0.0")
+    if dy is not None and (not np.isfinite(dy) or dy <= 0.0):
+        raise ValueError("dy must be finite and > 0.0")
+
+    cell_measure = dx if cand.shape[0] == 1 else dx * (dx if dy is None else dy)
 
     cand_fields = mhd_primitive_fields(cand, gamma)
     ref_fields = mhd_primitive_fields(ref, gamma)
@@ -66,8 +79,8 @@ def field_norms(
     for field in FIELD_NAMES:
         diff = cand_fields[field] - ref_fields[field]
         abs_diff = np.abs(diff)
-        norms[f"L1_{field}"] = float(np.sum(abs_diff) * dx)
-        norms[f"L2_{field}"] = float(np.sqrt(np.sum(diff * diff) * dx))
+        norms[f"L1_{field}"] = float(np.sum(abs_diff) * cell_measure)
+        norms[f"L2_{field}"] = float(np.sqrt(np.sum(diff * diff) * cell_measure))
         norms[f"Linf_{field}"] = float(np.max(abs_diff))
     return norms
 

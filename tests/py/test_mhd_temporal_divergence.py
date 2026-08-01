@@ -259,6 +259,7 @@ def test_full_synthetic_report_grade_packet_passes():
     assert gates["series_aligned"] is True
     assert gates["required_lambdas_finite"] is True
     assert gates["fit_counts_sufficient"] is True
+    assert gates["fit_quality_quantified"] is True
     assert gates["run_count_exact"] is True
     assert gates["runs_successful"] is True
     assert gates["run_provenance_complete"] is True
@@ -278,6 +279,7 @@ def test_outputs_are_strict_json_and_register_figure(tmp_path):
     assert payload["mode"] == "report-grade"
     assert payload["selected_cases"] == list(td.CASES)
     assert payload["gates"]["orszag_tang_positive_lambda"] is True
+    assert payload["gates"]["fit_quality_quantified"] is True
     assert payload["interpretation"]["formal_maximal_lyapunov"] is False
     assert payload["interpretation"]["planned_ot_exceeds_brio_l1"] is False
     assert payload["interpretation"]["orszag_tang_linf_positive"] is False
@@ -290,13 +292,26 @@ def test_outputs_are_strict_json_and_register_figure(tmp_path):
     markdown = paths["markdown"].read_text(encoding="utf-8")
     assert "OT>Brio-Wu L1 contrast is not observed" in markdown
     assert "fixed fit windows" in markdown
-    assert "| n_fit L1 | n_fit Linf |" in markdown
+    assert "| R2 L1 |" in markdown
+    assert "near-zero OT" in markdown
     assert "| 13 | 13 |" in markdown
     assert "| 10 | 10 |" in markdown
     rows = list(csv.DictReader(paths["csv"].open(encoding="utf-8")))
     assert rows[0]["n_fit_l1"] == "13"
     assert rows[-1]["n_fit_linf"] == "10"
+    assert math.isfinite(float(rows[0]["r2_l1"]))
     assert paths["figure"].is_file()
+
+
+def test_refresh_outputs_uses_retained_summary_without_solver_runs(tmp_path):
+    initial = td.write_outputs(
+        tmp_path, _full_records(), _full_runs(),
+        mode="report-grade", selected_cases=list(td.CASES),
+    )
+    refreshed = td.refresh_outputs_from_summary(tmp_path)
+    assert refreshed["payload"]["gates"]["pass"] is True
+    assert refreshed["payload"]["runs"] == initial["payload"]["runs"]
+    assert refreshed["payload"]["interpretation"]["fit_quality_by_case"]
 
 
 def test_plot_records_masks_zero_drift_without_runtime_warnings(tmp_path):

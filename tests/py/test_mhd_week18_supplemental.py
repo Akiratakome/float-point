@@ -1,4 +1,16 @@
+import os
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import numpy as np
+import pytest
+
 from scripts.regression import mhd_week18_supplemental as w18
+
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_hardware_plan_has_five_repeats_for_each_covered_pair():
@@ -101,6 +113,25 @@ def test_hardware_group_ulp_is_not_carried_between_cases():
     assert groups["orszag_tang_2d"]["ulp_max"] == 0
 
 
+def test_hardware_gate_rejects_nonphysical_completed_rows():
+    rows = [
+        {
+            "case": "brio_wu_1d",
+            "precision": "double",
+            "repeat": 1,
+            "device": device,
+            "elapsed_wall_s": 1.0,
+            "ulp_max": 0,
+            "linf_abs": 0.0,
+            "completed": True,
+            "finite_positive": device == "cpu",
+        }
+        for device in ("cpu", "gpu")
+    ]
+
+    assert w18.aggregate_hardware(rows, expected_repeats=1)["gate"]["pass"] is False
+
+
 def test_thread_gate_compares_each_row_to_same_precision_one_thread():
     rows = [
         {
@@ -141,3 +172,234 @@ def test_cfl_gate_reports_precision_effect_without_temporal_convergence_claim():
 
     assert summary["gate"]["pass"] is True
     assert summary["claims"]["temporal_convergence"] is False
+
+
+def test_run_name_contains_every_independent_axis():
+    hardware = {
+        "suite": "hardware_repeats",
+        "case": "orszag_tang_2d",
+        "precision": "float",
+        "device": "gpu",
+        "repeat": 3,
+        "solver": "hll",
+    }
+    thread = {
+        "suite": "thread_repro",
+        "case": "kelvin_helmholtz_2d",
+        "precision": "double",
+        "device": "cpu",
+        "solver": "hll",
+        "omp_num_threads": 8,
+    }
+
+    assert w18.run_name(hardware) == "orszag_tang_2d-float-gpu-hll-r03"
+    assert w18.run_name(thread) == "kelvin_helmholtz_2d-double-cpu-hll-t08"
+
+
+def test_cleanup_refuses_non_grid_paths(tmp_path):
+    path = tmp_path / "summary.json"
+    path.write_text("{}", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="non-grid"):
+        w18.cleanup_grids([path])
+
+    assert path.is_file()
+
+
+def test_cli_defaults_to_week18_output():
+    args = w18.parse_args(["hardware", "--repeats", "3"])
+
+    assert args.suite == "hardware"
+    assert args.repeats == 3
+    assert "experiments" in str(args.out)
+    assert "week18" in str(args.out)
+
+
+def test_direct_cli_imports_metrics_without_pytest_path_injection():
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "regression" / "mhd_week18_supplemental.py"),
+            "--help",
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+
+
+def test_difference_metrics_use_ulp_only_for_same_dtype():
+    reference = np.array([1.0, -1.0], dtype=np.float32)
+    adjacent = np.nextafter(
+        reference,
+        np.array([2.0, -2.0], dtype=np.float32),
+    )
+
+    same_precision = w18.difference_metrics(adjacent, reference)
+    cross_precision = w18.difference_metrics(
+        adjacent.astype(np.float64),
+        reference,
+    )
+
+    assert same_precision["ulp_max"] == 1
+    assert same_precision["linf_abs"] > 0.0
+    assert cross_precision["ulp_max"] is None
+
+
+def test_physical_state_requires_finite_positive_density_and_pressure():
+    valid = np.zeros((1, 1, 9), dtype=np.float64)
+    valid[..., 0] = 1.0
+    valid[..., 7] = 2.5
+
+    assert w18.physical_state(valid, gamma=5.0 / 3.0)["finite_positive"] is True
+
+    invalid = valid.copy()
+    invalid[..., 0] = -1.0
+    assert w18.physical_state(invalid, gamma=5.0 / 3.0)["finite_positive"] is False
+
+
+def test_environment_override_restores_previous_value():
+    key = "HRSC_WEEK18_TEST_ENV"
+    original = os.environ.get(key)
+    os.environ[key] = "before"
+    try:
+        with w18.environment_override({key: "during"}):
+            assert os.environ[key] == "during"
+        assert os.environ[key] == "before"
+    finally:
+        if original is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = original
+
+
+def test_write_hardware_outputs_creates_stable_packet(tmp_path):
+    summary = w18.aggregate_hardware(
+        [
+            {
+                "case": "orszag_tang_2d",
+                "precision": "double",
+                "repeat": 1,
+                "device": device,
+                "elapsed_wall_s": 4.0 if device == "cpu" else 1.0,
+                "ulp_max": 0,
+                "linf_abs": 0.0,
+                "completed": True,
+            }
+            for device in ("cpu", "gpu")
+        ],
+        expected_repeats=1,
+    )
+
+    w18.write_suite_outputs(summary, tmp_path)
+
+    saved = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
+    assert saved["gate"]["pass"] is True
+    assert (tmp_path / "summary.csv").is_file()
+    assert (tmp_path / "summary.md").is_file()
+    assert (tmp_path / "figures" / "hardware_repeats.png").is_file()
+
+
+def test_combined_summary_requires_all_three_suite_gates():
+    summaries = {
+        name: {"suite": name, "gate": {"pass": True}}
+        for name in ("hardware_repeats", "thread_repro", "kh_cfl")
+    }
+
+    combined = w18.combine_summaries(summaries, commit="deadbeef")
+
+    assert combined["gate"]["pass"] is True
+    assert combined["git_commit"] == "deadbeef"
+    assert combined["claim_boundaries"]["full_kh_mca_completed"] is False
+
+
+def test_attach_hardware_metrics_pairs_same_repeat_and_precision():
+    cpu = np.array([1.0, -1.0], dtype=np.float64)
+    staged = [
+        {
+            "row": {
+                "case": "brio_wu_1d",
+                "precision": "double",
+                "device": device,
+                "repeat": 1,
+            },
+            "array": cpu.copy(),
+        }
+        for device in ("cpu", "gpu")
+    ]
+
+    rows = w18.attach_hardware_metrics(staged)
+
+    assert all(row["ulp_max"] == 0 for row in rows)
+    assert all(row["linf_abs"] == 0.0 for row in rows)
+
+
+def test_attach_thread_metrics_uses_one_thread_reference():
+    reference = np.array([1.0], dtype=np.float32)
+    changed = np.nextafter(reference, np.array([2.0], dtype=np.float32))
+    staged = [
+        {
+            "row": {
+                "case": "kelvin_helmholtz_2d",
+                "precision": "float",
+                "omp_num_threads": thread,
+            },
+            "array": reference.copy() if thread == 1 else changed.copy(),
+        }
+        for thread in (1, 2)
+    ]
+
+    rows = w18.attach_thread_metrics(staged)
+    indexed = {row["omp_num_threads"]: row for row in rows}
+
+    assert indexed[1]["ulp_max"] == 0
+    assert indexed[2]["ulp_max"] == 1
+
+
+def test_attach_cfl_metrics_uses_same_solver_cfl_fp64_density_reference():
+    double = np.zeros((1, 1, 9), dtype=np.float64)
+    double[..., 0] = 1.0
+    double[..., 7] = 2.5
+    single = double.astype(np.float32)
+    single[..., 0] = np.float32(1.000001)
+    staged = [
+        {
+            "row": {"solver": "hll", "precision": precision, "cfl": 0.4},
+            "array": array,
+            "gamma": 5.0 / 3.0,
+            "dx": 1.0,
+        }
+        for precision, array in (("double", double), ("float", single))
+    ]
+
+    rows = w18.attach_cfl_metrics(staged)
+    indexed = {row["precision"]: row for row in rows}
+
+    assert indexed["double"]["Linf_rho_vs_fp64"] == 0.0
+    assert indexed["float"]["Linf_rho_vs_fp64"] > 0.0
+
+
+def test_zero_ulp_axis_spec_makes_exact_agreement_visible():
+    spec = w18.ulp_axis_spec([0, 0, 0])
+
+    assert spec["ylim"] == (-0.1, 0.5)
+    assert spec["annotations"] == ["0 ULP", "0 ULP", "0 ULP"]
+
+
+def test_thread_runtime_ratios_use_same_group_one_thread_baseline():
+    rows = [
+        {
+            "case": "orszag_tang_2d",
+            "precision": "double",
+            "omp_num_threads": thread,
+            "elapsed_wall_s": elapsed,
+        }
+        for thread, elapsed in ((1, 10.0), (2, 5.0), (4, 2.5))
+    ]
+
+    ratios = w18.thread_runtime_ratios(rows)
+
+    assert [row["runtime_vs_one_thread"] for row in ratios] == [1.0, 0.5, 0.25]

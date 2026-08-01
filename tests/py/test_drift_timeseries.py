@@ -49,6 +49,9 @@ def test_fit_exponential_growth_recovers_known_lambda() -> None:
 
     assert fit["lambda"] == pytest.approx(0.3, abs=1e-12)
     assert fit["n_fit"] == 4
+    assert fit["r2_log"] == pytest.approx(1.0, abs=1e-12)
+    assert fit["rmse_log"] == pytest.approx(0.0, abs=1e-12)
+    assert fit["max_abs_residual_log"] == pytest.approx(0.0, abs=1e-12)
 
 
 def test_fit_skips_zero_and_nonfinite_errors() -> None:

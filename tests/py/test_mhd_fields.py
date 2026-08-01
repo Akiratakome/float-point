@@ -54,12 +54,50 @@ def test_field_norms_scale_with_dx():
     assert np.isclose(norms["Linf_rho"], 0.5)
 
 
+def test_field_norms_uses_cell_area_for_2d():
+    gamma = 5.0 / 3.0
+    a = np.array(
+        [[_cell(1.0, 0.0, 0.0, 1.0, gamma)] * 2] * 2,
+        dtype=np.float64,
+    )
+    b = np.array(
+        [[_cell(2.0, 0.0, 0.0, 1.0, gamma)] * 2] * 2,
+        dtype=np.float64,
+    )
+    norms = field_norms(a, b, gamma, dx=0.5, dy=0.5)
+    assert np.isclose(norms["L1_rho"], 1.0)
+    assert np.isclose(norms["L2_rho"], 1.0)
+    assert np.isclose(norms["Linf_rho"], 1.0)
+
+
+def test_field_norms_defaults_to_square_cells_for_2d():
+    gamma = 5.0 / 3.0
+    a = np.array(
+        [[_cell(1.0, 0.0, 0.0, 1.0, gamma)] * 2] * 2,
+        dtype=np.float64,
+    )
+    b = np.array(
+        [[_cell(2.0, 0.0, 0.0, 1.0, gamma)] * 2] * 2,
+        dtype=np.float64,
+    )
+    norms = field_norms(a, b, gamma, dx=0.5)
+    assert np.isclose(norms["L1_rho"], 1.0)
+
+
 @pytest.mark.parametrize("dx", [0.0, -1.0, float("nan")])
 def test_field_norms_rejects_invalid_dx(dx):
     gamma = 5.0 / 3.0
     arr = np.array([[_cell(1.0, 0.0, 0.0, 1.0, gamma)]], dtype=np.float64)
     with pytest.raises(ValueError, match="dx"):
         field_norms(arr, arr, gamma, dx=dx)
+
+
+@pytest.mark.parametrize("dy", [0.0, -1.0, float("nan")])
+def test_field_norms_rejects_invalid_dy(dy):
+    gamma = 5.0 / 3.0
+    arr = np.array([[_cell(1.0, 0.0, 0.0, 1.0, gamma)]], dtype=np.float64)
+    with pytest.raises(ValueError, match="dy"):
+        field_norms(arr, arr, gamma, dx=1.0, dy=dy)
 
 
 def test_primitive_fields_rejects_flat_state():
