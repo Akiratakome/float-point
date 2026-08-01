@@ -24,7 +24,11 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))
 from io_helper import read_binary  # noqa: E402  (re-exported)
 from scripts.harness.config import replace_or_append_cfg  # noqa: E402
-from scripts.harness.contracts import RequiredArtifact, RunSpec  # noqa: E402
+from scripts.harness.contracts import (  # noqa: E402
+    RequiredArtifact,
+    RunSpec,
+    load_build_semantics,
+)
 from scripts.harness.metadata import serialise_record  # noqa: E402
 from scripts.harness.runner import execute_run  # noqa: E402
 
@@ -128,9 +132,13 @@ def run_case(label, cfg_text, run_dir, bin_path, source_cfg, commit, binary_sha2
         run_config=cfg_path,
         cwd=ROOT,
         required_artifacts=(
-            RequiredArtifact(output_bin_path, kind="hrsc_binary")
+            (RequiredArtifact(output_bin_path, kind="file"),)
             if output_bin_path
             else ()
+        ),
+        build_semantics=load_build_semantics(
+            bin_path.parent / "build_semantics.json",
+            fallback_label=bin_path.parent.name,
         ),
     )
     record = execute_run(spec)

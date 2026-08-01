@@ -116,6 +116,7 @@ def test_run_case_checks_relative_output_bin_against_root(tmp_path):
         assert meta["artifacts"]["primary_output"] == str(abs_out)
         assert meta["elapsed_wall_s"] == meta["timing"]["elapsed_wall_s"]
         assert meta["stderr_diagnostics"] == {}
+        assert meta["build_semantics"]["effective_math_mode"] == "unknown"
     finally:
         if abs_out.exists():
             abs_out.unlink()
