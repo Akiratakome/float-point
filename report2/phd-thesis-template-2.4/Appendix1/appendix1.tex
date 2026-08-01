@@ -1,0 +1,46 @@
+\chapter{Evidence and Reproduction Map}
+
+Table~\ref{tab:appendix-ch4-evidence} maps the Chapter~4 manuscript items to
+their retained summaries and deterministic generation commands. The figure
+hashes and source-summary hashes are recorded in the publication-figure
+manifest; transient binary grids are not required by the report package.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}
+  >{\raggedright\arraybackslash}p{0.16\textwidth}
+  >{\raggedright\arraybackslash}p{0.38\textwidth}
+  >{\raggedright\arraybackslash}X@{}}
+\toprule
+Item & Retained authority & Reproduction command \\
+\midrule \addlinespace[2pt]
+Figure~\ref{fig:ch4-validation-refinement-glm}
+& \path{experiments/week12/brio_wu_1d/summary.json};
+  \path{experiments/week12/mhd_2d/divb_clean/summary.json}; figure manifest
+& \texttt{python}\newline
+  \path{scripts/figures/report2_publication_figures.py} \\
+Table~\ref{tab:ch4-cpu-gpu}
+& \path{experiments/week16/cpu_gpu_hardware_axis/summary.json}
+& \texttt{python}\newline
+  \path{scripts/figures/report2_chapter4_cpu_gpu_table.py} \\
+Figure~\ref{fig:ch4-resolution-precision}
+& \path{experiments/week18/resolution_ladder/summary.json}; figure manifest
+& \texttt{python}\newline
+  \path{scripts/figures/report2_publication_figures.py} \\
+\bottomrule
+\end{tabularx}
+\caption[Chapter 4 evidence and reproduction map]{Chapter~4 evidence and
+reproduction map. The publication manifest is
+\path{experiments/week18/report2_publication_figures/figure_manifest.json}.}
+\label{tab:appendix-ch4-evidence}
+\end{table}
+
+\section{Chapter 5 MCA scope status}
+\label{sec:appendix-ch5-mca-status}
+
+The main text retains only the matched Brio--Wu comparison. Table~\ref{tab:appendix-ch5-mca-status}
+records reduced, validation-only and unavailable scopes so that their absence
+from the quantitative comparison is explicit.
+
+\input{Appendix1/chapter5_mca_status_table}

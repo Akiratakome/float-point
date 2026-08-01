@@ -1,0 +1,24 @@
+\begin{table}[htbp]
+\centering
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}llclclX@{}}
+\toprule
+Case & Solver & Virtual precision & Scope & $N$ & Status & Permitted use \\
+\midrule
+Brio--Wu & HLL  & p53, p24 & $800$, $t=0.1$ & 30 & report-grade & Matched result. \\
+Brio--Wu & HLLD & p53, p24 & $800$, $t=0.1$ & 30 & report-grade & Matched result. \\
+Orszag--Tang & HLL  & p53, p24 & $64^2$, $t=0.05$ & 30 & provisional & Reduced-scope context only. \\
+Orszag--Tang & HLLD & p53, p24 & $64^2$, $t=0.05$ & 30 & provisional & Reduced-scope context only. \\
+KH local & HLL  & p53, p24 & $64^2$, $t=0.05$ & 30 & provenance & Toolchain/noise provenance. \\
+KH local & HLLD & p53, p24 & $64^2$, $t=0.05$ & 30 & provenance & Toolchain/noise provenance. \\
+KH CSC & HLL  & p53, p24 & $64^2$, $t=0.05$ & 4 & validation & Pipeline/direction only. \\
+KH CSC & HLLD & p53, p24 & $64^2$, $t=0.05$ & 4 & validation & Pipeline/direction only. \\
+KH full & HLL  & p53, p24 & $256^2$, $t=1.0$ & 0/30 & unavailable & No numerical claim. \\
+KH full & HLLD & p53, p24 & $256^2$, $t=1.0$ & 0/30 & unavailable & No numerical claim. \\
+\bottomrule
+\end{tabularx}
+\caption[MCA evidence status by case and scope]{MCA evidence status by case and
+scope. $N=0/30$ denotes zero retained samples from a target of 30 and supplies
+no stochastic magnitude. Rows with different scopes are not merged.}
+\label{tab:appendix-ch5-mca-status}
+\end{table}

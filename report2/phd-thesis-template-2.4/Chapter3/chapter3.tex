@@ -1,0 +1,168 @@
+\chapter{Experimental Design and Reproducibility Methodology}
+
+\section{Research questions and controlled axes}
+
+The experiments ask four bounded questions. First, how do stored states change
+when arithmetic precision or effective build semantics change? Second, within
+matched configurations, how do the HLL/HLLD choice and CPU/GPU execution path
+affect output and elapsed time? Third, how does the fp32--fp64 discrepancy vary
+with resolution and time, and how does it compare with virtual-precision
+stochastic variation? Fourth, do thread count and CFL number alter the covered
+observations? Precision, build semantics, solver, device, resolution and time
+are primary axes. Thread count and CFL number are robustness axes. MPI,
+additional GPU solvers and cross-machine performance are deliberately deferred.
+
+\section{Test-case matrix}
+
+The ideal-MHD matrix contains the one-dimensional Brio--Wu shock tube and the
+two-dimensional periodic Orszag--Tang and Kelvin--Helmholtz problems. These
+cases cover a discontinuous one-dimensional flow, a two-dimensional interacting
+wave system and a shear instability. Sod and Liska--Wendroff Configuration~3
+provide a compact one- and two-dimensional Euler continuity check for the
+cross-system comparison; they do not repeat the Euler validation study from
+Report~1. Each result states its case, grid, final time, solver and baseline,
+so observations are not transferred between unmatched configurations.
+
+\section{Build and run matrix}
+
+The arithmetic builds use binary64 or binary32 storage and computation. Matched
+build comparisons additionally vary the effective optimisation, floating-point
+math and branch-rule semantics recorded by the harness. Directory names are
+identifiers rather than evidence of compiler behaviour. The isolated MSVC
+matrix compares /O2 with /Ox, compiler-default math with /fp:fast at /O2, and
+$\leq$ with $<$ at /O2 and default math, changing one recorded axis per pair.
+Deterministic
+precision comparisons use the same-solver fp64 run at the same grid and final
+time as their numerical baseline. Solver, device, thread-count and CFL
+comparisons change one declared axis while retaining the case controls needed
+by that experiment. Virtual p53 and p24 MCA runs form a separate stochastic
+matrix and are not identified with IEEE fp64 and fp32 runs.
+
+\section{Reference hierarchy and validation gates}
+\label{sec:ch3-reference-hierarchy}
+
+Validation claims follow the strongest available reference. Brio--Wu uses an
+aligned fp64 numerical reference at $N=8000$; it is not treated as an exact MHD
+solution. For the two-dimensional cases, each fine grid is conservatively
+block-averaged before comparison with the adjacent coarse grid. These
+self-reference differences show the direction of a three-grid trend but do not
+by themselves establish an asymptotic convergence regime. Completion requires
+the declared final time and expected output, while the physical-state gate
+requires finite conservative variables with positive density and thermal
+pressure. Transverse invariance, CPU/GPU saved-state equality, and divergence
+control are separate implementation gates rather than substitutes for a
+solution reference.
+
+The Orszag--Tang configuration follows \citet{toth2000divb} after the coordinate
+change $X=2\pi x$, $Y=2\pi y$ from $[0,2\pi]^2$ to the periodic unit square. The
+corresponding time is $T=2\pi t$, so the reported project time $t=0.5$ maps to
+$T=\pi$, the late comparison time used in that source to rounding precision.
+
+\section{Metrics and statistical treatment}
+\label{sec:ch3-metrics}
+
+For a same-grid difference $d_{ij}=q_{ij}-q^{\mathrm{ref}}_{ij}$ over
+$N=N_xN_y$ cells, the reported mean norms are
+\begin{equation}
+ L_{1,\mathrm{mean}}=\frac{1}{N}\sum_{ij}|d_{ij}|,\qquad
+ L_{2,\mathrm{mean}}=\left(\frac{1}{N}\sum_{ij}d_{ij}^{2}\right)^{1/2},
+ \label{eq:ch3-mean-norms}
+\end{equation}
+with $L_\infty=\max_{ij}|d_{ij}|$. They are distinct from physical-domain
+integrals weighted by $\Delta x\Delta y$.
+For the compact cross-system matrix, the mean-relative density difference is
+\begin{equation}
+ L_{1,\mathrm{rel}}(\rho)=
+ \frac{N^{-1}\sum_{ij}|\rho_{ij}-\rho^{\mathrm{ref}}_{ij}|}
+      {N^{-1}\sum_{ij}|\rho^{\mathrm{ref}}_{ij}|},
+ \label{eq:ch3-mean-relative}
+\end{equation}
+and is used only when the denominator is finite and positive. This
+normalisation permits scale-aware reporting within the compact matrix, but it
+does not turn an fp64 baseline into an exact solution or support a ranking of
+different physical systems.
+Figure~\ref{fig:ch4-resolution-precision} uses absolute density
+$L_{1,\mathrm{mean}}$ after block averaging. Its engineering diagnostic is
+\begin{equation}
+ p_{\mathrm{obs}}=\log_2\!\left(\frac{E_{128,256}}{E_{256,512}}\right).
+ \label{eq:ch3-observed-p}
+\end{equation}
+For the Chapter~5 precision context, let
+$D_N=\|\rho_{32,N}-\rho_{64,N}\|_{1,\mathrm{mean}}$ and let
+$E^{64}_{256,512}$ be the matched fp64 adjacent-grid mean-$L_1$ difference
+after block averaging. The reported ratio
+$S_N=D_N/E^{64}_{256,512}$ compares precision discrepancy with the finest
+available refinement scale within one case and solver. It is not an exact-error
+ratio or an fp32-adequacy criterion.
+
+The divergence diagnostic applies centred differences on interior cells,
+\begin{align}
+ D_{ij} &=\frac{B_{x,i+1,j}-B_{x,i-1,j}}{2\Delta x}
+          +\frac{B_{y,i,j+1}-B_{y,i,j-1}}{2\Delta y}, \notag\\
+ \mathrm{divB}_{\mathrm{mean}}
+        &=\frac{1}{N_I}\sum_{(i,j)\in I}|D_{ij}|,
+ &\mathrm{divB}_{\max}
+        &=\max_{(i,j)\in I}|D_{ij}|.
+ \label{eq:ch3-divb}
+\end{align}
+where $I$ excludes the outer stencil layer. These are raw, grid-scale
+quantities rather than dimensionless divergence errors; mean and maximum values
+are therefore interpreted separately. Same-precision CPU/GPU comparisons use
+absolute $L_\infty$ and maximum ULP distance on the saved conservative state.
+For arrays with the same IEEE type, sign-adjusted bit patterns are mapped to
+monotone integers and the largest cellwise integer distance is reported. Thus
+zero ULP denotes bitwise equality; ULP distance is not used between fp32 and
+fp64 arrays and is not a physical error norm.
+
+For $n$ MCA samples, the per-cell sample standard deviation is
+\begin{equation}
+ \sigma_j=\left[\frac{1}{n-1}\sum_{s=1}^{n}
+ (q_{s,j}-\bar q_j)^2\right]^{1/2},\qquad
+ \mathrm{spread}_q=\max_j\sigma_j .
+ \label{eq:ch3-mca-spread}
+\end{equation}
+The maximum is a conservative spatial aggregation for shocks and shear layers.
+The associated numerical signal-to-noise ratio is
+$\operatorname{mean}_j|\bar q_j|/\operatorname{mean}_j\sigma_j$; it is not a
+physical turbulence SNR. Sample count, virtual precision, solver, grid and
+final time accompany every MCA value. Results from unmatched scopes are not
+ratioed or merged.
+
+Elapsed time is subprocess wall time from solver launch through completion and
+required binary output, rather than kernel time. Repeated timing groups discard
+one warm-up and retain five measurements. They report the median and
+$\mathrm{IQR}=Q_{75}-Q_{25}$; speed-up is the matched baseline median divided
+by the comparison median. These measurements support only the recorded
+workstation and configuration.
+
+The temporal experiment aligns fp32 and fp64 saved states at each time and
+computes density $L_{1,\mathrm{mean}}$ and $L_\infty$. For positive samples in
+the predeclared case-specific window, ordinary least squares fits
+\begin{equation}
+ \log e(t)=a+\lambda t .
+ \label{eq:ch3-temporal-fit}
+\end{equation}
+Fit quality is reported using $R^2$, root-mean-square log residual and maximum
+absolute log residual without changing the fixed window. The slope is a
+bounded Lyapunov-like engineering diagnostic, not a formal maximal Lyapunov
+exponent or physical instability rate.
+
+\section{Harness, metadata, and retention}
+
+Every evidence packet follows \texttt{config -> build -> run -> measure ->
+aggregate -> plot}. Generated configurations and run metadata record the
+executable and configuration hashes, process return code, declared final time,
+diagnostics and elapsed wall time. Aggregators check matrix completeness,
+finite admissible states and experiment-specific gates before writing machine-
+readable JSON/CSV and report-facing figures. Logs and summaries are retained;
+large transient grids are removed except where a retained grid is required to
+close and revalidate a declared comparison pair.
+
+\section{Deliberate exclusions}
+
+MPI is excluded because the evaluated solver path and evidence matrix do not
+provide a matched MPI implementation whose ordering effects could be isolated.
+HLLD-on-GPU, KH-on-GPU, full-grid KH MCA and a second timing machine are also
+outside the completed matrix. Their omission limits the claims; it does not
+imply that parallel ordering, hardware or solver choice is generally
+irrelevant.

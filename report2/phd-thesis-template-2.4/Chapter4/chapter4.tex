@@ -1,0 +1,165 @@
+%!TEX root = ../thesis.tex
+
+\chapter{MHD Validation Results}
+\label{chap:mhd-validation-results}
+
+\section{Validation hierarchy overview}
+\label{sec:ch4-validation-hierarchy}
+
+Chapter~3 defines the reference hierarchy, completion checks, physical-state
+checks, and divergence diagnostics used here. Validation proceeds from a
+one-dimensional reference and two-dimensional property checks to matched
+CPU/GPU, Orszag--Tang, and Kelvin--Helmholtz tests. Each result is conditional
+on its solver, precision, device, grid, and final time, and is not transferable.
+
+\section{One-dimensional Brio--Wu validation}
+\label{sec:ch4-brio-wu}
+
+The one-dimensional test uses the standard coplanar MHD Riemann problem of
+\citet{brioWu1988}. Figure~\ref{fig:ch4-validation-refinement-glm}(a) compares
+three fp64 grids with an aligned, block-averaged $N=8000$ fp64 numerical
+reference. From $N=200$ to $N=800$, the density mean $L_1$ difference fell
+from $1.481\times10^{-2}$ to $5.642\times10^{-3}$, while $L_2$ fell from
+$3.642\times10^{-2}$ to $1.923\times10^{-2}$. Both decreased monotonically;
+the observed three-grid rates were 0.70 and 0.46, respectively. All candidate
+runs retained finite states, with $\mathrm{divB}_{\max}\leq4.441\times10^{-14}$.
+The refinement moved the computed state towards the defined numerical reference,
+but this is not an error comparison with an exact Brio--Wu solution. The rates
+describe only these three grids; they do not establish an asymptotic regime for
+the discontinuous solution.
+
+\section{Two-dimensional invariance and divergence control}
+\label{sec:ch4-invariance-glm}
+
+An $800\times4$ embedding of the Brio--Wu problem tested whether the
+two-dimensional update preserved a state that is constant in the transverse
+direction. The maximum transverse deviation was zero. Against the corresponding
+one-dimensional run, the mean and maximum absolute density differences were
+$3.550\times10^{-4}$ and $7.034\times10^{-3}$; the corresponding gates were
+$10^{-3}$ and $10^{-2}$.
+The separate periodic-disturbance test in
+Figure~\ref{fig:ch4-validation-refinement-glm}(b) examines the GLM family of
+\citet{dedner2002glm}. At $t=0.5$, $\max|\nabla\!\cdot\!\mathbf{B}|$ was 3.030
+without damping, compared with 0.2678 for $c_r=0.18$ and 0.8429 for
+$c_r=0.36$. Both non-zero settings reduced the terminal maximum in this sweep;
+the smaller value at $c_r=0.18$ does not establish a globally optimal parameter.
+The two tests isolate different properties: transverse preservation by the
+directional update and the cleaning subsystem's response to non-zero divergence.
+
+% Source PDF SHA-256:
+% ec6b99ddbc188b28aeb4115ef67ba9a9e77b5cf33a4f5db79e44325b1d94e2bd
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{Figs/report2/ch4_validation_refinement_glm}
+\caption[Brio--Wu refinement and GLM divergence diagnostic]{\textbf{Brio--Wu
+refinement and GLM divergence diagnostic.} (a) Density mean $L_1$ and $L_2$
+differences against the aligned, block-averaged $N=8000$ fp64 numerical
+reference. (b) Maximum divergence diagnostic for the periodic two-dimensional
+disturbance; $c_r=0$ is the undamped control. These panels do not compare with
+an exact solution or establish precision adequacy.}
+\label{fig:ch4-validation-refinement-glm}
+\end{figure}
+
+\section{Matched CPU/GPU implementation validation}
+\label{sec:ch4-cpu-gpu-validation}
+
+The matched comparison asks whether changing device altered the saved state
+when the case, HLL solver, precision, and configuration were fixed.
+Table~\ref{tab:ch4-cpu-gpu} reports identical CPU/GPU step counts for
+Brio--Wu at $800\times1$ and Orszag--Tang at $256^2$. In fp32 and fp64, all
+four saved-state comparisons gave zero maximum ULP and zero absolute
+$L_\infty$ difference; the repeated hardware runs retained the same result.
+This validates the bounded local CUDA path for these four combinations. The
+implementation has the same broad second-order MUSCL--Hancock/CUDA setting as
+the GPU MHD study of \citet{bardDorelli2014gpu}, but the result here is a
+correctness comparison rather than a portable speed-up claim. It does not cover
+HLLD, Kelvin--Helmholtz, GPU MCA, or other devices. Bit identity applies to the
+stored conservative variables; unsaved intermediate stages were not compared.
+
+\input{Chapter4/chapter4_cpu_gpu_table}
+
+\section{Orszag--Tang validation}
+\label{sec:ch4-orszag-tang}
+
+The Orszag--Tang test uses the periodic unit-square rescaling of
+\citet{toth2000divb}. The HLL runs at $128^2$, $256^2$, and $512^2$ completed
+with finite, positive physical states. Their mean divergence diagnostic
+decreased from 0.1364 to 0.1036 as the grid was refined, while the local
+maximum increased from 1.734 to 7.729 as thinner current sheets were resolved.
+The audited fp64 HLL $256^2$--$512^2$ pair also retained zero relative mass
+drift. Its temperature field preserved the interacting-shock and current-sheet
+topology shown in Orszag--Tang
+calculations \citep{toth2000divb,bardDorelli2014gpu}; this is qualitative
+support rather than a field-wise reference comparison. Thus refinement lowered
+the domain mean while sharpening local peaks; the maximum alone does not
+describe global control.
+
+Figure~\ref{fig:ch4-resolution-precision} gives the adjacent-grid density mean
+$L_1$ diagnostic. For fp64 HLL, the $128^2$--$256^2$ and
+$256^2$--$512^2$ differences were 0.1203 and 0.07722, giving
+$p\simeq0.639$. The corresponding HLLD \citep{miyoshiKusano2005hlld}
+differences were 0.07515 and 0.04182, giving $p\simeq0.846$; the fp32 rates
+agreed to the displayed precision.
+The HLLD fp64 run at $512^2$ completed at $t=0.5$ in 3277 steps; its saved
+state remained finite with $\rho_{\min}=1.098$ and $p_{\min}=0.380$. Across the
+matrix, all 24 planned runs and all eight three-grid groups completed, and each
+group produced a positive density mean-$L_1$ self-refinement diagnostic.
+The different HLL and HLLD CFL values preclude a solver ranking from these
+numbers. This evidence supports bounded completion and self-consistency rather
+than agreement with an exact two-dimensional state.
+
+% Source PDF SHA-256:
+% 36c516bdd93a30a13861430752bd7b7f732f1f12b91253ae616fc59b8850c017
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{Figs/report2/ch4_resolution_precision}
+\caption[Three-grid MHD resolution diagnostics]{\textbf{Three-grid MHD
+resolution diagnostics.} Adjacent grids are conservatively block-averaged
+before the density mean $L_1$ difference is formed. HLL uses CFL 0.4 and HLLD
+uses CFL 0.2; each observed $p$ is an engineering diagnostic within one fixed
+case, solver, precision, and CFL group. All eight planned groups completed. The
+dashed $p=1$ line is a visual reference only. The figure does not establish an
+asymptotic regime, precision adequacy, or a cross-solver ranking.}
+\label{fig:ch4-resolution-precision}
+\end{figure}
+
+\section{Kelvin--Helmholtz validation}
+\label{sec:ch4-kelvin-helmholtz}
+
+The project-defined Kelvin--Helmholtz case uses a smooth, periodic MHD
+double-shear form adapted from \citet{tricco2019kh} and an aligned weak-field
+setting motivated by \citet{frankEtAl1996kh}. The reference study of
+\citet{lecoanetEtAl2016kh} supplies an important interpretation boundary:
+morphological structure alone is not an accuracy measure for nonlinear KH
+evolution. All HLL and HLLD, fp32 and fp64 runs completed at $128^2$, $256^2$,
+and $512^2$ with finite, positive states. For fp64, the HLL mean divergence
+diagnostic decreased from $6.877\times10^{-5}$ to $2.305\times10^{-5}$, while
+its local maximum changed from $6.029\times10^{-4}$ to $9.236\times10^{-4}$.
+The HLLD mean decreased from $2.747\times10^{-4}$ to $3.479\times10^{-5}$,
+and its local maximum from $9.023\times10^{-3}$ to $5.149\times10^{-3}$.
+The audited fp64 HLL $256^2$--$512^2$ pair retained zero relative mass drift.
+Mean and maximum diagnostics are interpreted separately and do not prove a
+divergence-free solution.
+
+For fp64 HLL, the two adjacent-grid density mean $L_1$ differences were
+$3.473\times10^{-3}$ and $1.836\times10^{-3}$, giving $p=0.919$. For fp64
+HLLD, they were $2.309\times10^{-4}$ and $8.496\times10^{-5}$, giving
+$p=1.442$; the fp32 rates were 0.919 and 1.436. Each rate belongs to a fixed
+solver, precision, and CFL group. Because HLL and HLLD used different CFL
+values, these successful within-group trends do not establish a solver ranking.
+
+\section{Validation limits}
+\label{sec:ch4-validation-limits}
+
+The Brio--Wu comparison uses a high-resolution numerical reference, whereas
+the two-dimensional cases rely on self-reference, physical-state checks,
+and divergence diagnostics. Three grids show the
+direction of an engineering trend but do not establish an asymptotic regime
+for solutions containing shocks or fine current sheets. A resolution-sensitive
+local divergence maximum cannot by itself establish vanishing global divergence
+error. The GPU evidence covers
+only HLL Brio--Wu and Orszag--Tang. The two-dimensional comparisons use the mean
+norms defined in Chapter~3, and their raw central-difference divergence values
+are grid-scale diagnostics rather than dimensionless errors. These boundaries
+set the interpretation range for the systematic sensitivity results in
+Chapter~5.

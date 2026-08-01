@@ -35,14 +35,15 @@ authoritative.
 
 ## Non-Goals
 
-- Implementing a GPU HLL/HLLD MHD solver.
+- Expanding the bounded GPU HLL MHD path into a generic GPU matrix, including
+  HLLD-on-GPU, Kelvin--Helmholtz-on-GPU, or GPU MCA.
 - Changing numerical expressions, algorithms, tolerances, or existing cfg
   defaults.
 - Renaming or moving historical experiment packages in bulk.
 - Rewriting historical result metadata or relabeling historical directories.
 - Deleting generated or nested build artifacts during the convergence change.
-- Treating existing GPU wall-clock measurements as report-grade performance
-  evidence before allocation and synchronization boundaries are addressed.
+- Promoting single-run GPU wall-clock measurements as report-grade performance
+  evidence; performance claims require the later matched repeated-run protocol.
 
 ## Chosen Approach
 
@@ -73,7 +74,7 @@ shared harness contracts
    Euler app adapter    MHD app adapter
         |                    |
         v                    v
-   CPU / existing GPU   CPU / GPU unsupported gate
+   CPU / existing GPU   CPU / bounded HLL GPU
         |
         v
 measure -> aggregate -> plot
@@ -176,12 +177,14 @@ files that omit it continue to select CPU.
 - Euler keeps its existing CPU and GPU paths. A GPU run that stops before
   `t_end`, encounters a non-finite time step, or otherwise fails the completion
   gate returns failure and cannot produce an authoritative successful record.
-- MHD accepts the common option but currently supports only CPU. `device=gpu`
-  fails before simulation with a dedicated unsupported-capability reason and a
-  nonzero process status.
+- MHD defaults to CPU and exposes an opt-in CUDA path only for `riemann=hll`.
+  The validated application scope is Brio--Wu 1D and Orszag--Tang 2D in fp32
+  and fp64. HLLD-on-GPU is rejected before simulation; Kelvin--Helmholtz and a
+  generic GPU experiment matrix remain outside the validated evidence scope.
 
-This design deliberately separates interface convergence from future GPU MHD
-implementation.
+This design separates the shared interface from the deliberately bounded GPU
+MHD capability. A supported dispatch path is not evidence for unvalidated
+case, solver, precision, or performance combinations.
 
 ## Error Model
 
@@ -251,7 +254,7 @@ preserved unless a verified replacement and compatibility path exist.
 3. Convert the MHD regression harness into a compatibility facade.
 4. Add common C++ application configuration, diagnostics, output, and completion
    interfaces; adapt Euler and MHD without altering numerical kernels.
-5. Enforce Euler GPU completion and expose the MHD GPU unsupported gate.
+5. Enforce Euler GPU completion and the bounded MHD GPU HLL capability gate.
 6. Record effective compiler/math semantics for new matrix runs.
 7. Add manifests to promoted experiment packages and update project docs.
 8. Produce the nested-build reference audit and cleanup candidate report.
@@ -275,7 +278,8 @@ compatibility tests before the next phase begins.
   established comparisons.
 - Euler GPU returns failure when it does not reach `t_end` or observes a
   non-finite time step.
-- MHD defaults to CPU and returns a structured unsupported error for GPU.
+- MHD defaults to CPU; the CUDA-enabled HLL path passes its bounded Brio--Wu
+  and Orszag--Tang CPU/GPU checks, while HLLD-on-GPU is rejected.
 - Existing binary output and summary formats remain readable by current tools.
 
 ### Build Tests
@@ -311,8 +315,8 @@ The convergence is complete when:
    compatible;
 3. Euler and MHD expose common application-level run behavior while numerical
    kernels remain unchanged;
-4. incomplete Euler GPU runs and unsupported MHD GPU runs cannot be recorded as
-   success;
+4. incomplete Euler GPU runs and unsupported MHD GPU combinations cannot be
+   recorded as success, while the bounded HLL GPU path remains opt-in;
 5. new builds record effective floating-point semantics correctly;
 6. promoted experiments have validated lifecycle manifests;
 7. project docs have non-overlapping responsibilities and valid links;
