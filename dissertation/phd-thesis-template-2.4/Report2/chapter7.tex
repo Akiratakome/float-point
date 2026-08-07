@@ -1,0 +1,91 @@
+%!TEX root = ../thesis.tex
+
+\chapter{Conclusions and Future Work}
+\label{chap:conclusions}
+
+\section{Aim and evidence base}
+
+This report tested effects of precision, build semantics, solver and execution
+on ideal-MHD HRSC calculations and their reproducibility.
+Table~\ref{tab:ch6-axis-ranking} ranks their relative importance under stated
+conditions.
+
+\section{Answers to the research questions}
+
+Table~\ref{tab:ch7-conclusion-matrix} answers each question with its principal
+boundary.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.08\textwidth}XX@{}}
+\toprule
+RQ & Supported conclusion & Principal boundary \\
+\midrule
+RQ1 & The circularly polarised Alfv\'en wave verified order $1.818$ against an
+exact solution on both devices and both precisions; Brio--Wu approached the
+same-implementation HLL $N=8000$ comparator and all cases passed the declared
+completion, physical-state and matched-device checks. & Order verification
+holds for one smooth case; the Brio--Wu comparator is not exact, and the
+three-grid 2D comparisons did not identify a grid range with a stable rate. \\
+RQ2 & Responses depended on case and axis: covered HLL CPU/GPU final arrays
+agreed only with device contraction disabled, and restoring the compiler
+default outweighed halving the precision on Brio--Wu; optimisation level and
+instruction set changed nothing. & Build comparisons report density;
+HLL device evidence covers Brio--Wu and Orszag--Tang. Timing is one-workstation, five-sample
+evidence with different warm-up policies. \\
+RQ3 & All 12 same-grid density mean-$L_1$ discrepancies were below 3\% of the
+matched fp64 finest adjacent-grid difference; both series approached a common
+few-rounding level, sampled at different points relative to it. & This ratio
+is one refinement-scale diagnostic,
+not fp32 error or adequacy; only Brio--Wu has matched deterministic/MCA scope. \\
+RQ4 & Configurations, hashes, execution metadata, acceptance criteria and retained summaries
+form the reproducibility contract. & Independent-code, cross-machine and MPI
+reproduction remain untested. \\
+\bottomrule
+\end{tabularx}
+\caption[Research-question conclusions]{\textbf{Research-question conclusions
+and claim boundaries.} Evidence is not transferred between metrics.}
+\label{tab:ch7-conclusion-matrix}
+\end{table}
+
+\section{Contribution and claim boundaries}
+
+The studied MUSCL--Hancock/GLM configurations completed with finite, positive
+states, which supports stability over the tested horizons but not insensitivity
+to arithmetic detail. The principal methodological contribution is an
+experimental design organised by test case and controlled axis, which keeps
+numerical-reference error, cross-variant discrepancy, stochastic spread and
+runtime separate rather than treating them as interchangeable measures of
+``accuracy''.
+
+\section{Prioritised future work}
+
+The first priority is to extend order verification beyond the one smooth case
+that now carries it. The Alfv\'en wave should be joined by an inclined or
+two-dimensional smooth problem and by a matched independent-code benchmark,
+compared over density, momentum, total energy, magnetic field and derived
+pressure with conservation residuals and a dimensionless divergence measure. A
+cheaper step is a quadruple-precision one-dimensional Brio--Wu reference,
+turning the present same-scheme $N=8000$ comparator into an arithmetic ground
+truth and separating discretisation error from precision discrepancy without
+new physics.
+
+The next priority is to test the remaining mechanisms. An HLL variant without
+the $\pm c_h$ clamp, solving the GLM pair separately, would separate the
+Riemann solver from the wave-speed treatment that currently makes the tested
+HLL a globally scaled Rusanov flux, and would show how much of its diffuse
+discrepancy and low observed rates that clamp accounts for. The $512^2$
+positivity failure should be repeated in fp32 to test whether its threshold
+moves with the working precision. The build matrix should extend beyond the
+single MSVC environment, so compiler, optimisation and floating-point semantics
+can be distinguished rather than represented by one toolchain.
+
+Execution coverage should then be made genuinely matched: GPU HLLD and
+Kelvin--Helmholtz paths, complete matched Kelvin--Helmholtz temporal and MCA
+experiments, actual OpenMP work sharing and distributed-memory Message Passing
+Interface (MPI) reductions with controlled reduction orders, and repetition on
+several recorded systems. Performance work should separate kernel, launch,
+transfer and I/O costs and add hardware counters. Only then should the study
+broaden to schemes with different dissipation and constraint treatment, or to
+resistive or relativistic MHD.

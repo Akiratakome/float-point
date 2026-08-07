@@ -1,0 +1,67 @@
+% ******************************* Combined Dissertation ************************
+% Part I  = Report 1 (Euler).  Part II = Report 2 (ideal MHD).
+% Report 1 chapter sources are byte-identical to the submitted Report 1 project;
+% only the shared front matter, bibliography keys and cross-references differ.
+
+\documentclass[a4paper,12pt,times,numbered,print]{Classes/PhDThesisPSnPDF}
+
+\input{thesis-info}
+
+\include{Preamble/preamble}
+
+\begin{document}
+
+\frontmatter
+
+\maketitle
+
+\include{Declaration/declaration}
+\include{Acknowledgement/acknowledgement}
+\include{Abstract/abstract}
+
+\tableofcontents
+
+\listoffigures
+
+\listoftables
+
+% ******************************** Main Matter *********************************
+\mainmatter
+
+\part{First report}
+
+\include{Report1/chapter1}
+\include{Report1/chapter2}
+\include{Report1/chapter3}
+\include{Report1/chapter4}
+\include{Report1/chapter5}
+\include{Report1/chapter6}
+\include{Report1/chapter7}
+
+\part{Second report}
+
+\include{Report2/chapter1}
+\include{Report2/chapter2}
+\include{Report2/chapter3}
+\include{Report2/chapter4}
+\include{Report2/chapter5}
+\include{Report2/chapter6}
+\include{Report2/chapter7}
+
+% ********************************** Bibliography ******************************
+\begin{spacing}{0.9}
+\bibliographystyle{plainnat}
+\cleardoublepage
+\bibliography{References/references}
+\end{spacing}
+
+% ********************************** Appendices ********************************
+\begin{appendices}
+
+\include{Appendix1/appendix1}
+\include{Appendix2/appendix2}
+\include{Appendix3/appendix3}
+
+\end{appendices}
+
+\end{document}

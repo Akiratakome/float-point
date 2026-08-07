@@ -8,6 +8,46 @@
 
 namespace hrsc {
 
+// Optional instrumentation of the HLLD decision structure. Report 2 argues that
+// exposure to an implementation detail follows from how many internal decisions
+// can be reached; these counters measure that instead of inferring it. The
+// <= / < variants can differ only where a tie quantity is exactly zero, so the
+// tie_* fields count exactly the interfaces at which the branch rule is live.
+// Host-only, opt-in at compile time (HRSC_HLLD_COUNTERS) so the default binary
+// and its recorded timings are unchanged; not thread-safe, which is sound
+// because the MHD sweeps carry no work-sharing directives.
+// The line_* fields are solver-level rather than HLLD-level: they count the
+// per-line first-order HLL recomputation that the positivity guard triggers,
+// which is a different mechanism from HLLD's own degenerate-state fallback and
+// is the one that decides whether a completed run is describing the selected
+// solver alone or the solver together with its fallback policy.
+struct MhdDecisionCounters {
+    unsigned long long calls = 0;
+    unsigned long long fallback = 0;
+    unsigned long long star_left = 0;
+    unsigned long long star_right = 0;
+    unsigned long long dstar_left = 0;
+    unsigned long long dstar_right = 0;
+    unsigned long long tie_ssl = 0;
+    unsigned long long tie_ssr = 0;
+    unsigned long long tie_sm = 0;
+    unsigned long long line_total_x = 0;
+    unsigned long long line_total_y = 0;
+    unsigned long long line_revert_x = 0;
+    unsigned long long line_revert_y = 0;
+};
+
+inline MhdDecisionCounters& hlld_counters() {
+    static MhdDecisionCounters counters;
+    return counters;
+}
+
+#if defined(HRSC_HLLD_COUNTERS) && !defined(__CUDA_ARCH__)
+#define HRSC_HLLD_COUNT(field) (++::hrsc::hlld_counters().field)
+#else
+#define HRSC_HLLD_COUNT(field) ((void)0)
+#endif
+
 // HLLD 5-wave Riemann solver (Miyoshi & Kusano 2005) for GLM-MHD.
 // The (Bx, psi) GLM pair is decoupled and solved exactly (Dedner/Mignone):
 //   Bx*  = 0.5*(BxL+BxR) - 0.5*(psiR-psiL)/ch
@@ -67,8 +107,10 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hlld_flux(const Vec<Real, MhdNVars>& UL,
     };
 
     auto fallback = [&]() {
+        HRSC_HLLD_COUNT(fallback);
         return with_glm(mhd_hll_flux(ULf, URf, gamma, ch));
     };
+    HRSC_HLLD_COUNT(calls);
 
     if (!std::isfinite(cfL) || !std::isfinite(cfR) ||
         !std::isfinite(SL) || !std::isfinite(SR))
@@ -161,9 +203,16 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hlld_flux(const Vec<Real, MhdNVars>& UL,
     const bool pick_star_left  = SsL >= Real(0);
     const bool pick_star_right = SsR <= Real(0);
 #endif
+    // Exact zeros are the only states at which <= and < can disagree, so they
+    // are counted separately from the branch each rule then selects.
+    if (SsL == Real(0)) HRSC_HLLD_COUNT(tie_ssl);
+    if (SsR == Real(0)) HRSC_HLLD_COUNT(tie_ssr);
+    if (SM  == Real(0)) HRSC_HLLD_COUNT(tie_sm);
     if (pick_star_left) {
+        HRSC_HLLD_COUNT(star_left);
         F = FL + SL * (UsL - ULf);                      // F*L
     } else if (pick_star_right) {
+        HRSC_HLLD_COUNT(star_right);
         F = FR + SR * (UsR - URf);                      // F*R
     } else {
         // Double-star region: combine the two single-star states across the
@@ -204,10 +253,13 @@ HD_FUNC Vec<Real, MhdNVars> mhd_hlld_flux(const Vec<Real, MhdNVars>& UL,
 #else
         const bool pick_dstar_left = SM >= Real(0);
 #endif
-        if (pick_dstar_left)
+        if (pick_dstar_left) {
+            HRSC_HLLD_COUNT(dstar_left);
             F = FL + SsL * UssL - (SsL - SL) * UsL - SL * ULf;  // F**L
-        else
+        } else {
+            HRSC_HLLD_COUNT(dstar_right);
             F = FR + SsR * UssR - (SsR - SR) * UsR - SR * URf;  // F**R
+        }
     }
     if (!finite_vec(F))
         return fallback();

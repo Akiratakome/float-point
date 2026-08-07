@@ -1,0 +1,58 @@
+{
+  "experiment": "week21-hlld-decision-counts",
+  "name": "orszag_tang_2d_512-hlld-counters",
+  "timestamp_utc": "2026-08-06T14:56:11.729431+00:00",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-hlld-counters\\hrsc_mhd.exe",
+  "binary_sha256": "2033914c372fd5b27867e4bd8052feb777e40a541e7850c3e2b4bcfee28b88d8",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+  "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\hlld_decision_counts\\runs\\orszag_tang_2d_512-hlld-counters\\config.cfg",
+  "run_config_sha256": "e5ddd20dd3cb1417943375d901aac39627e0161b5c1ee07fc7dfdbf4bd82afaa",
+  "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx = 512\nny = 512\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.2\nt_end   = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\ndevice = cpu\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-hlld-counters\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\hlld_decision_counts\\runs\\orszag_tang_2d_512-hlld-counters\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 531.353572400054,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\hlld_decision_counts\\runs\\orszag_tang_2d_512-hlld-counters\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\hlld_decision_counts\\runs\\orszag_tang_2d_512-hlld-counters\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.5,
+    "steps": 3277,
+    "divB_mean": 0.1969,
+    "divB_max": 33.08,
+    "line": "[mhd] t=0.500000 steps=3277 divB_mean=1.969e-01 divB_max=3.308e+01"
+  },
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {},
+  "timing": {
+    "elapsed_wall_s": 531.353572400054
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 0.5,
+    "target_time": 0.5,
+    "steps": 3277
+  },
+  "build_semantics": {
+    "requested_opt_level": "",
+    "requested_fast_math": false,
+    "requested_strict_ieee": false,
+    "effective_math_mode": "compiler-default",
+    "compiler_id": "MSVC",
+    "compiler_version": "19.51.36248.0",
+    "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+    "evidence": {
+      "strict_ieee": "",
+      "fast_math": "",
+      "optimization": ""
+    }
+  }
+}

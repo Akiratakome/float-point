@@ -1,0 +1,106 @@
+{
+  "schema": {
+    "name": "hrsc.week21-hll-ladder-cfl02",
+    "version": 1
+  },
+  "experiment": "week21-hll-ladder-cfl02",
+  "note": "HLL re-run at the HLLD time step so the solver axis is no longer confounded with CFL; diagnostics follow the week18 definitions.",
+  "groups": [
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hll",
+      "precision": "double",
+      "cfl": 0.2,
+      "e_128_256": 0.12250156870748234,
+      "e_256_512": 0.07860356765603449,
+      "observed_p": 0.6401335238625162
+    },
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hll",
+      "precision": "float",
+      "cfl": 0.2,
+      "e_128_256": 0.12250151392254338,
+      "e_256_512": 0.07860364088719507,
+      "observed_p": 0.6401315345738968
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hll",
+      "precision": "double",
+      "cfl": 0.2,
+      "e_128_256": 0.003465668862839011,
+      "e_256_512": 0.0018359405748658013,
+      "observed_p": 0.9166144518753685
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hll",
+      "precision": "float",
+      "cfl": 0.2,
+      "e_128_256": 0.0034659825132621336,
+      "e_256_512": 0.001836410516034448,
+      "observed_p": 0.9163757771177444
+    }
+  ],
+  "precision_cells": [
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hll",
+      "cfl": 0.2,
+      "resolution": 128,
+      "l1": 4.63168224898054e-07,
+      "l2": 6.25977037951459e-07,
+      "linf": 4.569628492934186e-06
+    },
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hll",
+      "cfl": 0.2,
+      "resolution": 256,
+      "l1": 2.746324365865426e-06,
+      "l2": 4.23796813876824e-06,
+      "linf": 3.906569125700088e-05
+    },
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hll",
+      "cfl": 0.2,
+      "resolution": 512,
+      "l1": 1.328003377420818e-05,
+      "l2": 2.5696880721746654e-05,
+      "linf": 0.001206839941521931
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hll",
+      "cfl": 0.2,
+      "resolution": 128,
+      "l1": 2.5359909342449944e-07,
+      "l2": 3.277314859513867e-07,
+      "linf": 1.385776941642547e-06
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hll",
+      "cfl": 0.2,
+      "resolution": 256,
+      "l1": 1.2034007218333963e-06,
+      "l2": 1.4850988963722962e-06,
+      "linf": 4.67765087130978e-06
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hll",
+      "cfl": 0.2,
+      "resolution": 512,
+      "l1": 2.580455253804663e-06,
+      "l2": 3.2488362961410306e-06,
+      "linf": 1.070450615303642e-05
+    }
+  ],
+  "hlld_reference_order_cfl02": {
+    "orszag_tang_2d": 0.846,
+    "kelvin_helmholtz_2d": 1.442
+  }
+}

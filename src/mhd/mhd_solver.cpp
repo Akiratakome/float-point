@@ -227,6 +227,7 @@ void MhdSolver<Real, RiemannFlux>::x_sweep(Real ch, TimeReal dt_time) {
     const int nx = gv.nx;
     const int ny = gv.ny;
     std::vector<Vec<Real, MhdNVars>> flux(static_cast<std::size_t>(nx + 1));
+    std::vector<Vec<Real, MhdNVars>> candidate(static_cast<std::size_t>(nx));
 
     for (int j = 0; j < ny; ++j) {
         for (int iface = 0; iface <= nx; ++iface) {
@@ -247,6 +248,7 @@ void MhdSolver<Real, RiemannFlux>::x_sweep(Real ch, TimeReal dt_time) {
         }
 
         const Real dtdx = dt / m_dx;
+        bool needs_first_order = false;
         for (int i = 0; i < nx; ++i) {
             Vec<Real, MhdNVars> U = load_cell(gv, i, j);
             const auto& fL = flux[static_cast<std::size_t>(i)];
@@ -254,7 +256,35 @@ void MhdSolver<Real, RiemannFlux>::x_sweep(Real ch, TimeReal dt_time) {
             for (int k = 0; k < MhdNVars; ++k) {
                 U[k] -= dtdx * (fR[k] - fL[k]);
             }
-            store_cell(gv, i, j, U);
+            candidate[static_cast<std::size_t>(i)] = U;
+            needs_first_order = needs_first_order || !is_physical_state(U, m_gamma);
+        }
+
+        HRSC_HLLD_COUNT(line_total_x);
+        if (needs_first_order) {
+            HRSC_HLLD_COUNT(line_revert_x);
+            // A second-order HLLD/HLL update is not positivity preserving in
+            // general.  Recompute this whole conservative line with the
+            // first-order HLL flux so both cells sharing an interface see the
+            // same corrected flux (rather than repairing one cell in place).
+            for (int iface = 0; iface <= nx; ++iface) {
+                flux[static_cast<std::size_t>(iface)] =
+                    mhd_hll_flux(load_cell(gv, iface - 1, j),
+                                 load_cell(gv, iface, j), m_gamma, ch);
+            }
+            for (int i = 0; i < nx; ++i) {
+                Vec<Real, MhdNVars> U = load_cell(gv, i, j);
+                const auto& fL = flux[static_cast<std::size_t>(i)];
+                const auto& fR = flux[static_cast<std::size_t>(i + 1)];
+                for (int k = 0; k < MhdNVars; ++k) {
+                    U[k] -= dtdx * (fR[k] - fL[k]);
+                }
+                candidate[static_cast<std::size_t>(i)] = U;
+            }
+        }
+
+        for (int i = 0; i < nx; ++i) {
+            store_cell(gv, i, j, candidate[static_cast<std::size_t>(i)]);
         }
     }
 }
@@ -269,8 +299,9 @@ void MhdSolver<Real, RiemannFlux>::y_sweep(Real ch, TimeReal dt_time) {
     // valid (periodic wrap / outflow + psi=0). Rotate each y-stencil into the
     // x-frame with mhd_swap_xy, reuse the x-direction predictor + HLL, then
     // rotate the flux back.
+    std::vector<Vec<Real, MhdNVars>> flux(static_cast<std::size_t>(ny + 1));
+    std::vector<Vec<Real, MhdNVars>> candidate(static_cast<std::size_t>(ny));
     for (int i = 0; i < nx; ++i) {
-        std::vector<Vec<Real, MhdNVars>> flux(static_cast<std::size_t>(ny + 1));
         for (int jf = 0; jf <= ny; ++jf) {
             const int jL = jf - 1, jR = jf;
             Vec<Real, MhdNVars> lcl{}, lcr{}, rcl{}, rcr{};
@@ -282,12 +313,37 @@ void MhdSolver<Real, RiemannFlux>::y_sweep(Real ch, TimeReal dt_time) {
                 mhd_swap_xy(RiemannFlux{}(lcr, rcl, m_gamma, ch));  // rotate flux back
         }
         const Real dtdy = dt / m_dy;
+        bool needs_first_order = false;
         for (int j = 0; j < ny; ++j) {
             Vec<Real, MhdNVars> U = load_cell(gv, i, j);
             const auto& fL = flux[static_cast<std::size_t>(j)];
             const auto& fR = flux[static_cast<std::size_t>(j + 1)];
             for (int k = 0; k < MhdNVars; ++k) U[k] -= dtdy * (fR[k] - fL[k]);
-            store_cell(gv, i, j, U);
+            candidate[static_cast<std::size_t>(j)] = U;
+            needs_first_order = needs_first_order || !is_physical_state(U, m_gamma);
+        }
+
+        HRSC_HLLD_COUNT(line_total_y);
+        if (needs_first_order) {
+            HRSC_HLLD_COUNT(line_revert_y);
+            for (int jf = 0; jf <= ny; ++jf) {
+                flux[static_cast<std::size_t>(jf)] = mhd_swap_xy(mhd_hll_flux(
+                    mhd_swap_xy(load_cell(gv, i, jf - 1)),
+                    mhd_swap_xy(load_cell(gv, i, jf)), m_gamma, ch));
+            }
+            for (int j = 0; j < ny; ++j) {
+                Vec<Real, MhdNVars> U = load_cell(gv, i, j);
+                const auto& fL = flux[static_cast<std::size_t>(j)];
+                const auto& fR = flux[static_cast<std::size_t>(j + 1)];
+                for (int k = 0; k < MhdNVars; ++k) {
+                    U[k] -= dtdy * (fR[k] - fL[k]);
+                }
+                candidate[static_cast<std::size_t>(j)] = U;
+            }
+        }
+
+        for (int j = 0; j < ny; ++j) {
+            store_cell(gv, i, j, candidate[static_cast<std::size_t>(j)]);
         }
     }
 }
@@ -427,6 +483,89 @@ void setup_kelvin_helmholtz(GridView<Real, MhdNVars> gv, int nx, int ny,
 
 template void setup_kelvin_helmholtz<float>(GridView<float, MhdNVars>, int, int, float, float, float, float, float);
 template void setup_kelvin_helmholtz<double>(GridView<double, MhdNVars>, int, int, double, double, double, double, double);
+
+// Unstratified smooth Kelvin--Helmholtz initial condition from Lecoanet et al.
+// (2016), equations (8a)--(8d), on [0,1]x[0,2]. Setting B=0 makes the ideal-MHD
+// equations reduce to the inviscid hydrodynamic limit. This reproduces the
+// published initial condition and supports an early-time growth diagnostic;
+// it is not the paper's nonlinear Re=1e5 reference because this solver has no
+// explicit viscosity, thermal diffusion, or passive dye field.
+template <typename Real>
+void setup_kelvin_helmholtz_lecoanet(GridView<Real, MhdNVars> gv, int nx, int ny,
+                                     Real dx, Real dy, Real xmin, Real ymin,
+                                     Real gamma) {
+    const Real pi = Real(3.14159265358979323846);
+    const Real rho0 = Real(1);
+    const Real p0 = Real(10);
+    const Real u_flow = Real(1);
+    const Real amplitude = Real(0.01);
+    const Real a = Real(0.05);
+    const Real sigma = Real(0.2);
+    const Real y1 = Real(0.5);
+    const Real y2 = Real(1.5);
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            const Real x = xmin + (Real(i) + Real(0.5)) * dx;
+            const Real y = ymin + (Real(j) + Real(0.5)) * dy;
+            const Real dy1 = y - y1;
+            const Real dy2 = y - y2;
+            MhdPrim<Real> w{};
+            w.rho = rho0;
+            w.p = p0;
+            w.vx = u_flow * (std::tanh(dy1 / a) - std::tanh(dy2 / a) - Real(1));
+            w.vy = amplitude * std::sin(Real(2) * pi * x)
+                 * (std::exp(-(dy1 * dy1) / (sigma * sigma))
+                  + std::exp(-(dy2 * dy2) / (sigma * sigma)));
+            store_cell(gv, i, j, prim_to_cons(w, gamma));
+        }
+}
+
+template void setup_kelvin_helmholtz_lecoanet<float>(GridView<float, MhdNVars>, int, int, float, float, float, float, float);
+template void setup_kelvin_helmholtz_lecoanet<double>(GridView<double, MhdNVars>, int, int, double, double, double, double, double);
+
+// Circularly polarised Alfven wave: the standard order-verification problem for
+// ideal MHD (Toth 2000; Gardiner & Stone 2005). It is an exact nonlinear
+// solution at finite amplitude, since |B| and the total pressure stay uniform.
+// With rho=1 and Bx=1 the Alfven speed is unity, so on the unit periodic domain
+// the exact state at t=1 is the initial condition translated by one wavelength,
+// that is, the initial condition itself. The difference between the final and
+// analytic states is therefore true discretisation error, which the
+// discontinuous and instability-driven benchmarks cannot supply. The data are
+// y-independent and exactly divergence-free (Bx is uniform, By and Bz depend on
+// x alone), so the y-sweep contributes nothing and psi stays zero.
+template <typename Real>
+void setup_cp_alfven(GridView<Real, MhdNVars> gv, int nx, int ny,
+                     Real dx, Real dy, Real xmin, Real ymin, Real gamma) {
+    (void)dy;
+    (void)ymin;
+    const Real pi = Real(3.14159265358979323846);
+    const Real rho0 = Real(1);
+    const Real p0 = Real(0.1);
+    const Real b0 = Real(1);
+    const Real amplitude = Real(0.1);
+    const Real inv_sqrt_rho = Real(1) / std::sqrt(rho0);
+    for (int j = 0; j < ny; ++j)
+        for (int i = 0; i < nx; ++i) {
+            const Real x = xmin + (Real(i) + Real(0.5)) * dx;
+            const Real phase = Real(2) * pi * x;
+            const Real by = amplitude * std::sin(phase);
+            const Real bz = amplitude * std::cos(phase);
+            MhdPrim<Real> w{};
+            w.rho = rho0;
+            w.p = p0;
+            w.Bx = b0;
+            w.By = by;
+            w.Bz = bz;
+            // dv_perp = -dB_perp / sqrt(rho) selects the mode travelling at
+            // +v_A; either sign returns to the initial state after one crossing.
+            w.vy = -by * inv_sqrt_rho;
+            w.vz = -bz * inv_sqrt_rho;
+            store_cell(gv, i, j, prim_to_cons(w, gamma));
+        }
+}
+
+template void setup_cp_alfven<float>(GridView<float, MhdNVars>, int, int, float, float, float, float, float);
+template void setup_cp_alfven<double>(GridView<double, MhdNVars>, int, int, double, double, double, double, double);
 
 template class MhdSolver<float, HllFlux>;
 template class MhdSolver<double, HllFlux>;

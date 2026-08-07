@@ -34,6 +34,14 @@ SOURCES = {
     "kh_timing": ("experiments/week18/kh_solver_timing/summary.json",),
 }
 
+# Unit roundoff of binary32; discrepancies are also read in multiples of it.
+U32 = 2.0 ** -24
+# Domain-mean reference density per case, used only to convert an absolute
+# density discrepancy into multiples of U32. Brio-Wu follows from the audited
+# cross-system pair (rho_l1 / rho_l1_relative); Orszag-Tang is the conserved
+# initial mean rho = gamma^2 = 25/9 on the periodic domain.
+MEAN_RHO = {"brio_wu_1d": 0.5625, "orszag_tang_2d": 25.0 / 9.0}
+
 BLUE = "#0072B2"
 ORANGE = "#D55E00"
 GREEN = "#009E73"
@@ -121,6 +129,36 @@ def _grid(ax: Any, *, axis: str = "y") -> None:
     ax.set_axisbelow(True)
 
 
+def _window_mask(times: Any, values: Any, window: Any) -> Any:
+    """Strict-interior positive-sample mask matching the recorded fixed-window fits.
+
+    The published fits exclude the window endpoints; selecting on the open
+    interval reproduces their recorded slope, R^2 and residual statistics
+    exactly, so the alternative model below is fitted to identical samples.
+    """
+    lo, hi = float(window[0]), float(window[1])
+    return (times > lo * (1.0 + 1e-9)) & (times < hi * (1.0 - 1e-9)) & (values > 0.0)
+
+
+def _ols_log(x: Any, log_y: Any) -> dict[str, float]:
+    slope, intercept = np.polyfit(x, log_y, 1)
+    residual = log_y - (intercept + slope * x)
+    total = log_y - log_y.mean()
+    return {
+        "slope": float(slope),
+        "intercept": float(intercept),
+        "r2_log": float(1.0 - residual.dot(residual) / total.dot(total)),
+        "rmse_log": float(np.sqrt(residual.dot(residual) / residual.size)),
+        "n_fit": int(residual.size),
+    }
+
+
+def _power_law_fit(times: Any, values: Any, window: Any) -> dict[str, float]:
+    """Fit log e = a + k log t on the same samples as the exponential fit."""
+    mask = _window_mask(times, values, window)
+    return _ols_log(np.log(times[mask]), np.log(values[mask]))
+
+
 def audit_sources(data: dict[str, Any]) -> dict[str, bool]:
     cross = data["cross_system"]
     resolution = data["resolution"]
@@ -193,7 +231,7 @@ def plot_validation(data: tuple[dict[str, Any], dict[str, Any]], out: Path) -> t
     axes[0].set_xticks(nx, [str(int(value)) for value in nx])
     axes[0].set_xlabel("Grid cells, N")
     axes[0].set_ylabel("Density difference to N=8000 reference")
-    axes[0].set_title("(a) Brio–Wu numerical-reference refinement", loc="left")
+    axes[0].set_title("Brio–Wu numerical-reference refinement", loc="left")
     axes[0].legend()
     _grid(axes[0], axis="both")
 
@@ -212,8 +250,11 @@ def plot_validation(data: tuple[dict[str, Any], dict[str, Any]], out: Path) -> t
     axes[1].set_yscale("log")
     axes[1].set_xlabel("Simulation time")
     axes[1].set_ylabel(r"Maximum $|\nabla\!\cdot\!B|$")
-    axes[1].set_title("(b) GLM divergence-control diagnostic", loc="left")
-    axes[1].legend(ncols=3)
+    axes[1].set_title(r"GLM cleaning, $128^2$ Gaussian $B_x$ bump", loc="left")
+    # Headroom so the legend clears the undamped control curve.
+    _low, _high = axes[1].get_ylim()
+    axes[1].set_ylim(_low, _high * 2.6)
+    axes[1].legend(ncols=3, loc="upper right")
     _grid(axes[1], axis="both")
     paths = _finish(fig, out, "fig_validation_refinement_glm")
     plt.close(fig)
@@ -249,9 +290,10 @@ def plot_cross_system(summary: dict[str, Any], out: Path) -> tuple[Path, Path]:
             bars[index].set_facecolor("white")
             bars[index].set_edgecolor(ORANGE)
             bars[index].set_hatch("///")
-            ax.annotate("0\n(bit-identical)", (x[index] + width / 2, floor),
-                        xytext=(0, 4), textcoords="offset points", ha="center",
-                        va="bottom", fontsize=7, color=ORANGE)
+            ax.annotate("0 (bit-identical)", (x[index] + width / 2, floor),
+                        xytext=(0, 2.5), textcoords="offset points", ha="center",
+                        va="bottom", fontsize=6.8, color=ORANGE,
+                        bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.0})
     labels = [
         f"{cross_system.CASES[case]['label']}\n{cross_system.CASES[case]['system']}, {cross_system.CASES[case]['dimension']}"
         for case in cases
@@ -260,6 +302,13 @@ def plot_cross_system(summary: dict[str, Any], out: Path) -> tuple[Path, Path]:
     ax.set_xticks(x, labels)
     ax.set_ylabel(r"Mean-relative $L_1$ density discrepancy")
     ax.set_title("Within-case precision and composite-build sensitivity", loc="left")
+    # Headroom so the tallest bar clears the legend instead of being clipped.
+    ax.set_ylim(floor / 2.9, max(precision + plotted_math) * 6.0)
+    # The right-hand axis reads this line as 1, i.e. one binary32 rounding.
+    ax.axhline(U32, color=GREY, linestyle=":", linewidth=0.9, zorder=0)
+    secondary = ax.secondary_yaxis(
+        "right", functions=(lambda v: v / U32, lambda v: v * U32))
+    secondary.set_ylabel(r"discrepancy $/\,u_{32}$")
     ax.legend(ncols=2, loc="upper left")
     _grid(ax)
     paths = _finish(fig, out, "fig_cross_system_sensitivity")
@@ -449,7 +498,7 @@ def plot_temporal(summary: dict[str, Any], out: Path) -> tuple[Path, Path]:
     records = {row["case"]: row for row in summary["records"]}
     order = ("brio_wu_1d", "orszag_tang_2d")
     titles = {"brio_wu_1d": "Brio–Wu", "orszag_tang_2d": "Orszag–Tang"}
-    fig, axes = plt.subplots(1, 2, figsize=(7.3, 3.05), constrained_layout=True)
+    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.3), constrained_layout=True)
     for panel, (ax, case) in enumerate(zip(axes, order, strict=True)):
         row = records[case]
         times = np.asarray(row["times"], dtype=float)
@@ -461,26 +510,49 @@ def plot_temporal(summary: dict[str, Any], out: Path) -> tuple[Path, Path]:
                 linewidth=1.25, label=r"mean $L_1$")
         ax.plot(times, linf, color=ORANGE, marker="s", markersize=3.3,
                 linewidth=1.15, label=r"$L_\infty$")
-        for metric, color in (("fit_l1", BLUE), ("fit_linf", ORANGE)):
+        fit_t = np.linspace(lo, hi, 80)
+        power = {}
+        for metric, series, color in (("fit_l1", l1, BLUE), ("fit_linf", linf, ORANGE)):
             fit = row[metric]
-            fit_t = np.linspace(lo, hi, 80)
             ax.plot(fit_t, np.exp(float(fit["intercept"]) + float(fit["slope"]) * fit_t),
                     color=color, linestyle="--", linewidth=1.1)
+            # Same window, same samples, alternative model: log e = a + k log t.
+            power[metric] = _power_law_fit(times, series, (lo, hi))
+            ax.plot(fit_t,
+                    np.exp(power[metric]["intercept"]
+                           + power[metric]["slope"] * np.log(fit_t)),
+                    color=color, linestyle=":", linewidth=1.4)
         ax.text(
             0.03,
             0.04,
-            "engineering fits\n"
-            rf"mean $L_1$: $\lambda$={row['lambda_l1']:.3g}, $R^2$={row['fit_l1']['r2_log']:.3f}" "\n"
-            rf"$L_\infty$: $\lambda$={row['lambda_linf']:.3g}, $R^2$={row['fit_linf']['r2_log']:.3f}",
+            "fixed-window fits: exponential (dashed), power law (dotted)\n"
+            rf"mean $L_1$: $\lambda$={row['lambda_l1']:.3g}, "
+            rf"rms$_{{\log}}$={row['fit_l1']['rmse_log']:.3f}"
+            rf"  $\vert$  $k$={power['fit_l1']['slope']:.2f}, "
+            rf"rms$_{{\log}}$={power['fit_l1']['rmse_log']:.3f}" "\n"
+            rf"$L_\infty$: $\lambda$={row['lambda_linf']:.3g}, "
+            rf"rms$_{{\log}}$={row['fit_linf']['rmse_log']:.3f}"
+            rf"  $\vert$  $k$={power['fit_linf']['slope']:.2f}, "
+            rf"rms$_{{\log}}$={power['fit_linf']['rmse_log']:.3f}",
             transform=ax.transAxes,
-            fontsize=7.2,
+            fontsize=6.6,
             va="bottom",
             bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.82, "pad": 2.0},
         )
         ax.set_yscale("log")
+        # Headroom above for the legend and below for the fit annotation, so
+        # neither overlaps the plotted series.
+        low, high = ax.get_ylim()
+        ax.set_ylim(low / 4.0, high * 3.6)
         ax.set_xlabel("Simulation time")
         ax.set_ylabel("FP32–FP64 density discrepancy")
         ax.set_title(f"({chr(97 + panel)}) {titles[case]}", loc="left")
+        # Same discrepancy read in multiples of one binary32 rounding of the
+        # field, so the two panels can be compared on a common arithmetic scale.
+        scale = U32 * MEAN_RHO[case]
+        secondary = ax.secondary_yaxis(
+            "right", functions=(lambda v, s=scale: v / s, lambda v, s=scale: v * s))
+        secondary.set_ylabel(r"$/\,u_{32}$")
         ax.legend(ncols=3, loc="upper right")
         _grid(ax, axis="both")
     paths = _finish(fig, out, "fig_temporal_discrepancy")
@@ -607,7 +679,7 @@ FIGURES: tuple[dict[str, Any], ...] = (
         "importance": "P0",
         "chapters": [5],
         "sources": SOURCES["temporal"],
-        "claim": "Fixed-window engineering fits quantify contrasting fit quality and do not show the planned OT-greater-than-Brio–Wu contrast.",
+        "claim": "Fixed-window fits compare exponential against power-law growth on identical samples and do not show the planned OT-greater-than-Brio–Wu contrast.",
         "excluded": "A formal maximal Lyapunov exponent or physical instability rate.",
         "plot": plot_temporal,
         "data_key": "temporal",

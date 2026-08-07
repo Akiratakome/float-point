@@ -7,7 +7,14 @@
 
 namespace hrsc {
 
-enum class MhdTestCase { BrioWu, DivbBlob, OrszagTang, KelvinHelmholtz };
+enum class MhdTestCase {
+    BrioWu,
+    DivbBlob,
+    OrszagTang,
+    KelvinHelmholtz,
+    KelvinHelmholtzLecoanet,
+    CpAlfven
+};
 
 enum class MhdRiemann { Hll, Hlld };
 
@@ -18,6 +25,9 @@ inline MhdTestCase parse_mhd_test(const std::string& value) {
     if (value == "divb_blob")        return MhdTestCase::DivbBlob;
     if (value == "orszag_tang")      return MhdTestCase::OrszagTang;
     if (value == "kelvin_helmholtz") return MhdTestCase::KelvinHelmholtz;
+    if (value == "kelvin_helmholtz_lecoanet")
+        return MhdTestCase::KelvinHelmholtzLecoanet;
+    if (value == "cp_alfven")        return MhdTestCase::CpAlfven;
     throw std::invalid_argument("unsupported MHD test case: " + value);
 }
 

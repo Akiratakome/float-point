@@ -1,0 +1,61 @@
+{
+  "experiment": "week21-hll-ladder-cfl02",
+  "name": "orszag_tang_2d-hll-double-n512-cfl0p2",
+  "timestamp_utc": "2026-08-06T14:55:43.256077+00:00",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+  "binary_sha256": "6cb38f91936bfa749a61fd37cfe0986d14aeec1c45764442071ea9092f0d3ccd",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+  "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\resolution_ladder_hll_cfl02\\runs\\orszag_tang_2d-hll-double-n512-cfl0p2\\config.cfg",
+  "run_config_sha256": "f4bac42abec1a88d795a02e9e02ebf6f1428995571a4ef9789f034f0b93862d8",
+  "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx = 512\nny = 512\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.2\nt_end   = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hll\ndevice = cpu\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\resolution_ladder_hll_cfl02\\runs\\orszag_tang_2d-hll-double-n512-cfl0p2\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\resolution_ladder_hll_cfl02\\runs\\orszag_tang_2d-hll-double-n512-cfl0p2\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 464.2428722998593,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\resolution_ladder_hll_cfl02\\runs\\orszag_tang_2d-hll-double-n512-cfl0p2\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\resolution_ladder_hll_cfl02\\runs\\orszag_tang_2d-hll-double-n512-cfl0p2\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.5,
+    "steps": 3258,
+    "divB_mean": 0.087,
+    "divB_max": 8.198,
+    "line": "[mhd] t=0.500000 steps=3258 divB_mean=8.700e-02 divB_max=8.198e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\resolution_ladder_hll_cfl02\\runs\\orszag_tang_2d-hll-double-n512-cfl0p2\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\resolution_ladder_hll_cfl02\\runs\\orszag_tang_2d-hll-double-n512-cfl0p2\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 464.2428722998593
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 0.5,
+    "target_time": 0.5,
+    "steps": 3258
+  },
+  "build_semantics": {
+    "requested_opt_level": "O2",
+    "requested_fast_math": false,
+    "requested_strict_ieee": false,
+    "effective_math_mode": "compiler-default",
+    "compiler_id": "MSVC",
+    "compiler_version": "19.51.36248.0",
+    "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+    "evidence": {
+      "fast_math": "",
+      "optimization": "/O2",
+      "strict_ieee": ""
+    }
+  }
+}

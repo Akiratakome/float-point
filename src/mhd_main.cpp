@@ -81,6 +81,12 @@ int run_mhd(int nx, int ny, double xmin, double ymin, double gamma, double cfl,
     } else if (test == hrsc::MhdTestCase::KelvinHelmholtz) {
         hrsc::setup_kelvin_helmholtz<Real>(grid, nx, ny, dx, dy, (Real)xmin,
                                            (Real)ymin, (Real)gamma);
+    } else if (test == hrsc::MhdTestCase::KelvinHelmholtzLecoanet) {
+        hrsc::setup_kelvin_helmholtz_lecoanet<Real>(
+            grid, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
+    } else if (test == hrsc::MhdTestCase::CpAlfven) {
+        hrsc::setup_cp_alfven<Real>(grid, nx, ny, dx, dy, (Real)xmin,
+                                    (Real)ymin, (Real)gamma);
     } else if (test == hrsc::MhdTestCase::DivbBlob) {
         hrsc::setup_divb_blob<Real>(grid, nx, ny, dx, dy, (Real)xmin,
                                     (Real)ymin, (Real)gamma);
@@ -102,6 +108,26 @@ int run_mhd(int nx, int ny, double xmin, double ymin, double gamma, double cfl,
     } catch (const std::exception& error) {
         throw RunFailure(FailureCategory::ArtifactError, error.what());
     }
+#ifdef HRSC_HLLD_COUNTERS
+    {
+        const auto& c = hrsc::hlld_counters();
+        std::cerr << "{\"hlld_counters\":{"
+                  << "\"calls\":" << c.calls
+                  << ",\"fallback\":" << c.fallback
+                  << ",\"star_left\":" << c.star_left
+                  << ",\"star_right\":" << c.star_right
+                  << ",\"dstar_left\":" << c.dstar_left
+                  << ",\"dstar_right\":" << c.dstar_right
+                  << ",\"tie_ssl\":" << c.tie_ssl
+                  << ",\"tie_ssr\":" << c.tie_ssr
+                  << ",\"tie_sm\":" << c.tie_sm
+                  << ",\"line_total_x\":" << c.line_total_x
+                  << ",\"line_total_y\":" << c.line_total_y
+                  << ",\"line_revert_x\":" << c.line_revert_x
+                  << ",\"line_revert_y\":" << c.line_revert_y
+                  << "}}\n";
+    }
+#endif
     hrsc::app::write_run_success(
         std::cerr, static_cast<double>(solver.time()), t_end, solver.step_count());
     return 0;
@@ -125,6 +151,12 @@ hrsc::Grid2D<Real, hrsc::MhdNVars> make_mhd_initial_grid(
             gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
     } else if (test == hrsc::MhdTestCase::KelvinHelmholtz) {
         hrsc::setup_kelvin_helmholtz<Real>(
+            gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
+    } else if (test == hrsc::MhdTestCase::KelvinHelmholtzLecoanet) {
+        hrsc::setup_kelvin_helmholtz_lecoanet<Real>(
+            gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
+    } else if (test == hrsc::MhdTestCase::CpAlfven) {
+        hrsc::setup_cp_alfven<Real>(
             gv, nx, ny, dx, dy, (Real)xmin, (Real)ymin, (Real)gamma);
     } else if (test == hrsc::MhdTestCase::DivbBlob) {
         hrsc::setup_divb_blob<Real>(

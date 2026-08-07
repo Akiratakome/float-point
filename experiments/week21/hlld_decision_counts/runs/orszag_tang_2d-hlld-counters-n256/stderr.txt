@@ -1,0 +1,3 @@
+[mhd] t=0.500000 steps=812 divB_mean=2.740e-01 divB_max=2.445e+01
+{"hlld_counters":{"calls":106846208,"fallback":0,"star_left":30313944,"star_right":30313944,"dstar_left":21235120,"dstar_right":21235120,"tie_ssl":0,"tie_ssr":0,"tie_sm":0}}
+[run-status] status=success final_time=0.5 target_time=0.5 steps=812

@@ -1,0 +1,106 @@
+{
+  "schema": {
+    "name": "hrsc.week21-hlld-decision-counts",
+    "version": 1
+  },
+  "experiment": "week21-hlld-decision-counts",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-hlld-counters\\hrsc_mhd.exe",
+  "binary_sha256": "2033914c372fd5b27867e4bd8052feb777e40a541e7850c3e2b4bcfee28b88d8",
+  "rows": [
+    {
+      "case": "brio_wu_1d",
+      "solver": "hlld",
+      "config": {
+        "nx": "800",
+        "cfl": "0.4"
+      },
+      "steps": 761,
+      "counters": {
+        "calls": 609561,
+        "fallback": 0,
+        "star_left": 0,
+        "star_right": 0,
+        "dstar_left": 508522,
+        "dstar_right": 101039,
+        "tie_ssl": 0,
+        "tie_ssr": 0,
+        "tie_sm": 379178,
+        "line_total_x": 761,
+        "line_total_y": 0,
+        "line_revert_x": 0,
+        "line_revert_y": 0
+      },
+      "tie_total": 379178,
+      "tie_fraction": 0.6220509514224171,
+      "hlld_fallback_fraction": 0.0,
+      "line_revert_total": 0,
+      "line_revert_fraction": 0.0
+    },
+    {
+      "case": "orszag_tang_2d_256",
+      "solver": "hlld",
+      "config": {
+        "nx": "256",
+        "ny": "256",
+        "cfl": "0.2"
+      },
+      "steps": 1622,
+      "counters": {
+        "calls": 213429248,
+        "fallback": 0,
+        "star_left": 60614566,
+        "star_right": 60614566,
+        "dstar_left": 42368994,
+        "dstar_right": 42368994,
+        "tie_ssl": 0,
+        "tie_ssr": 0,
+        "tie_sm": 0,
+        "line_total_x": 415232,
+        "line_total_y": 415232,
+        "line_revert_x": 0,
+        "line_revert_y": 0
+      },
+      "tie_total": 0,
+      "tie_fraction": 0.0,
+      "hlld_fallback_fraction": 0.0,
+      "line_revert_total": 0,
+      "line_revert_fraction": 0.0
+    },
+    {
+      "case": "orszag_tang_2d_512",
+      "solver": "hlld",
+      "config": {
+        "nx": "512",
+        "ny": "512",
+        "cfl": "0.2"
+      },
+      "steps": 3277,
+      "counters": {
+        "calls": 1721447424,
+        "fallback": 0,
+        "star_left": 486550625,
+        "star_right": 486550626,
+        "dstar_left": 343112259,
+        "dstar_right": 343112248,
+        "tie_ssl": 0,
+        "tie_ssr": 0,
+        "tie_sm": 0,
+        "line_total_x": 1677824,
+        "line_total_y": 1677824,
+        "line_revert_x": 0,
+        "line_revert_y": 2
+      },
+      "tie_total": 0,
+      "tie_fraction": 0.0,
+      "hlld_fallback_fraction": 0.0,
+      "line_revert_total": 2,
+      "line_revert_fraction": 5.960100701861459e-07
+    }
+  ],
+  "claim_boundary": [
+    "Counts describe the instrumented build; the default binary is uninstrumented.",
+    "tie_* counts exact zeros, the only states at which <= and < can disagree.",
+    "Counts are per interface evaluation, summed over all steps and sweeps."
+  ]
+}

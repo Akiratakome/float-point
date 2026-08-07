@@ -1,0 +1,61 @@
+{
+  "experiment": "week21-implementation-temporal",
+  "name": "device_fmad-variant-t0p093571",
+  "timestamp_utc": "2026-08-06T14:54:23.482753+00:00",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-cuda-fmad-float\\hrsc_mhd.exe",
+  "binary_sha256": "f951435c493a3345415745be2e68eddf7d2a342f66005bb36dfafacd02d63ce2",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\implementation_temporal\\runs\\device_fmad-variant-t0p093571\\config.cfg",
+  "run_config_sha256": "4cd554353b51879114ed2eb36136cc3557f3c1ede719371f70114c913862d7da",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl = 0.4\nt_end = 0.093571\nbc      = outflow\nriemann = hll\ndevice = gpu\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week21/implementation_temporal/runs/device_fmad-variant-t0p093571/grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-cuda-fmad-float\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\implementation_temporal\\runs\\device_fmad-variant-t0p093571\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.2008637001272291,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\implementation_temporal\\runs\\device_fmad-variant-t0p093571\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\implementation_temporal\\runs\\device_fmad-variant-t0p093571\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.093571,
+    "steps": 710,
+    "divB_mean": 0.0,
+    "divB_max": 0.0,
+    "line": "[mhd] t=0.093571 steps=710 divB_mean=0.000e+00 divB_max=0.000e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\implementation_temporal\\runs\\device_fmad-variant-t0p093571\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\implementation_temporal\\runs\\device_fmad-variant-t0p093571\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 0.2008637001272291
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 0.093571,
+    "target_time": 0.093571,
+    "steps": 710
+  },
+  "build_semantics": {
+    "requested_opt_level": "",
+    "requested_fast_math": false,
+    "requested_strict_ieee": false,
+    "effective_math_mode": "compiler-default",
+    "compiler_id": "MSVC",
+    "compiler_version": "19.51.36248.0",
+    "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+    "evidence": {
+      "strict_ieee": "",
+      "optimization": "",
+      "fast_math": ""
+    }
+  }
+}

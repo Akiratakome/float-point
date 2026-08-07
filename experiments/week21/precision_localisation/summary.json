@@ -1,0 +1,65 @@
+{
+  "schema": {
+    "name": "hrsc.week21-precision-localisation",
+    "version": 1
+  },
+  "experiment": "week21-precision-localisation",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "grid": 256,
+  "rows": [
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hll",
+      "grid": 256,
+      "cfl": 0.4,
+      "linf": 9.886709070094923e-06,
+      "l1_mean": 7.895779157812046e-07,
+      "linf_over_mean": 12.521511648806769,
+      "argmax_ij": [
+        44,
+        27
+      ],
+      "argmax_xy": [
+        0.173828125,
+        0.107421875
+      ],
+      "rho64_at_argmax": 2.9662507695826053,
+      "share_top_0.001": 0.009744376927384847,
+      "share_top_0.005": 0.035883792869234606,
+      "share_top_0.01": 0.06159333097794409,
+      "share_top_0.05": 0.2052704033893633,
+      "share_top_0.1": 0.330874894991916
+    },
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hlld",
+      "grid": 256,
+      "cfl": 0.2,
+      "linf": 0.02596305105073471,
+      "l1_mean": 1.1269468735188894e-05,
+      "linf_over_mean": 2303.8398402637326,
+      "argmax_ij": [
+        52,
+        216
+      ],
+      "argmax_xy": [
+        0.205078125,
+        0.845703125
+      ],
+      "rho64_at_argmax": 2.4084839651284935,
+      "share_top_0.001": 0.22208957771730398,
+      "share_top_0.005": 0.32945827848632736,
+      "share_top_0.01": 0.38302739013522147,
+      "share_top_0.05": 0.5396101015579008,
+      "share_top_0.1": 0.6355077591448043
+    }
+  ],
+  "figures": [
+    "experiments\\week21\\precision_localisation\\figures\\precision_localisation.png",
+    "experiments\\week21\\precision_localisation\\figures\\precision_localisation.pdf"
+  ],
+  "claim_boundary": [
+    "Density only, one grid, one case, matched CPU pairs.",
+    "Concentration shares describe where the difference sits, not its cause."
+  ]
+}

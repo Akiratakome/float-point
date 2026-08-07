@@ -27,9 +27,26 @@ if(RIEMANN_STRICT_INEQUALITY)
     target_compile_definitions(hrsc_core INTERFACE RIEMANN_STRICT_INEQUALITY)
 endif()
 
+# Opt-in HLLD decision instrumentation. Default OFF so the measured binary and
+# its recorded timings are byte-for-byte the ones reported elsewhere.
+option(HLLD_COUNTERS "Instrument HLLD wave-selection, tie and fallback counts" OFF)
+if(HLLD_COUNTERS)
+    target_compile_definitions(hrsc_core INTERFACE HRSC_HLLD_COUNTERS)
+endif()
+
 # Optional CUDA path (Week 5 D.1 = toolchain smoke; Week 5 D.2 = data path;
 # Week 6 = real kernels). Default OFF preserves CPU-only build behaviour.
 option(ENABLE_CUDA "Enable CUDA toolchain (Week 5 GPU bring-up)" OFF)
+option(GPU_FMA_CONTRACT
+       "Compile GPU kernels with nvcc's default --fmad=true instead of --fmad=false"
+       OFF)
+# nvcc's composite relaxed-math switch. It subsumes the contraction axis
+# (--use_fast_math implies --fmad=true, --ftz=true, --prec-div=false,
+# --prec-sqrt=false and fast intrinsics), so it is the device counterpart of the
+# host /fp:fast axis and is measured, not assumed. OFF for every other result.
+option(GPU_FAST_MATH
+       "Compile GPU kernels with nvcc --use_fast_math"
+       OFF)
 if(STRICT_IEEE)
     hrsc_apply_strict_ieee_cpu(hrsc_core)
     if(ENABLE_CUDA)
@@ -191,9 +208,24 @@ if(ENABLE_CUDA)
     # produce bit-exact results vs. the host CPU oracle under MSVC's default
     # /fp:precise (which itself does not emit FMA on x64). Confined to this
     # one file to avoid global build-flag perturbations.
+    #
+    # GPU_FMA_CONTRACT=ON restores nvcc's own default (--fmad=true) so that the
+    # contraction axis can be measured rather than assumed. OFF is the project
+    # default and the setting used for every reported result.
+    if(GPU_FMA_CONTRACT)
+        set(_hrsc_fmad_flag "--fmad=true")
+    else()
+        set(_hrsc_fmad_flag "--fmad=false")
+    endif()
+    if(GPU_FAST_MATH)
+        # --use_fast_math already sets contraction on; keep one flag so nvcc is
+        # not given contradictory settings.
+        set(_hrsc_fmad_flag "--use_fast_math")
+    endif()
+    message(STATUS "HRSC GPU FMA contraction: ${_hrsc_fmad_flag}")
     set_source_files_properties(
         src/gpu/euler_kernels.cu
-        PROPERTIES COMPILE_OPTIONS "--fmad=false")
+        PROPERTIES COMPILE_OPTIONS "${_hrsc_fmad_flag}")
     set_target_properties(hrsc_euler PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
@@ -208,10 +240,11 @@ if(ENABLE_CUDA)
         src/gpu/mhd_kernels.cu
         PROPERTIES LANGUAGE CUDA)
     # Match MSVC /fp:precise (no x64 FMA) so CPU-vs-GPU agreement is not
-    # perturbed by implicit device multiply-add contraction.
+    # perturbed by implicit device multiply-add contraction. See
+    # GPU_FMA_CONTRACT above for the opt-in measurement build.
     set_source_files_properties(
         src/gpu/mhd_kernels.cu
-        PROPERTIES COMPILE_OPTIONS "--fmad=false")
+        PROPERTIES COMPILE_OPTIONS "${_hrsc_fmad_flag}")
     set_target_properties(hrsc_mhd_lib PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")

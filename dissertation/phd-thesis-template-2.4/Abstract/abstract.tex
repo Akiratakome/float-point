@@ -1,0 +1,46 @@
+% ************************** Thesis Abstract *****************************
+\begin{abstract}
+This dissertation measures how floating-point precision, hardware, compiler
+semantics and small implementation choices affect a stand-alone CPU/CUDA
+high-resolution shock-capturing (HRSC) finite-volume code, and what those
+effects mean for reproducing a published algorithm.
+
+Part~I treats the compressible Euler equations with a nominally second-order
+MUSCL--Hancock scheme and the HLLC Riemann solver, exercised on five one- and
+two-dimensional cases: Sod, Toro3 and Toro5 against exact Riemann references,
+and Liska--Wendroff configurations~3 and 12 against \(1600^2\) and \(800^2\)
+fp64 numerical references. Matched strict-IEEE HLLC CPU and GPU saved outputs
+agree exactly, at \(L_1=0\), \(L_\infty=0\) and \(\mathrm{ULP}_{\max}=0\) over
+final states and checkpoints in all five cases. Direct fp32--fp64 differences
+stay below the available reference or discretisation scale, the largest
+density reference-scaled ratio reaching \(1.30\times10^{-4}\). Sensitivity is
+axis-dependent: \texttt{-O2} and \texttt{-O3} are bit-identical where tested,
+whereas fast-math perturbs non-stationary saved states.
+
+Part~II carries the same questions into ideal magnetohydrodynamics (MHD) with
+generalised Lagrange multiplier divergence cleaning and the
+Harten--Lax--van~Leer (HLL) and HLL with Discontinuities (HLLD) solvers. A
+circularly polarised Alfv\'en wave, the one case here with an exact solution,
+verifies an observed order of \(1.818\) on both devices and both precisions.
+Every reported run keeps density and pressure finite and positive. Across
+Orszag--Tang and Kelvin--Helmholtz refinements, all 12 mean-\(L_1\) density
+discrepancies between 32-bit (fp32) and 64-bit (fp64) calculations remain below
+3\% of the matched fp64 finest adjacent-grid difference; in the domain mean
+that difference is two to seven binary32 roundings on the coarse grids but
+several hundred by \(512^2\), so refinement widens the precision gap rather
+than closing it. Saved HLL CPU and GPU states are bit-identical, but only
+because device multiply--add contraction was disabled to match the host
+default: restoring the compiler's own default removes the agreement in every
+pair and, on Brio--Wu in fp32, moves the stored density further than halving
+the working precision does. That agreement is a property of the declared build
+recipe, not of the hardware, whereas changing the baseline instruction set
+changes nothing. Compiler floating-point semantics and the HLLD branch rule
+both produce non-zero discrepancies, and the branch result has a structural
+cause: HLL's wave-speed clamp leaves its equality branches unreachable, while
+HLLD's stay live at a decision that instrumentation finds exactly tied at
+\(62\%\) of Brio--Wu interfaces. Followed in time, the precision and build
+axes all grow as power laws with exponents near 1.4--1.6, not exponentially.
+Robustness over the tested horizons is therefore distinct from arithmetic
+insensitivity, and reproducibility requires complete records of the numerical
+path and execution environment.
+\end{abstract}
