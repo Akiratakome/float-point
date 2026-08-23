@@ -8,9 +8,29 @@ set_property(CACHE OPT_LEVEL PROPERTY STRINGS "" O2 O3 Ofast)
 
 option(FAST_MATH "Enable fast-math flags for experiment builds" OFF)
 
+set(CPU_ARCH "" CACHE STRING
+    "Optional CPU instruction-set axis: SSE2 | AVX | AVX2 (MSVC /arch:, GCC/Clang -march=)")
+set_property(CACHE CPU_ARCH PROPERTY STRINGS "" SSE2 AVX AVX2)
+
 set(_hrsc_opt_flags_msg "")
 set(_hrsc_fast_math_flags_msg "")
 set(HRSC_STRICT_IEEE_FLAG_EVIDENCE "")
+
+# Instruction-set axis. Only the baseline instruction set is changed; the
+# floating-point model is untouched, so any output difference comes from the
+# code the vectoriser is allowed to emit, not from relaxed semantics.
+if(CPU_ARCH)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set(_hrsc_arch_flags "/arch:${CPU_ARCH}")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+        string(TOLOWER "${CPU_ARCH}" _hrsc_arch_lower)
+        set(_hrsc_arch_flags "-m${_hrsc_arch_lower}")
+    else()
+        message(FATAL_ERROR "CPU_ARCH is not mapped for '${CMAKE_CXX_COMPILER_ID}'")
+    endif()
+    add_compile_options(${_hrsc_arch_flags})
+    message(STATUS "HRSC CPU instruction-set axis: ${_hrsc_arch_flags}")
+endif()
 
 if(OPT_LEVEL)
     if(NOT OPT_LEVEL STREQUAL "O2" AND

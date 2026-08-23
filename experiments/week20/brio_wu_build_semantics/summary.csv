@@ -1,0 +1,13 @@
+solver,precision,axis,candidate,reference,changed_axis,rho_l1_mean,rho_l2_mean,rho_linf,rho_l1_relative
+hll,double,optimisation,ox,o2,/Ox versus /O2,0.0,0.0,0.0,0.0
+hll,double,fast_math,fast,o2,/fp:fast versus compiler default,2.370846574617502e-16,3.908165291135101e-16,1.887379141862766e-15,4.214838354875559e-16
+hll,double,branch_rule,strict,o2,< versus <= in the Riemann branch,0.0,0.0,0.0,0.0
+hll,float,optimisation,ox,o2,/Ox versus /O2,0.0,0.0,0.0,0.0
+hll,float,fast_math,fast,o2,/fp:fast versus compiler default,1.1762604117393493e-07,2.2638886760430933e-07,1.3113021850585938e-06,2.0911296059822752e-07
+hll,float,branch_rule,strict,o2,< versus <= in the Riemann branch,0.0,0.0,0.0,0.0
+hlld,double,optimisation,ox,o2,/Ox versus /O2,0.0,0.0,0.0,0.0
+hlld,double,fast_math,fast,o2,/fp:fast versus compiler default,4.3506864777498324e-16,7.087352401676692e-16,4.413136522884997e-15,7.734553738221924e-16
+hlld,double,branch_rule,strict,o2,< versus <= in the Riemann branch,4.683926857484977e-16,7.713402241544514e-16,3.885780586188048e-15,8.326981079973292e-16
+hlld,float,optimisation,ox,o2,/Ox versus /O2,0.0,0.0,0.0,0.0
+hlld,float,fast_math,fast,o2,/fp:fast versus compiler default,2.091098576784134e-07,3.596229977721403e-07,1.7285346984863281e-06,3.7175084593878983e-07
+hlld,float,branch_rule,strict,o2,< versus <= in the Riemann branch,2.077687531709671e-07,3.681692358742175e-07,2.60770320892334e-06,3.6936666022573654e-07

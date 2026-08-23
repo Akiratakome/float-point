@@ -14,6 +14,11 @@ sensitivity study.
 6. `report2/planning/manuscript_outline.md` — section-by-section writing plan.
 7. `report2/skills/README.md` — shared writing-skill routing and Report 1
    language-corpus boundaries.
+   Chapter 1 planning companion: `report2/planning/chapter1_writing_plan.md`
+   (narrowing funnel, C2--C6 interfaces, research-question lock, word budget,
+   and introduction acceptance gates).
+   Chapter 2 planning companion: `report2/planning/chapter2_writing_plan.md`
+   (development decisions, source audit, word budget, and C3--C5 interfaces).
 8. `report2/planning/chapter3_writing_plan.md` — reviewed Chapter 3 design,
    metric, table, word-budget, and C4/C5 interface plan.
 9. `report2/planning/chapter4_writing_plan.md` — reviewed Chapter 4 drafting and
@@ -22,14 +27,19 @@ sensitivity study.
    figure, word-budget, and drafting plan; its companion
    `report2/planning/chapter5_result_scope_matrix.md` is the non-ranking
    axis/scope drafting table.
+   Chapter 6 planning companion: `report2/planning/chapter6_writing_plan.md`
+   (C2--C5 synthesis, reproducibility claim boundaries, section budgets, and
+   drafting gates).
 11. `docs/experiment_logs/report2_evidence_map.md` — current evidence authority.
 12. `report2/planning/drafting_status.md` — drafting progress.
-13. `report2/references/reference.md` — citation verification map.
-14. `report2/requirements/submission_format_2026-07-28.md` — current format,
+13. `report2/planning/full_review_2026-08-03.md` — full manuscript, marking,
+    evidence, figure/table, citation, style, word-budget, and remaining-risk review.
+14. `report2/references/reference.md` — citation verification map.
+15. `report2/requirements/submission_format_2026-07-28.md` — current format,
     word-count, combined-PDF, and declaration rules.
-15. `report2/phd-thesis-template-2.4/` — standalone, structure-only Report 2
+16. `report2/phd-thesis-template-2.4/` — standalone Report 2
     LaTeX/Overleaf workspace.
-16. `report2/submission/` — PDF-level Part I + Part II assembly workflow.
+17. `report2/submission/` — PDF-level Part I + Part II assembly workflow.
 
 ## Folder map
 

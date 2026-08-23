@@ -6,13 +6,13 @@ Reproduces the layout of two figures from
 so our HLL / HLLD solvers can be compared side-by-side against the paper:
 
   Fig. 12  -> gray-scale temperature (T = p/rho) of the OT vortex, LEFT HALF of
-              the domain, panels: HLL | HLLD | high-res reference.
+              the domain, panels: HLL | HLLD | internal fine-grid comparator.
   Fig. 13  -> 1D temperature cuts along two horizontal lines; the paper uses
               y = 0.64*pi and y = pi on a [0, 2*pi]^2 domain. Our run is in the
               Toth-2000 convention ([0,1]^2, t=0.5), so the same normalised
               positions are y = 0.32 and y = 0.50.
 
-The reference is our 512^2 HLL run (same role the paper's high-res solution
+The comparator is our 512^2 HLL run (same role the paper's high-res solution
 plays). Units are rationalised (rho0=gamma^2, p0=gamma, B0=1), so the
 comparison is of solver-to-solver structure, not absolute paper values.
 """
@@ -79,11 +79,11 @@ def row_at(field: np.ndarray, y_frac: float) -> tuple[np.ndarray, np.ndarray]:
 
 
 def fig12(t_hll, t_hlld, t_ref) -> pathlib.Path:
-    """Gray-scale temperature, left half of domain: HLL | HLLD | reference."""
+    """Gray-scale temperature: HLL | HLLD | internal comparator."""
     panels = [
         ("HLL solver (256$^2$)", t_hll),
         ("HLLD solver (256$^2$)", t_hlld),
-        ("reference (HLL 512$^2$)", t_ref),
+        ("internal comparator (HLL 512$^2$)", t_ref),
     ]
     # Shared gray scale across panels for a fair visual comparison.
     vmin = min(float(t.min()) for _, t in panels)
@@ -109,13 +109,11 @@ def fig12(t_hll, t_hlld, t_ref) -> pathlib.Path:
         ax.set_xticks([0.0, 0.25, 0.5])
     axes[0].set_ylabel("y")
     fig.colorbar(im, ax=axes, shrink=0.62, label="temperature  $T = p/\\rho$", pad=0.02)
-    fig.suptitle(
-        "Orszag-Tang temperature at $t=0.5$ (left half) "
-        "— layout after Miyoshi & Kusano 2005, Fig. 12",
-        fontsize=10.5,
-    )
+    # No in-figure title: the manuscript caption owns the case, stopping time and
+    # the Miyoshi & Kusano (2005) layout attribution.
     out = OUT_DIR / "ot_temperature_mk_fig12.png"
     fig.savefig(out, dpi=170)
+    fig.savefig(out.with_suffix(".pdf"))
     plt.close(fig)
     return out
 
@@ -127,7 +125,7 @@ def fig13(t_hll, t_hlld, t_ref) -> pathlib.Path:
     fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.4), constrained_layout=True)
     for ax, (yf, label) in zip(axes, cuts):
         xr, tr = row_at(t_ref, yf)
-        ax.plot(xr, tr, "-", color="black", lw=1.1, label="reference (512$^2$)", zorder=1)
+        ax.plot(xr, tr, "-", color="black", lw=1.1, label="internal comparator (512$^2$)", zorder=1)
         xh, th = row_at(t_hll, yf)
         ax.plot(xh, th, "o", color="tab:blue", ms=2.6, mfc="none", mew=0.7,
                 label="HLL solver", zorder=2)
@@ -154,7 +152,7 @@ def fig13(t_hll, t_hlld, t_ref) -> pathlib.Path:
 def ot_paper_style() -> pathlib.Path:
     """Overwrite ot_paper_style.png: gray-scale temperature, full domain.
 
-    Two panels (256^2 production run | 512^2 reference) in the Toth-2000 /
+    Two panels (256^2 production run | 512^2 internal comparator) in the Toth-2000 /
     Miyoshi-Kusano-2005 gray-scale temperature layout, replacing the old
     colour density/mag-pressure heatmap.
     """
@@ -166,7 +164,7 @@ def ot_paper_style() -> pathlib.Path:
     fig, axes = plt.subplots(1, 2, figsize=(7.4, 4.2), constrained_layout=True)
     im = None
     for ax, (title, t) in zip(axes, (("HLL (256$^2$)", t256),
-                                     ("reference (HLL 512$^2$)", tref))):
+                                     ("internal comparator (HLL 512$^2$)", tref))):
         im = ax.imshow(t, origin="lower", cmap="gray", vmin=vmin, vmax=vmax,
                        extent=(0.0, 1.0, 0.0, 1.0), aspect="equal",
                        interpolation="bilinear")
@@ -174,17 +172,18 @@ def ot_paper_style() -> pathlib.Path:
         ax.set_xlabel("x")
     axes[0].set_ylabel("y")
     fig.colorbar(im, ax=axes, shrink=0.78, label="temperature  $T = p/\\rho$", pad=0.02)
-    fig.suptitle("Orszag-Tang temperature at $t=0.5$ "
-                 "— layout after Toth 2000 / Miyoshi & Kusano 2005", fontsize=10)
+    # No in-figure title: the manuscript caption owns the case, stopping time and
+    # the Toth (2000) greyscale-temperature layout attribution.
     out = OT_FIG_DIR / "ot_paper_style.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=170)
+    fig.savefig(out.with_suffix(".pdf"))
     plt.close(fig)
     return out
 
 
 def kh_paper_style() -> pathlib.Path:
-    """Overwrite kh_paper_style.png: density isolines, Dedner 2002 Fig. 8 style."""
+    """Overwrite kh_paper_style.png for the project-defined weak-field KH case."""
     rho = density(KH_BIN)
     ny, nx = rho.shape
     xc = (np.arange(nx) + 0.5) / nx
@@ -198,8 +197,8 @@ def kh_paper_style() -> pathlib.Path:
     ax.set_ylim(0.0, 1.0)
     ax.set_xlabel("x")
     ax.set_ylabel("y")
-    ax.set_title("Kelvin-Helmholtz: isolines of $\\rho$ at $t=1.0$\n"
-                 "— layout after Dedner et al. 2002, Fig. 8", fontsize=9.5)
+    ax.set_title("Project-defined weak-field Kelvin--Helmholtz case\n"
+                 "24 linearly spaced density contours at $t=1.0$", fontsize=9.5)
     out = KH_FIG_DIR / "kh_paper_style.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=170)

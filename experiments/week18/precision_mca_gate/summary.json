@@ -1,0 +1,1940 @@
+{
+  "schema": {
+    "name": "hrsc.report2-precision-mca-gate",
+    "version": 1
+  },
+  "experiment": "report2-precision-mca-unified-audit",
+  "gate": {
+    "audit_pass": true,
+    "full_matrix_promotion_pass": false,
+    "report_grade_rows": 2,
+    "expected_rows": 4
+  },
+  "rows": [
+    {
+      "case": "brio_wu_1d",
+      "solver": "hll",
+      "status": "report-grade",
+      "source_integrity_pass": true,
+      "promotion_pass": true,
+      "checks": {
+        "g0_pass": true,
+        "deterministic_24_variants": true,
+        "deterministic_completed_finite": true,
+        "single_reference": true,
+        "embedded_commit_present": true,
+        "deterministic_metadata_24_complete": true,
+        "deterministic_metadata_success": true,
+        "deterministic_metadata_scope_consistent": true,
+        "mca_p53_p24_n30": true,
+        "mca_metrics_finite_nonnegative": true,
+        "mca_metadata_60_complete": true,
+        "mca_metadata_success": true,
+        "mca_metadata_scope_consistent": true,
+        "deterministic_mca_scope_match": true
+      },
+      "deterministic_scope": {
+        "test": "brio_wu",
+        "nx": 800,
+        "cfl": 0.4,
+        "t_end": 0.1,
+        "riemann": "hll"
+      },
+      "mca_scope": {
+        "test": "brio_wu",
+        "nx": 800,
+        "cfl": 0.4,
+        "t_end": 0.1,
+        "riemann": "hll"
+      },
+      "deterministic": {
+        "rows": 24,
+        "reference": "cpu-double-O2-ieee-leq",
+        "metadata_records": 24,
+        "float_baseline_linf_rho": 1.075167475605987e-06,
+        "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd"
+      },
+      "mca": {
+        "p53_n": 30,
+        "p24_n": 30,
+        "metadata_records": 60,
+        "p53_spread_rho": 5.1165878499632645e-15,
+        "p24_spread_rho": 2.275123060723631e-06
+      },
+      "sources": [
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/summary.json",
+          "sha256": "f82497b15ed23318c6e8fe59caa7a2b9428bc1f8c9954d487c02abf712b2d452"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-O2-fastmath-leq/metadata.json",
+          "sha256": "ee6d62993e700e1df48ea3f1d034dce97bea60eda1cee25ad932cd2a9fb9ab9c",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-O2-fastmath-strict/metadata.json",
+          "sha256": "6eef1d7cbc58a117f189d9b6fc731ad9c8a03166aa44a13522984f8601b4a65c",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-O2-ieee-leq/metadata.json",
+          "sha256": "b4307879ef10da20cdb25ac2dad71755c069e1d46756981c21f59e7f37f2fcfd",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-O2-ieee-strict/metadata.json",
+          "sha256": "caf76ceeed0c05243172e19ba8be8599b4d29be8d20d5ad2263fca93e396153f",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-O3-fastmath-leq/metadata.json",
+          "sha256": "7d3e8aa09994b37d323f15e178c61a9278ddb34cb19f89ec62999f2297592ac3",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-O3-fastmath-strict/metadata.json",
+          "sha256": "7f02bba3acf70fab844e91cd9b823e5f5fbd7dc165aaa08947a820a71e0606a2",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-O3-ieee-leq/metadata.json",
+          "sha256": "04f3fd46ff17032809b3933fbf48047dfab6e078f81c2198a3797e1b8b713d4f",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-O3-ieee-strict/metadata.json",
+          "sha256": "2dedfbf621cc9808714d0aa82ead9a76cfb9eeb1490ad67d30f36d6df7166b1d",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-Ofast-fastmath-leq/metadata.json",
+          "sha256": "56b3f49f224dab48b4e366a4b01c8aac9930a790b732808de942a478bfe5fd28",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-Ofast-fastmath-strict/metadata.json",
+          "sha256": "dc965010413f6d23f9ba274ca68a4a0198ca55af4caef8fe411c983510866315",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-Ofast-ieee-leq/metadata.json",
+          "sha256": "b599e49823a6168f77debd5b1ad373dd642e02dc5891fa8ee4ef39f75a13f3dc",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-double-Ofast-ieee-strict/metadata.json",
+          "sha256": "69a87de318ff06f9c0aac029a9e75a063bf5672bc20634470ebb8a5bca9c5176",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-O2-fastmath-leq/metadata.json",
+          "sha256": "d39e4611994fe9d9afe60ea8571838b1d0e96d3e714d404f8661a1cafa8fc566",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-O2-fastmath-strict/metadata.json",
+          "sha256": "17d0fc4eb3b713640ca99c81873f7c7a13a075343167a4601bdd4d6ce2c678fa",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-O2-ieee-leq/metadata.json",
+          "sha256": "4b5fb60875df506474ddf198d921ad6ecada80e5fc8a6e74d5f9a94cd7e6838d",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-O2-ieee-strict/metadata.json",
+          "sha256": "fc9b9111c258e1902419e11db56bca949fa1abf40bb88df9a9cb4e2b0dff1f37",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-O3-fastmath-leq/metadata.json",
+          "sha256": "4fd7fb8661f076d504ccfbf5f3df5aaca5d7ba83b07b4934cc40d55f0c9e6be2",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-O3-fastmath-strict/metadata.json",
+          "sha256": "91739f42c30f52bef2ca7d7c1b88be04acffb168c570fcf1d632a59cdeb35cff",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-O3-ieee-leq/metadata.json",
+          "sha256": "91ddd095d3b91aa369bd1354190bdddedf6e86c68fac9f2dd0b3389844e83d80",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-O3-ieee-strict/metadata.json",
+          "sha256": "8ed5265f82a5fc86742c73dbb6bdf608e5616e4ce79c6b95682eb64d89c59638",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-Ofast-fastmath-leq/metadata.json",
+          "sha256": "ea60ed3b8f7ca1b56077a0243f3a2e4c6bbbb0bf4266590cc1ab558da226fb92",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-Ofast-fastmath-strict/metadata.json",
+          "sha256": "8fdd809c27413c3a2f571687d95e74a69e522c84fa85a07890e24ec69287602e",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-Ofast-ieee-leq/metadata.json",
+          "sha256": "aedf023cc534fc7799d9a149dca385063edf1147a32aaa5bc4c8f91429652488",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/runs/cpu-float-Ofast-ieee-strict/metadata.json",
+          "sha256": "e541a9cc145f628a1ac7bb1a20dc8293f2bf14aad527d5b69c434c1a6a850a25",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_01/metadata.json",
+          "sha256": "5536e606d5960c11ebfb91b710404cae2a6a0da9e9cd14f2dac4dc49c28e2570",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_02/metadata.json",
+          "sha256": "40095a0f18a70a8a6e4e33ad449aa5890eb44ee9c7a8688355293d638baaee52",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_03/metadata.json",
+          "sha256": "b2ee28cd68850ff2e35e7d88e8e0b9115eb17c00e7e21759691759482931c668",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_04/metadata.json",
+          "sha256": "e541dd5b66fc11e3d870ae04315f50a9ec2db2fa160c7e3db5c38a79ba7ead31",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_05/metadata.json",
+          "sha256": "ac4378029ccfb9dd71605fa0fcd629da67c555546bbf0c4febe2788670d37c9e",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_06/metadata.json",
+          "sha256": "0ab7c683dc8630474882ad2ed977ad3cac92dd5238ecf6a18a491f00ccc11d2d",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_07/metadata.json",
+          "sha256": "4960521d5ee09bab5075490bfd694436be06f77e017c4963e0c8d72fbe05467b",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_08/metadata.json",
+          "sha256": "b2ec3fb1e03389ab47841012c1afdf94a49196d45e4ef05f580bcb9744f9d035",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_09/metadata.json",
+          "sha256": "69947a864f8cd129e8dca3a5fe5aaae871aac75db287442d8f445773c69d0f5e",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_10/metadata.json",
+          "sha256": "439f7ffc536dfe0239aeccd5fd736367ab5fbe2d2322226ea9e52a0d41deeeda",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_11/metadata.json",
+          "sha256": "63e224bd1dd7d3eb11be3f12ffd208135dac08857a7b314521090d088c7735f9",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_12/metadata.json",
+          "sha256": "1254dec767a00e340a19c89b161008f59257bb97097d197ee4f67b5fa285d920",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_13/metadata.json",
+          "sha256": "1cd5fce943d3f488d1a808b83bac2a03a40aca231739d19c6180d9320814a069",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_14/metadata.json",
+          "sha256": "e6505f3a8c18bb870e1bef8e3569e6860cb83864b35c64e34cef28cf5fb25278",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_15/metadata.json",
+          "sha256": "cd94fc8757dd0d85c2ad702482f83e266ed71d44fca29ba664529b65d4ccb25b",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_16/metadata.json",
+          "sha256": "d4d54d3c6c7f87cc0dc69b4348363321d5b35246ceb08b4f2e0421a8f89eddbb",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_17/metadata.json",
+          "sha256": "3845a759e9792d29ff6948691a9a0eee7a044f465205adb274a859af6c7a779b",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_18/metadata.json",
+          "sha256": "15c8a6c68ba3c0d82f41a433a4251cad3ef7b46b84219ec869ca5aa124634886",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_19/metadata.json",
+          "sha256": "526694b80501a91617b3e44dc077bb1a17c13e2235d345c5b5bd6e7a7d890617",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_20/metadata.json",
+          "sha256": "909a488f477a01446236b31ec6a26e7a6984e5e84e6d4e68a415ab3859c52fff",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_21/metadata.json",
+          "sha256": "19dfc33e7807c5a128d56345ab2393926bc8e764d33225a17d1b91dc1fe7ad28",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_22/metadata.json",
+          "sha256": "666ddd6de1bdc273efba68b169963b458c88a9e0499d40501d48ae204306c5f2",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_23/metadata.json",
+          "sha256": "0a32c1250dbcdd7895bde9cb1c689a580334a4ada78a8ef49518c04589e479d3",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_24/metadata.json",
+          "sha256": "46b465f3a901b404922ce1bbd47171ba6e990362cf43c77d5f2b484235148dd0",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_25/metadata.json",
+          "sha256": "461cec1c75558dcd1d61109e976282ad0f307751ebb00986bb9f7577c4fc532d",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_26/metadata.json",
+          "sha256": "f6b9102bf82d43e38487ead983e70ca8b2620c9adab64be554693927a487f5c8",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_27/metadata.json",
+          "sha256": "3400ed7f2170a246db11d9a357b243e0db209c2e1b1ce88743ab1f61b02efb85",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_28/metadata.json",
+          "sha256": "1711bffcd39d2360ae719ef96da64eb0f1f89f812947b017640e05883e563062",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_29/metadata.json",
+          "sha256": "332ee9168b2a2208b19b03a241ac427c0f24517a0fcf85327e9f0dbf561545e8",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p53/runs/sample_30/metadata.json",
+          "sha256": "83be65d57c89793f9529b5d2fa25053d4205160c2b16d2725a2a52cc2ddf586a",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_01/metadata.json",
+          "sha256": "f3a2bf11d27c97e008022c58168951773f483668a873132bc6a0f1adbf4d876b",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_02/metadata.json",
+          "sha256": "4c6058cee0b9a6f54fbd6c947134fd2246079c5e0cb929b55c4b7f359d12a55b",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_03/metadata.json",
+          "sha256": "9fa2babab3ce345d6e4d287e560874d280d5eba2bc6a290e8d7082d1a412c651",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_04/metadata.json",
+          "sha256": "fe9f3e783bfc33da74303f01392005787799cb20dcb6c4f420d61bb9317f281f",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_05/metadata.json",
+          "sha256": "181ab895d72a57719680ceae0ea41f3582567e06ff522dc1e4a25e7a3f7d1c5a",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_06/metadata.json",
+          "sha256": "23a4651966512203fae6b570539f9a0652a9788f89aea14207b6bd3c9902f244",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_07/metadata.json",
+          "sha256": "f4bf44a352581d3d41d519cec472a007e3619355e2646e0d5f6169b05e47da6d",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_08/metadata.json",
+          "sha256": "a211ee8ca087225d9e4d13dea2542a8b6231f89bdd400033e86ffb4bf155050c",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_09/metadata.json",
+          "sha256": "c85a99ef430596fe1c3d5fcafbe7aaa0247ca7bea6fc5f875fe0acfaa3a578fe",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_10/metadata.json",
+          "sha256": "d71c67766d56aae2307846847c6c0702e41032f79369ce8c697d6992f70df34b",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_11/metadata.json",
+          "sha256": "3f0307241036eedc48cf0fdf7e23b77066990e232280dd5e9b5fb23394eabe7a",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_12/metadata.json",
+          "sha256": "0ad7532d998f88ba08792a231f7e9324256c00d68adf353d6de276ecf55cd471",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_13/metadata.json",
+          "sha256": "03029d00af7d7ff2cad152f7226110dd8eccd24fd2e349026489b9f494926577",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_14/metadata.json",
+          "sha256": "783552b80ecd47b281d7c8a192795443b6a9b0a857527f6d5f55edd7f84c9f4c",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_15/metadata.json",
+          "sha256": "70ffa92a168a53f2d506224b38d0d47d341626b68df62600705b723693f2d96b",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_16/metadata.json",
+          "sha256": "06bc6270faf0f1ff4f4795c4c2b4e29a9cff5f090dd65faca29fc4d896fb0f60",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_17/metadata.json",
+          "sha256": "dbc1195edfbe535b5f1e0c10088faaced51b149e6ce5e7b41448e3b41ee110db",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_18/metadata.json",
+          "sha256": "b650e3eb876ef224b4fe831c28a0723e5155971a6264e9d25791fbdc718482ac",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_19/metadata.json",
+          "sha256": "7f27854596fac229af6dc0eba4744f74e819b88679ee760f77b7e752fa0f065f",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_20/metadata.json",
+          "sha256": "3ab4967ac81380e51a4b3e2ef3f077b68895968493561c9710e425004d850c45",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_21/metadata.json",
+          "sha256": "e219f39720e6d996e9b176da7bc70502fe51630f8042b40ff02e0c0c703c9131",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_22/metadata.json",
+          "sha256": "2fff08206ddfc0ccd0b37c7df267cefc005388a621784d9a00f8b53297ccea44",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_23/metadata.json",
+          "sha256": "144059159b18942b454c9e53ec881e41688a6a913aee35c707b337f9e53660e5",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_24/metadata.json",
+          "sha256": "5acfd043a97b554431b73b37a0c285b831f5cbf84240fdb68be41b33e7918d06",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_25/metadata.json",
+          "sha256": "48076ee28d2016c076726d14e1b489589d744601de7b18b4f1fe36a8677fa452",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_26/metadata.json",
+          "sha256": "914de932449f76c26d4058e5c3ad5a5dc1895db3cc516dc327e138544ef713f6",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_27/metadata.json",
+          "sha256": "ad5de3815ce19eb10b537e289559984870e1e7dda459eff71e9a9f05e324a93e",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_28/metadata.json",
+          "sha256": "4a02c141248cf05dd4b5f5d8ac606ce9f0c9b150c4333db440ec0ef2c562c8d8",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_29/metadata.json",
+          "sha256": "e0e77d7edb65292a7fc820751248f919c393ce5a88cfe88518c24ae926d5a71d",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_p1/mca/p24/runs/sample_30/metadata.json",
+          "sha256": "aa4b1913bf6bd835fb96ea46f8a300864d67bba4c82c645caa7f7709ba838b47",
+          "role": "p24-metadata"
+        }
+      ]
+    },
+    {
+      "case": "brio_wu_1d",
+      "solver": "hlld",
+      "status": "report-grade",
+      "source_integrity_pass": true,
+      "promotion_pass": true,
+      "checks": {
+        "g0_pass": true,
+        "deterministic_24_variants": true,
+        "deterministic_completed_finite": true,
+        "single_reference": true,
+        "embedded_commit_present": true,
+        "deterministic_metadata_24_complete": true,
+        "deterministic_metadata_success": true,
+        "deterministic_metadata_scope_consistent": true,
+        "mca_p53_p24_n30": true,
+        "mca_metrics_finite_nonnegative": true,
+        "mca_metadata_60_complete": true,
+        "mca_metadata_success": true,
+        "mca_metadata_scope_consistent": true,
+        "deterministic_mca_scope_match": true
+      },
+      "deterministic_scope": {
+        "test": "brio_wu",
+        "nx": 800,
+        "cfl": 0.4,
+        "t_end": 0.1,
+        "riemann": "hlld"
+      },
+      "mca_scope": {
+        "test": "brio_wu",
+        "nx": 800,
+        "cfl": 0.4,
+        "t_end": 0.1,
+        "riemann": "hlld"
+      },
+      "deterministic": {
+        "rows": 24,
+        "reference": "cpu-double-O2-ieee-leq",
+        "metadata_records": 24,
+        "float_baseline_linf_rho": 1.6292663023165233e-06,
+        "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd"
+      },
+      "mca": {
+        "p53_n": 30,
+        "p24_n": 30,
+        "metadata_records": 60,
+        "p53_spread_rho": 8.441609013359155e-15,
+        "p24_spread_rho": 4.007108621540143e-06
+      },
+      "sources": [
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/summary.json",
+          "sha256": "ca1231e1f5470a69326af9f883a7493fd8d550a0b9d768fd3fcf93cd30b618e3"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-O2-fastmath-leq/metadata.json",
+          "sha256": "670fe7327871415b89e126bda6fe8a776bad7d5a5d5e7982d694128e880fd1dd",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-O2-fastmath-strict/metadata.json",
+          "sha256": "acb9ad6a8ed343a0751a257b9439f765efcdf8eceeb0426941ce6f77919b20f7",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-O2-ieee-leq/metadata.json",
+          "sha256": "aa9f5dd79e882eb705d7132d502a38bdb8054448715ec22461133b4f1180e7a3",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-O2-ieee-strict/metadata.json",
+          "sha256": "df68b85d08ac41da03ea17efdf3fe8c953cded02d32a2951b9ccd004992a441c",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-O3-fastmath-leq/metadata.json",
+          "sha256": "8392e7c4140cb1b250d4af0edfa97aa3f2790ee9b9407d195190eabad8ee8b4d",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-O3-fastmath-strict/metadata.json",
+          "sha256": "32476000c79436e078948e3d75c953253d759b13616cba253b534e4046978b4f",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-O3-ieee-leq/metadata.json",
+          "sha256": "96c20cf31e7bd2ca07d210b5f83c80fe79b59372903c2a363b8a52331d923bff",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-O3-ieee-strict/metadata.json",
+          "sha256": "21e998fd18320ee8bf834354fe219920c10bb0984d02781768964515e957f65d",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-Ofast-fastmath-leq/metadata.json",
+          "sha256": "06b774eeae86e17011edfca362a37c5e9d49fda99803e99c0bdf755ffd43df4b",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-Ofast-fastmath-strict/metadata.json",
+          "sha256": "3c0fa691a5fb7548b67fc5c42609ef0cae3a74b981489ad930c7189174b0ac64",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-Ofast-ieee-leq/metadata.json",
+          "sha256": "d85b29a936764d26d9b14b672175b17a3b3e0207bd810cf6a423fa7166b933e6",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-double-Ofast-ieee-strict/metadata.json",
+          "sha256": "293ec5db1c91e4441c1d681c7e12c404c5b90d0838a7d5949f572c00c91a490f",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-O2-fastmath-leq/metadata.json",
+          "sha256": "39bf042b721665c65b1a22135d0be0edefe34dac7012679734b174b627426f5f",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-O2-fastmath-strict/metadata.json",
+          "sha256": "c9108e4420cb05ad42260f15c119fe5158dac269de2cbf7e2363807f1ca3d8cb",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-O2-ieee-leq/metadata.json",
+          "sha256": "beca05756aefa02fc9b03514e59f82dc4a61ff4734c40ccd69c2721143f5fcd5",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-O2-ieee-strict/metadata.json",
+          "sha256": "e12d1841c39443d517f90499b4ed0dff08a85b9975275a58bf6a709c9f27bd19",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-O3-fastmath-leq/metadata.json",
+          "sha256": "d680e679362686f2b5c46b49d2a7683ffd9f852cc28a4ab09cf1c90c644ccb4f",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-O3-fastmath-strict/metadata.json",
+          "sha256": "32321823398b0361eee47ea2e83e002ed2ccf0c1d69459c2de9a2380cc5cc6ff",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-O3-ieee-leq/metadata.json",
+          "sha256": "6cc4172dab56bf41cbf13614f17f480374af79f764a42fcbc34ff1a6eed70a05",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-O3-ieee-strict/metadata.json",
+          "sha256": "c7d192ada0813f4d804fdec9c578732c23c391a7b91bf0ba11a79bc246a036e1",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-Ofast-fastmath-leq/metadata.json",
+          "sha256": "8b4333906c87e1eb315e65093b3a70b3a3ed5a5908317954dbb34e02b96703a7",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-Ofast-fastmath-strict/metadata.json",
+          "sha256": "892128a3cb6e5b31e4c9e51735d2a306cc84435e9eacef9410ae443e0a87104c",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-Ofast-ieee-leq/metadata.json",
+          "sha256": "af1065b0f460f227b81783d330c85d60ab5ebc840a9558327a498eb484e8a986",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/runs/cpu-float-Ofast-ieee-strict/metadata.json",
+          "sha256": "e158564486c3588ae4d52ea17cdfeff3da31c5e371ccf4e982319b5d38006b35",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_01/metadata.json",
+          "sha256": "dfe4e5d0b1fdf6cb209db0ae885d0fbb9b2f155fbbee947f501d1c285d5c7037",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_02/metadata.json",
+          "sha256": "210dd946728404fc0fa8b5a986d97f4e6550d86feabfccc577dcdf57eea585a3",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_03/metadata.json",
+          "sha256": "50f8aeea29fff44ab9fd30dcfcf51a8650ca7edd0fae58ed3ebc7a6a2152895e",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_04/metadata.json",
+          "sha256": "d3f57f96a6c2051b53015f08d99dbe738556c4974fc39f1eed15ad769e5caea7",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_05/metadata.json",
+          "sha256": "0022831ce885a950f4d8dee3ddd561eec9cf70d77564f3621982e62078960ba3",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_06/metadata.json",
+          "sha256": "ced70daa456bd527db8d5d68dae6907007f75e8ab5c776e650074408473f972a",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_07/metadata.json",
+          "sha256": "4646a5babb946861fa5badd3fd356007d0a96e3dc753b85beeb2097e42f8425e",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_08/metadata.json",
+          "sha256": "0fc55dcfc87b64e9ae252351a62d562626e344eaa9cdfd6ad1479205eea9511b",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_09/metadata.json",
+          "sha256": "e71a85d9ce9dc2acf1e9e59fef9c4a89043f0384f960dfc9014760dfbfc6e13e",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_10/metadata.json",
+          "sha256": "94e693d00e4b9d012eb2a360c131a5d4507b2400845f58cfb2a71de3dd1bd1dd",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_11/metadata.json",
+          "sha256": "10ac370ec4c857b47869471d9f1d27873ef9192e87da86166f09ddf61688cbac",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_12/metadata.json",
+          "sha256": "f824ba26e92aa6d5edafe15b98baf7b43d89419f95112fce350e680dd17709e8",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_13/metadata.json",
+          "sha256": "1c65877a08d86f9c0b1102892ef542cc6c91f64a29ec97c754b5e54c9add92ae",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_14/metadata.json",
+          "sha256": "0c99f790fa81296ed2043b8a80b0f6efda72c933f6ceed7832a9142dcafeeb05",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_15/metadata.json",
+          "sha256": "dc72f6e0e611a1c9f4c34eb11543280ffbf9c7d476c184d4c81284f4539041b1",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_16/metadata.json",
+          "sha256": "801458eb1211e02259b85a6c0de301d7d6549ae5c0040bbdaa6a60f537baf092",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_17/metadata.json",
+          "sha256": "ab12d78d45af10846e8d33cdd642fa2b0a9827b19cded5465790dc2c286ef462",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_18/metadata.json",
+          "sha256": "d19d2376fd7c58b70d2e50c5272ff240a1275232fe26c8d7115592d7c8e23d91",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_19/metadata.json",
+          "sha256": "7468bb37a26cd175a1aba06275f6c853e4ceef7b0fbf42faa4a1254e0dbd5f97",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_20/metadata.json",
+          "sha256": "d50aff011efcf02a278fd466fc4015e4d9fe69d660bc17d2bfb4b1ebc1c3d141",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_21/metadata.json",
+          "sha256": "63a98fa4d18d6234db37ef9855206209fdd559a6dced6158e1789ed513f1cb42",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_22/metadata.json",
+          "sha256": "1260cf82ff3a617b09a1f84a7a86d1c8f7b85c38b08310583c9ba65a2a6bf9cc",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_23/metadata.json",
+          "sha256": "d5681887eb8a2dd8a3fffd3e0847bb798ffc97af9503e623165d6624897c643f",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_24/metadata.json",
+          "sha256": "285742c646d950c960c6f9f24d725387423939a7e739522a50890b60284e4e15",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_25/metadata.json",
+          "sha256": "af3bf97f66be6b5e8ff8bcfa2a62135f43b20b7cf32fffadf4ee189931467cc9",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_26/metadata.json",
+          "sha256": "12b6c2679fe957934b46780c162a3c30ff9ce03be9462c4b27f00ebb0ac5cf70",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_27/metadata.json",
+          "sha256": "3312c55ff901b1ff68e203e29ed0a74d044a075629f8539a7869c45406741918",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_28/metadata.json",
+          "sha256": "de9c58a3ffda275a92cc2c6b239d8c7d813b83360c4d33ad47bbc21ddda27b8e",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_29/metadata.json",
+          "sha256": "d9829fcda3ac0e2007ecdba6519bb407b0f2e4cd15425a4f2129c3673145bcef",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p53/runs/sample_30/metadata.json",
+          "sha256": "f022f5e5e1add004d73e9a9f02ddacf592d0c3656f58023bf31aeb9024eadc0a",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_01/metadata.json",
+          "sha256": "65df03c7dd4e6474a7522e30f670fbfd7e3198588129ba63ebf5bdad136d643a",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_02/metadata.json",
+          "sha256": "8203d90169a9aeda714fac259baac02f9b1096b440eecd41fdda183a586e7c01",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_03/metadata.json",
+          "sha256": "f873a4a5f1eedd3315e03beb339eb408915d84cf3217ab2f3397a6e7360e7bb7",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_04/metadata.json",
+          "sha256": "719a1f0aeebbe24d1807dc6c9dae7f4f021c98f0f6bbe11aafadfedda1e1d260",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_05/metadata.json",
+          "sha256": "7ff370547df9af5f68f58d30e46d37056288d661c109afa5724b3c96543df3ae",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_06/metadata.json",
+          "sha256": "8fb336269634f21c524711fc3716983c9509e57efc16f807d586ea2d5f4ba443",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_07/metadata.json",
+          "sha256": "34730bdd2f86b940b03746cf27b000041aa6779adf8c62b5f91ff560ac8fa49a",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_08/metadata.json",
+          "sha256": "42790f5c3640223207ad7e158ddfe4867b8e2b2ac88bc1fbe96c3ed065ca6b6a",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_09/metadata.json",
+          "sha256": "4cab3275e4c84d96fe68632b1207575838a5e40bbc58694758f47704dbc608bc",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_10/metadata.json",
+          "sha256": "4a289825c60dcb200c0459b4280957736d2ca35824b2c137360cf0dcc346eeed",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_11/metadata.json",
+          "sha256": "071d411896b95f2b009a58a3cc4ce9657e51798cc7b2cedc5b9d219580b90be0",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_12/metadata.json",
+          "sha256": "765a65cf49f83fe41b12f586440bf734f4611ef21b6473d18f7ab84366024a5b",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_13/metadata.json",
+          "sha256": "9021c3469145f84709083dd4686530c23e2d26b4ab47ab9a3d7cc1df99aa6ac3",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_14/metadata.json",
+          "sha256": "090fe193dbe09c5e98b0a8adc28d5e15f69282908cf628611b6e48db42ba60e3",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_15/metadata.json",
+          "sha256": "24f2a3523a9a4f8964a55462562e92fdcdd2b96fb631cb0be9721285851984b9",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_16/metadata.json",
+          "sha256": "ec663e1d2647a8c34cb4246a41a693cf4bc017ffffb8dcbf0db82c53ccfa8701",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_17/metadata.json",
+          "sha256": "2ed5fc923f368a0f45cf58655fd77f29b46696c135048095e5172fc7fcf38255",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_18/metadata.json",
+          "sha256": "ccc03588c79523dc88d4f0670a19fd654cc4177683fe2203283f46af0e746cb6",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_19/metadata.json",
+          "sha256": "3994b851700dc3dbf29bf7bd1d3d9c9016bc6218f0c7386925d9b74cf0d8d0f8",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_20/metadata.json",
+          "sha256": "fd42c482bb446bd0e649cc34436822e3a57ec531a0c3c600da80dda8e95b3a41",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_21/metadata.json",
+          "sha256": "678873ebb35b29d64397f753689d4856d841fadc0822b45f94061b2832d3e17e",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_22/metadata.json",
+          "sha256": "791894cc8ec6b077e1f86125862a86e0cb8f5c4aeb159c3f314c702ef3b3cd03",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_23/metadata.json",
+          "sha256": "9dbaff5e615a6a5371e202f2c9fa24b127bc191e99b2af6b6204381c8844e282",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_24/metadata.json",
+          "sha256": "188cc73c458d7500c14427cbbbefb3bc76cb13e034432449b88105953998820e",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_25/metadata.json",
+          "sha256": "83937d0bdd6f2d9a91d614b3ec9153461fdab6fa1dc9016034857789922f3cee",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_26/metadata.json",
+          "sha256": "c38468b718c779e6181d4638a5380d3a96d72a426c010980eec89d8eda4151e5",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_27/metadata.json",
+          "sha256": "d8708d9827ff3ff61223ae09729f2f0b9b05512778ae73951bea1eab6f71b11f",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_28/metadata.json",
+          "sha256": "328243c8eafc6482932030d1f1837d06b3daecbfcfb549a46dff0c1ea9280631",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_29/metadata.json",
+          "sha256": "8e4a44ed8dad155dd65182406dd7e84809c5c3bceafd16cb177bb06d74be5de6",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/mca/p24/runs/sample_30/metadata.json",
+          "sha256": "e57dc79e82f2fb3e06feecf43ffb44d6ce10cfd9cdc39ef1335e9698e52c80bc",
+          "role": "p24-metadata"
+        }
+      ]
+    },
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hll",
+      "status": "provisional-reduced-scope",
+      "source_integrity_pass": true,
+      "promotion_pass": false,
+      "checks": {
+        "g0_pass": true,
+        "deterministic_24_variants": true,
+        "deterministic_completed_finite": true,
+        "single_reference": true,
+        "embedded_commit_present": true,
+        "deterministic_metadata_24_complete": true,
+        "deterministic_metadata_success": true,
+        "deterministic_metadata_scope_consistent": true,
+        "mca_p53_p24_n30": true,
+        "mca_metrics_finite_nonnegative": true,
+        "mca_metadata_60_complete": true,
+        "mca_metadata_success": true,
+        "mca_metadata_scope_consistent": true,
+        "deterministic_mca_scope_match": false
+      },
+      "deterministic_scope": {
+        "test": "orszag_tang",
+        "nx": 256,
+        "ny": 256,
+        "cfl": 0.4,
+        "t_end": 0.5,
+        "riemann": "hll"
+      },
+      "mca_scope": {
+        "test": "orszag_tang",
+        "nx": 64,
+        "ny": 64,
+        "cfl": 0.4,
+        "t_end": 0.05,
+        "riemann": "hll"
+      },
+      "deterministic": {
+        "rows": 24,
+        "reference": "cpu-double-O2-ieee-leq",
+        "metadata_records": 24,
+        "float_baseline_linf_rho": 9.886709070094923e-06,
+        "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd"
+      },
+      "mca": {
+        "p53_n": 30,
+        "p24_n": 30,
+        "metadata_records": 60,
+        "p53_spread_rho": 2.553762619775645e-15,
+        "p24_spread_rho": 9.78947677598496e-07
+      },
+      "sources": [
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/summary.json",
+          "sha256": "9b3ebba1d82b1bb02f37cae3c9b7bdf178287d28f9420ca9d848c34d9248beec"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/summary.json",
+          "sha256": "3a2b087027be09e7a45b1fa943d9c38a48b35f5cfa8870c33b39a218f2982b71"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-O2-fastmath-leq/metadata.json",
+          "sha256": "3f2b589bbb456edcfcb7a876e7aba99beed0d5459ff9f5cc1cb0433fe41c35bf",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-O2-fastmath-strict/metadata.json",
+          "sha256": "fb25fd354bbe1013577682473f008d941bf0e0f0f530b00f9df91bf3d8b0ee34",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-O2-ieee-leq/metadata.json",
+          "sha256": "53c1616b44d67185172311e222295e02e7a521cc5075b10303b20f52969916b6",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-O2-ieee-strict/metadata.json",
+          "sha256": "f978eb4084e23857b4ff9d87eefbd1289579f222566b5a0611ac2209b8ab251f",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-O3-fastmath-leq/metadata.json",
+          "sha256": "1c0302642391a2608e831fe09eddc1feabd5a64977cf90b8c16bae57ae55c739",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-O3-fastmath-strict/metadata.json",
+          "sha256": "1bb2148d34e037389e71f9a4c5dcb4f34629362ec7377f1bf38a0904f3af159d",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-O3-ieee-leq/metadata.json",
+          "sha256": "8c08e80e36958e6882316ad9488a81a637e0d8ee9d794fac72c2b4a4d98be2e4",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-O3-ieee-strict/metadata.json",
+          "sha256": "c94a31ca4f996f9a10f623eaf474426819f314b6cd8dbfe12c3519f740d7d1de",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-Ofast-fastmath-leq/metadata.json",
+          "sha256": "714d7c63ffa7eee66794650700694819128bbdc9d9959d9938cc3d7c13c21136",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-Ofast-fastmath-strict/metadata.json",
+          "sha256": "7088f6831feaae3766b0896ad5f5b93253fade285b21eeaef1b4ee529757014e",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-Ofast-ieee-leq/metadata.json",
+          "sha256": "8673c8fd74c780aa71d31b3b6db93cf4354d8abcc6c72a8eff16bd8688a3df55",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-double-Ofast-ieee-strict/metadata.json",
+          "sha256": "53c0e9c5309ee89a49724036af285e0576e5d6b87034e60deb24cc57c108dcb5",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-O2-fastmath-leq/metadata.json",
+          "sha256": "ef912bd91ed703a6e8b2055aa56b14931d31c564a7bcc47deb7378a5bc433a1e",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-O2-fastmath-strict/metadata.json",
+          "sha256": "5ae0140722385556118a9d6d71ce6e66d4f4821fdf2e72f4f17c0867d7e03e3e",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-O2-ieee-leq/metadata.json",
+          "sha256": "d92f8455285c596a6fc1d253b442f3f90f0c9f26513c36e86389b7d5c10a543a",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-O2-ieee-strict/metadata.json",
+          "sha256": "b7d6052396dceff0115becde267053fdb0d48e581eb462b65f63d22355358c0a",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-O3-fastmath-leq/metadata.json",
+          "sha256": "153505bafa42b8df6abb114d5ba4bb315f76e41904edea6cf28557c2ec0f6d7f",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-O3-fastmath-strict/metadata.json",
+          "sha256": "4b4aa1c76160039b4b4accfca1e631130fbb04b41fd574464efc47f9df6158bf",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-O3-ieee-leq/metadata.json",
+          "sha256": "9735ac9e5719431a00d77782b7ab9222bf9743c903a4698756977133c2239285",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-O3-ieee-strict/metadata.json",
+          "sha256": "a93caf1bf96eeea15b7b64adda8eba586c8b197059d129cc1e18e4346a55b7c2",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-Ofast-fastmath-leq/metadata.json",
+          "sha256": "90e09740a0bae3bd7259aeb35c02fd6885ea6df880e92700283648fa34bfca6f",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-Ofast-fastmath-strict/metadata.json",
+          "sha256": "403b71a89060ca03a036039bc773df761a2148f1d524ef011950c7f70ff01445",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-Ofast-ieee-leq/metadata.json",
+          "sha256": "c3d08a16b468e6065e6e02e901d42c4f5629bd1cb56ec908627d4837481d759d",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/runs/cpu-float-Ofast-ieee-strict/metadata.json",
+          "sha256": "2e904d462acc04cec2d933c852d20d2861032deae987c6078638f974b78693e4",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_01/metadata.json",
+          "sha256": "d3f247e563fc9ab960ca79425cf5776024772359362a435df125d977008456a5",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_02/metadata.json",
+          "sha256": "ea5c0495505a8f3c4c9b20df37a02d85a1bc8696ef1954e158d675dd8cf0bfba",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_03/metadata.json",
+          "sha256": "b50cbdb42321523589c895351f0213f4d4203b2f373bad8ad1a692f59adb11fb",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_04/metadata.json",
+          "sha256": "15015663416f702b98ca139382b59e5ec4133670af4fab9216b05b7dcf611ec6",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_05/metadata.json",
+          "sha256": "7ba46a57e070ad0c271078778de238673461f213bbc8908f506e182ffe1ab36e",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_06/metadata.json",
+          "sha256": "c09ead06ec6159e26bf5c864a75b9e592f1856831dbe84daa38637360ee63b63",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_07/metadata.json",
+          "sha256": "4a8c88a59d6c215699473e94a530e559b567244dc611ad8c53ad8cd467f8f0ee",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_08/metadata.json",
+          "sha256": "0e0d84a2f491a76e3a4d51d7ca50c1da1c3764558c6b2014fc189a5b100aedc4",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_09/metadata.json",
+          "sha256": "ad3bb116fdac64923a2b539011b8df8b558813826e226d43e2d6892e8e871874",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_10/metadata.json",
+          "sha256": "3a9196a2d1294dff1548dcd83eca6088dae59ad8efb83cb0d844110659046d1f",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_11/metadata.json",
+          "sha256": "12fe4900ded0f6e84ba64682cdab3eef6dbff0d4f288214cd08331d8b2359c43",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_12/metadata.json",
+          "sha256": "7b6019a0bbc4d427d39353eaf380c1a172c9564420d16de88f88082ae1fdfa25",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_13/metadata.json",
+          "sha256": "98502c8512797198d641a759e61f37e7afc43c6e95b63af7268c60223db4fd77",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_14/metadata.json",
+          "sha256": "c5ed6763f0c561b8a2ff7cb26e32bab37ad2a17448f1fdca7d89f1508cd852e0",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_15/metadata.json",
+          "sha256": "8b18c2dc34a404ae894c67ab258c3bce4651d545c795571f22914f2d275619ee",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_16/metadata.json",
+          "sha256": "ef2a50058688a211ea3986b288e913159f0b0c5c1d9c0eb6dfc2a6c7fafcf4e5",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_17/metadata.json",
+          "sha256": "fa23cdd9008501d83511246d858e55303319a898719186dae3e4ab885f35c55e",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_18/metadata.json",
+          "sha256": "bf8efa0aee57088c297df1dbf2d84f88e70183ee03bfeae5418b68bc9ae238a0",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_19/metadata.json",
+          "sha256": "3dc04e3e365b1157b8ef98e79ef9759da0d4aea0a091d4f24a02b67d7e08db9b",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_20/metadata.json",
+          "sha256": "bc1d3eeda33729fd9c06c052e51f1af5a8e10f0dce9779d550e4ef55825db7af",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_21/metadata.json",
+          "sha256": "c7b8e6174c460a7e93f1eb56ce7cee094764bd80f417b5f9f71dc1b073d1e7a0",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_22/metadata.json",
+          "sha256": "9b1bc4c6c0af8cb9ecf45e52f86d68c06811465641dc306fa72c59d274e99727",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_23/metadata.json",
+          "sha256": "1879e7e6e872b1bcad4e7fac45602dd28ec9a8b610d6d38e287fbc3094aeb897",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_24/metadata.json",
+          "sha256": "674d05a10074f18952cdf2069c8143a8777e4d023aa9af8119fe53f7fb3e0e8d",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_25/metadata.json",
+          "sha256": "4f78169536e6d17c13f47658f99d0c226c7cacb08139fcfa68945251327deb93",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_26/metadata.json",
+          "sha256": "9f17a237c5ca6a65e12629f89c3be4bab4be993fbeaa037c470fbfcf977ebf9b",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_27/metadata.json",
+          "sha256": "5ee0683e48dd6dff5e4f2787d30cd2397e54e9fb2aabbc3511d937dc47c6eaab",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_28/metadata.json",
+          "sha256": "ae35cbb3c76755a3904a2b42c52b0f2570db735887305e4397bbc1aaddc03dce",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_29/metadata.json",
+          "sha256": "2394577f69be9b996f63689c5891a9ddce6519f71badcb3cea7d859290738ecf",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p53/runs/sample_30/metadata.json",
+          "sha256": "6c585ad307134119dcefeee7b3626fed7c7703166ca8aedcc66ad1424715baad",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_01/metadata.json",
+          "sha256": "fca1e992d1ebc9201675223ea6ca4a8111b92fb69b1aa320fc0df140c1685843",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_02/metadata.json",
+          "sha256": "f90b35945f240f80202c6b8a020402277b2d1fd12998e9f1b43576f891509981",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_03/metadata.json",
+          "sha256": "e9a41674f91b2162cf0a65593019e60180efdc4caa089ca20a354833d7470c01",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_04/metadata.json",
+          "sha256": "00e092d8df3f6681ae5dab924d00797389fa7cc29d5cf758c346deed5786482e",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_05/metadata.json",
+          "sha256": "ea64620cda682ce21fd085b9b20f67dfa28ccea0048f5f6d729d7eae6e6924c9",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_06/metadata.json",
+          "sha256": "f90207329d4b1772b4499e32cf0a15bc35f1d8a699162cea9dfa08f8c47c2787",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_07/metadata.json",
+          "sha256": "1872eb5788ce235ff44242d63e11beb3f78cfb56615c34afd3d03a8241dcc4ba",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_08/metadata.json",
+          "sha256": "5cdc5b34d7ea634097dc72cfd88a1c8d0bcd0d5a3e28a498fc7b7ce2753716a4",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_09/metadata.json",
+          "sha256": "e3aee5f28518aac46427daabb62e765eea02136c183f1382833b16034f38a44e",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_10/metadata.json",
+          "sha256": "583c203592cf881fb0b315233879dc048fcaa5f4d24c83af16cea40e770316d6",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_11/metadata.json",
+          "sha256": "daea99eee3f49dcc9fa690b52e850fb0c214acdbba7fcd52cee8c13a14eeb4b5",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_12/metadata.json",
+          "sha256": "1933e0bbe792e717c9692f79fd923ea9370c1fb43732e06eb912a3977756646d",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_13/metadata.json",
+          "sha256": "7c152b72267f32afae7d1089315b86d636df24f1ee35cfcef7529311e31f88e3",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_14/metadata.json",
+          "sha256": "547090398abfda571906aa44eda9fe08e9a5b9c4e33e586d4e703889b9bec6b0",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_15/metadata.json",
+          "sha256": "a08f1945124cf682f5a8787d4b0bba110475b4ae8cd74bde7f78c1a81b8d429f",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_16/metadata.json",
+          "sha256": "c1e3c200d8ce64cef4eb0132afbd065878232677132ea98ebcd14c6bbcf3d792",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_17/metadata.json",
+          "sha256": "4c2b7bfa0a81582f7e01e357802614b789786f0b0654218a2c7b64a86f47923a",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_18/metadata.json",
+          "sha256": "bd7a3a308ee969acca77b4e48672be96e4799e2087d18556e1188b8334bb6e40",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_19/metadata.json",
+          "sha256": "58b88a5adcae0bcd070a5555dab7f8c701397cb477d72be8dc0a75d912ce84bb",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_20/metadata.json",
+          "sha256": "75a18e674ee9fa3a730f2b64e9f308526503b36d0c04ead936788a8f0e9b22a2",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_21/metadata.json",
+          "sha256": "7efdc4601ac6ae79353236d78831cee0eb09607560dc7d42e9bfb261cd93fcc8",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_22/metadata.json",
+          "sha256": "9d54c21e8615c287d10d25b880e34d9dac602d595e1253ef659353a8288181f4",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_23/metadata.json",
+          "sha256": "024c2621062167a24977ec32df71e2f2021ba053223c3b9ba618a1aad1a76f76",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_24/metadata.json",
+          "sha256": "85dc145deae43260706b38a6679216ac233f93450dfc9c341252ae161602d48f",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_25/metadata.json",
+          "sha256": "97b8c3f98e22f8b0907e187eb432d158ba28ceb0ae588710ed770fb39027a20c",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_26/metadata.json",
+          "sha256": "6d6ff3b6dcfbf0208aa2bfe438f4b431362afa869e869f96dce4ea8a72bff17a",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_27/metadata.json",
+          "sha256": "eebbcb05c0c39c164281a88226ca58f018ee7e879e98fc7b00baf8e117a6a176",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_28/metadata.json",
+          "sha256": "f001d645ffc6135c14b77f7f91ac5b9f6dde1e8052fdac2da62fd4b097f14ed9",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_29/metadata.json",
+          "sha256": "ca2185db16224c0cbf6c2594117460a204d3b65837851d78f3ef6e17a692bc73",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/p24/runs/sample_30/metadata.json",
+          "sha256": "446756d13a0203d1929dabbf027441dd416df7270d2dc03600dc71856772e395",
+          "role": "p24-metadata"
+        }
+      ]
+    },
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hlld",
+      "status": "provisional-reduced-scope",
+      "source_integrity_pass": true,
+      "promotion_pass": false,
+      "checks": {
+        "g0_pass": true,
+        "deterministic_24_variants": true,
+        "deterministic_completed_finite": true,
+        "single_reference": true,
+        "embedded_commit_present": true,
+        "deterministic_metadata_24_complete": true,
+        "deterministic_metadata_success": true,
+        "deterministic_metadata_scope_consistent": true,
+        "mca_p53_p24_n30": true,
+        "mca_metrics_finite_nonnegative": true,
+        "mca_metadata_60_complete": true,
+        "mca_metadata_success": true,
+        "mca_metadata_scope_consistent": true,
+        "deterministic_mca_scope_match": false
+      },
+      "deterministic_scope": {
+        "test": "orszag_tang",
+        "nx": 256,
+        "ny": 256,
+        "cfl": 0.4,
+        "t_end": 0.5,
+        "riemann": "hlld"
+      },
+      "mca_scope": {
+        "test": "orszag_tang",
+        "nx": 64,
+        "ny": 64,
+        "cfl": 0.4,
+        "t_end": 0.05,
+        "riemann": "hlld"
+      },
+      "deterministic": {
+        "rows": 24,
+        "reference": "cpu-double-O2-ieee-leq",
+        "metadata_records": 24,
+        "float_baseline_linf_rho": 0.003121124636215278,
+        "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd"
+      },
+      "mca": {
+        "p53_n": 30,
+        "p24_n": 30,
+        "metadata_records": 60,
+        "p53_spread_rho": 3.679652886429964e-15,
+        "p24_spread_rho": 1.2866325444435886e-06
+      },
+      "sources": [
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/summary.json",
+          "sha256": "eadfeb5ee564ce1ea1a056bc0dfcd3eb00c92b1b094f32fdc27938faa16ab763"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/summary.json",
+          "sha256": "b69f1eeea2231007073441b826ec46a09e2441551417357bd0059a6a84728878"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-O2-fastmath-leq/metadata.json",
+          "sha256": "5152f9b14f975dcc0961b51fe5859abb92a15287e2ebb9b89be9831916f530d7",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-O2-fastmath-strict/metadata.json",
+          "sha256": "401d85f9c47408e8c5abb4f56bbee8b39bb025db5d16ac3a31fa61aa78272f64",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-O2-ieee-leq/metadata.json",
+          "sha256": "7a8fe4ffe98c58beafec246bca62bbc0ab70ba4624655b712cb8c69e771c15f0",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-O2-ieee-strict/metadata.json",
+          "sha256": "5340c95e687a817736ecaf6fcc61ccce5e9fa6b301a988ac5768f0de14ad77d3",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-O3-fastmath-leq/metadata.json",
+          "sha256": "3aeeea348e7b78ef8ed1f5c13c5d87f925879a301b35282196de4bd5ae2eaaf8",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-O3-fastmath-strict/metadata.json",
+          "sha256": "ef849a8dc2611b2571ab06e837a1ee6750f3b723154d6f4959ad1b849705fa0a",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-O3-ieee-leq/metadata.json",
+          "sha256": "d460b5de544f1f00c686839b27bbf6a24edec85e92a90e14af104e471ef28f5b",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-O3-ieee-strict/metadata.json",
+          "sha256": "c7070028452c76271630b2bdf059523e218b3056bbcaa85c9f00d6842a840386",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-Ofast-fastmath-leq/metadata.json",
+          "sha256": "e87e73f7626a3eb99b385ac86829bc5afa90b4fa6923ef4273bf120c090f5e77",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-Ofast-fastmath-strict/metadata.json",
+          "sha256": "3da0b4ba62d9a148dcbc4f78a9e7d4981bdcfc6ca593a9fe36ccfbe9650e5eb5",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-Ofast-ieee-leq/metadata.json",
+          "sha256": "04b22c465479f57883ea60711a42ec83d71741acfdb90e9305878b48c8cdc1a5",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-double-Ofast-ieee-strict/metadata.json",
+          "sha256": "cf32900a2971c10991942f110cffafc460ad74185fd04b6bc526a6d2b255a8c5",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-O2-fastmath-leq/metadata.json",
+          "sha256": "9603d209464c1b32d30962eb164915407c8841b04a3eaa3bcbc05f20aef2998e",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-O2-fastmath-strict/metadata.json",
+          "sha256": "8372426f94a21855393ddbd9155caaeaa52bdae2a7176fa48a1832d4a5b460a9",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-O2-ieee-leq/metadata.json",
+          "sha256": "b47a0a27fef1b48b095c87c72f0a3498403cbe9737942114a5788336daae2cd9",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-O2-ieee-strict/metadata.json",
+          "sha256": "627a988b7d144a53f203392dd5b7e66706f549ebbd27eacd32e472d58154a834",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-O3-fastmath-leq/metadata.json",
+          "sha256": "1de10896a7d7c2e5896ecf5fd24b9f2487c1801f346f2c73329f82f72cc64db0",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-O3-fastmath-strict/metadata.json",
+          "sha256": "379e06851ac1807b54d3b8c6fac042fa1974a3fa7f9f60456a73cae651146c5b",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-O3-ieee-leq/metadata.json",
+          "sha256": "772787153a27e99353c3161443b3d13e3da73a6ec3b45c9b427ed9d3df735804",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-O3-ieee-strict/metadata.json",
+          "sha256": "170db38e1bc9b01e3884006574cc845eaa4f98ada3affb264e425ddcdc8d50a6",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-Ofast-fastmath-leq/metadata.json",
+          "sha256": "47d0c43eda2a802c552d3ff23057d844adbaeeadda6c89931223164df9f309be",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-Ofast-fastmath-strict/metadata.json",
+          "sha256": "42f56f2c78393d4a0e6478c144f55c0ab383c99d047b9e59bacaa38941e79010",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-Ofast-ieee-leq/metadata.json",
+          "sha256": "8b1e24088465250f552bcb0791527fbc3e609e123aad4ac9829f32df8335c599",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/runs/cpu-float-Ofast-ieee-strict/metadata.json",
+          "sha256": "8803e3c9b835cdfc330f83cb618e77f7b61ab0fd50447b0edf5067070d2854a0",
+          "role": "deterministic-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_01/metadata.json",
+          "sha256": "538881b41783a234da772a4d0658104680eb6cdb2b0bdac2ad7e2912533ba39e",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_02/metadata.json",
+          "sha256": "38426059685b0812cee33c436dc84489d15ac375359a2dca144b42f17ead4f8b",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_03/metadata.json",
+          "sha256": "419614547139e9f2446a085f5091e6e4faf08299879186efdb1438bcd622566f",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_04/metadata.json",
+          "sha256": "b9313ff161a7b18ab35e02394811f791c81568ae4a6b21e8e6ed8418ea367291",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_05/metadata.json",
+          "sha256": "ce7d7fcbfbe62cef1abfe927ec7a6fb85a12a5126ae74d0a553f8c66869d07b4",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_06/metadata.json",
+          "sha256": "0dd96ec6c077027830a97522738dd19b5f88d93fc33107e5f24a57617a2f7d81",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_07/metadata.json",
+          "sha256": "390208975ed700cf0467bc3354f895e435f4095290d72352d44877ef88c2d855",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_08/metadata.json",
+          "sha256": "395c8bfeda66744c16bc7af14971910df36a43869d74658ba8569066ef18f6fc",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_09/metadata.json",
+          "sha256": "b4261ec1def458d2883a235f3ec6395e7757a5ea9fc5d9a8d7e045ad424fce4f",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_10/metadata.json",
+          "sha256": "41dbbd502ca492c86955585d0c7592ae6a9b3974ba533a032d560f950256fd5e",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_11/metadata.json",
+          "sha256": "08de2b8ac5606a9c5981f8922c91b862c8a39db6317b725563d4490aff31ec55",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_12/metadata.json",
+          "sha256": "019e05e7da3e29855691ab86c9127eae4aa1df0926fc9492b37ffbfa39446950",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_13/metadata.json",
+          "sha256": "fc4b805cee4a781cf8cbe69ac43ec63435aafacec8e306f2170345142690daac",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_14/metadata.json",
+          "sha256": "e67ee88fd72ebd9f10804d17b0618242cfde1e9d0ec99ac8e50e4b016a5cac56",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_15/metadata.json",
+          "sha256": "19df4cf15070689ebbc78b7f7942aa62a17c045f48e2b76cbb178de998b8dd02",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_16/metadata.json",
+          "sha256": "a710e9c005d4822c11559f6d0af6f548f894afbc04d601eeb25a14ad395e40aa",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_17/metadata.json",
+          "sha256": "aa2a90b831ce3f2a3d97f482695982241fc90580cadd1154a51f7625f796d610",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_18/metadata.json",
+          "sha256": "cdf7d69acde909076f40301ed359ba1cb09eab821f5b9488e1a654f98f39c552",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_19/metadata.json",
+          "sha256": "2a9ba8eaea2a8bd6f8225f3a7fa2a0a8a1acaa5e67c98298da5df9e79f43ad46",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_20/metadata.json",
+          "sha256": "31f75dbd217813e83c7b32b8c551b4df906900d664ba064f4307a4cea364df4f",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_21/metadata.json",
+          "sha256": "1a6114861c375a63bfe5cba96ba0b2bc04d258fbd4fb9cefe47b3a47561adcd7",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_22/metadata.json",
+          "sha256": "cb8bebe6bec40bc631bc1243afa2f7cacdcc01328146d3dbf15adad57899d72c",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_23/metadata.json",
+          "sha256": "8c3df043b8976dfe439802ba744f0b1d5b55067b1ee048548f195a43f1131090",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_24/metadata.json",
+          "sha256": "22a7b87703521cab6a91e8f3e96f9c0ca2234fc78427f0359eb4b786dff9a778",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_25/metadata.json",
+          "sha256": "f02b5fcec8f6edb394db8dd27a5f09f0008f84a4eaf19156d1cbcb9fe4f61f57",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_26/metadata.json",
+          "sha256": "83618034d9079bc3388f4ac21bcf3ae4e7b3b217db80ce94440781f81ab883e5",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_27/metadata.json",
+          "sha256": "349b1c40c69266bc00ee9023a1a93d8eed128975811ae5e60a111dfd5dbadf98",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_28/metadata.json",
+          "sha256": "a99f7fa0170be93756e7f37c8ec9fd6a301cb02055a81e94953b18bc407af7f7",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_29/metadata.json",
+          "sha256": "4af1f3248f995ef62ffda0cc29c7e4cac2e7939a341673b955f1814fa14b7ae1",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p53/runs/sample_30/metadata.json",
+          "sha256": "d69ecb461f7992f7bdeca7999d09adac990db91c4eec18b01a524c3ea23c4c4a",
+          "role": "p53-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_01/metadata.json",
+          "sha256": "8e55a872ea287435372d10246611e5d6debd7a9031ff9286f092100218d438f9",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_02/metadata.json",
+          "sha256": "3e81df1b55a284139afaf8e9387232db056a2bf24432b763d1e65f4d503549f9",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_03/metadata.json",
+          "sha256": "1de4d15adba8d2f4724f88b38dd4369957a857c433b93981abf0b7be514e2385",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_04/metadata.json",
+          "sha256": "0e47dcfc4751645cbe2c687d4daac6ede2ff8ad6592cbe373636567100c7eaaf",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_05/metadata.json",
+          "sha256": "2e9be0b0a29e8cc2f4922f9e7344ce299e1e67b86a413fd4f570d35bf56e7017",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_06/metadata.json",
+          "sha256": "6b0aaeb38d9ae70288c25ba3b0a199105f75c352959a95e8d8057a1d65a24b81",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_07/metadata.json",
+          "sha256": "096578ffd0aa3cca73f85313215c186607d3f9d5e5308093ed65d57c0adb2fd0",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_08/metadata.json",
+          "sha256": "c087737ab3d6033b0456c80bf02c18ee03cd0938c5ef56b57992fb1ee7246f3f",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_09/metadata.json",
+          "sha256": "dcb73cac70f527bd8580816c2215becda54dc91499061682b4f7ddeb9adb725d",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_10/metadata.json",
+          "sha256": "ee42267590e7cb0089a95120fc5017f9d39fa7d20311f000ecea92a29b3b9941",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_11/metadata.json",
+          "sha256": "91f72a799a83bd67bcf2011a048df91571e31cd59bf28248343dd7c1c7bc5334",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_12/metadata.json",
+          "sha256": "1568d87af4d87a279499055efc77dd2acf0885af06b9fe0d35f8859c70f6dffd",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_13/metadata.json",
+          "sha256": "b9bb4a75dd6f1e1414b4ca704d09160b19da97176eddcb24a62f3eb1fcd1a038",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_14/metadata.json",
+          "sha256": "de826fccbc3307e8cd3693ac8e3573cfa914b42717ea06a7885bf115b738feb6",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_15/metadata.json",
+          "sha256": "7b3a3bcf9578355022f7cf47cfa65b2a3bc802eca094d39c7bec0305102d6b51",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_16/metadata.json",
+          "sha256": "db9d84f25d9a6d58e489e13342dc42e32ad79e4415b71764b5991195b357042f",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_17/metadata.json",
+          "sha256": "d13a7d80e2682f15fe4586f5e464fbd79a5f2033ba7f5770bdeff4bce8b363cb",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_18/metadata.json",
+          "sha256": "62d69f5b8d3418e6b5457b430c7ff47d75cb7d047206acb02f67221e3c5a461b",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_19/metadata.json",
+          "sha256": "8d1e77048ad003b211c7bac04f767f23f31f1a293af201ddcbe2969f6a7a8f07",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_20/metadata.json",
+          "sha256": "b9a3656e660803085a44114253656cae6aa0bceed7bff0234dc6be29917fb64c",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_21/metadata.json",
+          "sha256": "5bd4ce3a7c321b1e72d25d8891d08c5ceb80850dbb5935f2745936ba45ba472e",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_22/metadata.json",
+          "sha256": "f08c0c176913a7495d9d8aef9a375a4137bdcbee0c10960650f79f8fd5419c56",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_23/metadata.json",
+          "sha256": "490df8bad4870c5707d9af161fa57ea01be8793428e8ce5a18ab4b410fad3953",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_24/metadata.json",
+          "sha256": "25ad1702f7dbdd0f4b6407ef1a499bfa00568dd39bfe118aa72b14c92fce3e0e",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_25/metadata.json",
+          "sha256": "fe142a3496a42f77f20189a0ce04860b781a7fcc68b7f7697a3319f77c8d81f6",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_26/metadata.json",
+          "sha256": "1f5e7d2436edfafe10b05b935d310674e8a3d4a46968b271e1d6eb5ba17d43c3",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_27/metadata.json",
+          "sha256": "205ff7bd88fe964356e040837a5db2235c2edb631a8ab9738d8bc5ab3eb2fd4f",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_28/metadata.json",
+          "sha256": "ee88ec5da267965713ed7a2cc05658f95bf2efd3323480430fd62eb9aebf4414",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_29/metadata.json",
+          "sha256": "820b18fbdd4e2192d6448dd69929b3da47952cb1babe96014706df2e024de00c",
+          "role": "p24-metadata"
+        },
+        {
+          "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/p24/runs/sample_30/metadata.json",
+          "sha256": "f94c8b96c7eb53ae0a01998811ce7ac6ef8a44274c44f01f5f647f434a4a3442",
+          "role": "p24-metadata"
+        }
+      ]
+    }
+  ],
+  "interpretation": {
+    "promoted": "Same-scope Brio-Wu HLL and HLLD deterministic + N=30 MCA packets pass the unified gate.",
+    "retained_provisional": "OT HLL and HLLD remain provisional because deterministic 256^2/t=0.5 and MCA 64^2/t=0.05 scopes do not match.",
+    "claim_boundary": "This audit establishes packet completeness and scope alignment only; it is not an exact-solution accuracy test or a universal solver/precision ranking."
+  }
+}

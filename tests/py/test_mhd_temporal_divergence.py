@@ -191,11 +191,21 @@ def _record(case, lam, scale=1.0, *, sample_count=3, n_fit=3):
 
 
 def _full_records():
-    brio = _record("brio_wu_1d", 30.0, sample_count=15, n_fit=13)
-    ot = _record("orszag_tang_2d", 0.03, 1e-6, sample_count=25, n_fit=10)
-    ot["lambda_linf"] = -0.04
-    ot["fit_linf"]["slope"] = -0.04
-    return [brio, ot]
+    records = []
+    for case, sample_count in td.EXPECTED_SAMPLE_COUNTS.items():
+        is_brio = case == "brio_wu_1d"
+        record = _record(
+            case,
+            30.0 if is_brio else 0.03,
+            1.0 if is_brio else 1e-6,
+            sample_count=sample_count,
+            n_fit=13 if is_brio else 10,
+        )
+        if case == "orszag_tang_2d":
+            record["lambda_linf"] = -0.04
+            record["fit_linf"]["slope"] = -0.04
+        records.append(record)
+    return records
 
 
 def _full_runs():
@@ -211,12 +221,12 @@ def _full_runs():
             "run_config": f"runs/{index:02d}/config.cfg",
             "run_config_text": "nx = 8\n",
         }
-        for index in range(80)
+        for index in range(td.EXPECTED_REPORT_RUNS)
     ]
 
 
 def test_report_grade_rejects_smoke_length_records_even_when_technical_passes():
-    records = [_record("brio_wu_1d", 1.0), _record("orszag_tang_2d", 1.0)]
+    records = [_record(case, 1.0) for case in td.CASES]
     gates = td.evaluate_gates(
         records, _full_runs(), mode="diagnostic", selected_cases=list(td.CASES),
     )
@@ -293,7 +303,7 @@ def test_outputs_are_strict_json_and_register_figure(tmp_path):
     assert "OT>Brio-Wu L1 contrast is not observed" in markdown
     assert "fixed fit windows" in markdown
     assert "| R2 L1 |" in markdown
-    assert "near-zero OT" in markdown
+    assert "near-zero values limit slope interpretation" in markdown
     assert "| 13 | 13 |" in markdown
     assert "| 10 | 10 |" in markdown
     rows = list(csv.DictReader(paths["csv"].open(encoding="utf-8")))

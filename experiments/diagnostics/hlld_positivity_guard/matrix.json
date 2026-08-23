@@ -1,0 +1,14 @@
+{
+  "experiment": "diagnostic-hlld-positivity-guard",
+  "output_root": "experiments/diagnostics/hlld_positivity_guard",
+  "runs": [
+    {
+      "name": "orszag-tang-hlld-double-n512-cfl0p2",
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc_mhd.exe",
+      "config": "experiments/week18/resolution_ladder/runs/orszag_tang_2d-hlld-double-n512-cfl0p2/config.cfg",
+      "precision": "double",
+      "build": "cpu-double-O2-ieee-leq-positivity-guard",
+      "output_file": "grid.bin"
+    }
+  ]
+}

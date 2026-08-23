@@ -1,10 +1,10 @@
 {
   "experiment": "week15-mhd-orszag-tang-precision-smoke",
   "name": "cpu-float-Ofast-ieee-strict",
-  "timestamp_utc": "2026-07-09T08:24:52.259015+00:00",
-  "git_commit": "4d9697b933f5fa3e12164a3b05b814a7a191073c",
+  "timestamp_utc": "2026-07-23T08:20:07.793753+00:00",
+  "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
   "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-Ofast-ieee-strict\\hrsc_mhd.exe",
-  "binary_sha256": "aa6ece09cdb05f3c326e6707097bb7a3dc4df062fdbd717a2467372bc5a6c5fa",
+  "binary_sha256": "4a810404bebc8a18563ee2afd87d69376a8952ba15cd678fd0e5f7d5187cd762",
   "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
   "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
   "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-float-Ofast-ieee-strict\\config.cfg",
@@ -15,7 +15,7 @@
     "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-float-Ofast-ieee-strict\\config.cfg"
   ],
   "returncode": 0,
-  "elapsed_wall_s": 21.65026229992509,
+  "elapsed_wall_s": 20.264231399982236,
   "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-float-Ofast-ieee-strict\\stdout.txt",
   "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-float-Ofast-ieee-strict\\stderr.txt",
   "stderr_diagnostics": {
@@ -25,5 +25,28 @@
     "divB_max": 3.72,
     "line": "[mhd] t=0.500000 steps=806 divB_mean=1.225e-01 divB_max=3.720e+00"
   },
-  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-float-Ofast-ieee-strict\\grid.bin"
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-float-Ofast-ieee-strict\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-float-Ofast-ieee-strict\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 20.264231399982236
+  },
+  "failure": {
+    "category": "infrastructure_error",
+    "message": "'RequiredArtifact' object is not iterable",
+    "exception_type": "TypeError"
+  },
+  "completion": {
+    "reported": true,
+    "final_time": 0.5,
+    "target_time": 0.5,
+    "steps": 806
+  },
+  "build_semantics": null
 }

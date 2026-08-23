@@ -1,0 +1,42 @@
+{
+  "schema": {
+    "name": "hrsc.retained-artifact-revalidation",
+    "version": 1
+  },
+  "status": "revalidated",
+  "authority": "experiments/week18/resolution_ladder_pair_completion/summary.json",
+  "original_execution_record": {
+    "case": "orszag_tang_2d",
+    "solver": "hlld",
+    "precision": "float",
+    "resolution": 512,
+    "cfl": 0.2,
+    "gamma": 1.6666666666666667,
+    "steps": 3277,
+    "divB_mean": 0.1969,
+    "divB_max": 33.08,
+    "wall_time_s": 420.87377729988657,
+    "binary": "build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+    "binary_sha256": "11f23ac25da879cdefe60ad2d05816f7be29971542ef5277c64c2bdcc5010a2e",
+    "run_dir": "experiments/week18/resolution_ladder_pair_completion/runs/orszag_tang_2d-hlld-float-n512-cfl0p2",
+    "status": "completed",
+    "failure_category": "",
+    "failure_message": "",
+    "output_precision_bytes": 4,
+    "finite": true,
+    "physical_state": true,
+    "rho_min": 1.0976102352142334,
+    "pressure_min": 0.3798494598863428
+  },
+  "checks": {
+    "prior_gate_pass": true,
+    "grid_hash_matches": true,
+    "binary_hash_matches": true,
+    "metrics_reproduced_exactly": true
+  },
+  "grid": "experiments/week18/resolution_ladder_pair_completion/runs/orszag_tang_2d-hlld-float-n512-cfl0p2/grid.bin",
+  "grid_sha256": "fe7c2627fd5e5f5ac6a14a6b169b4ec0e956a45cf0bd2163d3b42855881e0329",
+  "binary_sha256": "11f23ac25da879cdefe60ad2d05816f7be29971542ef5277c64c2bdcc5010a2e",
+  "non_authoritative_replay_attempt": "experiments/week18/resolution_ladder_pair_completion/runs/orszag_tang_2d-hlld-float-n512-cfl0p2/replay_attempt_metadata.json",
+  "note": "The retained grid and original successful row are authoritative. A later WSL replay could not open the Windows-generated config and is retained separately as a failed, non-authoritative attempt."
+}

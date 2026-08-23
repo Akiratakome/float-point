@@ -686,7 +686,7 @@ def plot_suite(summary: dict[str, Any], fig_dir: pathlib.Path) -> None:
             )
         axes[0].set_yscale("log")
         axes[0].set_xlabel("CFL")
-        axes[0].set_ylabel("Linf rho: fp32 vs fp64")
+        axes[0].set_ylabel(r"$L_\infty(\rho)$: fp32 vs fp64")
         axes[0].set_title("(a) Precision separation")
         axes[1].set_xlabel("CFL")
         axes[1].set_ylabel("fp64 step count")
@@ -706,6 +706,9 @@ def plot_suite(summary: dict[str, Any], fig_dir: pathlib.Path) -> None:
     else:
         raise ValueError(f"unknown suite: {suite}")
     fig.savefig(path, dpi=240, bbox_inches="tight")
+    # These are line and marker plots, so a vector copy is the manuscript asset;
+    # the raster copy stays for quick review.
+    fig.savefig(path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
 
 

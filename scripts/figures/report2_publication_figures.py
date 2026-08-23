@@ -373,25 +373,33 @@ def plot_hardware(summary: dict[str, Any], out: Path) -> tuple[Path, Path]:
     axes[0].set_title("(a) Matched repeats with median and IQR", loc="left")
     _grid(axes[0])
 
-    axes[1].set_xlim(-0.5, 3.5)
-    axes[1].set_ylim(0, 1)
-    for index, (label, color) in enumerate(zip(labels, colors, strict=True)):
-        axes[1].add_patch(plt.Rectangle((index - 0.42, 0.28), 0.84, 0.42,
-                                        facecolor=color, alpha=0.14,
-                                        edgecolor=color, linewidth=1.0))
-        axes[1].text(index, 0.53, "0 ULP", ha="center", va="center",
-                     fontsize=9, color=color, fontweight="bold")
-    short_labels = [
-        "BW\nFP64",
-        "BW\nFP32",
-        "OT\nFP64",
-        "OT\nFP32",
-    ]
-    axes[1].set_xticks(np.arange(4), short_labels)
-    axes[1].set_yticks([])
-    axes[1].set_title("(b) Same-precision CPU/GPU agreement", loc="left")
-    for spine in ("left", "right", "top"):
-        axes[1].spines[spine].set_visible(False)
+    # (b) The bitwise agreement in (a) holds only at --fmad=false, so the panel
+    # reports what the two relaxed device-math settings do to the same pairs
+    # rather than four boxes reading "0 ULP".
+    device = _read("experiments/week21/gpu_fast_math/summary.json")["rows"]
+    order = [("brio_wu_1d", "double"), ("brio_wu_1d", "float"),
+             ("orszag_tang_2d", "double"), ("orszag_tang_2d", "float")]
+    modes = (("fmad", "--fmad=true", ORANGE), ("fast", "--use_fast_math", PURPLE))
+    lookup = {(row["case"], row["precision"], row["device_math"]): row for row in device}
+    width = 0.34
+    positions = np.arange(len(order))
+    for offset, (key, mode_label, colour) in zip((-0.5, 0.5), modes, strict=True):
+        values = [float(lookup[(case, prec, key)]["rho_linf_abs"]) for case, prec in order]
+        axes[1].bar(positions + offset * width, values, width=width,
+                    color=colour, label=mode_label)
+    axes[1].set_yscale("log")
+    axes[1].set_ylim(1e-16, 1e-3)
+    strict_zero = all(
+        lookup[(case, prec, "strict")]["rho_linf_abs"] == 0.0 for case, prec in order
+    )
+    if not strict_zero:
+        raise ValueError("panel (b) assumes --fmad=false is bit-identical in every pair")
+    short_labels = ["BW\nFP64", "BW\nFP32", "OT\nFP64", "OT\nFP32"]
+    axes[1].set_xticks(positions, short_labels)
+    axes[1].set_ylabel(r"Density $L_\infty$, CPU vs GPU")
+    axes[1].set_title("(b) Cost of relaxing device math", loc="left")
+    axes[1].legend(loc="upper left", fontsize=6.6, frameon=False)
+    _grid(axes[1])
     paths = _finish(fig, out, "fig_hardware_reproducibility")
     plt.close(fig)
     return paths
@@ -404,27 +412,48 @@ def plot_resolution(summary: dict[str, Any], out: Path) -> tuple[Path, Path]:
         raise ValueError("the publication resolution figure requires complete groups")
     fig, ax = plt.subplots(figsize=(7.2, 3.35), constrained_layout=True)
 
-    x = np.arange(len(groups))
+    # The week-18 ladder ran HLL at CFL 0.4 and HLLD at CFL 0.2, so a bar-to-bar
+    # read of the solver axis is confounded with the time step. The week-21
+    # re-run supplies HLL at the HLLD setting, and both are drawn here so the
+    # matched comparison is the one the reader sees.
+    matched = _read("experiments/week21/resolution_ladder_hll_cfl02/summary.json")
+    matched_p = {
+        (group["case"], group["precision"]): float(group["observed_p"])
+        for group in matched["groups"]
+    }
+    base_p = {
+        (group["case"], group["solver"], group["precision"]):
+            float(group["observed_order_l1"])
+        for group in groups
+    }
+
+    columns = [
+        ("orszag_tang_2d", "hll", "0.4"), ("orszag_tang_2d", "hll", "0.2"),
+        ("orszag_tang_2d", "hlld", "0.2"),
+        ("kelvin_helmholtz_2d", "hll", "0.4"), ("kelvin_helmholtz_2d", "hll", "0.2"),
+        ("kelvin_helmholtz_2d", "hlld", "0.2"),
+    ]
     labels: list[str] = []
-    for index, group in enumerate(groups):
-        case = "OT" if group["case"] == "orszag_tang_2d" else "KH"
-        precision = "64" if group["precision"] == "double" else "32"
-        labels.append(f"{case}\n{group['solver'].upper()}\nFP{precision}")
-        color = BLUE if group["solver"] == "hll" else ORANGE
-        hatch = "//" if group["precision"] == "float" else None
-        value = float(group["observed_order_l1"])
-        ax.bar(index, value, color=color, edgecolor="white", hatch=hatch, width=0.7)
+    for index, (case, solver, cfl) in enumerate(columns):
+        if solver == "hll" and cfl == "0.2":
+            value, fp32 = matched_p[(case, "double")], matched_p[(case, "float")]
+        else:
+            value, fp32 = base_p[(case, solver, "double")], base_p[(case, solver, "float")]
+        labels.append(f"{'OT' if case == 'orszag_tang_2d' else 'KH'}\n"
+                      f"{solver.upper()}\nCFL {cfl}")
+        ax.bar(index, value, color=BLUE if solver == "hll" else ORANGE,
+               edgecolor="white", width=0.68)
+        ax.plot(index, fp32, marker="o", markersize=4.5, markerfacecolor="white",
+                markeredgecolor="#202124", markeredgewidth=0.9, linestyle="none",
+                zorder=4)
         ax.text(index, value + 0.035, f"{value:.3f}", ha="center", va="bottom", fontsize=7.2)
+    ax.axvline(2.5, color=LIGHT_GREY, linewidth=1.0)
+    for centre, name in ((1, "Orszag–Tang"), (4, "Kelvin–Helmholtz")):
+        ax.text(centre, 1.64, name, ha="center", fontsize=8.5, color=GREY)
     ax.axhline(1.0, color=GREY, linestyle="--", linewidth=0.9)
-    ax.set_xticks(x, labels)
+    ax.set_xticks(np.arange(len(columns)), labels)
     ax.set_ylabel(r"Observed $p$ from density mean $L_1$ differences")
-    ax.set_ylim(
-        0,
-        max(
-            1.7,
-            max(float(group.get("observed_order_l1") or 0.0) for group in groups) * 1.18,
-        ),
-    )
+    ax.set_ylim(0, 1.75)
     ax.set_title("Three-grid MHD self-refinement diagnostic", loc="left")
     _grid(ax)
     paths = _finish(fig, out, "fig_resolution_precision")
@@ -658,8 +687,8 @@ FIGURES: tuple[dict[str, Any], ...] = (
         "id": "hardware_reproducibility",
         "importance": "P0",
         "chapters": [5],
-        "sources": SOURCES["hardware"],
-        "claim": "The bounded HLL GPU path is bit-exact for the covered cases and has workload-dependent repeated timing.",
+        "sources": SOURCES["hardware"] + ("experiments/week21/gpu_fast_math/summary.json",),
+        "claim": "The bounded HLL GPU path is bit-exact for the covered cases only at --fmad=false, and has workload-dependent repeated timing.",
         "excluded": "A generic GPU performance or solver matrix.",
         "plot": plot_hardware,
         "data_key": "hardware",
@@ -668,8 +697,8 @@ FIGURES: tuple[dict[str, Any], ...] = (
         "id": "resolution_precision",
         "importance": "P0",
         "chapters": [4, 5],
-        "sources": SOURCES["resolution"],
-        "claim": "Eight complete three-grid diagnostics bound the observed refinement behavior without establishing an asymptotic regime.",
+        "sources": SOURCES["resolution"] + ("experiments/week21/resolution_ladder_hll_cfl02/summary.json",),
+        "claim": "Three-grid diagnostics at a matched time step bound the observed refinement behavior without establishing an asymptotic regime.",
         "excluded": "Asymptotic convergence, exact-solution accuracy, precision adequacy, or a cross-solver ranking.",
         "plot": plot_resolution,
         "data_key": "resolution",

@@ -10,6 +10,7 @@ and scheduler assumptions before reuse.
 | `build_gpu_csc.sh` | Build strict CUDA variants on CSC. |
 | `run_gpu_smoke.slurm` | Week 6 GPU smoke template. |
 | `run_reference_1600.slurm` | Week 7 1600^2 reference template. |
+| `report2_w16_w17_slurm/` | Current Week 16/17 CSC Slurm package for KH MCA completion with Apptainer-backed Verificarlo, W17 synthesis, paper figures, and scoped result sync. |
 
 ## Legacy / Provenance Helpers
 

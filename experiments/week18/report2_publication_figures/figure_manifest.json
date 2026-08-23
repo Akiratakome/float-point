@@ -1,0 +1,207 @@
+{
+  "schema": {
+    "name": "hrsc.report2-publication-figures",
+    "version": 1
+  },
+  "generator": "scripts/figures/report2_publication_figures.py",
+  "source_audit": {
+    "validation": true,
+    "cross_system": true,
+    "hardware": true,
+    "resolution": true,
+    "temporal": true,
+    "kh_timing": true
+  },
+  "quality_gate": {
+    "pass": true,
+    "raster_minimum": "PNG >= 1800 px wide and >= 700 px high",
+    "vector_copy": "PDF with embedded TrueType fonts",
+    "style": "colour-blind-aware palette, caption-owned context, no internal week labels"
+  },
+  "visual_review": {
+    "date": "2026-07-30",
+    "status": "passed",
+    "checks": [
+      "labels and legends do not overlap",
+      "log axes do not encode zero as a measured positive value",
+      "the resolution figure is emitted only for a complete, validated matrix",
+      "error bars use reconstructed quartiles rather than an assumed symmetric IQR",
+      "all five measured timing observations are overlaid on each median and IQR",
+      "panel labels, units, and claim boundaries match the source summaries"
+    ]
+  },
+  "figures": [
+    {
+      "id": "validation_refinement_glm",
+      "importance": "P1",
+      "chapters": [
+        4
+      ],
+      "sources": [
+        "experiments/week12/brio_wu_1d/summary.json",
+        "experiments/week12/mhd_2d/divb_clean/summary.json"
+      ],
+      "claim": "Numerical-reference refinement and GLM diagnostics validate bounded MHD behavior.",
+      "excluded": "Exact-solution accuracy and precision adequacy.",
+      "source_sha256": {
+        "experiments/week12/brio_wu_1d/summary.json": "3ce57bdc28d983e0e5ad463df4fa5940a2d7a0c52cdc14c92a907fb201be3ed7",
+        "experiments/week12/mhd_2d/divb_clean/summary.json": "de05960d8a4fc2c033ff1fc0ee4d89364dac171b757af1dd28013ba0b2c5cc56"
+      },
+      "png": "experiments/week18/report2_publication_figures/fig_validation_refinement_glm.png",
+      "pdf": "experiments/week18/report2_publication_figures/fig_validation_refinement_glm.pdf",
+      "png_dimensions": [
+        2341,
+        997
+      ],
+      "png_sha256": "c563729b8b3ac3ade743e7fbf6e6df9897d1e9d6649ac4e56b67a899fc7c21ae",
+      "pdf_sha256": "417bffd0d9648ab67476b31d00d027da6fc090e13c886d9e4cc8f8f18eee8e75"
+    },
+    {
+      "id": "cross_system_sensitivity",
+      "importance": "P0",
+      "chapters": [
+        5
+      ],
+      "sources": [
+        "experiments/week18/euler_mhd_cross_system/summary.json"
+      ],
+      "claim": "Within-case density discrepancy responds differently to precision and math mode across the selected cases.",
+      "excluded": "Cross-system accuracy or a universal solver/system ranking.",
+      "source_sha256": {
+        "experiments/week18/euler_mhd_cross_system/summary.json": "ecc1b611488d0991216791436cd8eb32ed1d50303e183a4cdb80bf857c121180"
+      },
+      "png": "experiments/week18/report2_publication_figures/fig_cross_system_sensitivity.png",
+      "pdf": "experiments/week18/report2_publication_figures/fig_cross_system_sensitivity.pdf",
+      "png_dimensions": [
+        2341,
+        1077
+      ],
+      "png_sha256": "471b6bab35a3387d4c7520d35af4aef8c2ed40620105d5e1d06e7c471149688c",
+      "pdf_sha256": "e680790246fa8163a31daae7538a5961c5925d1ce0101a519b0e072fa5130290"
+    },
+    {
+      "id": "hardware_reproducibility",
+      "importance": "P0",
+      "chapters": [
+        5
+      ],
+      "sources": [
+        "experiments/week18/supplemental/hardware_repeats/summary.json",
+        "experiments/week21/gpu_fast_math/summary.json"
+      ],
+      "claim": "The bounded HLL GPU path is bit-exact for the covered cases only at --fmad=false, and has workload-dependent repeated timing.",
+      "excluded": "A generic GPU performance or solver matrix.",
+      "source_sha256": {
+        "experiments/week18/supplemental/hardware_repeats/summary.json": "1f34c63d524b5389bd9fc887bdc60540e01f463941286d8f8fe3e7af92b07ab4",
+        "experiments/week21/gpu_fast_math/summary.json": "fc2226c962f2e3d51d763c72b642a4deeb8ae42e9994a00edd321bf851366844"
+      },
+      "png": "experiments/week18/report2_publication_figures/fig_hardware_reproducibility.png",
+      "pdf": "experiments/week18/report2_publication_figures/fig_hardware_reproducibility.pdf",
+      "png_dimensions": [
+        2380,
+        1013
+      ],
+      "png_sha256": "6920a047026b9c908752d288a4a092f688d2363b2808d092d6650a53f20243a5",
+      "pdf_sha256": "4b2ab67d4563464cf75027fad411e11f0996c0a7ff5bcf3c0e996512cc736d14"
+    },
+    {
+      "id": "resolution_precision",
+      "importance": "P0",
+      "chapters": [
+        4,
+        5
+      ],
+      "sources": [
+        "experiments/week18/resolution_ladder/summary.json",
+        "experiments/week21/resolution_ladder_hll_cfl02/summary.json"
+      ],
+      "claim": "Three-grid diagnostics at a matched time step bound the observed refinement behavior without establishing an asymptotic regime.",
+      "excluded": "Asymptotic convergence, exact-solution accuracy, precision adequacy, or a cross-solver ranking.",
+      "source_sha256": {
+        "experiments/week18/resolution_ladder/summary.json": "1b50afecf4b974261860fd82999c5a7319104a43182bedb057ee97fb0d9855f8",
+        "experiments/week21/resolution_ladder_hll_cfl02/summary.json": "0595a46b73848d99c52031813ad6a2921d7668f5535a7d35be8fae876ec4abf4"
+      },
+      "png": "experiments/week18/report2_publication_figures/fig_resolution_precision.png",
+      "pdf": "experiments/week18/report2_publication_figures/fig_resolution_precision.pdf",
+      "png_dimensions": [
+        2341,
+        1109
+      ],
+      "png_sha256": "e5253ed596d8af5ce38f983f5d82d0f8ce5fe3f1ad574f70d61d3d1d33cf97c4",
+      "pdf_sha256": "aa4b85d83c598b809e48b53512a569202b701f0baa9cd93db88249f35060068f"
+    },
+    {
+      "id": "temporal_discrepancy",
+      "importance": "P0",
+      "chapters": [
+        5
+      ],
+      "sources": [
+        "experiments/week15/mhd_temporal_divergence/summary.json"
+      ],
+      "claim": "Fixed-window fits compare exponential against power-law growth on identical samples and do not show the planned OT-greater-than-Brio–Wu contrast.",
+      "excluded": "A formal maximal Lyapunov exponent or physical instability rate.",
+      "source_sha256": {
+        "experiments/week15/mhd_temporal_divergence/summary.json": "a30954ea36c6e64848ff983e3441989ec7830f9169af06540d80319abaf9f656"
+      },
+      "png": "experiments/week18/report2_publication_figures/fig_temporal_discrepancy.png",
+      "pdf": "experiments/week18/report2_publication_figures/fig_temporal_discrepancy.pdf",
+      "png_dimensions": [
+        2405,
+        1093
+      ],
+      "png_sha256": "796cee1dbf0b30ea70a471480d2bb468ce99bc2d39028a50d5d22992ec11803b",
+      "pdf_sha256": "a7aba809d190fb7b76b42b2fc0e6602f5ab780e36d4b7a064b72a6cf14f4e98b"
+    },
+    {
+      "id": "precision_refinement_context",
+      "importance": "P0",
+      "chapters": [
+        5
+      ],
+      "sources": [
+        "experiments/week18/resolution_ladder/summary.json"
+      ],
+      "claim": "All 12 same-grid precision cells are shown relative to the matched fp64 finest adjacent-grid mean-L1 scale.",
+      "excluded": "Exact error, fp32 adequacy, asymptotic convergence, or cross-solver ranking.",
+      "source_sha256": {
+        "experiments/week18/resolution_ladder/summary.json": "1b50afecf4b974261860fd82999c5a7319104a43182bedb057ee97fb0d9855f8"
+      },
+      "png": "experiments/week18/report2_publication_figures/fig_precision_refinement_context.png",
+      "pdf": "experiments/week18/report2_publication_figures/fig_precision_refinement_context.pdf",
+      "png_dimensions": [
+        2373,
+        1045
+      ],
+      "png_sha256": "d2eee5423c09bd8710bb3f2a87b1e624019cdb84efc1d5ee0c90c72d4e7ff735",
+      "pdf_sha256": "7e8563cb68138d17482072ab68369e31c5f40d5fe2f3b8532e26ff952ca586d4"
+    },
+    {
+      "id": "kh_timing",
+      "importance": "P1",
+      "chapters": [
+        5
+      ],
+      "sources": [
+        "experiments/week18/kh_solver_timing/summary.json"
+      ],
+      "claim": "Repeated matched KH timings quantify FP32 speed-up and HLLD-over-HLL cost on the tested workstation.",
+      "excluded": "Accuracy-cost position, universal solver ranking, or portability.",
+      "source_sha256": {
+        "experiments/week18/kh_solver_timing/summary.json": "4520a16231bd1ac2bc2ab54507f174ec05217e96b49e075459b286c11394bbc8"
+      },
+      "png": "experiments/week18/report2_publication_figures/fig_kh_timing.png",
+      "pdf": "experiments/week18/report2_publication_figures/fig_kh_timing.pdf",
+      "png_dimensions": [
+        2341,
+        1013
+      ],
+      "png_sha256": "7b8a955536c8fdb35b1f5f873a4f2f4ca82e339d208eea78e1c98e01a22f16c1",
+      "pdf_sha256": "98e5ff1b3d235130c57fce5c573a545ed4b15e220ac7f147839dc761a02805ab"
+    }
+  ],
+  "excluded_existing_figure": {
+    "path": "experiments/week17/report2_synthesis/figures/axis_ranking.png",
+    "reason": "Ranks incomparable metrics on an arbitrary relative-strength scale; retain only as synthesis provenance."
+  }
+}

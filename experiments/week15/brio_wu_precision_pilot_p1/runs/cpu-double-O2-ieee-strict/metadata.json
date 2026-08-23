@@ -1,10 +1,10 @@
 {
   "experiment": "week14-mhd-precision-pilot",
   "name": "cpu-double-O2-ieee-strict",
-  "timestamp_utc": "2026-07-09T11:20:04.628960+00:00",
-  "git_commit": "3728e1babddb799292b891a63b5e7022300a1171",
+  "timestamp_utc": "2026-07-23T08:10:45.754533+00:00",
+  "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
   "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-strict\\hrsc_mhd.exe",
-  "binary_sha256": "cd5f25812a5f480f9549adab8831404b5aa3dc7eb7f3543b5ae216d224023829",
+  "binary_sha256": "83e6b172641ab661af257e44a4160bb21b6310e013eb07bc7224c020d3657e89",
   "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
   "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
   "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-ieee-strict\\config.cfg",
@@ -15,7 +15,7 @@
     "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-ieee-strict\\config.cfg"
   ],
   "returncode": 0,
-  "elapsed_wall_s": 0.14681970002129674,
+  "elapsed_wall_s": 0.1711555999936536,
   "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-ieee-strict\\stdout.txt",
   "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-ieee-strict\\stderr.txt",
   "stderr_diagnostics": {
@@ -25,5 +25,28 @@
     "divB_max": 4.441e-14,
     "line": "[mhd] t=0.100000 steps=759 divB_mean=3.339e-16 divB_max=4.441e-14"
   },
-  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-ieee-strict\\grid.bin"
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-ieee-strict\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-double-O2-ieee-strict\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 0.1711555999936536
+  },
+  "failure": {
+    "category": "infrastructure_error",
+    "message": "'RequiredArtifact' object is not iterable",
+    "exception_type": "TypeError"
+  },
+  "completion": {
+    "reported": true,
+    "final_time": 0.1,
+    "target_time": 0.1,
+    "steps": 759
+  },
+  "build_semantics": null
 }

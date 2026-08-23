@@ -9,6 +9,8 @@ TEST_CASE("MHD cfg parser accepts supported test cases and outflow boundary", "[
     REQUIRE(parse_mhd_test("brio_wu") == MhdTestCase::BrioWu);
     REQUIRE(parse_mhd_test("orszag_tang") == MhdTestCase::OrszagTang);
     REQUIRE(parse_mhd_test("kelvin_helmholtz") == MhdTestCase::KelvinHelmholtz);
+    REQUIRE(parse_mhd_test("kelvin_helmholtz_lecoanet") ==
+            MhdTestCase::KelvinHelmholtzLecoanet);
     REQUIRE(parse_mhd_boundary("outflow") == BoundaryType::Outflow);
 }
 

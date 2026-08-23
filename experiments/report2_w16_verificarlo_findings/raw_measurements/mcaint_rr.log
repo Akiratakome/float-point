@@ -1,0 +1,17 @@
+Info [interflop-mcaint]: load backend with:
+Info [interflop-mcaint]: precision-binary32 = 24
+Info [interflop-mcaint]: precision-binary64 = 53
+Info [interflop-mcaint]: mode = rr
+Info [interflop-mcaint]: error-mode = rel
+Info [interflop-mcaint]: max-abs-error-exponent = 112
+Info [interflop-mcaint]: daz = false
+Info [interflop-mcaint]: ftz = false
+Info [interflop-mcaint]: sparsity = 1.000000
+Info [interflop-mcaint]: seed = 0
+[mhd] t=0.020000 steps=23 divB_mean=2.738e-06 divB_max=7.026e-05
+[run-status] status=success final_time=0.02 target_time=0.02 steps=23
+
+real	2m23.637s
+user	2m23.599s
+sys	0m0.024s
+DONE_EXIT:0

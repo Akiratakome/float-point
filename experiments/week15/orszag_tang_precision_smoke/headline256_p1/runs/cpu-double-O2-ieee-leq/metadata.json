@@ -1,10 +1,10 @@
 {
   "experiment": "week15-mhd-orszag-tang-precision-smoke",
   "name": "cpu-double-O2-ieee-leq",
-  "timestamp_utc": "2026-07-09T08:15:48.049176+00:00",
-  "git_commit": "4d9697b933f5fa3e12164a3b05b814a7a191073c",
+  "timestamp_utc": "2026-07-23T08:12:10.630068+00:00",
+  "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
   "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
-  "binary_sha256": "6216526150c719cad86f4c76fdc6fe953bc4bc15373cf1e294559a9e28bcb275",
+  "binary_sha256": "788de993d8eb46f911ee2e7b1416bc0782248368e963238bb00a3118baa79179",
   "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
   "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
   "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O2-ieee-leq\\config.cfg",
@@ -15,7 +15,7 @@
     "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O2-ieee-leq\\config.cfg"
   ],
   "returncode": 0,
-  "elapsed_wall_s": 29.02416479983367,
+  "elapsed_wall_s": 24.30936030007433,
   "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O2-ieee-leq\\stdout.txt",
   "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O2-ieee-leq\\stderr.txt",
   "stderr_diagnostics": {
@@ -25,5 +25,28 @@
     "divB_max": 3.72,
     "line": "[mhd] t=0.500000 steps=806 divB_mean=1.225e-01 divB_max=3.720e+00"
   },
-  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O2-ieee-leq\\grid.bin"
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O2-ieee-leq\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\orszag_tang_precision_smoke\\headline256_p1\\runs\\cpu-double-O2-ieee-leq\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 24.30936030007433
+  },
+  "failure": {
+    "category": "infrastructure_error",
+    "message": "'RequiredArtifact' object is not iterable",
+    "exception_type": "TypeError"
+  },
+  "completion": {
+    "reported": true,
+    "final_time": 0.5,
+    "target_time": 0.5,
+    "steps": 806
+  },
+  "build_semantics": null
 }

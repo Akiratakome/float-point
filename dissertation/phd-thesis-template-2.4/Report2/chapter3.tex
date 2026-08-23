@@ -1,31 +1,23 @@
+%!TEX root = ../thesis.tex
+
 \chapter{Experimental Design and Reproducibility Methodology}
 \label{chap:methodology}
 
-\section{Research questions and controlled axes}
-
-This chapter operationalises the four questions of
-Chapter~\ref{chap:introduction}: Research Question~\ref{rq:mhd-validation} sets
-the reference hierarchy and predeclared validation criteria,
-Question~\ref{rq:controlled-variation} the matched implementation axes and
-timing groups, Question~\ref{rq:scale-time-mca} the resolution, observation-time
-and virtual-precision Monte Carlo arithmetic (MCA) comparisons, and
-Question~\ref{rq:reproducibility-record} the metadata and retention rules.
-Primary axes are precision, build semantics, solver, device, resolution and
-time, with thread count and CFL testing robustness. Every reported comparison
-is bound to its case, grid, solver, precision, final time and baseline, and no
-observation transfers between unmatched configurations. These single-node
-experiments isolate the axes; MPI communication, partitioning and reduction
-order form a separate future parallelism axis.
-
 \section{Test-case matrix}
 
+Every comparison below is bound to its case, grid, solver, precision, final time
+and baseline, and none transfers between unmatched configurations.
 The ideal-MHD matrix pairs the circularly polarised Alfv\'en wave, which
 carries the order verification, with the Brio--Wu shock tube and the periodic
 Orszag--Tang and Kelvin--Helmholtz problems, covering a smooth exact solution,
 a discontinuity, interacting waves and shear instability. Sod
 \citep{toro2009} and Liska--Wendroff Configuration~3
 \citep{liska_wendroff_2003} provide Euler continuity checks for the
-cross-system comparison without repeating Report~1 validation.
+cross-system comparison without repeating Report~1 validation, whose five-case
+Euler coverage stands unchanged behind them. The Euler axes that report tested
+at length, device, optimisation level, fast math and the HLLC branch rule, are
+carried forward rather than rerun; the two cases kept here are those readable on
+the same footing as their MHD counterparts.
 Table~\ref{tab:ch3-case-matrix} sets out the completed coverage and case roles.
 
 \begin{table}[htbp]
@@ -35,16 +27,19 @@ Table~\ref{tab:ch3-case-matrix} sets out the completed coverage and case roles.
 \toprule
 Case & System & Dimension & Main grids & Solver & Role \\
 \midrule
-CP Alfv\'en & MHD & 1D & 32--512 & HLL & exact solution, order verification \\
+CP Alfv\'en & MHD & 1D & 32--512 & HLL$^{\ast}$ & exact solution, order verification \\
 Sod & Euler & 1D & 200 & HLLC & continuity sensitivity \\
 LW3 & Euler & 2D & $200^2$ & HLLC & continuity sensitivity \\
-Brio--Wu & MHD & 1D & 200--8000 & HLL/HLLD & reference, device, precision, MCA \\
-Orszag--Tang & MHD & 2D & $64^2$--$512^2$ & HLL/HLLD & refinement, device, precision, time \\
-Kelvin--Helmholtz & MHD & 2D & $64^2$--$512^2$ & HLL/HLLD & refinement, precision, CFL, timing \\
+Brio--Wu & MHD & 1D & 200--8000 & HLL$^{\ast}$/HLLD & reference, device, precision, MCA \\
+Orszag--Tang & MHD & 2D & $64^2$--$512^2$ & HLL$^{\ast}$/HLLD & refinement, device, precision, time \\
+Kelvin--Helmholtz & MHD & 2D & $64^2$--$512^2$ & HLL$^{\ast}$/HLLD & refinement, precision, CFL, timing \\
 \bottomrule
 \end{tabularx}
 \caption[Completed test-case matrix]{\textbf{Completed test-case matrix.}
-The Euler rows provide continuity only.}
+The Euler rows provide continuity only. HLL$^{\ast}$ throughout is the globally
+clamped path of Section~\ref{sec:ch2-riemann}, equivalent to a Rusanov flux
+carrying $c_h$, and is written so wherever a table reports it as a solver
+level.}
 \label{tab:ch3-case-matrix}
 \end{table}
 
@@ -54,13 +49,26 @@ State arrays, fluxes, wave-speed estimates and the CFL calculation follow the
 build precision, while the time accumulator is binary64 in both builds, so that
 $t \leftarrow t+\Delta t$ does not lose small increments in fp32; the fp32
 build is a declared mixed-precision configuration, not a uniform binary32
-program. Matched builds vary the harness-recorded optimisation,
+program. The step is set by
+\begin{equation}
+ c_h=\max_{ij}\max\!\left(|v_x|+c_{f,x},\;|v_y|+c_{f,y}\right),\qquad
+ \Delta t=\mathrm{CFL}\,\frac{\min(\Delta x,\Delta y)}{c_h},
+ \label{eq:ch3-cfl}
+\end{equation}
+so one consequence carries through every comparison below: the stepwise
+directional maximum that sets $c_h$ is formed in the build precision and then
+sets $\Delta t$, so a precision or build change perturbs the time-step sequence
+as well as the per-operation rounding, so a reported discrepancy is the response
+to a declared axis rather than a pure per-cell rounding residual. Recorded step
+counts nonetheless coincide across variants
+(Section~\ref{sec:ch5-solver-timing}), so the paths differ in $\Delta t$ and not
+in their number. Matched builds vary the harness-recorded optimisation,
 floating-point-math and branch-rule semantics, since directory names do not
-prove compiler behaviour. In MSVC terms O2 selects /O2, O3 selects /Ox and the
-composite Ofast selects /Ox /fp:fast, which is why it confounds optimisation
-with math semantics; the isolated matrix therefore compares /O2 with /Ox,
-default math with /fp:fast, and $\leq$ with $<$, one axis at a time. Virtual
-p53 and p24 MCA perturb operations at 53 or 24 significand bits.
+prove compiler behaviour. In MSVC terms O2 selects /O2, O3 /Ox and the composite
+Ofast /Ox /fp:fast, which is why it confounds optimisation with math semantics;
+the isolated matrix compares /O2 with /Ox, default math with /fp:fast, and
+$\leq$ with $<$, one axis at a time. Virtual p53 and p24 MCA
+perturb operations at 53 or 24 significand bits.
 
 Table~\ref{tab:ch3-axis-matrix} records what each axis can support; these
 metrics are not combined into one ranking.
@@ -74,8 +82,8 @@ Axis & Levels & Matched baseline & Reported quantity \\
 \midrule
 Precision & fp32/fp64 & same solver/build/grid & field discrepancy \\
 Build & optimisation/math/branch & one axis changed & field discrepancy \\
-Solver & HLL/HLLD & same case controls & timing or within-solver diagnostics \\
-Device & CPU/GPU & same HLL configuration & ULP, $L_\infty$, repeated timing \\
+Solver & HLL$^{\ast}$/HLLD & same case controls & timing or within-solver diagnostics \\
+Device & CPU/GPU & same HLL$^{\ast}$ configuration & ULP, $L_\infty$, repeated timing \\
 Resolution & 128/256/512 & adjacent same-group grid & block-averaged self-difference \\
 Time & aligned checkpoints & same case and solver & fixed-window discrepancy fit \\
 Robustness & requested threads/CFL & serial baseline/one setting changed & unused-setting null control or precision separation \\
@@ -101,11 +109,12 @@ uses an aligned fp64 $N=8000$ comparator, and block averaging aligns adjacent
 two-dimensional grids; since those grids are not fine enough for a leading
 truncation term to dominate, their fitted orders are descriptive rather than
 Richardson or Grid Convergence Index estimates \citep{roache1994gci}.
-Completion requires the declared final time and output, and positive states
-finite variables with $\rho,p>0$.
+A run enters measurement only on reaching the declared final time with a
+positive step count, finite variables with $\rho,p>0$, and fresh output and
+completion metadata.
 
-Brio--Wu \citep{brio_wu_1988} has outflow boundaries; the two-dimensional cases
-are doubly periodic with $\gamma=5/3$:
+Brio--Wu \citep{brio_wu_1988} uses outflow boundaries; the two-dimensional cases
+below are doubly periodic with $\gamma=5/3$. The Brio--Wu data are
 \begin{equation}
  (\rho,v_x,p,B_y)=
  \begin{cases}
@@ -144,15 +153,15 @@ layer at $t=1.0$ is
      &\hspace{5.6em}\left.{}+\mathrm{e}^{-(y-y_2)^2/s^2}\right], \notag\\
  &(y_1,y_2)=(0.25,0.75),\quad U_0=0.5,\quad a=0.025, \notag\\
  &\delta=0.01,\quad s=0.05,\quad B_x=B_0=0.1, \notag\\
- &v_z=B_y=B_z=\psi=0,
+ &v_z=B_y=B_z=\psi=0 .
  \label{eq:ch3-ic-kh}
 \end{align}
-This gives a uniform flow-aligned field at Alfv\'en Mach number $5$ and an
-exactly divergence-free initial state.
+The field is uniform and flow-aligned at Alfv\'en Mach number $5$, so the
+initial state is exactly divergence-free.
 
-The refinement ladder uses $\mathrm{CFL}=0.4$ for HLL and $0.2$ for HLLD, for
-the reason given in Section~\ref{sec:ch4-orszag-tang}; HLL was additionally
-re-run at $0.2$ so that the solver axis can be read at a matched time step.
+The refinement ladder uses $\mathrm{CFL}=0.4$ for HLL and $0.2$ for HLLD
+(Section~\ref{sec:ch4-orszag-tang}); HLL was also re-run at $0.2$ so the solver
+axis can be read at a matched time step.
 
 \section{Metrics and statistical treatment}
 \label{sec:ch3-metrics}
@@ -166,22 +175,21 @@ $N=N_xN_y$ cells, the reported mean norms are
  \end{aligned}
  \label{eq:ch3-mean-norms}
 \end{equation}
-with $L_\infty=\max_{ij}|d_{ij}|$. Physical-domain integrals instead use
-$\Delta x\Delta y$. The compact cross-system matrix uses the mean-relative
-density difference
+with $L_\infty=\max_{ij}|d_{ij}|$. The compact cross-system matrix uses the
+mean-relative density difference
 \begin{equation}
  L_{1,\mathrm{rel}}(\rho)=
  \frac{N^{-1}\sum_{ij}|\rho_{ij}-\rho^{\mathrm{ref}}_{ij}|}
       {N^{-1}\sum_{ij}|\rho^{\mathrm{ref}}_{ij}|},
  \label{eq:ch3-mean-relative}
 \end{equation}
-when its denominator is finite and positive, and only within that matrix. For
-binary32 the unit roundoff is $u_{32}=2^{-24}\approx5.96\times10^{-8}$
-\citep{ieee754_2019}; discrepancies are also reported as
-$L_{1,\mathrm{rel}}/u_{32}$, so a value near unity means the two calculations
-differ by about one rounding of the field. Since $L_{1,\mathrm{rel}}$ is
-normalised by the reference field mean whereas $L_\infty$ is absolute, the two
-are not on a common scale. Adjacent-grid comparisons use block-averaged
+and only within that matrix. For binary32 the unit roundoff is
+$u_{32}=2^{-24}\approx5.96\times10^{-8}$ \citep{ieee754_2019}; discrepancies are
+also reported as $L_{1,\mathrm{rel}}/u_{32}$, so a value near unity means the
+two calculations differ by about one rounding of the field, and that ratio is
+written below as a number of roundings. Since $L_{1,\mathrm{rel}}$ is normalised
+by the reference field mean whereas $L_\infty$ is absolute, the two are not on a
+common scale. Adjacent-grid comparisons use block-averaged
 absolute density $L_{1,\mathrm{mean}}$ with the descriptive diagnostic
 $p_{\mathrm{obs}}=\log_2(E_{128,256}/E_{256,512})$. Writing
 $D_N=\|\rho_{32,N}-\rho_{64,N}\|_{1,\mathrm{mean}}$ and $E^{64}_{256,512}$ for
@@ -199,16 +207,15 @@ The divergence diagnostic applies centred differences on interior cells,
         &=\max_{(i,j)\in I}|D_{ij}|.
  \label{eq:ch3-divb}
 \end{align}
-where $I$ excludes the outer stencil layer. These have dimensions of magnetic
+where $I$ excludes the outer stencil layer. These carry dimensions of magnetic
 field per length. The $2\Delta x$ stencil is not the compact operator the GLM
 source controls and is blind to grid-scale oscillation in $\mathbf B$, so small
 values bound one discrete residual rather than field accuracy
-\citep{toth_2000}.
-Same-precision CPU/GPU comparisons use absolute $L_\infty$ and the maximum
-distance in units in the last place (ULP) on saved conservative states, taken
-by mapping sign-adjusted bit patterns of one IEEE type to monotone integers.
-Zero ULP denotes bitwise equality, and ULP is neither a cross-precision nor a
-physical error norm.
+\citep{toth_2000}. Same-precision CPU/GPU comparisons use absolute $L_\infty$
+and the maximum distance in units in the last place (ULP) on saved conservative
+states, mapping sign-adjusted bit patterns to monotone integers. Zero ULP
+denotes bitwise equality; ULP is neither a cross-precision nor a physical error
+norm.
 
 For $n$ MCA samples the per-cell sample standard deviation is
 \begin{equation}
@@ -221,10 +228,9 @@ the maximum conservatively aggregating shocks and shear layers.
 
 Elapsed time is subprocess wall time from launch through completion and
 required output, not kernel time. The KH solver/precision groups discard one
-CPU warm-up and retain $n=5$ measurements; the CPU/GPU packet retains $n=5$ per
-group but excludes no device warm-up or outlier. Both report the median and
-interquartile range, and matched-median ratios apply only to the recorded
-workstation.
+CPU warm-up and retain $n=5$; the CPU/GPU packet retains $n=5$ but excludes no
+device warm-up or outlier, so context creation is inside its Brio--Wu figures.
+Both report median and interquartile range, for the recorded workstation only.
 
 The temporal experiment aligns fp32 and fp64 saved states at each time and
 computes density $L_{1,\mathrm{mean}}$ and $L_\infty$. For positive samples in
@@ -236,27 +242,27 @@ competing models,
  \log e(t)=a'+k\log t .
  \label{eq:ch3-temporal-fit}
 \end{equation}
-Here $t$ is code time, so $\lambda$ has inverse-code-time units; for an adequate
-positive fit, $1/\lambda$ is the e-folding time. The exponent $k$ instead reads
-the series as accumulation: at fixed CFL the step count is proportional to $t$,
-so coherent per-step addition of rounding differences gives $k\simeq1$ and an
+Here $t$ is code time, so $1/\lambda$ is the e-folding time. The exponent $k$
+instead reads the series as accumulation: at fixed CFL the step count is
+proportional to $t$, so coherent per-step addition gives $k\simeq1$ and an
 incoherent random walk $k\simeq0.5$ \citep{crociEtAl2022stochastic}, whereas
-exponential growth is the signature of amplification. Both models are fitted to
-identical samples, so the smaller residual identifies the better-supported one.
-$R^2$ and the root-mean-square and maximum absolute log residuals assess each
-model. A near-zero $R^2$ records only the absence of a slope and cannot
-separate a flat series from a noisy one, whereas the residuals separate a
-plateau from scatter. Both $\lambda$ and $k$ are descriptive rates, not
-physical instability rates, and no confidence interval is claimed.
+exponential growth is the signature of amplification. Both models carry two free
+parameters and are fitted to identical samples, so the smaller root-mean-square
+log residual identifies the better-supported one without an information
+criterion; a near-zero $R^2$ records only the absence of a slope and
+cannot separate a flat series from a noisy one, whereas that residual separates
+a plateau from scatter. Fitted exponents carry the ordinary least-squares
+standard error of the slope, which is optimistic because successive stopping
+times of one case are not independent samples, and both $\lambda$ and $k$ stay
+descriptive rates, not physical instability rates.
 
 \section{Harness, metadata, and retention}
 \label{sec:ch3-harness-metadata}
 
 Experiments follow configuration, build, run, measurement, aggregation and
-plotting. Each record identifies the configuration and commit, configuration
-and binary hashes, compiler and effective floating-point semantics, recorded
-environment, and requested final time, return status, completion diagnostics
-and wall time, which is what distinguishes complete from truncated runs.
-Aggregation checks matrix completeness and physical admissibility before any
-summary or figure. Logs, configurations, metadata, scalar summaries and figures
-are retained, large grids only where a comparison must be revalidated.
+plotting. Each record fixes the commit, the configuration and binary hashes, the
+compiler and effective floating-point semantics, the environment, and the return
+status, completion diagnostics and wall time that separate a complete run from a
+truncated one. Aggregation checks matrix completeness and physical admissibility
+before any summary or figure. Retention is listed in
+Appendix~\ref{sec:appendix-provenance}.

@@ -1,0 +1,2 @@
+[mhd] t=0.494737 steps=568 divB_mean=4.326e-05 divB_max=1.041e-03
+[run-status] status=success final_time=0.494737 target_time=0.494737 steps=568

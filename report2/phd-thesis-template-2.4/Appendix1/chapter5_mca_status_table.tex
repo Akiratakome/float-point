@@ -1,24 +1,22 @@
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \scriptsize
 \begin{tabularx}{\textwidth}{@{}llclclX@{}}
 \toprule
 Case & Solver & Virtual precision & Scope & $N$ & Status & Permitted use \\
 \midrule
-Brio--Wu & HLL  & p53, p24 & $800$, $t=0.1$ & 30 & report-grade & Matched result. \\
-Brio--Wu & HLLD & p53, p24 & $800$, $t=0.1$ & 30 & report-grade & Matched result. \\
-Orszag--Tang & HLL  & p53, p24 & $64^2$, $t=0.05$ & 30 & provisional & Reduced-scope context only. \\
-Orszag--Tang & HLLD & p53, p24 & $64^2$, $t=0.05$ & 30 & provisional & Reduced-scope context only. \\
-KH local & HLL  & p53, p24 & $64^2$, $t=0.05$ & 30 & provenance & Toolchain/noise provenance. \\
-KH local & HLLD & p53, p24 & $64^2$, $t=0.05$ & 30 & provenance & Toolchain/noise provenance. \\
-KH CSC & HLL  & p53, p24 & $64^2$, $t=0.05$ & 4 & validation & Pipeline/direction only. \\
-KH CSC & HLLD & p53, p24 & $64^2$, $t=0.05$ & 4 & validation & Pipeline/direction only. \\
-KH full & HLL  & p53, p24 & $256^2$, $t=1.0$ & 0/30 & unavailable & No numerical claim. \\
-KH full & HLLD & p53, p24 & $256^2$, $t=1.0$ & 0/30 & unavailable & No numerical claim. \\
+Brio--Wu & HLL  & p53, p24 & $800$, $t=0.1$ & 30 & matched & Quantitative comparison. \\
+Brio--Wu & HLLD & p53, p24 & $800$, $t=0.1$ & 30 & matched & Quantitative comparison. \\
+Orszag--Tang & HLL  & p53, p24 & $64^2$, $t=0.05$ & 30 & reduced & Scope context only. \\
+Orszag--Tang & HLLD & p53, p24 & $64^2$, $t=0.05$ & 30 & reduced & Scope context only. \\
+KH workstation smoke & HLL  & p53, p24 & $64^2$, $t=0.05$ & 30 & toolchain & Noise-floor context only. \\
+KH workstation smoke & HLLD & p53, p24 & $64^2$, $t=0.05$ & 30 & toolchain & Noise-floor context only. \\
+KH cluster smoke & HLL  & p53, p24 & $64^2$, $t=0.05$ & 4 & validation & Pipeline check only. \\
+KH cluster smoke & HLLD & p53, p24 & $64^2$, $t=0.05$ & 4 & validation & Pipeline check only. \\
 \bottomrule
 \end{tabularx}
-\caption[MCA evidence status by case and scope]{MCA evidence status by case and
-scope. $N=0/30$ denotes zero retained samples from a target of 30 and supplies
-no stochastic magnitude. Rows with different scopes are not merged.}
+\caption[MCA comparison status by case and scope]{Completed MCA comparisons by
+case and scope. Only rows with a matched case, resolution, end time and sample
+count are compared quantitatively.}
 \label{tab:appendix-ch5-mca-status}
 \end{table}

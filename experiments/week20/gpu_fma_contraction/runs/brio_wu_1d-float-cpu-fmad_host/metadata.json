@@ -1,0 +1,54 @@
+{
+  "experiment": "week20-gpu-fma-contraction",
+  "name": "brio_wu_1d-float-cpu-fmad_host",
+  "timestamp_utc": "2026-08-06T12:20:16.137296+00:00",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-float\\hrsc_mhd.exe",
+  "binary_sha256": "5d8aadb45892fbaefd4e61f2271ae8bb8a4a64bcd12aecacc4d83f6190e05529",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\brio_wu_1d-float-cpu-fmad_host\\config.cfg",
+  "run_config_sha256": "3dfdaece108dd8fc7edcfa58de3165afed6766e68b741b8d979d9449c5209fcd",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\nriemann = hll\ndevice = cpu\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\brio_wu_1d-float-cpu-fmad_host\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-float\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\brio_wu_1d-float-cpu-fmad_host\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.13050689990632236,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\brio_wu_1d-float-cpu-fmad_host\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\brio_wu_1d-float-cpu-fmad_host\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.1,
+    "steps": 759,
+    "divB_mean": 0.0,
+    "divB_max": 0.0,
+    "line": "[mhd] t=0.100000 steps=759 divB_mean=0.000e+00 divB_max=0.000e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\brio_wu_1d-float-cpu-fmad_host\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\brio_wu_1d-float-cpu-fmad_host\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 0.13050689990632236
+  },
+  "failure": null,
+  "completion": {
+    "reported": false
+  },
+  "build_semantics": {
+    "requested_opt_level": null,
+    "requested_fast_math": null,
+    "requested_strict_ieee": null,
+    "effective_math_mode": "unknown",
+    "compiler_id": null,
+    "compiler_version": null,
+    "compiler_path": null,
+    "evidence": {}
+  }
+}

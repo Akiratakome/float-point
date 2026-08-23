@@ -78,6 +78,22 @@ def test_parse_args_accepts_hlld_solver():
     assert args.solver == "hlld"
 
 
+def test_parse_args_accepts_cluster_runtime_controls():
+    args = smoke.parse_args([
+        "--sample-timeout-s", "14400", "--backend-lib", "custom.so",
+    ])
+    assert args.sample_timeout_s == 14400
+    assert args.backend_lib == "custom.so"
+
+
+def test_sample_command_accepts_explicit_backend():
+    command = sample_command_for_runner(
+        "native", "unused", pathlib.Path("build"), pathlib.Path("case.cfg"),
+        53, "custom.so",
+    )
+    assert "custom.so --mode=mca --precision-binary64=53" in _joined(command)
+
+
 def test_blocked_summary_explicitly_says_no_mca_result_was_produced():
     probes = [
         make_probe_record(

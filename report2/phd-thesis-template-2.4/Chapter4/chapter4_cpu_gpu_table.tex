@@ -5,7 +5,7 @@
 \small
 \begin{tabularx}{\textwidth}{@{}llccccX@{}}
 \toprule
-Case & Precision & Grid & CPU/GPU steps & $\mathrm{ULP}_{\max}$ & $L_\infty$ & Validated output \\
+Case & Precision & Grid & CPU/GPU steps & $\mathrm{ULP}_{\max}$ & $L_\infty$ & Verified output \\
 \midrule \addlinespace[2pt]
 Brio--Wu & fp64 & $800\times1$ & 759/759 & 0 & 0 & HLL saved state \\
 Brio--Wu & fp32 & $800\times1$ & 759/759 & 0 & 0 & HLL saved state \\
@@ -13,6 +13,6 @@ Orszag--Tang & fp64 & $256^2$ & 806/806 & 0 & 0 & HLL saved state \\
 Orszag--Tang & fp32 & $256^2$ & 806/806 & 0 & 0 & HLL saved state \\
 \bottomrule
 \end{tabularx}
-\caption[Matched CPU/GPU MHD validation]{\textbf{Matched CPU/GPU MHD validation.} Same-precision CPU and GPU HLL runs used one matched case configuration on the local Intel Core Ultra 9 275HX/RTX 5070 Laptop GPU workstation. Steps are reported as CPU/GPU; $L_\infty$ is the absolute saved-state difference. All four comparisons are bit-identical. The scope excludes HLLD, Kelvin--Helmholtz, GPU MCA, and other devices.}
+\caption[Matched CPU/GPU MHD implementation verification]{\textbf{Matched CPU/GPU MHD implementation verification.} Same-precision CPU and GPU HLL runs used the same case configuration on the recorded workstation. Steps are reported as CPU/GPU, and $L_\infty$ denotes the absolute difference between saved states. All four comparisons are bit-identical.}
 \label{tab:ch4-cpu-gpu}
 \end{table}

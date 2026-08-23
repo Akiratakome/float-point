@@ -3,17 +3,11 @@
 \chapter{Conclusions and Future Work}
 \label{chap:conclusions}
 
-\section{Aim and evidence base}
-
-This report tested effects of precision, build semantics, solver and execution
-on ideal-MHD HRSC calculations and their reproducibility.
-Table~\ref{tab:ch6-axis-ranking} ranks their relative importance under stated
-conditions.
-
 \section{Answers to the research questions}
 
-Table~\ref{tab:ch7-conclusion-matrix} answers each question with its principal
-boundary.
+Table~\ref{tab:ch6-axis-ranking} ranks the tested axes under stated conditions,
+and Table~\ref{tab:ch7-conclusion-matrix} answers each research question with
+its principal boundary.
 
 \begin{table}[H]
 \centering
@@ -22,23 +16,38 @@ boundary.
 \toprule
 RQ & Supported conclusion & Principal boundary \\
 \midrule
-RQ1 & The circularly polarised Alfv\'en wave verified order $1.818$ against an
-exact solution on both devices and both precisions; Brio--Wu approached the
-same-implementation HLL $N=8000$ comparator and all cases passed the declared
-completion, physical-state and matched-device checks. & Order verification
-holds for one smooth case; the Brio--Wu comparator is not exact, and the
-three-grid 2D comparisons did not identify a grid range with a stable rate. \\
+RQ1 & The circularly polarised Alfv\'en wave converged against an exact
+solution on both devices and both precisions at pairwise orders rising $1.706$
+to $1.886$ towards two, $1.818$ fitted over the ladder, and on the same ladder
+fp32 left the fp64 curve at $N=2048$; Brio--Wu approached the same-implementation
+HLL $N=8000$ comparator; the Kelvin--Helmholtz linear growth deficit halved
+with each doubling towards the published rate; and all cases passed the
+declared completion, physical-state and matched-device checks. & Order
+verification and the fp32 floor hold for one smooth case, whose pairwise orders
+are still rising, so $1.818$ summarises the ladder rather than an asymptotic
+order; the Brio--Wu comparator is not exact, and the three-grid 2D comparisons
+did not identify a grid range with a stable rate. \\
 RQ2 & Responses depended on case and axis: covered HLL CPU/GPU final arrays
 agreed only with device contraction disabled, and restoring the compiler
-default outweighed halving the precision on Brio--Wu; optimisation level and
-instruction set changed nothing. & Build comparisons report density;
-HLL device evidence covers Brio--Wu and Orszag--Tang. Timing is one-workstation, five-sample
-evidence with different warm-up policies. \\
+default moved the field further than halving the precision on Brio--Wu;
+optimisation level, instruction set and thread count changed nothing, the last
+of these on an Euler path measurably running in parallel. & Build comparisons
+report density; HLL device evidence covers Brio--Wu and Orszag--Tang. The
+non-zero Brio--Wu responses lie inside the p24 Monte Carlo spread, so they are
+not separable in order. Timing is one-workstation, five-sample evidence with
+different warm-up policies. \\
 RQ3 & All 12 same-grid density mean-$L_1$ discrepancies were below 3\% of the
-matched fp64 finest adjacent-grid difference; both series approached a common
-few-rounding level, sampled at different points relative to it. & This ratio
-is one refinement-scale diagnostic,
-not fp32 error or adequacy; only Brio--Wu has matched deterministic/MCA scope. \\
+matched fp64 finest adjacent-grid difference; followed in time on the clamped
+HLL path at $128^2$ all three cases climb to two or three roundings and stop,
+but that plateau belongs to the configuration and not to the arithmetic:
+refining doubles the fitted exponent, HLLD quadruples it and removes the
+plateau, and the two compound, the series past the roll-up then favouring an
+exponential over a power law by a narrow margin. & This
+ratio is one refinement-scale diagnostic, not fp32 error or adequacy. The
+amplifying window lies past the case's validation stopping time, so it rests on
+completion and physical-state checks rather than a reference; loss of
+divergence control is excluded as its cause but no positive mechanism is
+attributed. Only Brio--Wu has matched deterministic/MCA scope. \\
 RQ4 & Configurations, hashes, execution metadata, acceptance criteria and retained summaries
 form the reproducibility contract. & Independent-code, cross-machine and MPI
 reproduction remain untested. \\
@@ -51,41 +60,43 @@ and claim boundaries.} Evidence is not transferred between metrics.}
 
 \section{Contribution and claim boundaries}
 
-The studied MUSCL--Hancock/GLM configurations completed with finite, positive
-states, which supports stability over the tested horizons but not insensitivity
-to arithmetic detail. The principal methodological contribution is an
-experimental design organised by test case and controlled axis, which keeps
-numerical-reference error, cross-variant discrepancy, stochastic spread and
-runtime separate rather than treating them as interchangeable measures of
-``accuracy''.
+The principal methodological contribution is an experimental design organised
+by test case and controlled axis, which keeps numerical-reference error,
+cross-variant discrepancy, stochastic spread and runtime separate rather than
+treating them as interchangeable measures of ``accuracy''.
+
+Read by case rather than by axis, Orszag--Tang was the most precision-sensitive,
+its domain-mean discrepancy reaching 335 roundings at $512^2$ under HLLD;
+Brio--Wu was where build and device semantics mattered most, one device flag
+there moving the field at least as far as the precision change did;
+Liska--Wendroff Configuration~3 was the only case whose fp32 build-semantics
+response exceeded its own precision response; and Sod moved for no axis except
+precision.
 
 \section{Prioritised future work}
 
-The first priority is to extend order verification beyond the one smooth case
-that now carries it. The Alfv\'en wave should be joined by an inclined or
-two-dimensional smooth problem and by a matched independent-code benchmark,
-compared over density, momentum, total energy, magnetic field and derived
-pressure with conservation residuals and a dimensionless divergence measure. A
-cheaper step is a quadruple-precision one-dimensional Brio--Wu reference,
-turning the present same-scheme $N=8000$ comparator into an arithmetic ground
-truth and separating discretisation error from precision discrepancy without
-new physics.
+Two priorities follow directly from the limits above. Order verification rests
+on one smooth case, so the Alfv\'en wave should be joined by an inclined
+two-dimensional problem and by a quadruple-precision Brio--Wu reference
+\citep{maddock_boost_multiprecision}, which would turn the present same-scheme
+$N=8000$ comparator into an arithmetic ground truth and separate discretisation
+error from precision discrepancy without new physics. Second, the
+Kelvin--Helmholtz validation should extend past $t=1.0$ so that the window in
+which the discrepancy amplifies is covered by a reference rather than by
+completion checks alone, with a finite-time Lyapunov exponent of the fp64 flow
+measured over the same window: divergence control is excluded as the cause of
+that growth (Section~\ref{sec:ch5-saturation-axes}) and nothing yet replaces it.
 
-The next priority is to test the remaining mechanisms. An HLL variant without
-the $\pm c_h$ clamp, solving the GLM pair separately, would separate the
-Riemann solver from the wave-speed treatment that currently makes the tested
-HLL a globally scaled Rusanov flux, and would show how much of its diffuse
-discrepancy and low observed rates that clamp accounts for. The $512^2$
-positivity failure should be repeated in fp32 to test whether its threshold
-moves with the working precision. The build matrix should extend beyond the
-single MSVC environment, so compiler, optimisation and floating-point semantics
-can be distinguished rather than represented by one toolchain.
-
-Execution coverage should then be made genuinely matched: GPU HLLD and
-Kelvin--Helmholtz paths, complete matched Kelvin--Helmholtz temporal and MCA
-experiments, actual OpenMP work sharing and distributed-memory Message Passing
-Interface (MPI) reductions with controlled reduction orders, and repetition on
-several recorded systems. Performance work should separate kernel, launch,
-transfer and I/O costs and add hardware counters. Only then should the study
-broaden to schemes with different dissipation and constraint treatment, or to
-resistive or relativistic MHD.
+The remaining mechanisms follow. An HLL variant without the $\pm c_h$ clamp,
+solving the GLM pair separately, would separate the Riemann solver from the
+wave-speed treatment that makes the tested HLL a globally scaled Rusanov flux.
+The $512^2$ positivity failure should be repeated in fp32, and the pressure
+recovery replaced by a formulation that does not subtract the dominant energies.
+The build matrix should extend beyond the single MSVC environment, after which a
+source-level precision-exploration tool \citep{hoeroldEtAl2025raptor} could
+search the mixed-precision space that a two-level axis samples only at its
+endpoints. Execution coverage should then be made genuinely matched: GPU HLLD
+and Kelvin--Helmholtz paths, matched MCA experiments, real OpenMP work sharing
+and Message Passing Interface (MPI) reductions with controlled orders, and
+repetition on several recorded systems, with kernel, launch, transfer and I/O
+costs separated.

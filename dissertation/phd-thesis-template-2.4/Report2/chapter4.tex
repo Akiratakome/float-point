@@ -7,12 +7,11 @@ Chapter~\ref{chap:methodology} defines the reference hierarchy and the
 diagnostics used here; each result below is conditional on its solver,
 precision, device, grid and final time.
 
-\section{Order verification against an exact solution}
+\section{Order verification and the fp32 floor}
 \label{sec:ch4-cp-alfven}
 
-The remaining cases admit no exact field, so they support self-refinement rates
-but not an observed order of accuracy. The circularly polarised Alfv\'en wave
-supplies one: it is an exact nonlinear solution at finite amplitude, since
+The circularly polarised Alfv\'en wave is the one case admitting an observed
+order of accuracy: it is an exact nonlinear solution at finite amplitude, since
 $|\mathbf B|$ and the total pressure stay uniform. With $\rho=1$, $p=0.1$,
 $B_x=1$, $\mathbf B_\perp=A(\sin2\pi x,\cos2\pi x)$ at $A=0.1$ and
 $\mathbf v_\perp=-\mathbf B_\perp/\sqrt{\rho}$, the Alfv\'en speed is unity, so
@@ -25,21 +24,35 @@ $1.2\times10^{-13}$ on every grid, so GLM cleaning does not enter.
 
 Refining from $N=32$ to $N=512$, the transverse field mean $L_1$ error falls
 from $6.565\times10^{-3}$ to $4.288\times10^{-5}$, a fitted order of $1.818$
-with $R^2=0.9997$ (Figure~\ref{fig:ch4-cp-alfven}). The pairwise orders rise
-monotonically, $1.706$, $1.822$, $1.844$, $1.886$, approaching second order
-from below as the limiter's influence near the extrema of a smooth wave
-recedes. The fp64 and fp32 groups agree to four significant figures and the CPU
-and GPU groups are identical, so the CUDA HLL path is order-verified rather
-than merely compared against the host. This is the only accuracy statement here
-resting on an exact field, and it does not transfer to the cases below.
+with $R^2=0.9997$. The pairwise orders rise monotonically, $1.706$, $1.822$,
+$1.844$, $1.886$, approaching second order from below as the limiter's
+influence near the extrema of a smooth wave recedes. Over this range the fp32
+and fp64 errors differ by at most $0.3\%$ and the CPU and GPU groups are
+bitwise identical, so the same order statement covers the CUDA HLL path by
+inheritance rather than as independent device evidence.
+
+Because the error is measured against an exact field rather than a finer
+calculation, extending the ladder locates the precision floor directly.
+Continued to $N=8192$ (Figure~\ref{fig:ch4-cp-alfven}), fp64 keeps converging
+and its pairwise order reaches $2.08$ on the finest pair, whereas fp32 leaves
+the fp64 curve at $N=2048$: its excess over the matched fp64 error grows from
+$0.3\%$ at $N=512$ through $13\%$ to $421\%$ at $N=8192$, and its pairwise order
+breaks from the fp64 sequence, so past that grid the fp32 slope records
+accumulated rounding rather than an order of accuracy. As a budget, fp64 at
+$N=4096$ reaches $7.438\times10^{-7}$, below the $9.149\times10^{-7}$ fp32
+attains at $N=8192$: refinement in fp32 loses to fp64 on half as many cells.
+This is the report's only accuracy statement resting on an exact field.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.68\textwidth]{Figs/report2/ch4_cp_alfven_convergence}
-\caption[Circularly polarised Alfv\'en wave convergence]{\textbf{Circularly
-polarised Alfv\'en wave convergence.} Transverse field mean $L_1$ error against
-the exact solution at $t=1$, HLL, for both precisions on both devices; the four
-series overlap. The dashed line marks second order.}
+\includegraphics[width=\textwidth]{Figs/report2/ch4_cp_alfven_saturation}
+\caption[Circularly polarised Alfv\'en wave: convergence and fp32 floor]{%
+\textbf{Circularly polarised Alfv\'en wave: convergence and the fp32 floor.}
+(a) Transverse field mean $L_1$ error against the exact solution at $t=1$, HLL,
+for both precisions on both devices; the CPU and GPU series coincide at every
+grid, so each precision appears as one curve. (b) Observed order between
+successive grids. The dotted line marks $N=2048$, the coarsest grid at which
+fp32 exceeds the matched fp64 error by more than $5\%$ and keeps doing so.}
 \label{fig:ch4-cp-alfven}
 \end{figure}
 
@@ -52,28 +65,35 @@ downsampled by averaging the $8000/N$ fine cells in each candidate cell. From
 $N=200$ to $N=800$ the density mean $L_1$ difference fell from
 $1.481\times10^{-2}$ to $5.642\times10^{-3}$ and $L_2$ from
 $3.642\times10^{-2}$ to $1.923\times10^{-2}$, with
-$\mathrm{divB}_{\max}\leq4.441\times10^{-14}$ throughout; least-squares fits of
+$\mathrm{divB}_{\max}\leq4.441\times10^{-14}$; least-squares fits of
 $\log_2 E=a-q\log_2 N$ give $q=0.70$ in $L_1$ and $0.46$ in $L_2$. Since the
 order is verified separately (Section~\ref{sec:ch4-cp-alfven}), these rates
 measure what discontinuities cost it. The standard smearing estimate for a
 linearly degenerate contact, at which an order-$p$ monotone scheme converges in
-$L_1$ as $h^{p/(p+1)}$ \citep{toro2009,leveque_2002}, gives $h^{2/3}$ for
-$p=2$, close to the observed $0.70$; the compound wave and the comparator's
-shared discretisation bias also admit pseudo-convergence
+$L_1$ as $h^{p/(p+1)}$ \citep{banksEtAl2008sublinear,leveque_2002}, gives
+$h^{2/3}$ for $p=2$, close to the observed $0.70$; the compound wave, whose
+limit under refinement is scheme-dependent rather than unique, and the
+comparator's shared discretisation bias both admit pseudo-convergence
 \citep{torrilhon2003pseudo}.
 
 The $N=800$ profiles in Figure~\ref{fig:ch4-brio-profiles} reproduce the
 sequence of \citet{brio_wu_1988} --- fast rarefaction, slow compound wave,
 contact, slow shock, fast rarefaction --- with the contact and slow shock
-visibly displaced and smeared against the comparator, where the mean $L_1$
-difference concentrates.
+displaced and smeared against the comparator, where the mean $L_1$ difference
+concentrates.
 
+% Source PDF SHA-256:
+% af161fa6d0d5cc757c6263da7599c3917541534590da11ee52bbe4fb63f448f3
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{Figs/report2/ch4_brio_wu_profiles}
 \caption[Brio--Wu final-state profiles]{\textbf{Brio--Wu final-state profiles.}
 HLL fp64 density, normal velocity, transverse magnetic field and pressure at
-$t=0.1$: $N=800$ candidate and same-HLL $N=8000$ numerical comparator.}
+$t=0.1$: $N=800$ candidate and same-HLL $N=8000$ numerical comparator. At the
+profile scale the two are indistinguishable, so the density panel insets
+$x\in[0.44,0.68]$, the band carrying $89\%$ of the conservatively downsampled
+$|\Delta\rho|$ in $24\%$ of the cells; there the compound wave, contact and slow
+shock are displaced and smeared, the rarefactions and constant states are not.}
 \label{fig:ch4-brio-profiles}
 \end{figure}
 
@@ -81,140 +101,127 @@ $t=0.1$: $N=800$ candidate and same-HLL $N=8000$ numerical comparator.}
 \label{sec:ch4-invariance-glm}
 
 An $800\times4$ embedding of Brio--Wu preserved a transversely constant state
-exactly, every row identical component by component. Against the
-one-dimensional run the mean and maximum absolute density differences were
-$3.550\times10^{-4}$ and $7.034\times10^{-3}$, below the predeclared $10^{-3}$
-and $10^{-2}$ and explained by the $y$-direction fast speed requiring 861
-rather than 759 steps.
+exactly, every row identical component by component, settling invariance
+directly. Against the one-dimensional run the mean and maximum absolute density
+differences were $3.550\times10^{-4}$ and $7.034\times10^{-3}$, below the
+predeclared $10^{-3}$ and $10^{-2}$, but the $y$-direction fast speed forces 861
+steps against 759, so that residual mixes temporal discretisation with any
+transverse diffusion.
 
-Cleaning was tested directly on a state that is non-solenoidal by construction:
-a Gaussian normal-field bump $B_x=B_0\exp(-r^2/\sigma^2)$ at $(0.5,0.5)$ on a
+Cleaning was tested on a state non-solenoidal by construction: a Gaussian
+normal-field bump $B_x=B_0\exp(-r^2/\sigma^2)$ at $(0.5,0.5)$ on a
 doubly-periodic $128^2$ square, for which divergence is of order unity. At
 $t=0.5$, $\max|\nabla\!\cdot\!\mathbf{B}|$ was 3.030 undamped, 0.2678 at
-$c_r=0.18$ and 0.8429 at $c_r=0.36$ (Figure~\ref{fig:ch4-glm-divergence});
-since the damping rate is $c_h/c_r$, the chosen $c_r=0.18$ damps the more
-strongly, consistent with its smaller terminal maximum.
-
-% Source PDF SHA-256:
-% ca1c0d20572818a015eb394aa3bb43786b874ce4604e889fb310f5ec4e15c442
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.82\textwidth,viewport=266.072 0 532.144 200,clip]{Figs/report2/ch4_validation_refinement_glm}
-\caption[GLM divergence diagnostic]{\textbf{GLM divergence diagnostic.}
-Maximum divergence for the doubly-periodic $128^2$ Gaussian normal-field bump
-(HLL, fp64, CFL 0.4), one run per stopping time; $c_r=0$ is the undamped
-control.}
-\label{fig:ch4-glm-divergence}
-\end{figure}
+$c_r=0.18$ and 0.8429 at $c_r=0.36$, one HLL fp64 run per setting at CFL 0.4.
+Since the damping rate is $c_h/c_r$ the chosen value damps the more strongly,
+though three settings at one run each order the values rather than resolve the
+dependence.
 
 \section{Matched CPU/GPU implementation verification}
 \label{sec:ch4-cpu-gpu-validation}
 
 Case, grid, precision, arithmetic and update order were matched across separate
 CPU and CUDA HLL implementations. Table~\ref{tab:ch4-cpu-gpu} reports four
-pairs, Brio--Wu at $800\times1$ and Orszag--Tang at $256^2$ in fp32 and fp64,
+pairs, Brio--Wu at $800\times1$ and Orszag--Tang at $256^2$ in both precisions,
 each repeated five times, all giving zero maximum ULP and zero absolute
-$L_\infty$ difference. The $c_h$ reduction was reordered into a parallel GPU
-maximum tree, which cannot accumulate rounding, and device contraction was
-disabled to match the host (Section~\ref{sec:ch2-execution}), so the agreement
-holds for that build recipe. A shared defect would still agree bit for bit.
+$L_\infty$. The $c_h$ reduction was reordered into a parallel GPU maximum tree,
+which cannot accumulate rounding, and device contraction was disabled to match
+the host (Section~\ref{sec:ch2-execution}), so the agreement holds for that
+build recipe, and a shared defect would agree bit for bit too.
 
 \input{Report2/chapter4_cpu_gpu_table}
 
 \section{Orszag--Tang validation}
 \label{sec:ch4-orszag-tang}
 
-The Orszag--Tang test uses the periodic unit-square rescaling of
-\citet{toth_2000}, and the HLL runs at $128^2$, $256^2$, and $512^2$ completed
-with finite, positive states. The divergence diagnostic is dimensional, so the
-ladder is read in grid units: scaled by cell width the domain mean falls about
-fivefold, so cleaning works wherever the field is smooth, while the maximum
-barely moves, staying near $1.4\%$ of $B_0$ per cell width. Without
-explicit resistivity ideal MHD current sheets keep thinning under refinement,
-leaving a sheet a few cells across whose central-difference residual scales as
-$1/h$, so the peak stays pinned at the grid scale and its raw growth reflects
-the diagnostic's dimensions rather than lost divergence control. The fp64 HLL
-$256^2$--$512^2$ pair retained zero relative mass drift, a necessary but weak
-check, and its temperature field preserved the interacting-shock and
-current-sheet topology of published calculations
-\citep{toth_2000,bard_dorelli_2014} (Figure~\ref{fig:ch4-ot-morphology}).
+The HLL runs at $128^2$, $256^2$ and $512^2$ completed with finite, positive
+states. The divergence diagnostic is dimensional, so the ladder is read in grid
+units: over the three grids the cell-width-scaled domain mean falls
+$1.07\times10^{-3}$, $4.79\times10^{-4}$, $2.02\times10^{-4}$, about fivefold,
+so cleaning works wherever the field is smooth, while the maximum moves only
+from 0.0136 to 0.0145 to 0.0151, staying near $1.4\%$ of $B_0$ per cell width.
+Without explicit resistivity ideal MHD current sheets keep thinning under
+refinement, leaving a sheet a few cells across whose central-difference residual
+scales as $1/h$, so the peak stays pinned at the grid scale and its raw growth
+reflects the diagnostic's dimensions rather than lost divergence control. The
+fp64 HLL $256^2$--$512^2$ pair retained zero relative mass drift, and its
+temperature field preserved the interacting-shock and current-sheet topology of
+published calculations \citep{toth_2000,bard_dorelli_2014}
+(Figure~\ref{fig:ch4-ot-morphology}).
 
+% Source PDF SHA-256:
+% 4565783a146482c8897daf8ece5374e520a77bf65f14b5cbba6cd3098a676be6
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{Figs/report2/ch4_orszag_tang_morphology}
 \caption[Orszag--Tang temperature morphology]{\textbf{Orszag--Tang temperature
 morphology.} HLL fp64 temperature at $256^2$ and the internal higher-resolution
-$512^2$ HLL comparator at $t=0.5$, plotted on one scale. Over $128^2$, $256^2$
-and $512^2$ the cell-width-scaled divergence mean falls $1.07\times10^{-3}$,
-$4.79\times10^{-4}$, $2.02\times10^{-4}$, while its maximum moves only from
-0.0136 to 0.0145 to 0.0151.}
+$512^2$ HLL comparator at $t=0.5$, plotted on one scale in the greyscale
+temperature layout of \citet{toth_2000}. The divergence ladder these fields
+carry is given in the text.}
 \label{fig:ch4-ot-morphology}
 \end{figure}
 
 Figure~\ref{fig:ch4-resolution-precision} gives the adjacent-grid diagnostic
-$p=\log_2(E_{\mathrm{coarse}}/E_{\mathrm{fine}})$, with $E$ the density
-mean-$L_1$ difference between successive grids, so $p=1$ if that difference
-halves on each doubling and $p=2$ if it quarters. The two-dimensional update
-composes its sweeps as a fixed $x$-then-$y$ Lie splitting, which is first order
-as a multidimensional split (Section~\ref{sec:ch2-mhd-glm}), so the reference
-here is $p\simeq1$ rather than 2, and minmod limiting lowers it further
-wherever it activates. For fp64 HLL the differences were 0.1203 and 0.07722,
-giving $p\simeq0.639$, and for HLLD \citep{miyoshi_kusano_2005} 0.07515 and
-0.04182, giving $p\simeq0.846$; the fp32 values agreed at the displayed
-precision. Both fall below the reference, as shocks and current sheets keeping
-the limiter active would produce, and for HLL the globally clamped wave speed
-of Section~\ref{sec:ch2-riemann} adds Rusanov dissipation everywhere on top of
-that.
+$p_{\mathrm{obs}}$ of Section~\ref{sec:ch3-metrics}. The two-dimensional update
+composes its sweeps as a fixed $x$-then-$y$ Lie splitting, first order as a
+multidimensional split (Section~\ref{sec:ch2-mhd-glm}), so the reference is
+$p\simeq1$ rather than 2, and minmod limiting lowers it wherever it activates.
+For fp64 HLL the differences were 0.1203 and 0.07722, giving $p\simeq0.639$, and
+for HLLD \citep{miyoshi_kusano_2005} 0.07515 and 0.04182, giving
+$p\simeq0.846$; the fp32 values agreed at the displayed precision. Both fall
+below it, as an active limiter at shocks and current sheets would produce, and
+for HLL the globally clamped wave speed adds Rusanov dissipation everywhere on
+top.
 
 Because the two ladders ran at different time steps, HLL was re-run at the HLLD
 setting. At CFL 0.2 it gives $p\simeq0.640$ for Orszag--Tang and $0.917$ for
 Kelvin--Helmholtz, against $0.639$ and $0.919$ at CFL 0.4, so the rates are
-insensitive to the time step across this range and the CFL asymmetry was not
-the confound it appeared to be. At a matched step HLLD attains the higher rate
-on both cases, $0.846$ against $0.640$ and $1.442$ against $0.917$, so the
-ordering is a solver comparison after all, consistent with the clamped HLL flux
-carrying extra dissipation everywhere.
+insensitive to the time step. At that matched step HLLD attains the higher rate
+on both cases, $0.846$ and $1.442$, so the ordering is a solver comparison,
+consistent with the clamped HLL flux carrying extra dissipation.
 
 An exploratory fp64 HLLD run at $512^2$ terminated with diagnosed negative
-pressure at CFL 0.4 and again at 0.2, so reducing the time step was not the
-fix. Pressure is recovered as
+pressure at CFL 0.4 and again at 0.2, so the time step was not the fix. Pressure
+is recovered as
 $p=(\gamma-1)[E-\rho|\mathbf{v}|^2/2-|\mathbf{B}|^2/2]$, so where magnetic and
 kinetic energy dominate $E$ the subtraction cancels leading digits and the
-relative error in $p$ is amplified by roughly $E/p$ \citep{higham_2002}. The
-guard detects a cancellation-sensitive recovery, though whether its threshold
-depends on the working precision was not tested. With the per-line first-order
-HLL fallback enabled the ladder completed at all three grids, and
-instrumentation shows how little of it that fallback carries: the recomputation
-fired twice in $3\,355\,648$ line updates at $512^2$ and not at all at $256^2$
-or on Brio--Wu, while HLLD's fourteen degeneracy guards never fired in
-$1.7\times10^{9}$ interface evaluations. The $512^2$ diagnostics therefore
-describe HLLD almost everywhere, the fallback acting as a point repair rather
-than a regime. Figure~\ref{fig:ch4-ot-solver-comparison} shows where the two
+relative error in $p$ is amplified by roughly $E/p$ \citep{higham_2002}. This
+recovery is the standard positivity weak point of an energy-conservative MHD
+update \citep{miyoshi_kusano_2005}; the guard detects it, though whether its
+threshold moves with the working precision was not tested. With the per-line
+first-order HLL fallback enabled the ladder completed at all three grids, and it
+carries almost none of the result: the recomputation fired twice in
+$3\,355\,648$ line updates at $512^2$ and not at all at $256^2$ or on Brio--Wu,
+while HLLD's fourteen degeneracy guards never fired in $1.7\times10^{9}$
+interface evaluations, so no tested interface was degenerate and the guards
+stand unexercised. Figure~\ref{fig:ch4-ot-solver-comparison} shows where the two
 $256^2$ fields differ against the same HLL $512^2$ context.
 
+% Source PDF SHA-256:
+% d76524daaf051af216f8e2428c2bfa1e991ad50f991321d5ec721d48e49f539d
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{Figs/report2/ch4_orszag_tang_solver_comparison}
 \caption[Orszag--Tang HLL/HLLD field comparison]{\textbf{Orszag--Tang
 HLL/HLLD field comparison.} Left-half temperature at $t=0.5$ for fp64 HLL and
-HLLD at $256^2$, with the internal HLL $512^2$ field as refinement context.}
+HLLD at $256^2$, with the internal HLL $512^2$ field as refinement context, in
+the left-half layout of \citet{miyoshi_kusano_2005}.}
 \label{fig:ch4-ot-solver-comparison}
 \end{figure}
 
 % Source PDF SHA-256:
-% 36c516bdd93a30a13861430752bd7b7f732f1f12b91253ae616fc59b8850c017
+% aa4b85d83c598b809e48b53512a569202b701f0baa9cd93db88249f35060068f
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{Figs/report2/ch4_resolution_precision}
 \caption[Three-grid MHD resolution diagnostics]{\textbf{Three-grid MHD
 resolution diagnostics.} Adjacent grids are conservatively block-averaged
-before the density mean $L_1$ difference is formed. HLL uses CFL 0.4 and HLLD
-uses CFL 0.2; the matched-CFL comparison is given in the text. The dashed line
-marks $p=1$, the first-order behaviour expected from the fixed directional
-splitting: bars near it are splitting-limited, bars below it lose further order
-where limiting is active, and the two Kelvin--Helmholtz HLLD bars above it
-indicate that three grids have not reached an asymptotic regime rather than
-better-than-first-order accuracy.}
+before the density mean $L_1$ difference is formed. Each case carries HLL at
+CFL 0.4, HLL re-run at the HLLD time step, and HLLD at CFL 0.2, so the solver
+axis can be read at a matched step; open circles mark the matched fp32 value,
+which coincides with fp64 at this scale. The dashed line marks the $p=1$
+expected from the fixed directional splitting, read as in the text.}
 \label{fig:ch4-resolution-precision}
 \end{figure}
 
@@ -223,35 +230,52 @@ better-than-first-order accuracy.}
 
 The initial data (Equation~\ref{eq:ch3-ic-kh}) are a smooth double shear layer
 of width $a=0.025$, a single-wavelength $\sin(2\pi x)$ seed and a uniform
-flow-aligned field at Alfv\'en Mach number 5. In the regime of
-\citet{frankEtAl1996kh} such a weak aligned field cannot suppress the
-instability, though it can modify the nonlinear stage; at a sonic Mach number
-near 0.39 the case is subsonic, so density is a low-contrast diagnostic here. A
+flow-aligned field at Alfv\'en Mach number 5. At equal densities an aligned
+field suppresses the instability only for a velocity jump below $2v_A$
+\citep{chandrasekhar1961stability}; here that jump is $1.0$ against
+$2v_A=0.2$, so the case sits well inside the unstable regime, where the field
+modifies the nonlinear stage without removing it \citep{frankEtAl1996kh}. At a
+sonic Mach number near 0.39 the case is subsonic, so density is a low-contrast
+diagnostic here. A
 separate reproduction tested the linear stage directly. On the smooth
 unstratified initial condition of \citet{lecoanetEtAl2016kh}, with
 $\mathbf{B}=0$ so the solver reduces to inviscid hydrodynamics, the $k=2\pi$
-mode amplitude of \citet{tricco2019kh} grew at 2.193 over $t\in[0.25,1.0]$ at
-$128\times256$ with $R^2=0.990$, against the published linear value of 3.227
-\citep{berlokPfrommer2019kh}. Growth is recovered with the right sign but is
-32\% slow, the expected direction for the globally clamped, Rusanov-like HLL
-path on a marginally resolved layer. That check bounds linear hydrodynamic
-behaviour only, using a different initial condition and no field.
+mode amplitude of \citet{tricco2019kh} grew at rates rising 1.079, 2.193, 2.731
+and 2.888 from $64\times128$ to $512\times1024$ against the published linear
+value of 3.227 \citep{berlokPfrommer2019kh}: deficits of 67\%, 32\%, 15\% and
+10\% that halve over the first three doublings and then flatten. The shortfall
+is therefore under-resolution of the layer rather than a wrong mechanism, the
+residual near 10\% being what the clamped HLL path's dissipation costs. The
+check bounds linear hydrodynamic behaviour only, on a different initial
+condition with no field.
 
-All solver--precision groups completed at $128^2$, $256^2$, and $512^2$ with
-finite, positive states. Scaled by cell width and by $B_0=0.1$, both divergence
-maxima fall monotonically, from $4.7\times10^{-5}$ to $1.8\times10^{-5}$ for
-HLL and from $7.1\times10^{-4}$ to $1.0\times10^{-4}$ for HLLD: two to three
-orders tighter than Orszag--Tang's $1.4\%$, and tightening under refinement
-rather than pinned at the grid scale, because the shear layer keeps a fixed
-width that refinement resolves. HLLD's maximum stays about an order of
-magnitude above HLL's, comparing a uniformly smoothed field with a sharper one,
-so low dissipation and tight discrete divergence control are not obtained
+All solver--precision groups completed at $128^2$, $256^2$ and $512^2$ with
+finite, positive states. Scaled by cell width and $B_0=0.1$, both divergence
+maxima fall monotonically at $t=1.0$, from $4.7\times10^{-5}$ to
+$1.8\times10^{-5}$ for HLL and from $7.1\times10^{-4}$ to $1.0\times10^{-4}$ for
+HLLD: two to three orders tighter than Orszag--Tang's $1.4\%$, and tightening
+under refinement rather than pinned at the grid scale, since the shear layer
+keeps a fixed width. HLLD's maximum stays about an order of magnitude above
+HLL's, so low dissipation and tight discrete divergence control are not obtained
 together.
 
-For fp64 HLL and HLLD, the adjacent-grid density differences shrink with
-$p=0.919$ and $p=1.442$. On this smooth field the HLL value sits close to the
-splitting-limited reference of Section~\ref{sec:ch4-orszag-tang}, whereas the
-HLLD value exceeding one indicates that three grids have not reached an
-asymptotic regime rather than a better-than-first-order method. These remain
-self-refinement rates, not solution error; only
-Section~\ref{sec:ch4-cp-alfven} measures the latter.
+The matched-step fp64 rates quoted in Section~\ref{sec:ch4-orszag-tang} read the
+same way here: the HLL value sits close to the splitting-limited reference,
+whereas the HLLD value exceeding one indicates three grids short of an
+asymptotic regime rather than a better-than-first-order method.
+Figure~\ref{fig:ch4-kh-morphology} shows the field these rates describe.
+
+% Source PDF SHA-256:
+% 47a287041b6f774d92149a65f7d40bfe1d2752ddcfb8b5a9d0670492efd7511e
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.64\textwidth]{Figs/report2/ch4_kelvin_helmholtz_morphology}
+\caption[Kelvin--Helmholtz density morphology]{\textbf{Kelvin--Helmholtz
+density morphology.} HLL fp64 density at $256^2$, CFL 0.4, $t=1.0$, shaded and
+contoured on the same 24 linearly spaced levels; the field spans $0.5\%$ about
+unity, which is the low-contrast density this subsonic case gives. The seeded
+mode has distorted both shear layers but has not yet rolled them up, so at this
+stopping time the case reports the late linear stage rather than a developed
+nonlinear billow.}
+\label{fig:ch4-kh-morphology}
+\end{figure}

@@ -1,0 +1,325 @@
+{
+  "schema": {
+    "name": "hrsc.week18-csc-findings-synthesis",
+    "version": 1
+  },
+  "experiment": "week18-csc-kh-mca-synthesis",
+  "git_commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+  "sources": {
+    "csc_bundle": "experiments/report2_w16_verificarlo_findings",
+    "csc_config": "scripts/cluster/report2_w16_w17_slurm/cfg/kh_64_t005.cfg",
+    "csc_host": "phy-cerberus6",
+    "verificarlo": "2.4.0 native",
+    "clang": "18.1.3"
+  },
+  "scope": {
+    "case": "kelvin_helmholtz_2d",
+    "nx": 64,
+    "ny": 64,
+    "t_end": 0.05,
+    "cfl": 0.4,
+    "mca_samples": 4
+  },
+  "gate": {
+    "pass": true,
+    "csc_smoke_pass": true,
+    "local_deterministic_pass": true
+  },
+  "claims": {
+    "reduced_pipeline_validated": true,
+    "p24_p53_separation_over_six_decades_all_fields": true,
+    "hlld_p24_spread_exceeds_hll_all_fields": true,
+    "full_resolution_mca_completed": false,
+    "small_sample_exploratory": true,
+    "matched_deterministic_triangulation": true,
+    "claim_boundary": "The 64^2, t=0.05, N=4 result validates the pipeline and provides reduced-case directional evidence only; it does not promote the full 256^2, t=1.0, N=30 KH MCA claim."
+  },
+  "csc_derived": {
+    "gate": {
+      "pass": true,
+      "completed_blocks": 4,
+      "expected_blocks": 4
+    },
+    "precision_amplification": {
+      "hll": {
+        "rho": {
+          "p24": 1.4312820382628893e-07,
+          "p53": 4.796711693331816e-16,
+          "ratio": 298388172.933678,
+          "decades": 8.474781605223438
+        },
+        "vx": {
+          "p24": 4.0873514500199647e-07,
+          "p53": 1.5091522635465025e-15,
+          "ratio": 270837578.7354089,
+          "decades": 8.432708922587537
+        },
+        "By": {
+          "p24": 1.0874808531563149e-08,
+          "p53": 2.6550724798766853e-17,
+          "ratio": 409586126.7059734,
+          "decades": 8.612345238013965
+        },
+        "p": {
+          "p24": 1.8318602837717112e-07,
+          "p53": 5.438959822042073e-16,
+          "ratio": 336803422.6595802,
+          "decades": 8.527376496232055
+        }
+      },
+      "hlld": {
+        "rho": {
+          "p24": 4.290742970936029e-07,
+          "p53": 1.2429209975126394e-15,
+          "ratio": 345214456.87398934,
+          "decades": 8.53808897478689
+        },
+        "vx": {
+          "p24": 1.6767997529556405e-06,
+          "p53": 3.952319900126506e-15,
+          "ratio": 424257093.3850697,
+          "decades": 8.627629112256043
+        },
+        "By": {
+          "p24": 2.108723164181665e-08,
+          "p53": 6.49367753053324e-17,
+          "ratio": 324734813.8657115,
+          "decades": 8.511528850557896
+        },
+        "p": {
+          "p24": 2.6748200904592617e-07,
+          "p53": 8.133220384522988e-16,
+          "ratio": 328875889.74587214,
+          "decades": 8.517032036042295
+        }
+      }
+    },
+    "solver_ratio_p24": {
+      "rho": 2.997831913089327,
+      "vx": 4.102411484452726,
+      "By": 1.9390899233409826,
+      "p": 1.4601659930919717
+    },
+    "claims": {
+      "reduced_pipeline_validated": true,
+      "p24_p53_separation_over_six_decades_all_fields": true,
+      "hlld_p24_spread_exceeds_hll_all_fields": true,
+      "full_resolution_mca_completed": false,
+      "small_sample_exploratory": true
+    }
+  },
+  "local_runs": [
+    {
+      "solver": "hll",
+      "precision": "double",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 15,
+      "divB_max": 0.0001478,
+      "wall_time_s": 0.038443699944764376,
+      "precision_bytes": 8,
+      "rho_min": 0.9934803348550906,
+      "pressure_min": 0.9961764753850371,
+      "binary_sha256": "db92496738da3eb444323cd0b631d897949c951a5f6eb0350adef17bc78fb669",
+      "run_dir": "experiments/week18/csc_findings_synthesis/runs/kh64-hll-double"
+    },
+    {
+      "solver": "hll",
+      "precision": "float",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 15,
+      "divB_max": 0.0001482,
+      "wall_time_s": 0.033836100017651916,
+      "precision_bytes": 4,
+      "rho_min": 0.9934802651405334,
+      "pressure_min": 0.9961765319464821,
+      "binary_sha256": "5d8aadb45892fbaefd4e61f2271ae8bb8a4a64bcd12aecacc4d83f6190e05529",
+      "run_dir": "experiments/week18/csc_findings_synthesis/runs/kh64-hll-float"
+    },
+    {
+      "solver": "hlld",
+      "precision": "double",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 15,
+      "divB_max": 0.0001865,
+      "wall_time_s": 0.04104899999219924,
+      "precision_bytes": 8,
+      "rho_min": 0.9958386681929398,
+      "pressure_min": 0.9930767154731679,
+      "binary_sha256": "db92496738da3eb444323cd0b631d897949c951a5f6eb0350adef17bc78fb669",
+      "run_dir": "experiments/week18/csc_findings_synthesis/runs/kh64-hlld-double"
+    },
+    {
+      "solver": "hlld",
+      "precision": "float",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 15,
+      "divB_max": 0.0001867,
+      "wall_time_s": 0.03767890005838126,
+      "precision_bytes": 4,
+      "rho_min": 0.9958386421203613,
+      "pressure_min": 0.9930767451749893,
+      "binary_sha256": "5d8aadb45892fbaefd4e61f2271ae8bb8a4a64bcd12aecacc4d83f6190e05529",
+      "run_dir": "experiments/week18/csc_findings_synthesis/runs/kh64-hlld-float"
+    }
+  ],
+  "deterministic_linf": {
+    "hll": {
+      "rho": 3.1186350812895114e-07,
+      "vx": 1.9026693476309475e-07,
+      "By": 1.188045463348353e-08,
+      "p": 2.685604050256529e-07
+    },
+    "hlld": {
+      "rho": 7.429011179560518e-07,
+      "vx": 3.2796424542791414e-07,
+      "By": 2.4044809955522115e-08,
+      "p": 3.5893792871277697e-07
+    }
+  },
+  "triangulation": {
+    "hll": {
+      "rho": {
+        "deterministic_linf_fp32_vs_fp64": 3.1186350812895114e-07,
+        "csc_p24_mca_spread": 1.4312820382628893e-07,
+        "deterministic_to_mca_ratio": 2.178910234264184
+      },
+      "vx": {
+        "deterministic_linf_fp32_vs_fp64": 1.9026693476309475e-07,
+        "csc_p24_mca_spread": 4.0873514500199647e-07,
+        "deterministic_to_mca_ratio": 0.46550177318900576
+      },
+      "By": {
+        "deterministic_linf_fp32_vs_fp64": 1.188045463348353e-08,
+        "csc_p24_mca_spread": 1.0874808531563149e-08,
+        "deterministic_to_mca_ratio": 1.0924748329132954
+      },
+      "p": {
+        "deterministic_linf_fp32_vs_fp64": 2.685604050256529e-07,
+        "csc_p24_mca_spread": 1.8318602837717112e-07,
+        "deterministic_to_mca_ratio": 1.4660528829889805
+      }
+    },
+    "hlld": {
+      "rho": {
+        "deterministic_linf_fp32_vs_fp64": 7.429011179560518e-07,
+        "csc_p24_mca_spread": 4.290742970936029e-07,
+        "deterministic_to_mca_ratio": 1.7314043814514188
+      },
+      "vx": {
+        "deterministic_linf_fp32_vs_fp64": 3.2796424542791414e-07,
+        "csc_p24_mca_spread": 1.6767997529556405e-06,
+        "deterministic_to_mca_ratio": 0.19558939274044035
+      },
+      "By": {
+        "deterministic_linf_fp32_vs_fp64": 2.4044809955522115e-08,
+        "csc_p24_mca_spread": 2.108723164181665e-08,
+        "deterministic_to_mca_ratio": 1.1402544612750634
+      },
+      "p": {
+        "deterministic_linf_fp32_vs_fp64": 3.5893792871277697e-07,
+        "csc_p24_mca_spread": 2.6748200904592617e-07,
+        "deterministic_to_mca_ratio": 1.3419142842281702
+      }
+    }
+  },
+  "cost": {
+    "source": "CSC README_findings.md and raw timing logs; t=0.02, 23 steps on athena unless noted",
+    "seconds_per_step": {
+      "native": 0.0575,
+      "mca_quad": 24.0,
+      "mca_int_mca": 11.43,
+      "mca_int_rr": 6.25
+    },
+    "quad_overhead_vs_native": 417.39130434782606,
+    "mca_int_reduced_precision_supported": false,
+    "dedicated_quad_sample_hours_observed_range": [
+      2.5,
+      3.0
+    ],
+    "csc_partition_limit_hours": 6.0,
+    "samples_per_block": 30,
+    "parallel_workers": 32
+  },
+  "csc_raw": {
+    "hll": {
+      "experiment": "week16-kelvin-helmholtz-mca-smoke-csc",
+      "case": "/lsc/zeushome/yt455/floatpoint/scripts/cluster/report2_w16_w17_slurm/cfg/kh_64_t005.cfg",
+      "samples": 4,
+      "solver": "hll",
+      "mca": {
+        "p24": {
+          "status": "completed",
+          "reason": "Produced 4 Verificarlo MCA sample grids with runner `native`.",
+          "n": 4,
+          "runner": "native",
+          "mca_evidence_generated": true,
+          "spread_rho": 1.4312820382628893e-07,
+          "snr_rho": 22811580.103612352,
+          "spread_vx": 4.0873514500199647e-07,
+          "spread_By": 1.0874808531563149e-08,
+          "snr_By": 10394.6368192883,
+          "spread_p": 1.8318602837717112e-07,
+          "snr_p": 14450721.281850614,
+          "rho_mean_spread": 8.456297884151809e-10
+        },
+        "p53": {
+          "status": "completed",
+          "reason": "Produced 4 Verificarlo MCA sample grids with runner `native`.",
+          "n": 4,
+          "runner": "native",
+          "mca_evidence_generated": true,
+          "spread_rho": 4.796711693331816e-16,
+          "snr_rho": 5738242920513789.0,
+          "spread_vx": 1.5091522635465025e-15,
+          "spread_By": 2.6550724798766853e-17,
+          "snr_By": 3807225093857.9824,
+          "spread_p": 5.438959822042073e-16,
+          "snr_p": 4442419904693143.0,
+          "rho_mean_spread": 0.0
+        }
+      }
+    },
+    "hlld": {
+      "experiment": "week16-kelvin-helmholtz-mca-smoke-csc",
+      "case": "/lsc/zeushome/yt455/floatpoint/scripts/cluster/report2_w16_w17_slurm/cfg/kh_64_t005.cfg",
+      "samples": 4,
+      "solver": "hlld",
+      "mca": {
+        "p24": {
+          "status": "completed",
+          "reason": "Produced 4 Verificarlo MCA sample grids with runner `native`.",
+          "n": 4,
+          "runner": "native",
+          "mca_evidence_generated": true,
+          "spread_rho": 4.290742970936029e-07,
+          "snr_rho": 7448589.021882279,
+          "spread_vx": 1.6767997529556405e-06,
+          "spread_By": 2.108723164181665e-08,
+          "snr_By": 5708.49850419472,
+          "spread_p": 2.6748200904592617e-07,
+          "snr_p": 9800635.05577308,
+          "rho_mean_spread": 7.591394179939925e-10
+        },
+        "p53": {
+          "status": "completed",
+          "reason": "Produced 4 Verificarlo MCA sample grids with runner `native`.",
+          "n": 4,
+          "runner": "native",
+          "mca_evidence_generated": true,
+          "spread_rho": 1.2429209975126394e-15,
+          "snr_rho": 2491523405719327.0,
+          "spread_vx": 3.952319900126506e-15,
+          "spread_By": 6.49367753053324e-17,
+          "snr_By": 2060418332699.2578,
+          "spread_p": 8.133220384522988e-16,
+          "snr_p": 3262825985216195.0,
+          "rho_mean_spread": 0.0
+        }
+      }
+    }
+  }
+}

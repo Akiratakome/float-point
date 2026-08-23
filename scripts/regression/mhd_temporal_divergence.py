@@ -49,6 +49,37 @@ CASES = {
         "n_slices": 25,
         "fit_window": [0.1, 0.5],
     },
+    # Report-2 addition: carries the temporal axis past the linear stage, which
+    # the t=1.0 stopping time of the validation ladder does not reach.
+    "kelvin_helmholtz_2d": {
+        "cfg": ROOT / "tests" / "cases" / "kelvin_helmholtz_2d" / "kh.cfg",
+        "nx": 128,
+        "ny": 128,
+        "t_start": 0.2,
+        "t_end_max": 3.0,
+        "n_slices": 20,
+        "fit_window": [0.2, 3.0],
+    },
+    # Early-time companions: resolve the approach to the saturation level that
+    # the windows above already sit on at their first sample.
+    "kelvin_helmholtz_2d_early": {
+        "cfg": ROOT / "tests" / "cases" / "kelvin_helmholtz_2d" / "kh.cfg",
+        "nx": 128,
+        "ny": 128,
+        "t_start": 0.01,
+        "t_end_max": 0.19,
+        "n_slices": 10,
+        "fit_window": [0.01, 0.19],
+    },
+    "orszag_tang_2d_early": {
+        "cfg": ROOT / "tests" / "cases" / "orszag_tang_2d" / "orszag_tang.cfg",
+        "nx": 128,
+        "ny": 128,
+        "t_start": 0.005,
+        "t_end_max": 0.045,
+        "n_slices": 10,
+        "fit_window": [0.005, 0.045],
+    },
 }
 EXPECTED_SAMPLE_COUNTS = {
     case: int(spec["n_slices"]) for case, spec in CASES.items()
@@ -558,10 +589,12 @@ def write_outputs(
         "Orszag-Tang Linf fit.", "",
         ordering_statement(planned_contrast, ot_l1=ot_l1, brio_l1=brio_l1),
         f"The OT Linf fit is {fmt_lambda(ot_linf)}. Fixed-window log-linear R2 values are "
-        f"{by_case['brio_wu_1d']['fit_l1']['r2_log']:.4f}/"
-        f"{by_case['brio_wu_1d']['fit_linf']['r2_log']:.4f} for Brio-Wu L1/Linf and "
-        f"{by_case['orszag_tang_2d']['fit_l1']['r2_log']:.4f}/"
-        f"{by_case['orszag_tang_2d']['fit_linf']['r2_log']:.4f} for OT. The near-zero OT "
+        + ", ".join(
+            f"{by_case[case]['fit_l1']['r2_log']:.4f}/"
+            f"{by_case[case]['fit_linf']['r2_log']:.4f} for {case} L1/Linf"
+            for case in sorted(by_case)
+        )
+        + ". Where an OT series is present its near-zero "
         "values limit slope interpretation; no minimum R2 is required for the negative-result gate.", "",
         "The fitted lambda is a Lyapunov-like engineering growth rate of an "
         "fp32-vs-fp64 perturbation, not a formal maximal Lyapunov exponent.", "",

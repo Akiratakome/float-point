@@ -24,7 +24,12 @@ Use these first for new Report 2 work.
 | Summarise | `regression/matrix_summary_report.py` | Preferred matrix-summary consumer for new harness runs. |
 | Summarise (MHD precision) | `regression/mhd_precision_pilot.py` | **canonical** Week-14 MHD precision-study aggregator; authoritative `summary.json`. `matrix_summary_report.py` is generic-checks-only here. |
 | Summarise (MHD temporal) | `regression/mhd_temporal_divergence.py` | **canonical** fixed-window, provenance-gated fp32/fp64 HLL temporal driver. |
+| Summarise (Report 2 cross-system) | `regression/report2_cross_system.py` | **canonical packet-specific** analyzer for the Week-18 Euler--MHD matrix; requires completion-attested metadata and removes transient grids after aggregation. |
+| Run/summarise (MHD resolution) | `regression/mhd_week18_resolution_ladder.py` | **canonical packet-specific** OT/KH three-resolution driver; records incomplete groups and numerical failures instead of dropping them. |
+| Reproduce (Lecoanet KH linear stage) | `regression/mhd_lecoanet_kh_reproduction.py` | **canonical packet-specific** exact smooth-IC and early-mode-growth driver; retains the rate discrepancy and excludes the nonlinear diffusive/dye reference claim. |
 | Aggregate | `aggregate_metrics.py` | Thin JSON combiner for multiple summaries. |
+| Plot (Report 2 publication set) | `figures/report2_publication_figures.py` | Audits stored source summaries, then writes seven 320-dpi PNG/vector-PDF pairs plus a claim/provenance/hash manifest. |
+| Table (Report 2 Chapter 4 CPU/GPU) | `figures/report2_chapter4_cpu_gpu_table.py` | Generates the bounded four-row HLL correctness table directly from the CPU/GPU hardware-axis summary and rejects step or saved-state mismatches. |
 | Plot | `figures/plot_2d.py` plus selected `figures/` helpers | Keep generated figures under the owning experiment/report directory. |
 
 The architecture specification is

@@ -1,0 +1,62 @@
+{
+  "experiment": "diagnostic-hlld-positivity-guard-refinement",
+  "name": "orszag-tang-hlld-double-n256-cfl0p2",
+  "timestamp_utc": "2026-07-29T07:08:39.295038+00:00",
+  "git_commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+  "binary": "build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+  "source_config": "experiments\\week18\\resolution_ladder\\runs\\orszag_tang_2d-hlld-double-n512-cfl0p2\\config.cfg",
+  "run_config": "experiments\\diagnostics\\hlld_positivity_guard\\refinement\\runs\\orszag-tang-hlld-double-n256-cfl0p2\\config.cfg",
+  "precision": "double",
+  "build": "cpu-double-O2-ieee-leq-positivity-guard",
+  "raw_output": "experiments\\diagnostics\\hlld_positivity_guard\\refinement\\runs\\orszag-tang-hlld-double-n256-cfl0p2\\grid.bin",
+  "extra_cfg": {
+    "nx": "256",
+    "ny": "256"
+  },
+  "command": [
+    "build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+    "experiments\\diagnostics\\hlld_positivity_guard\\refinement\\runs\\orszag-tang-hlld-double-n256-cfl0p2\\config.cfg"
+  ],
+  "returncode": 0,
+  "provenance": {
+    "git": {
+      "commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+      "dirty": true
+    }
+  },
+  "timing": {
+    "total_s": null,
+    "elapsed_wall_s": 148.20147879980505
+  },
+  "stdout": "experiments\\diagnostics\\hlld_positivity_guard\\refinement\\runs\\orszag-tang-hlld-double-n256-cfl0p2\\stdout.txt",
+  "stderr": "experiments\\diagnostics\\hlld_positivity_guard\\refinement\\runs\\orszag-tang-hlld-double-n256-cfl0p2\\stderr.txt",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "experiments\\diagnostics\\hlld_positivity_guard\\refinement\\runs\\orszag-tang-hlld-double-n256-cfl0p2\\grid.bin"
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 0.5,
+    "target_time": 0.5,
+    "steps": 1622
+  },
+  "build_semantics": {
+    "requested_opt_level": "O2",
+    "requested_fast_math": false,
+    "requested_strict_ieee": false,
+    "effective_math_mode": "compiler-default",
+    "compiler_id": "MSVC",
+    "compiler_version": "19.51.36248.0",
+    "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+    "evidence": {
+      "optimization": "/O2",
+      "fast_math": "",
+      "strict_ieee": ""
+    }
+  }
+}

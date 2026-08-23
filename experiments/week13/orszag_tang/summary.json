@@ -1,7 +1,7 @@
 {
   "experiment": "week13-orszag-tang",
-  "git_commit": "9946a07b8622373e83c3582cce24a6ff7c5825f3",
-  "binary_sha256": "d3aa4405571a206e83672091bae2a7b2ed30b782e6f701c1b69d3698f66abbbe",
+  "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
+  "binary_sha256": "db92496738da3eb444323cd0b631d897949c951a5f6eb0350adef17bc78fb669",
   "results": {
     "L1_rho": 0.07721667483938416,
     "L2_rho": 0.1136370392858288,
@@ -26,23 +26,23 @@
     "cand": {
       "experiment": "week13-mhd-2d",
       "name": "ot_256",
-      "timestamp_utc": "2026-07-23T05:45:47.285568+00:00",
-      "git_commit": "9946a07b8622373e83c3582cce24a6ff7c5825f3",
-      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-      "binary_sha256": "d3aa4405571a206e83672091bae2a7b2ed30b782e6f701c1b69d3698f66abbbe",
-      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
-      "source_config_sha256": "75d627f534891c0342a37a7b961dce09526d36860f64b5601520b16f5a5e1f67",
-      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_256\\config.cfg",
-      "run_config_sha256": "a997b7c50f5a5b1cda23f731705e20d756a868c1a9de62f6b0104f206444382c",
-      "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\ot_256.bin\n",
+      "timestamp_utc": "2026-07-23T07:24:12.036960+00:00",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+      "binary_sha256": "db92496738da3eb444323cd0b631d897949c951a5f6eb0350adef17bc78fb669",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+      "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_256\\config.cfg",
+      "run_config_sha256": "fbf7915bb83009a4b39d238084e21a9bca557a07f0cc211bf982c501b022f19c",
+      "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\ot_256.bin\n",
       "command": [
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_256\\config.cfg"
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_256\\config.cfg"
       ],
       "returncode": 0,
-      "elapsed_wall_s": 26.303629599977285,
-      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_256\\stdout.txt",
-      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_256\\stderr.txt",
+      "elapsed_wall_s": 24.63858619995881,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_256\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_256\\stderr.txt",
       "stderr_diagnostics": {
         "t": 0.5,
         "steps": 806,
@@ -50,28 +50,51 @@
         "divB_max": 3.72,
         "line": "[mhd] t=0.500000 steps=806 divB_mean=1.225e-01 divB_max=3.720e+00"
       },
-      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\ot_256.bin"
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\ot_256.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\ot_256.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 24.63858619995881
+      },
+      "failure": {
+        "category": "infrastructure_error",
+        "message": "'RequiredArtifact' object is not iterable",
+        "exception_type": "TypeError"
+      },
+      "completion": {
+        "reported": true,
+        "final_time": 0.5,
+        "target_time": 0.5,
+        "steps": 806
+      },
+      "build_semantics": null
     },
     "ref": {
       "experiment": "week13-mhd-2d",
       "name": "ot_512_ref",
-      "timestamp_utc": "2026-07-23T05:49:22.135702+00:00",
-      "git_commit": "9946a07b8622373e83c3582cce24a6ff7c5825f3",
-      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-      "binary_sha256": "d3aa4405571a206e83672091bae2a7b2ed30b782e6f701c1b69d3698f66abbbe",
-      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\tests\\cases\\orszag_tang_2d\\orszag_tang_ref.cfg",
-      "source_config_sha256": "81fdb51d1c8500d805c85616e0976f2f5a8dc55e540be1a29b9c5f988c75785e",
-      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_512_ref\\config.cfg",
-      "run_config_sha256": "ced98a727f728e098879c2176ca8d56e4b045fe97de840e6140b022050355696",
-      "run_config_text": "# Self-converged double reference for Orszag-Tang (2x candidate resolution).\ntest    = orszag_tang\nnx      = 512\nny      = 512\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\ot_512_ref.bin\n",
+      "timestamp_utc": "2026-07-23T07:27:48.131598+00:00",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+      "binary_sha256": "db92496738da3eb444323cd0b631d897949c951a5f6eb0350adef17bc78fb669",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang_ref.cfg",
+      "source_config_sha256": "881585fec64aa75bb934fe99b2f721549db7b5c2aaca0cc3c598c86adb970741",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_512_ref\\config.cfg",
+      "run_config_sha256": "655fb43c4abf2b48b9a442b6e26422d0ad4402f2c303e4299f0636f08e08bbce",
+      "run_config_text": "# Self-converged double reference for Orszag-Tang (2x candidate resolution).\ntest    = orszag_tang\nnx      = 512\nny      = 512\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\ot_512_ref.bin\n",
       "command": [
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_512_ref\\config.cfg"
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_512_ref\\config.cfg"
       ],
       "returncode": 0,
-      "elapsed_wall_s": 214.84062290005386,
-      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_512_ref\\stdout.txt",
-      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_512_ref\\stderr.txt",
+      "elapsed_wall_s": 216.0873670000583,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_512_ref\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_512_ref\\stderr.txt",
       "stderr_diagnostics": {
         "t": 0.5,
         "steps": 1630,
@@ -79,28 +102,51 @@
         "divB_max": 7.729,
         "line": "[mhd] t=0.500000 steps=1630 divB_mean=1.036e-01 divB_max=7.729e+00"
       },
-      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\ot_512_ref.bin"
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\ot_512_ref.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\ot_512_ref.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 216.0873670000583
+      },
+      "failure": {
+        "category": "infrastructure_error",
+        "message": "'RequiredArtifact' object is not iterable",
+        "exception_type": "TypeError"
+      },
+      "completion": {
+        "reported": true,
+        "final_time": 0.5,
+        "target_time": 0.5,
+        "steps": 1630
+      },
+      "build_semantics": null
     },
     "ctrl": {
       "experiment": "week13-mhd-2d",
       "name": "ot_256_cr0",
-      "timestamp_utc": "2026-07-23T05:49:46.581393+00:00",
-      "git_commit": "9946a07b8622373e83c3582cce24a6ff7c5825f3",
-      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-      "binary_sha256": "d3aa4405571a206e83672091bae2a7b2ed30b782e6f701c1b69d3698f66abbbe",
-      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
-      "source_config_sha256": "75d627f534891c0342a37a7b961dce09526d36860f64b5601520b16f5a5e1f67",
-      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_256_cr0\\config.cfg",
-      "run_config_sha256": "d42118133773579a3b0c276ff190671f332324ca0dca4c507edb31b458e1bfb8",
-      "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 0.5\nglm_cr = 0.0\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\ot_256_cr0.bin\n",
+      "timestamp_utc": "2026-07-23T07:28:14.850564+00:00",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+      "binary_sha256": "db92496738da3eb444323cd0b631d897949c951a5f6eb0350adef17bc78fb669",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+      "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_256_cr0\\config.cfg",
+      "run_config_sha256": "8e7c64c7077fd08ea4487e0cb684f5e1755deefce053f85f23c5c96f7da737e4",
+      "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 0.5\nglm_cr = 0.0\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\ot_256_cr0.bin\n",
       "command": [
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_256_cr0\\config.cfg"
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_256_cr0\\config.cfg"
       ],
       "returncode": 0,
-      "elapsed_wall_s": 24.436326499911956,
-      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_256_cr0\\stdout.txt",
-      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\runs\\ot_256_cr0\\stderr.txt",
+      "elapsed_wall_s": 26.71530179993715,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_256_cr0\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\runs\\ot_256_cr0\\stderr.txt",
       "stderr_diagnostics": {
         "t": 0.5,
         "steps": 806,
@@ -108,7 +154,30 @@
         "divB_max": 3.603,
         "line": "[mhd] t=0.500000 steps=806 divB_mean=1.403e-01 divB_max=3.603e+00"
       },
-      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week13\\orszag_tang\\ot_256_cr0.bin"
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\ot_256_cr0.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week13\\orszag_tang\\ot_256_cr0.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 26.71530179993715
+      },
+      "failure": {
+        "category": "infrastructure_error",
+        "message": "'RequiredArtifact' object is not iterable",
+        "exception_type": "TypeError"
+      },
+      "completion": {
+        "reported": true,
+        "final_time": 0.5,
+        "target_time": 0.5,
+        "steps": 806
+      },
+      "build_semantics": null
     }
   }
 }

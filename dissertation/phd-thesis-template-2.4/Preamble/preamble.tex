@@ -262,3 +262,21 @@
   urlcolor   = fpDarkBlue,
   anchorcolor= fpDarkBlue,
 }
+
+% *****************************************************************************
+% ****************************** Float placement ******************************
+% The defaults push a wide figure onto a page of its own and then centre it
+% with stretchable glue, which leaves a large band of white space above the
+% figure and separates it from the text that discusses it. Aligning float pages
+% to the top and loosening the text/float balance keeps figures near their
+% reference without changing any content.
+\makeatletter
+\setlength{\@fptop}{0pt}          % float-only pages start at the top
+\setlength{\@fpsep}{14pt plus 1fil}
+\makeatother
+\renewcommand{\topfraction}{0.9}      % a top float may fill 90% of the page
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\textfraction}{0.08}    % allow text-light pages
+\renewcommand{\floatpagefraction}{0.75} % a float page must be 75% full
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}

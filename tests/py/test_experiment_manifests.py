@@ -21,6 +21,7 @@ MANIFESTS = (
     "experiments/week15/orszag_tang_precision_smoke/manifest.json",
     "experiments/week15/orszag_tang_precision_smoke_hlld/manifest.json",
     "experiments/week15/mhd_temporal_divergence/manifest.json",
+    "experiments/week19/lecoanet_kh_linear_reproduction/manifest.json",
 )
 
 

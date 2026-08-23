@@ -14,5 +14,5 @@
   },
   "evidence": ["experiments/week15/mhd_temporal_divergence/summary.md", "experiments/week15/mhd_temporal_divergence/summary.json", "experiments/week15/mhd_temporal_divergence/figures/temporal_divergence.png"],
   "retention": {"keep": ["summary.*", "figures/"], "transient": ["generated configs, logs, metadata, and grids"]},
-  "provenance": {"notes": "summary.json embeds generation checkout cf50f837dd2e74040c06f86af2f3c21a9b70ed58 and recorded run checkout c26ab4a286066655b32f08cb6d22324bd922f99c; bounded evidence status remains negative-result."}
+  "provenance": {"notes": "summary.json embeds generation checkout 8de35c3e67556df18f811835d7f6cdeec16f384e and recorded run checkout 0fe1239a942e852c092eec9a0ab9849bbbc71dfd; bounded evidence status remains negative-result."}
 }

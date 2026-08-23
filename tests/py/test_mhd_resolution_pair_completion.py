@@ -1,12 +1,17 @@
 import json
 import math
 
+import pytest
+
 from scripts.regression import mhd_resolution_pair_completion as completion
 from scripts.regression import mhd_week18_resolution_ladder as ladder
 
 
 def test_reference_semantics_match_retained_corrected_grid():
-    result = completion.validate_reference_semantics()
+    try:
+        result = completion.validate_reference_semantics()
+    except FileNotFoundError as exc:
+        pytest.skip(f"requires a clean build-matrix reference binary: {exc}")
     assert result["pass"] is True
     assert all(result["checks"].values())
 

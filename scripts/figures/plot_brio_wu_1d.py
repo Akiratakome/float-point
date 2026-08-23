@@ -58,26 +58,48 @@ def plot_profiles():
     xr, rr, vr, br, pr = primitives(DATA / "bw_8000.bin")
     x8, r8, v8, b8, p8 = primitives(DATA / "bw_800.bin")
     panels = [
-        ("Density  rho", rr, r8),
-        ("Velocity  v_x", vr, v8),
-        ("Transverse field  B_y", br, b8),
-        ("Pressure  p", pr, p8),
+        (r"Density $\rho$", rr, r8),
+        (r"Velocity $v_x$", vr, v8),
+        (r"Transverse field $B_y$", br, b8),
+        (r"Pressure $p$", pr, p8),
     ]
-    fig, axes = plt.subplots(2, 2, figsize=(11, 7.5), sharex=True)
+    # Sized close to the printed 	extwidth so the panel and inset labels are
+    # not shrunk to illegibility by the LaTeX scale factor.
+    plt.rcParams.update({"font.size": 11, "axes.titlesize": 12,
+                         "xtick.labelsize": 10, "ytick.labelsize": 10})
+    fig, axes = plt.subplots(2, 2, figsize=(8.4, 5.9), sharex=True)
     for ax, (title, ref, num) in zip(axes.flat, panels):
-        ax.plot(xr, ref, color="0.6", lw=2.2, label="N=8000 reference (double)")
+        ax.plot(xr, ref, color="0.6", lw=2.2,
+                label=r"$N=8000$ comparator (fp64)")
         ax.plot(x8, num, color="C3", lw=0.0, marker=".", ms=2.5,
-                label="N=800 (double)")
+                label=r"$N=800$ (fp64)")
         ax.set_title(title)
         ax.grid(alpha=0.3)
     for ax in axes[1]:
-        ax.set_xlabel("x")
-    axes[0, 0].legend(loc="upper right", fontsize=8)
-    fig.suptitle("Brio-Wu 1D MHD shock tube at t = 0.1  (gamma = 2, HLL, MUSCL-Hancock)",
-                 fontweight="bold")
-    fig.tight_layout(rect=(0, 0, 1, 0.97))
+        ax.set_xlabel(r"$x$")
+    axes[0, 0].legend(loc="lower left", fontsize=9, framealpha=0.9)
+
+    # At the full profile scale the candidate and the comparator are
+    # indistinguishable, so the compound-wave/contact/slow-shock band that
+    # carries 89% of the total |drho| in 24% of the cells is inset at scale.
+    lo, hi = 0.44, 0.68
+    inset = axes[0, 0].inset_axes((0.50, 0.40, 0.47, 0.52), zorder=5)
+    inset.set_facecolor("white")
+    mr = (xr >= lo) & (xr <= hi)
+    m8 = (x8 >= lo) & (x8 <= hi)
+    inset.plot(xr[mr], panels[0][1][mr], color="0.6", lw=2.0)
+    inset.plot(x8[m8], panels[0][2][m8], color="C3", lw=0.0, marker=".", ms=2.8)
+    inset.set_xlim(lo, hi)
+    inset.tick_params(labelsize=8.5)
+    inset.grid(alpha=0.3)
+    axes[0, 0].indicate_inset_zoom(inset, edgecolor="0.35", lw=0.8)
+    # No in-figure title: the manuscript caption owns the case, solver, gamma
+    # and stopping time, and repeating them here duplicates the caption.
+    fig.tight_layout()
     out = OUT / "brio_wu_profiles.png"
     fig.savefig(out, dpi=150)
+    # Vector copy for the manuscript; these are line and marker panels.
+    fig.savefig(out.with_suffix(".pdf"))
     plt.close(fig)
     return out
 

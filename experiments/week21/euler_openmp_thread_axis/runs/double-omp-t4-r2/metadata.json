@@ -1,0 +1,55 @@
+{
+  "experiment": "week21-euler-openmp-thread-axis",
+  "name": "double-omp-t4-r2",
+  "timestamp_utc": "2026-08-06T16:57:13.307351+00:00",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double-omp\\hrsc.exe",
+  "binary_sha256": "d23b1590da36fed6a1a7be4bd30025688d4c1f60edd95a7db26d31416da0d615",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\liska_wendroff_2d\\config3_n200.cfg",
+  "source_config_sha256": "0cfd139bdd7cc9ac3be0f8cb79598435a9be2f5a76db9772904f43e70d68f5f7",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\euler_openmp_thread_axis\\runs\\double-omp-t4-r2\\config.cfg",
+  "run_config_sha256": "f04824aa57816470f6d755e449bf4bfd0e766800535f925cc30bfc90f6facd93",
+  "run_config_text": "mode = normal\ntest = lw_config3\nnx = 200\nny = 200\nxmin = 0.0\nxmax = 1.0\nymin = 0.0\nymax = 1.0\ngamma = 1.4\ncfl = 0.5\nt_end = 0.3\nsolver = hllc\nbc = outflow\noutput_precision = 17\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week21/euler_openmp_thread_axis/runs/double-omp-t4-r2/grid.bin\n\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double-omp\\hrsc.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\euler_openmp_thread_axis\\runs\\double-omp-t4-r2\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.4500399997923523,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\euler_openmp_thread_axis\\runs\\double-omp-t4-r2\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\euler_openmp_thread_axis\\runs\\double-omp-t4-r2\\stderr.txt",
+  "stderr_diagnostics": {},
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\euler_openmp_thread_axis\\runs\\double-omp-t4-r2\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\euler_openmp_thread_axis\\runs\\double-omp-t4-r2\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 0.4500399997923523
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 0.3,
+    "target_time": 0.3,
+    "steps": 259
+  },
+  "build_semantics": {
+    "requested_opt_level": "",
+    "requested_fast_math": false,
+    "requested_strict_ieee": false,
+    "effective_math_mode": "compiler-default",
+    "compiler_id": "MSVC",
+    "compiler_version": "19.51.36248.0",
+    "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+    "evidence": {
+      "optimization": "",
+      "fast_math": "",
+      "strict_ieee": ""
+    }
+  }
+}

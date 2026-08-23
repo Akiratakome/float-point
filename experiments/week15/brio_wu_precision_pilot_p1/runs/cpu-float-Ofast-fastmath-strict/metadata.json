@@ -1,10 +1,10 @@
 {
   "experiment": "week14-mhd-precision-pilot",
   "name": "cpu-float-Ofast-fastmath-strict",
-  "timestamp_utc": "2026-07-09T11:20:10.777349+00:00",
-  "git_commit": "3728e1babddb799292b891a63b5e7022300a1171",
+  "timestamp_utc": "2026-07-23T08:10:52.415998+00:00",
+  "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
   "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-Ofast-fastmath-strict\\hrsc_mhd.exe",
-  "binary_sha256": "629eb9a97c5cd30d86a005e7a870c05296869afb5fdba9b8ef64487b835904b5",
+  "binary_sha256": "be9bf8428819c8b6db35bcfbdb56caa3d823cd8a508a4796a149879834072efc",
   "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
   "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
   "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-float-Ofast-fastmath-strict\\config.cfg",
@@ -15,7 +15,7 @@
     "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-float-Ofast-fastmath-strict\\config.cfg"
   ],
   "returncode": 0,
-  "elapsed_wall_s": 0.12309830007143319,
+  "elapsed_wall_s": 0.12860159995034337,
   "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-float-Ofast-fastmath-strict\\stdout.txt",
   "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-float-Ofast-fastmath-strict\\stderr.txt",
   "stderr_diagnostics": {
@@ -25,5 +25,28 @@
     "divB_max": 0.0,
     "line": "[mhd] t=0.100000 steps=759 divB_mean=0.000e+00 divB_max=0.000e+00"
   },
-  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-float-Ofast-fastmath-strict\\grid.bin"
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-float-Ofast-fastmath-strict\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_p1\\runs\\cpu-float-Ofast-fastmath-strict\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 0.12860159995034337
+  },
+  "failure": {
+    "category": "infrastructure_error",
+    "message": "'RequiredArtifact' object is not iterable",
+    "exception_type": "TypeError"
+  },
+  "completion": {
+    "reported": true,
+    "final_time": 0.1,
+    "target_time": 0.1,
+    "steps": 759
+  },
+  "build_semantics": null
 }

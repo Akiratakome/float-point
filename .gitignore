@@ -36,6 +36,11 @@ compile_commands.json
 __pycache__/
 *.pyc
 .venv/
+.pytest_cache/
+
+# Agent/tool transient state
+.codex-temp/
+.superpowers/
 
 # OS
 .DS_Store
@@ -48,6 +53,31 @@ Thumbs.db
 # Test output
 test_out.txt
 test_err.txt
+/tmp/
+/tmp*/
+
+# Generated bundles and review artefacts
+/artifacts/
+/hrsc-report2-repro/
+*.zip
+*.tar.gz
+
+# Unrelated local utility retained outside the project history
+/tools/icm2026_export_schedule.py
+
+# LaTeX build products
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.nlo
+*.out
+*.synctex.gz
+*.toc
+/texput.log
 
 # PDFs
 *.pdf

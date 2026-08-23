@@ -37,6 +37,8 @@ EXPERIMENT = "week13-mhd-verificarlo-smoke"
 # 30-sample block; 6 attempts drops that to ~1e-4 while never affecting samples
 # that succeed on the first try.
 SAMPLE_MAX_ATTEMPTS = 6
+SAMPLE_TIMEOUT_S = 300
+DEFAULT_VFC_BACKEND_LIB = "libinterflop_mca.so"
 
 sys.path.insert(0, str(ROOT / "scripts" / "regression"))
 from _mhd_harness import git_commit, replace_or_append_cfg, sha256_file  # noqa: E402
@@ -376,8 +378,14 @@ def build_commands_for_runner(runner: str, image: str, build_dir: pathlib.Path) 
     return [native_build_command(build_dir), native_build_target_command(build_dir)]
 
 
-def sample_command_for_runner(runner: str, image: str, build_dir: pathlib.Path,
-                              cfg_path: pathlib.Path, precision: int) -> list[str]:
+def sample_command_for_runner(
+    runner: str,
+    image: str,
+    build_dir: pathlib.Path,
+    cfg_path: pathlib.Path,
+    precision: int,
+    backend_lib: str = DEFAULT_VFC_BACKEND_LIB,
+) -> list[str]:
     binary = build_dir / ("hrsc_mhd.exe" if runner == "native" and platform.system().lower().startswith("win") else "hrsc_mhd")
     # Verificarlo 2.x interflop backends take precision as a VFC_BACKENDS
     # argument; the legacy VFC_MCA_PRECISION_BINARY64 env var is silently
@@ -385,7 +393,7 @@ def sample_command_for_runner(runner: str, image: str, build_dir: pathlib.Path,
     # --precision-binary64 so the p24 surrogate actually lowers binary64
     # precision instead of silently running at the backend default (=53), which
     # is what made p24 and p53 collapse to the same machine-eps noise floor.
-    vfc_backends = f"libinterflop_mca.so --mode=mca --precision-binary64={precision}"
+    vfc_backends = f"{backend_lib} --mode=mca --precision-binary64={precision}"
     env_bits = (
         f"VFC_BACKENDS='{vfc_backends}' "
         "VFC_BACKENDS_SILENT_LOAD=True "
@@ -526,9 +534,16 @@ def _run_one_sample(
             solver=getattr(args, "solver", None),
         )
         cfg_path.write_text(cfg_text, encoding="utf-8")
-        command = sample_command_for_runner(runner, args.image, build_dir, cfg_path, args.precision)
+        backend_lib = (
+            getattr(args, "backend_lib", DEFAULT_VFC_BACKEND_LIB)
+            or DEFAULT_VFC_BACKEND_LIB
+        )
+        command = sample_command_for_runner(
+            runner, args.image, build_dir, cfg_path, args.precision, backend_lib
+        )
         t0 = time.perf_counter()
-        result = run_command(command, timeout=300)
+        sample_timeout = getattr(args, "sample_timeout_s", SAMPLE_TIMEOUT_S) or SAMPLE_TIMEOUT_S
+        result = run_command(command, timeout=sample_timeout)
         elapsed = time.perf_counter() - t0
         stdout_path = run_dir / "stdout.txt"
         stderr_path = run_dir / "stderr.txt"
@@ -661,6 +676,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--image", default=DEFAULT_IMAGE)
     parser.add_argument("--solver", choices=("hll", "hlld"), default="hll")
     parser.add_argument("--probe-only", action="store_true")
+    parser.add_argument(
+        "--sample-timeout-s", type=int, default=SAMPLE_TIMEOUT_S,
+        help="Per-attempt wall-clock timeout in seconds (default 300).")
+    parser.add_argument(
+        "--backend-lib", default=DEFAULT_VFC_BACKEND_LIB,
+        help="Interflop backend library (default libinterflop_mca.so).")
     return parser.parse_args(argv)
 
 

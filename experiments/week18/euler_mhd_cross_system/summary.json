@@ -1,0 +1,572 @@
+{
+  "schema": {
+    "name": "hrsc.week18-cross-system",
+    "version": 1
+  },
+  "experiment": "week18-euler-mhd-cross-system",
+  "matrix": {
+    "systems": [
+      "Euler",
+      "ideal MHD"
+    ],
+    "dimensions": [
+      "1D",
+      "2D"
+    ],
+    "cases": [
+      "sod",
+      "lw3",
+      "brio-wu",
+      "orszag-tang"
+    ],
+    "precisions": [
+      "FP64",
+      "FP32"
+    ],
+    "math_modes": [
+      "O2-default",
+      "Ofast-fast"
+    ],
+    "device": "CPU",
+    "branch_rule": "<=",
+    "expected_runs": 16
+  },
+  "gate": {
+    "pass": true,
+    "runs": true,
+    "metrics": true
+  },
+  "claim_boundary": "This packet compares bounded density-discrepancy sensitivity across selected Euler/HLLC and ideal-MHD/HLL cases. Different physical systems and Riemann solvers prevent a universal method ranking, and no cross-system accuracy claim is made.",
+  "runs": [
+    {
+      "run_id": "sod-double-o2",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "double",
+      "precision_tag": 8,
+      "expected_precision_tag": 8,
+      "shape": [
+        1,
+        200,
+        4
+      ],
+      "final_time": 0.25,
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc.exe",
+      "binary_sha256": "2e829173160e9005b22b3823ba13182794186c3cefbecb61b0472de30e6fecd4",
+      "config_sha256": "7c491962d8d2c9b782d8a9f152c337314b8227b2380ffaac33d43a49ea0894ab",
+      "effective_math_mode": "compiler-default"
+    },
+    {
+      "run_id": "sod-float-o2",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "float",
+      "precision_tag": 4,
+      "expected_precision_tag": 4,
+      "shape": [
+        1,
+        200,
+        4
+      ],
+      "final_time": 0.25,
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc.exe",
+      "binary_sha256": "3a2e76eb06bc2639f6c2fff79ff8822270f5b2f567e3c9e8fa10124d3b6fed22",
+      "config_sha256": "8dcb28ca4a5c331cd50b2ecafc499bc33f9a839d74a247cf79a074793c93840a",
+      "effective_math_mode": "compiler-default"
+    },
+    {
+      "run_id": "sod-double-fast",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "double",
+      "precision_tag": 8,
+      "expected_precision_tag": 8,
+      "shape": [
+        1,
+        200,
+        4
+      ],
+      "final_time": 0.25,
+      "binary": "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc.exe",
+      "binary_sha256": "d794a72758146d54f5010fab4936b18b846f208dcfc5b354521d5adf453cd49b",
+      "config_sha256": "7b4a95f49dc8767580659af2c0016aa3675655ec7296e49d368d9de2c2eae546",
+      "effective_math_mode": "fast"
+    },
+    {
+      "run_id": "sod-float-fast",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "float",
+      "precision_tag": 4,
+      "expected_precision_tag": 4,
+      "shape": [
+        1,
+        200,
+        4
+      ],
+      "final_time": 0.25,
+      "binary": "build-matrix/cpu-float-Ofast-fastmath-leq/hrsc.exe",
+      "binary_sha256": "0313e3e0ef631d2d8ad25ca309a861cfb881bc1ca64913d352f4b7348c08619d",
+      "config_sha256": "fd9c2d08b68450ef5d3599a9193a90b6cf0509002d3c95cbf63294c205c646a0",
+      "effective_math_mode": "fast"
+    },
+    {
+      "run_id": "lw3-double-o2",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "double",
+      "precision_tag": 8,
+      "expected_precision_tag": 8,
+      "shape": [
+        200,
+        200,
+        4
+      ],
+      "final_time": 0.3,
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc.exe",
+      "binary_sha256": "2e829173160e9005b22b3823ba13182794186c3cefbecb61b0472de30e6fecd4",
+      "config_sha256": "2e097f5865b7f0236fbaf9bf22006143bb4af66a8d8015a8847688d04238bec4",
+      "effective_math_mode": "compiler-default"
+    },
+    {
+      "run_id": "lw3-float-o2",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "float",
+      "precision_tag": 4,
+      "expected_precision_tag": 4,
+      "shape": [
+        200,
+        200,
+        4
+      ],
+      "final_time": 0.30000001192092896,
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc.exe",
+      "binary_sha256": "3a2e76eb06bc2639f6c2fff79ff8822270f5b2f567e3c9e8fa10124d3b6fed22",
+      "config_sha256": "3dd0ae31d07fc3ae6f09380802ae6de6956babb375db12609f6db9b0f6d2b420",
+      "effective_math_mode": "compiler-default"
+    },
+    {
+      "run_id": "lw3-double-fast",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "double",
+      "precision_tag": 8,
+      "expected_precision_tag": 8,
+      "shape": [
+        200,
+        200,
+        4
+      ],
+      "final_time": 0.3,
+      "binary": "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc.exe",
+      "binary_sha256": "d794a72758146d54f5010fab4936b18b846f208dcfc5b354521d5adf453cd49b",
+      "config_sha256": "182063badd1e18652e63b01719eb356922c4922bc09a3c2480b8449f458bd669",
+      "effective_math_mode": "fast"
+    },
+    {
+      "run_id": "lw3-float-fast",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "float",
+      "precision_tag": 4,
+      "expected_precision_tag": 4,
+      "shape": [
+        200,
+        200,
+        4
+      ],
+      "final_time": 0.30000001192092896,
+      "binary": "build-matrix/cpu-float-Ofast-fastmath-leq/hrsc.exe",
+      "binary_sha256": "0313e3e0ef631d2d8ad25ca309a861cfb881bc1ca64913d352f4b7348c08619d",
+      "config_sha256": "a626ad17a36e1ba34ffe3483bf9701f12cefd5e113b5c5624229a63da484ed90",
+      "effective_math_mode": "fast"
+    },
+    {
+      "run_id": "brio-wu-double-o2",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "double",
+      "precision_tag": 8,
+      "expected_precision_tag": 8,
+      "shape": [
+        1,
+        800,
+        9
+      ],
+      "final_time": 0.1,
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc_mhd.exe",
+      "binary_sha256": "788de993d8eb46f911ee2e7b1416bc0782248368e963238bb00a3118baa79179",
+      "config_sha256": "a9732411c37a9f86e5fd471ddff5c4d66219930818efaeeb9456109b98bab5b9",
+      "effective_math_mode": "compiler-default"
+    },
+    {
+      "run_id": "brio-wu-float-o2",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "float",
+      "precision_tag": 4,
+      "expected_precision_tag": 4,
+      "shape": [
+        1,
+        800,
+        9
+      ],
+      "final_time": 0.10000000149011612,
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc_mhd.exe",
+      "binary_sha256": "da3811ae8e4e046b061719d4174ac98f201e0ee840d7b528fafa9b327a71c1d9",
+      "config_sha256": "be02d8eb5566719a2c378235dbcf875ea10fc130a791791ecc9fc0a6b8b8805d",
+      "effective_math_mode": "compiler-default"
+    },
+    {
+      "run_id": "brio-wu-double-fast",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "double",
+      "precision_tag": 8,
+      "expected_precision_tag": 8,
+      "shape": [
+        1,
+        800,
+        9
+      ],
+      "final_time": 0.1,
+      "binary": "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc_mhd.exe",
+      "binary_sha256": "ff9b19d53cb656df88a5a4f3d06fd5b51a9391d4c8594a969e9463a3fb3e3e06",
+      "config_sha256": "77bb050a5463a3ca1ecadc9c38396fdf9727bb174ae9ad9db3a604fe323211b4",
+      "effective_math_mode": "fast"
+    },
+    {
+      "run_id": "brio-wu-float-fast",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "float",
+      "precision_tag": 4,
+      "expected_precision_tag": 4,
+      "shape": [
+        1,
+        800,
+        9
+      ],
+      "final_time": 0.10000000149011612,
+      "binary": "build-matrix/cpu-float-Ofast-fastmath-leq/hrsc_mhd.exe",
+      "binary_sha256": "3e19b617203214e88ccd310eb00052f32f4dba5df6c0c67dc4d48a840cf1fc7e",
+      "config_sha256": "2cc372464e2eb0b663745255b6d1d8b8536ff0ece64786383cbff80635b6a034",
+      "effective_math_mode": "fast"
+    },
+    {
+      "run_id": "orszag-tang-double-o2",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "double",
+      "precision_tag": 8,
+      "expected_precision_tag": 8,
+      "shape": [
+        128,
+        128,
+        9
+      ],
+      "final_time": 0.5,
+      "binary": "build-matrix/cpu-double-O2-ieee-leq/hrsc_mhd.exe",
+      "binary_sha256": "788de993d8eb46f911ee2e7b1416bc0782248368e963238bb00a3118baa79179",
+      "config_sha256": "f3dae4f3cccef9873f5432ff6c84e3a1908c1c7280c363b5063c04133a8ffb74",
+      "effective_math_mode": "compiler-default"
+    },
+    {
+      "run_id": "orszag-tang-float-o2",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "float",
+      "precision_tag": 4,
+      "expected_precision_tag": 4,
+      "shape": [
+        128,
+        128,
+        9
+      ],
+      "final_time": 0.5,
+      "binary": "build-matrix/cpu-float-O2-ieee-leq/hrsc_mhd.exe",
+      "binary_sha256": "da3811ae8e4e046b061719d4174ac98f201e0ee840d7b528fafa9b327a71c1d9",
+      "config_sha256": "fc83abbf415631448dbc3be907a652d91f5e6e4deef044d569ee781b3cd6996e",
+      "effective_math_mode": "compiler-default"
+    },
+    {
+      "run_id": "orszag-tang-double-fast",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "double",
+      "precision_tag": 8,
+      "expected_precision_tag": 8,
+      "shape": [
+        128,
+        128,
+        9
+      ],
+      "final_time": 0.5,
+      "binary": "build-matrix/cpu-double-Ofast-fastmath-leq/hrsc_mhd.exe",
+      "binary_sha256": "ff9b19d53cb656df88a5a4f3d06fd5b51a9391d4c8594a969e9463a3fb3e3e06",
+      "config_sha256": "c1e50c0a206a9581b07fec27765b25fc52d1f4d7b32adc190a88489cec850331",
+      "effective_math_mode": "fast"
+    },
+    {
+      "run_id": "orszag-tang-float-fast",
+      "status": "success",
+      "completion_reported": true,
+      "precision": "float",
+      "precision_tag": 4,
+      "expected_precision_tag": 4,
+      "shape": [
+        128,
+        128,
+        9
+      ],
+      "final_time": 0.5,
+      "binary": "build-matrix/cpu-float-Ofast-fastmath-leq/hrsc_mhd.exe",
+      "binary_sha256": "3e19b617203214e88ccd310eb00052f32f4dba5df6c0c67dc4d48a840cf1fc7e",
+      "config_sha256": "94e3bd3b45ffdda6cdb1d19d2ca27ce7c4bd7c36ac4a5d2beafe40f7f361e52a",
+      "effective_math_mode": "fast"
+    }
+  ],
+  "comparisons": [
+    {
+      "case": "sod",
+      "label": "Sod",
+      "system": "Euler",
+      "dimension": "1D",
+      "solver": "HLLC",
+      "comparison": "precision_o2",
+      "comparison_label": "FP32 vs FP64 / O2-default",
+      "candidate": "float-o2",
+      "reference": "double-o2",
+      "rho_l1": 8.247901889635311e-08,
+      "rho_l2": 1.1929551966285557e-07,
+      "rho_linf": 3.83731141528898e-07,
+      "rho_l1_relative": 1.4662936692685e-07
+    },
+    {
+      "case": "sod",
+      "label": "Sod",
+      "system": "Euler",
+      "dimension": "1D",
+      "solver": "HLLC",
+      "comparison": "precision_fast",
+      "comparison_label": "FP32 vs FP64 / Ofast-fast",
+      "candidate": "float-fast",
+      "reference": "double-fast",
+      "rho_l1": 8.247901888525088e-08,
+      "rho_l2": 1.1929551965004415e-07,
+      "rho_linf": 3.837311414178757e-07,
+      "rho_l1_relative": 1.4662936690711272e-07
+    },
+    {
+      "case": "sod",
+      "label": "Sod",
+      "system": "Euler",
+      "dimension": "1D",
+      "solver": "HLLC",
+      "comparison": "math_fp64",
+      "comparison_label": "Ofast-fast vs O2-default / FP64",
+      "candidate": "double-fast",
+      "reference": "double-o2",
+      "rho_l1": 2.3869795029440865e-17,
+      "rho_l2": 7.736788912175082e-17,
+      "rho_linf": 7.494005416219807e-16,
+      "rho_l1_relative": 4.2435191163450436e-17
+    },
+    {
+      "case": "sod",
+      "label": "Sod",
+      "system": "Euler",
+      "dimension": "1D",
+      "solver": "HLLC",
+      "comparison": "math_fp32",
+      "comparison_label": "Ofast-fast vs O2-default / FP32",
+      "candidate": "float-fast",
+      "reference": "float-o2",
+      "rho_l1": 0.0,
+      "rho_l2": 0.0,
+      "rho_linf": 0.0,
+      "rho_l1_relative": 0.0
+    },
+    {
+      "case": "lw3",
+      "label": "LW3",
+      "system": "Euler",
+      "dimension": "2D",
+      "solver": "HLLC",
+      "comparison": "precision_o2",
+      "comparison_label": "FP32 vs FP64 / O2-default",
+      "candidate": "float-o2",
+      "reference": "double-o2",
+      "rho_l1": 3.5220178138436544e-07,
+      "rho_l2": 5.518780532447663e-07,
+      "rho_linf": 5.254483856909076e-06,
+      "rho_l1_relative": 3.761920626784007e-07
+    },
+    {
+      "case": "lw3",
+      "label": "LW3",
+      "system": "Euler",
+      "dimension": "2D",
+      "solver": "HLLC",
+      "comparison": "precision_fast",
+      "comparison_label": "FP32 vs FP64 / Ofast-fast",
+      "candidate": "float-fast",
+      "reference": "double-fast",
+      "rho_l1": 3.5447442747147674e-07,
+      "rho_l2": 5.725328723467929e-07,
+      "rho_linf": 7.05807692813476e-06,
+      "rho_l1_relative": 3.786195104212484e-07
+    },
+    {
+      "case": "lw3",
+      "label": "LW3",
+      "system": "Euler",
+      "dimension": "2D",
+      "solver": "HLLC",
+      "comparison": "math_fp64",
+      "comparison_label": "Ofast-fast vs O2-default / FP64",
+      "candidate": "double-fast",
+      "reference": "double-o2",
+      "rho_l1": 6.765907278882821e-17,
+      "rho_l2": 4.026041439431779e-16,
+      "rho_linf": 5.773159728050814e-15,
+      "rho_l1_relative": 7.226768147308188e-17
+    },
+    {
+      "case": "lw3",
+      "label": "LW3",
+      "system": "Euler",
+      "dimension": "2D",
+      "solver": "HLLC",
+      "comparison": "math_fp32",
+      "comparison_label": "Ofast-fast vs O2-default / FP32",
+      "candidate": "float-fast",
+      "reference": "float-o2",
+      "rho_l1": 4.797101020812988e-07,
+      "rho_l2": 7.379588069510902e-07,
+      "rho_linf": 5.245208740234375e-06,
+      "rho_l1_relative": 5.123856637017109e-07
+    },
+    {
+      "case": "brio-wu",
+      "label": "Brio-Wu",
+      "system": "ideal MHD",
+      "dimension": "1D",
+      "solver": "HLL",
+      "comparison": "precision_o2",
+      "comparison_label": "FP32 vs FP64 / O2-default",
+      "candidate": "float-o2",
+      "reference": "double-o2",
+      "rho_l1": 7.882574209088985e-08,
+      "rho_l2": 1.4321291480355324e-07,
+      "rho_linf": 1.075167475605987e-06,
+      "rho_l1_relative": 1.401346526060264e-07
+    },
+    {
+      "case": "brio-wu",
+      "label": "Brio-Wu",
+      "system": "ideal MHD",
+      "dimension": "1D",
+      "solver": "HLL",
+      "comparison": "precision_fast",
+      "comparison_label": "FP32 vs FP64 / Ofast-fast",
+      "candidate": "float-fast",
+      "reference": "double-fast",
+      "rho_l1": 9.321573923349452e-08,
+      "rho_l2": 1.733709480799709e-07,
+      "rho_linf": 9.291338957106987e-07,
+      "rho_l1_relative": 1.657168697484347e-07
+    },
+    {
+      "case": "brio-wu",
+      "label": "Brio-Wu",
+      "system": "ideal MHD",
+      "dimension": "1D",
+      "solver": "HLL",
+      "comparison": "math_fp64",
+      "comparison_label": "Ofast-fast vs O2-default / FP64",
+      "candidate": "double-fast",
+      "reference": "double-o2",
+      "rho_l1": 2.370846574617502e-16,
+      "rho_l2": 3.908165291135101e-16,
+      "rho_linf": 1.887379141862766e-15,
+      "rho_l1_relative": 4.214838354875559e-16
+    },
+    {
+      "case": "brio-wu",
+      "label": "Brio-Wu",
+      "system": "ideal MHD",
+      "dimension": "1D",
+      "solver": "HLL",
+      "comparison": "math_fp32",
+      "comparison_label": "Ofast-fast vs O2-default / FP32",
+      "candidate": "float-fast",
+      "reference": "float-o2",
+      "rho_l1": 1.1762604117393493e-07,
+      "rho_l2": 2.2638886760430933e-07,
+      "rho_linf": 1.3113021850585938e-06,
+      "rho_l1_relative": 2.0911296059822752e-07
+    },
+    {
+      "case": "orszag-tang",
+      "label": "Orszag-Tang",
+      "system": "ideal MHD",
+      "dimension": "2D",
+      "solver": "HLL",
+      "comparison": "precision_o2",
+      "comparison_label": "FP32 vs FP64 / O2-default",
+      "candidate": "float-o2",
+      "reference": "double-o2",
+      "rho_l1": 3.825191669969201e-07,
+      "rho_l2": 5.084198546504716e-07,
+      "rho_linf": 3.5649657368352905e-06,
+      "rho_l1_relative": 1.3770690011889122e-07
+    },
+    {
+      "case": "orszag-tang",
+      "label": "Orszag-Tang",
+      "system": "ideal MHD",
+      "dimension": "2D",
+      "solver": "HLL",
+      "comparison": "precision_fast",
+      "comparison_label": "FP32 vs FP64 / Ofast-fast",
+      "candidate": "float-fast",
+      "reference": "double-fast",
+      "rho_l1": 3.8378440366966244e-07,
+      "rho_l2": 5.265721629153755e-07,
+      "rho_linf": 3.326547155957371e-06,
+      "rho_l1_relative": 1.3816238532107844e-07
+    },
+    {
+      "case": "orszag-tang",
+      "label": "Orszag-Tang",
+      "system": "ideal MHD",
+      "dimension": "2D",
+      "solver": "HLL",
+      "comparison": "math_fp64",
+      "comparison_label": "Ofast-fast vs O2-default / FP64",
+      "candidate": "double-fast",
+      "reference": "double-o2",
+      "rho_l1": 8.451491459796068e-16,
+      "rho_l2": 1.095492640045067e-15,
+      "rho_linf": 5.773159728050814e-15,
+      "rho_l1_relative": 3.042536925526584e-16
+    },
+    {
+      "case": "orszag-tang",
+      "label": "Orszag-Tang",
+      "system": "ideal MHD",
+      "dimension": "2D",
+      "solver": "HLL",
+      "comparison": "math_fp32",
+      "comparison_label": "Ofast-fast vs O2-default / FP32",
+      "candidate": "float-fast",
+      "reference": "float-o2",
+      "rho_l1": 4.219618858769536e-07,
+      "rho_l2": 5.453941411027616e-07,
+      "rho_linf": 2.384185791015625e-06,
+      "rho_l1_relative": 1.519062856375634e-07
+    }
+  ]
+}

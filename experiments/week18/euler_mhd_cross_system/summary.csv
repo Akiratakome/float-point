@@ -1,0 +1,17 @@
+case,label,system,dimension,solver,comparison,comparison_label,candidate,reference,rho_l1,rho_l2,rho_linf,rho_l1_relative
+sod,Sod,Euler,1D,HLLC,precision_o2,FP32 vs FP64 / O2-default,float-o2,double-o2,8.247901889635311e-08,1.1929551966285557e-07,3.83731141528898e-07,1.4662936692685e-07
+sod,Sod,Euler,1D,HLLC,precision_fast,FP32 vs FP64 / Ofast-fast,float-fast,double-fast,8.247901888525088e-08,1.1929551965004415e-07,3.837311414178757e-07,1.4662936690711272e-07
+sod,Sod,Euler,1D,HLLC,math_fp64,Ofast-fast vs O2-default / FP64,double-fast,double-o2,2.3869795029440865e-17,7.736788912175082e-17,7.494005416219807e-16,4.2435191163450436e-17
+sod,Sod,Euler,1D,HLLC,math_fp32,Ofast-fast vs O2-default / FP32,float-fast,float-o2,0.0,0.0,0.0,0.0
+lw3,LW3,Euler,2D,HLLC,precision_o2,FP32 vs FP64 / O2-default,float-o2,double-o2,3.5220178138436544e-07,5.518780532447663e-07,5.254483856909076e-06,3.761920626784007e-07
+lw3,LW3,Euler,2D,HLLC,precision_fast,FP32 vs FP64 / Ofast-fast,float-fast,double-fast,3.5447442747147674e-07,5.725328723467929e-07,7.05807692813476e-06,3.786195104212484e-07
+lw3,LW3,Euler,2D,HLLC,math_fp64,Ofast-fast vs O2-default / FP64,double-fast,double-o2,6.765907278882821e-17,4.026041439431779e-16,5.773159728050814e-15,7.226768147308188e-17
+lw3,LW3,Euler,2D,HLLC,math_fp32,Ofast-fast vs O2-default / FP32,float-fast,float-o2,4.797101020812988e-07,7.379588069510902e-07,5.245208740234375e-06,5.123856637017109e-07
+brio-wu,Brio-Wu,ideal MHD,1D,HLL,precision_o2,FP32 vs FP64 / O2-default,float-o2,double-o2,7.882574209088985e-08,1.4321291480355324e-07,1.075167475605987e-06,1.401346526060264e-07
+brio-wu,Brio-Wu,ideal MHD,1D,HLL,precision_fast,FP32 vs FP64 / Ofast-fast,float-fast,double-fast,9.321573923349452e-08,1.733709480799709e-07,9.291338957106987e-07,1.657168697484347e-07
+brio-wu,Brio-Wu,ideal MHD,1D,HLL,math_fp64,Ofast-fast vs O2-default / FP64,double-fast,double-o2,2.370846574617502e-16,3.908165291135101e-16,1.887379141862766e-15,4.214838354875559e-16
+brio-wu,Brio-Wu,ideal MHD,1D,HLL,math_fp32,Ofast-fast vs O2-default / FP32,float-fast,float-o2,1.1762604117393493e-07,2.2638886760430933e-07,1.3113021850585938e-06,2.0911296059822752e-07
+orszag-tang,Orszag-Tang,ideal MHD,2D,HLL,precision_o2,FP32 vs FP64 / O2-default,float-o2,double-o2,3.825191669969201e-07,5.084198546504716e-07,3.5649657368352905e-06,1.3770690011889122e-07
+orszag-tang,Orszag-Tang,ideal MHD,2D,HLL,precision_fast,FP32 vs FP64 / Ofast-fast,float-fast,double-fast,3.8378440366966244e-07,5.265721629153755e-07,3.326547155957371e-06,1.3816238532107844e-07
+orszag-tang,Orszag-Tang,ideal MHD,2D,HLL,math_fp64,Ofast-fast vs O2-default / FP64,double-fast,double-o2,8.451491459796068e-16,1.095492640045067e-15,5.773159728050814e-15,3.042536925526584e-16
+orszag-tang,Orszag-Tang,ideal MHD,2D,HLL,math_fp32,Ofast-fast vs O2-default / FP32,float-fast,float-o2,4.219618858769536e-07,5.453941411027616e-07,2.384185791015625e-06,1.519062856375634e-07

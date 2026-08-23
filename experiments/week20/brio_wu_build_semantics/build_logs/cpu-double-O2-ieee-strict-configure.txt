@@ -1,0 +1,17 @@
+-- The CXX compiler identification is MSVC 19.51.36248.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- HRSC optimisation axis: /O2
+-- HRSC precision: double
+-- Configuring done (0.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: C:/Users/tangy/AppData/Local/Temp/floatpoint-c5-buildsemantics-cd8dfccf1e8549008bd6833adeeba8ad/builds/cpu-double-O2-ieee-strict
+CMake Warning at CMakeLists.txt:64 (message):
+  ENABLE_OPENMP=ON requested, but classic MSVC OpenMP cannot compile the
+  existing reduction(max:...) pragmas; building serial.  Configure with
+  -DHRSC_MSVC_OPENMP_LLVM=ON to opt into /openmp:llvm for CPU OpenMP builds.
+
+

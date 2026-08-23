@@ -1,0 +1,951 @@
+{
+  "schema": {
+    "name": "hrsc.report2-chapter5-drafting-sheet",
+    "version": 1
+  },
+  "gate": {
+    "pass": true,
+    "checks": {
+      "cross_system": true,
+      "build_semantics": true,
+      "kh_timing": true,
+      "hardware": true,
+      "resolution": true,
+      "resolution_pair": true,
+      "resolution_precision_pairs": true,
+      "temporal": true,
+      "thread": true,
+      "cfl": true,
+      "precision_mca_audit": true,
+      "csc_validation": true,
+      "kh_full_mca_blocked": true
+    }
+  },
+  "claim_boundary": "Rows preserve their own metric, baseline, scope and status; no cross-axis ranking is defined.",
+  "sources": [
+    {
+      "path": "experiments/week18/euler_mhd_cross_system/summary.json",
+      "sha256": "ecc1b611488d0991216791436cd8eb32ed1d50303e183a4cdb80bf857c121180"
+    },
+    {
+      "path": "experiments/week20/brio_wu_build_semantics/summary.json",
+      "sha256": "81c256c558278620b2f0cdc87b781159dd8b0ef0ff596a5baea90f780536ca7e"
+    },
+    {
+      "path": "experiments/week18/kh_solver_timing/summary.json",
+      "sha256": "4520a16231bd1ac2bc2ab54507f174ec05217e96b49e075459b286c11394bbc8"
+    },
+    {
+      "path": "experiments/week18/supplemental/hardware_repeats/summary.json",
+      "sha256": "1f34c63d524b5389bd9fc887bdc60540e01f463941286d8f8fe3e7af92b07ab4"
+    },
+    {
+      "path": "experiments/week18/resolution_ladder/summary.json",
+      "sha256": "1b50afecf4b974261860fd82999c5a7319104a43182bedb057ee97fb0d9855f8"
+    },
+    {
+      "path": "experiments/week18/resolution_ladder_pair_completion/summary.json",
+      "sha256": "3265af3b7a5c2083af20928f28d75cdd6a4d4f8108e7b933a3a61a7870af4f07"
+    },
+    {
+      "path": "experiments/week15/mhd_temporal_divergence/summary.json",
+      "sha256": "a30954ea36c6e64848ff983e3441989ec7830f9169af06540d80319abaf9f656"
+    },
+    {
+      "path": "experiments/week18/supplemental/thread_repro/summary.json",
+      "sha256": "8e9389504a3bc8fd4517a55a5a3d6cbe1fb06a291de91afd9abdc2231a981885"
+    },
+    {
+      "path": "experiments/week18/supplemental/kh_cfl/summary.json",
+      "sha256": "72eb6bf5477210690216f58754eaf75f717e6ebff458e5a158cc4f10f34c8573"
+    },
+    {
+      "path": "experiments/week18/precision_mca_gate/summary.json",
+      "sha256": "662d42c85997dfb49f906f97d2c344a512211eba3612a986e44c1140b74244a6"
+    },
+    {
+      "path": "experiments/week18/csc_findings_synthesis/summary.json",
+      "sha256": "565a8f17485b65d418477170c1d88cc27bab2acf90c22e93482b9e88e3ffcf12"
+    },
+    {
+      "path": "experiments/week16/kelvin_helmholtz_precision/mca_smoke/hll/summary.json",
+      "sha256": "795d2f2528f2e5a889bc14447b8c8b269626c6210a4842e70da3b41a0376fde3"
+    },
+    {
+      "path": "experiments/week16/kelvin_helmholtz_precision/mca_smoke/hlld/summary.json",
+      "sha256": "574109291acb2a532b055a0e016c54668d77f83afeeb4f4d995cf855495a8490"
+    },
+    {
+      "path": "experiments/week16/kelvin_helmholtz_precision/hll_p1/summary.json",
+      "sha256": "1d1a2ab4fb966316790f61176991be499f349e8d368e0e34b23c9c569499f491"
+    },
+    {
+      "path": "experiments/week16/kelvin_helmholtz_precision/hlld_p1/summary.json",
+      "sha256": "0dd11a74448617b98cdb307b0317107afcb41791f5130f981e0ef8e919c5123b"
+    }
+  ],
+  "facts": [
+    {
+      "task": "5.2",
+      "subject": "Sod",
+      "metric": "rho_L1_mean_relative",
+      "value": 1.4662936692685e-07,
+      "baseline": "FP32 vs same-case FP64 / O2-default",
+      "scope": "Euler, 1D, grid=1x200, t=0.25, solver=HLLC",
+      "status": "report-grade",
+      "source": "experiments/week18/euler_mhd_cross_system/summary.json"
+    },
+    {
+      "task": "5.2",
+      "subject": "Sod",
+      "metric": "rho_Linf",
+      "value": 3.83731141528898e-07,
+      "baseline": "FP32 vs same-case FP64 / O2-default",
+      "scope": "Euler, 1D, grid=1x200, t=0.25, solver=HLLC",
+      "status": "report-grade",
+      "source": "experiments/week18/euler_mhd_cross_system/summary.json"
+    },
+    {
+      "task": "5.2",
+      "subject": "LW3",
+      "metric": "rho_L1_mean_relative",
+      "value": 3.761920626784007e-07,
+      "baseline": "FP32 vs same-case FP64 / O2-default",
+      "scope": "Euler, 2D, grid=200x200, t=0.3, solver=HLLC",
+      "status": "report-grade",
+      "source": "experiments/week18/euler_mhd_cross_system/summary.json"
+    },
+    {
+      "task": "5.2",
+      "subject": "LW3",
+      "metric": "rho_Linf",
+      "value": 5.254483856909076e-06,
+      "baseline": "FP32 vs same-case FP64 / O2-default",
+      "scope": "Euler, 2D, grid=200x200, t=0.3, solver=HLLC",
+      "status": "report-grade",
+      "source": "experiments/week18/euler_mhd_cross_system/summary.json"
+    },
+    {
+      "task": "5.2",
+      "subject": "Brio-Wu",
+      "metric": "rho_L1_mean_relative",
+      "value": 1.401346526060264e-07,
+      "baseline": "FP32 vs same-case FP64 / O2-default",
+      "scope": "ideal MHD, 1D, grid=1x800, t=0.1, solver=HLL",
+      "status": "report-grade",
+      "source": "experiments/week18/euler_mhd_cross_system/summary.json"
+    },
+    {
+      "task": "5.2",
+      "subject": "Brio-Wu",
+      "metric": "rho_Linf",
+      "value": 1.075167475605987e-06,
+      "baseline": "FP32 vs same-case FP64 / O2-default",
+      "scope": "ideal MHD, 1D, grid=1x800, t=0.1, solver=HLL",
+      "status": "report-grade",
+      "source": "experiments/week18/euler_mhd_cross_system/summary.json"
+    },
+    {
+      "task": "5.2",
+      "subject": "Orszag-Tang",
+      "metric": "rho_L1_mean_relative",
+      "value": 1.3770690011889122e-07,
+      "baseline": "FP32 vs same-case FP64 / O2-default",
+      "scope": "ideal MHD, 2D, grid=128x128, t=0.5, solver=HLL",
+      "status": "report-grade",
+      "source": "experiments/week18/euler_mhd_cross_system/summary.json"
+    },
+    {
+      "task": "5.2",
+      "subject": "Orszag-Tang",
+      "metric": "rho_Linf",
+      "value": 3.5649657368352905e-06,
+      "baseline": "FP32 vs same-case FP64 / O2-default",
+      "scope": "ideal MHD, 2D, grid=128x128, t=0.5, solver=HLL",
+      "status": "report-grade",
+      "source": "experiments/week18/euler_mhd_cross_system/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL double",
+      "metric": "rho_l1_mean_optimisation",
+      "value": 0.0,
+      "baseline": "/Ox versus /O2",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL double",
+      "metric": "rho_linf_optimisation",
+      "value": 0.0,
+      "baseline": "/Ox versus /O2",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL double",
+      "metric": "rho_l1_mean_fast_math",
+      "value": 2.370846574617502e-16,
+      "baseline": "/fp:fast versus compiler default",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL double",
+      "metric": "rho_linf_fast_math",
+      "value": 1.887379141862766e-15,
+      "baseline": "/fp:fast versus compiler default",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL double",
+      "metric": "rho_l1_mean_branch_rule",
+      "value": 0.0,
+      "baseline": "< versus <= in the Riemann branch",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL double",
+      "metric": "rho_linf_branch_rule",
+      "value": 0.0,
+      "baseline": "< versus <= in the Riemann branch",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL float",
+      "metric": "rho_l1_mean_optimisation",
+      "value": 0.0,
+      "baseline": "/Ox versus /O2",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL float",
+      "metric": "rho_linf_optimisation",
+      "value": 0.0,
+      "baseline": "/Ox versus /O2",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL float",
+      "metric": "rho_l1_mean_fast_math",
+      "value": 1.1762604117393493e-07,
+      "baseline": "/fp:fast versus compiler default",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL float",
+      "metric": "rho_linf_fast_math",
+      "value": 1.3113021850585938e-06,
+      "baseline": "/fp:fast versus compiler default",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL float",
+      "metric": "rho_l1_mean_branch_rule",
+      "value": 0.0,
+      "baseline": "< versus <= in the Riemann branch",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLL float",
+      "metric": "rho_linf_branch_rule",
+      "value": 0.0,
+      "baseline": "< versus <= in the Riemann branch",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD double",
+      "metric": "rho_l1_mean_optimisation",
+      "value": 0.0,
+      "baseline": "/Ox versus /O2",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD double",
+      "metric": "rho_linf_optimisation",
+      "value": 0.0,
+      "baseline": "/Ox versus /O2",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD double",
+      "metric": "rho_l1_mean_fast_math",
+      "value": 4.3506864777498324e-16,
+      "baseline": "/fp:fast versus compiler default",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD double",
+      "metric": "rho_linf_fast_math",
+      "value": 4.413136522884997e-15,
+      "baseline": "/fp:fast versus compiler default",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD double",
+      "metric": "rho_l1_mean_branch_rule",
+      "value": 4.683926857484977e-16,
+      "baseline": "< versus <= in the Riemann branch",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD double",
+      "metric": "rho_linf_branch_rule",
+      "value": 3.885780586188048e-15,
+      "baseline": "< versus <= in the Riemann branch",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD float",
+      "metric": "rho_l1_mean_optimisation",
+      "value": 0.0,
+      "baseline": "/Ox versus /O2",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD float",
+      "metric": "rho_linf_optimisation",
+      "value": 0.0,
+      "baseline": "/Ox versus /O2",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD float",
+      "metric": "rho_l1_mean_fast_math",
+      "value": 2.091098576784134e-07,
+      "baseline": "/fp:fast versus compiler default",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD float",
+      "metric": "rho_linf_fast_math",
+      "value": 1.7285346984863281e-06,
+      "baseline": "/fp:fast versus compiler default",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD float",
+      "metric": "rho_l1_mean_branch_rule",
+      "value": 2.077687531709671e-07,
+      "baseline": "< versus <= in the Riemann branch",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.4",
+      "subject": "Brio-Wu HLLD float",
+      "metric": "rho_linf_branch_rule",
+      "value": 2.60770320892334e-06,
+      "baseline": "< versus <= in the Riemann branch",
+      "scope": "compiler=MSVC 19.51.36248.0, case=brio_wu_1d, nx=800, ny=1, t_end=0.1, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week20/brio_wu_build_semantics/summary.json"
+    },
+    {
+      "task": "5.5",
+      "subject": "KH HLL double",
+      "metric": "wall_time_median_s",
+      "value": 34.48408379999455,
+      "baseline": "one warm-up excluded; five measured runs",
+      "scope": "case=kelvin_helmholtz_2d, nx=256, ny=256, t_end=1.0, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week18/kh_solver_timing/summary.json"
+    },
+    {
+      "task": "5.5",
+      "subject": "KH HLL double",
+      "metric": "wall_time_IQR_s",
+      "value": 0.10333930014166981,
+      "baseline": "P75-P25",
+      "scope": "case=kelvin_helmholtz_2d, nx=256, ny=256, t_end=1.0, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week18/kh_solver_timing/summary.json"
+    },
+    {
+      "task": "5.5",
+      "subject": "KH HLL float",
+      "metric": "wall_time_median_s",
+      "value": 29.19625439995434,
+      "baseline": "one warm-up excluded; five measured runs",
+      "scope": "case=kelvin_helmholtz_2d, nx=256, ny=256, t_end=1.0, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week18/kh_solver_timing/summary.json"
+    },
+    {
+      "task": "5.5",
+      "subject": "KH HLL float",
+      "metric": "wall_time_IQR_s",
+      "value": 0.8014696999453008,
+      "baseline": "P75-P25",
+      "scope": "case=kelvin_helmholtz_2d, nx=256, ny=256, t_end=1.0, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week18/kh_solver_timing/summary.json"
+    },
+    {
+      "task": "5.5",
+      "subject": "KH HLLD double",
+      "metric": "wall_time_median_s",
+      "value": 39.54186909995042,
+      "baseline": "one warm-up excluded; five measured runs",
+      "scope": "case=kelvin_helmholtz_2d, nx=256, ny=256, t_end=1.0, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week18/kh_solver_timing/summary.json"
+    },
+    {
+      "task": "5.5",
+      "subject": "KH HLLD double",
+      "metric": "wall_time_IQR_s",
+      "value": 0.19726780010387301,
+      "baseline": "P75-P25",
+      "scope": "case=kelvin_helmholtz_2d, nx=256, ny=256, t_end=1.0, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week18/kh_solver_timing/summary.json"
+    },
+    {
+      "task": "5.5",
+      "subject": "KH HLLD float",
+      "metric": "wall_time_median_s",
+      "value": 34.25385790003929,
+      "baseline": "one warm-up excluded; five measured runs",
+      "scope": "case=kelvin_helmholtz_2d, nx=256, ny=256, t_end=1.0, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week18/kh_solver_timing/summary.json"
+    },
+    {
+      "task": "5.5",
+      "subject": "KH HLLD float",
+      "metric": "wall_time_IQR_s",
+      "value": 0.1582156999502331,
+      "baseline": "P75-P25",
+      "scope": "case=kelvin_helmholtz_2d, nx=256, ny=256, t_end=1.0, cfl=0.4, omp_num_threads=1",
+      "status": "report-grade",
+      "source": "experiments/week18/kh_solver_timing/summary.json"
+    },
+    {
+      "task": "5.6",
+      "subject": "brio_wu_1d double",
+      "metric": "CPU_median_over_GPU_median",
+      "value": 0.5103116415913231,
+      "baseline": "matched CPU/GPU saved-state runs",
+      "scope": "case=brio_wu_1d, precision=double, repeats=5",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/hardware_repeats/summary.json"
+    },
+    {
+      "task": "5.6",
+      "subject": "brio_wu_1d double",
+      "metric": "max_ULP",
+      "value": 0,
+      "baseline": "matched same-precision CPU/GPU state",
+      "scope": "case=brio_wu_1d, precision=double, repeats=5",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/hardware_repeats/summary.json"
+    },
+    {
+      "task": "5.6",
+      "subject": "brio_wu_1d float",
+      "metric": "CPU_median_over_GPU_median",
+      "value": 0.48772402998711745,
+      "baseline": "matched CPU/GPU saved-state runs",
+      "scope": "case=brio_wu_1d, precision=float, repeats=5",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/hardware_repeats/summary.json"
+    },
+    {
+      "task": "5.6",
+      "subject": "brio_wu_1d float",
+      "metric": "max_ULP",
+      "value": 0,
+      "baseline": "matched same-precision CPU/GPU state",
+      "scope": "case=brio_wu_1d, precision=float, repeats=5",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/hardware_repeats/summary.json"
+    },
+    {
+      "task": "5.6",
+      "subject": "orszag_tang_2d double",
+      "metric": "CPU_median_over_GPU_median",
+      "value": 6.173500004046363,
+      "baseline": "matched CPU/GPU saved-state runs",
+      "scope": "case=orszag_tang_2d, precision=double, repeats=5",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/hardware_repeats/summary.json"
+    },
+    {
+      "task": "5.6",
+      "subject": "orszag_tang_2d double",
+      "metric": "max_ULP",
+      "value": 0,
+      "baseline": "matched same-precision CPU/GPU state",
+      "scope": "case=orszag_tang_2d, precision=double, repeats=5",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/hardware_repeats/summary.json"
+    },
+    {
+      "task": "5.6",
+      "subject": "orszag_tang_2d float",
+      "metric": "CPU_median_over_GPU_median",
+      "value": 5.924577823457624,
+      "baseline": "matched CPU/GPU saved-state runs",
+      "scope": "case=orszag_tang_2d, precision=float, repeats=5",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/hardware_repeats/summary.json"
+    },
+    {
+      "task": "5.6",
+      "subject": "orszag_tang_2d float",
+      "metric": "max_ULP",
+      "value": 0,
+      "baseline": "matched same-precision CPU/GPU state",
+      "scope": "case=orszag_tang_2d, precision=float, repeats=5",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/hardware_repeats/summary.json"
+    },
+    {
+      "task": "5.7",
+      "subject": "Orszag--Tang HLLD 512",
+      "metric": "rho_l1_fp32_vs_fp64",
+      "value": 5.554106475580879e-05,
+      "baseline": "FP32 vs corrected retained FP64",
+      "scope": "grid=512x512, t=0.5, CFL=0.2, steps=3277",
+      "status": "report-grade",
+      "source": "experiments/week18/resolution_ladder_pair_completion/summary.json"
+    },
+    {
+      "task": "5.7",
+      "subject": "Orszag--Tang HLLD 512",
+      "metric": "rho_l2_fp32_vs_fp64",
+      "value": 0.00048328651963555527,
+      "baseline": "FP32 vs corrected retained FP64",
+      "scope": "grid=512x512, t=0.5, CFL=0.2, steps=3277",
+      "status": "report-grade",
+      "source": "experiments/week18/resolution_ladder_pair_completion/summary.json"
+    },
+    {
+      "task": "5.7",
+      "subject": "Orszag--Tang HLLD 512",
+      "metric": "rho_linf_fp32_vs_fp64",
+      "value": 0.05031345962367162,
+      "baseline": "FP32 vs corrected retained FP64",
+      "scope": "grid=512x512, t=0.5, CFL=0.2, steps=3277",
+      "status": "report-grade",
+      "source": "experiments/week18/resolution_ladder_pair_completion/summary.json"
+    },
+    {
+      "task": "5.7",
+      "subject": "resolution ladder",
+      "metric": "complete_self_refinement_groups",
+      "value": 8,
+      "baseline": "three grids per case/solver/precision group",
+      "scope": "OT/KH; HLL/HLLD; FP64/FP32; 128/256/512",
+      "status": "report-grade",
+      "source": "experiments/week18/resolution_ladder/summary.json"
+    },
+    {
+      "task": "5.7",
+      "subject": "resolution ladder",
+      "metric": "complete_same_grid_precision_cells",
+      "value": 12,
+      "baseline": "FP32 vs FP64 at each case/solver/grid",
+      "scope": "OT/KH; HLL/HLLD; 128/256/512",
+      "status": "report-grade",
+      "source": "experiments/week18/resolution_ladder/summary.json"
+    },
+    {
+      "task": "5.8",
+      "subject": "brio_wu_1d",
+      "metric": "lambda_L1_mean",
+      "value": 30.61534848986609,
+      "baseline": "aligned FP32 vs FP64 density states",
+      "scope": "case=brio_wu_1d, samples=15, fit_window=[0.01, 0.1]",
+      "status": "negative-result",
+      "source": "experiments/week15/mhd_temporal_divergence/summary.json"
+    },
+    {
+      "task": "5.8",
+      "subject": "brio_wu_1d",
+      "metric": "R2_log_L1_mean",
+      "value": 0.9634348812379417,
+      "baseline": "aligned FP32 vs FP64 density states",
+      "scope": "case=brio_wu_1d, samples=15, fit_window=[0.01, 0.1]",
+      "status": "negative-result",
+      "source": "experiments/week15/mhd_temporal_divergence/summary.json"
+    },
+    {
+      "task": "5.8",
+      "subject": "brio_wu_1d",
+      "metric": "lambda_Linf",
+      "value": 18.57906146565356,
+      "baseline": "aligned FP32 vs FP64 density states",
+      "scope": "case=brio_wu_1d, samples=15, fit_window=[0.01, 0.1]",
+      "status": "negative-result",
+      "source": "experiments/week15/mhd_temporal_divergence/summary.json"
+    },
+    {
+      "task": "5.8",
+      "subject": "brio_wu_1d",
+      "metric": "R2_log_Linf",
+      "value": 0.8524662740372357,
+      "baseline": "aligned FP32 vs FP64 density states",
+      "scope": "case=brio_wu_1d, samples=15, fit_window=[0.01, 0.1]",
+      "status": "negative-result",
+      "source": "experiments/week15/mhd_temporal_divergence/summary.json"
+    },
+    {
+      "task": "5.8",
+      "subject": "orszag_tang_2d",
+      "metric": "lambda_L1_mean",
+      "value": 0.029343098002640955,
+      "baseline": "aligned FP32 vs FP64 density states",
+      "scope": "case=orszag_tang_2d, samples=25, fit_window=[0.1, 0.5]",
+      "status": "negative-result",
+      "source": "experiments/week15/mhd_temporal_divergence/summary.json"
+    },
+    {
+      "task": "5.8",
+      "subject": "orszag_tang_2d",
+      "metric": "R2_log_L1_mean",
+      "value": 0.007258470324961519,
+      "baseline": "aligned FP32 vs FP64 density states",
+      "scope": "case=orszag_tang_2d, samples=25, fit_window=[0.1, 0.5]",
+      "status": "negative-result",
+      "source": "experiments/week15/mhd_temporal_divergence/summary.json"
+    },
+    {
+      "task": "5.8",
+      "subject": "orszag_tang_2d",
+      "metric": "lambda_Linf",
+      "value": -0.04223342136545145,
+      "baseline": "aligned FP32 vs FP64 density states",
+      "scope": "case=orszag_tang_2d, samples=25, fit_window=[0.1, 0.5]",
+      "status": "negative-result",
+      "source": "experiments/week15/mhd_temporal_divergence/summary.json"
+    },
+    {
+      "task": "5.8",
+      "subject": "orszag_tang_2d",
+      "metric": "R2_log_Linf",
+      "value": 0.0005727470065416407,
+      "baseline": "aligned FP32 vs FP64 density states",
+      "scope": "case=orszag_tang_2d, samples=25, fit_window=[0.1, 0.5]",
+      "status": "negative-result",
+      "source": "experiments/week15/mhd_temporal_divergence/summary.json"
+    },
+    {
+      "task": "5.10",
+      "subject": "KH HLL CFL=0.2",
+      "metric": "rho_Linf_FP32_vs_FP64",
+      "value": 4.67765087130978e-06,
+      "baseline": "same-solver FP64",
+      "scope": "grid=256x256, t=1.0",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/kh_cfl/summary.json"
+    },
+    {
+      "task": "5.10",
+      "subject": "KH HLL CFL=0.4",
+      "metric": "rho_Linf_FP32_vs_FP64",
+      "value": 1.7860425698401627e-06,
+      "baseline": "same-solver FP64",
+      "scope": "grid=256x256, t=1.0",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/kh_cfl/summary.json"
+    },
+    {
+      "task": "5.10",
+      "subject": "KH HLL CFL=0.6",
+      "metric": "rho_Linf_FP32_vs_FP64",
+      "value": 2.133123104153256e-06,
+      "baseline": "same-solver FP64",
+      "scope": "grid=256x256, t=1.0",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/kh_cfl/summary.json"
+    },
+    {
+      "task": "5.10",
+      "subject": "KH HLL CFL=0.8",
+      "metric": "rho_Linf_FP32_vs_FP64",
+      "value": 8.909590734074158e-07,
+      "baseline": "same-solver FP64",
+      "scope": "grid=256x256, t=1.0",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/kh_cfl/summary.json"
+    },
+    {
+      "task": "5.10",
+      "subject": "KH HLLD CFL=0.2",
+      "metric": "rho_Linf_FP32_vs_FP64",
+      "value": 7.204343150934989e-06,
+      "baseline": "same-solver FP64",
+      "scope": "grid=256x256, t=1.0",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/kh_cfl/summary.json"
+    },
+    {
+      "task": "5.10",
+      "subject": "KH HLLD CFL=0.4",
+      "metric": "rho_Linf_FP32_vs_FP64",
+      "value": 3.230009836041603e-06,
+      "baseline": "same-solver FP64",
+      "scope": "grid=256x256, t=1.0",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/kh_cfl/summary.json"
+    },
+    {
+      "task": "5.10",
+      "subject": "KH HLLD CFL=0.6",
+      "metric": "rho_Linf_FP32_vs_FP64",
+      "value": 4.05696832239677e-06,
+      "baseline": "same-solver FP64",
+      "scope": "grid=256x256, t=1.0",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/kh_cfl/summary.json"
+    },
+    {
+      "task": "5.10",
+      "subject": "KH HLLD CFL=0.8",
+      "metric": "rho_Linf_FP32_vs_FP64",
+      "value": 3.15742977763378e-06,
+      "baseline": "same-solver FP64",
+      "scope": "grid=256x256, t=1.0",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/kh_cfl/summary.json"
+    },
+    {
+      "task": "5.10",
+      "subject": "OT/KH OpenMP",
+      "metric": "max_ULP_across_threads",
+      "value": 0,
+      "baseline": "thread 1 saved state",
+      "scope": "threads=1,2,4,8; covered OT/KH rows",
+      "status": "report-grade",
+      "source": "experiments/week18/supplemental/thread_repro/summary.json"
+    }
+  ],
+  "mca_status": [
+    {
+      "case": "brio_wu_1d",
+      "solver": "hll",
+      "virtual_precision": "p53",
+      "samples": 30,
+      "scope": "test=brio_wu, nx=800, t_end=0.1, cfl=0.4, riemann=hll",
+      "status": "report-grade",
+      "allowed_use": "bounded deterministic-plus-MCA result",
+      "source": "experiments/week18/precision_mca_gate/summary.json"
+    },
+    {
+      "case": "brio_wu_1d",
+      "solver": "hll",
+      "virtual_precision": "p24",
+      "samples": 30,
+      "scope": "test=brio_wu, nx=800, t_end=0.1, cfl=0.4, riemann=hll",
+      "status": "report-grade",
+      "allowed_use": "bounded deterministic-plus-MCA result",
+      "source": "experiments/week18/precision_mca_gate/summary.json"
+    },
+    {
+      "case": "brio_wu_1d",
+      "solver": "hlld",
+      "virtual_precision": "p53",
+      "samples": 30,
+      "scope": "test=brio_wu, nx=800, t_end=0.1, cfl=0.4, riemann=hlld",
+      "status": "report-grade",
+      "allowed_use": "bounded deterministic-plus-MCA result",
+      "source": "experiments/week18/precision_mca_gate/summary.json"
+    },
+    {
+      "case": "brio_wu_1d",
+      "solver": "hlld",
+      "virtual_precision": "p24",
+      "samples": 30,
+      "scope": "test=brio_wu, nx=800, t_end=0.1, cfl=0.4, riemann=hlld",
+      "status": "report-grade",
+      "allowed_use": "bounded deterministic-plus-MCA result",
+      "source": "experiments/week18/precision_mca_gate/summary.json"
+    },
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hll",
+      "virtual_precision": "p53",
+      "samples": 30,
+      "scope": "test=orszag_tang, nx=64, ny=64, t_end=0.05, cfl=0.4, riemann=hll",
+      "status": "provisional-reduced-scope",
+      "allowed_use": "reduced-scope context only; do not merge with deterministic headline",
+      "source": "experiments/week18/precision_mca_gate/summary.json"
+    },
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hll",
+      "virtual_precision": "p24",
+      "samples": 30,
+      "scope": "test=orszag_tang, nx=64, ny=64, t_end=0.05, cfl=0.4, riemann=hll",
+      "status": "provisional-reduced-scope",
+      "allowed_use": "reduced-scope context only; do not merge with deterministic headline",
+      "source": "experiments/week18/precision_mca_gate/summary.json"
+    },
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hlld",
+      "virtual_precision": "p53",
+      "samples": 30,
+      "scope": "test=orszag_tang, nx=64, ny=64, t_end=0.05, cfl=0.4, riemann=hlld",
+      "status": "provisional-reduced-scope",
+      "allowed_use": "reduced-scope context only; do not merge with deterministic headline",
+      "source": "experiments/week18/precision_mca_gate/summary.json"
+    },
+    {
+      "case": "orszag_tang_2d",
+      "solver": "hlld",
+      "virtual_precision": "p24",
+      "samples": 30,
+      "scope": "test=orszag_tang, nx=64, ny=64, t_end=0.05, cfl=0.4, riemann=hlld",
+      "status": "provisional-reduced-scope",
+      "allowed_use": "reduced-scope context only; do not merge with deterministic headline",
+      "source": "experiments/week18/precision_mca_gate/summary.json"
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hll",
+      "virtual_precision": "p53+p24",
+      "samples": 4,
+      "scope": "case=kelvin_helmholtz_2d, nx=64, ny=64, t_end=0.05, cfl=0.4",
+      "status": "validation",
+      "allowed_use": "pipeline and reduced-case directional evidence only",
+      "source": "experiments/week18/csc_findings_synthesis/summary.json"
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hlld",
+      "virtual_precision": "p53+p24",
+      "samples": 4,
+      "scope": "case=kelvin_helmholtz_2d, nx=64, ny=64, t_end=0.05, cfl=0.4",
+      "status": "validation",
+      "allowed_use": "pipeline and reduced-case directional evidence only",
+      "source": "experiments/week18/csc_findings_synthesis/summary.json"
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hll",
+      "virtual_precision": "p53",
+      "samples": 30,
+      "scope": "case=kelvin_helmholtz_2d, nx=64, ny=64, t_end=0.05, cfl=0.4",
+      "status": "reduced-scope-provenance",
+      "allowed_use": "local Docker toolchain and reduced-case noise-scale provenance only",
+      "source": "experiments/week16/kelvin_helmholtz_precision/mca_smoke/hll/summary.json"
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hll",
+      "virtual_precision": "p24",
+      "samples": 30,
+      "scope": "case=kelvin_helmholtz_2d, nx=64, ny=64, t_end=0.05, cfl=0.4",
+      "status": "reduced-scope-provenance",
+      "allowed_use": "local Docker toolchain and reduced-case noise-scale provenance only",
+      "source": "experiments/week16/kelvin_helmholtz_precision/mca_smoke/hll/summary.json"
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hlld",
+      "virtual_precision": "p53",
+      "samples": 30,
+      "scope": "case=kelvin_helmholtz_2d, nx=64, ny=64, t_end=0.05, cfl=0.4",
+      "status": "reduced-scope-provenance",
+      "allowed_use": "local Docker toolchain and reduced-case noise-scale provenance only",
+      "source": "experiments/week16/kelvin_helmholtz_precision/mca_smoke/hlld/summary.json"
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hlld",
+      "virtual_precision": "p24",
+      "samples": 30,
+      "scope": "case=kelvin_helmholtz_2d, nx=64, ny=64, t_end=0.05, cfl=0.4",
+      "status": "reduced-scope-provenance",
+      "allowed_use": "local Docker toolchain and reduced-case noise-scale provenance only",
+      "source": "experiments/week16/kelvin_helmholtz_precision/mca_smoke/hlld/summary.json"
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hll",
+      "virtual_precision": "p53+p24",
+      "samples": 0,
+      "scope": "grid=256x256, t=1.0",
+      "status": "blocked",
+      "allowed_use": "limitation only; no MCA numerical claim",
+      "source": "experiments/week16/kelvin_helmholtz_precision/hll_p1/summary.json"
+    },
+    {
+      "case": "kelvin_helmholtz_2d",
+      "solver": "hlld",
+      "virtual_precision": "p53+p24",
+      "samples": 0,
+      "scope": "grid=256x256, t=1.0",
+      "status": "blocked",
+      "allowed_use": "limitation only; no MCA numerical claim",
+      "source": "experiments/week16/kelvin_helmholtz_precision/hlld_p1/summary.json"
+    }
+  ]
+}

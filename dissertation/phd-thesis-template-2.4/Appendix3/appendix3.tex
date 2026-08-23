@@ -23,10 +23,18 @@ Operating system & Windows 11, build 10.0.26200 \\
 Host compiler & MSVC 19.51.36248.0, toolset 14.51.36231 \\
 Device compiler & NVIDIA CUDA Toolkit 13.3, \texttt{CMAKE\_CUDA\_ARCHITECTURES=120} \\
 Build type & \texttt{Release}; \texttt{STRICT\_IEEE=OFF}, \texttt{FAST\_MATH=OFF} \\
+Host threading & MHD builds serial; the Euler thread axis of
+  Section~\ref{sec:ch5-thread-cfl} uses \texttt{ENABLE\_OPENMP=ON} with MSVC
+  \texttt{/openmp:llvm} \\
 Host arithmetic & MSVC default \texttt{/fp:precise}; no multiply--add contraction on x64 \\
 Device arithmetic & \texttt{src/gpu/mhd\_kernels.cu} compiled \texttt{-{}-fmad=false};
   \texttt{-{}-ftz}, \texttt{-{}-prec-div} and \texttt{-{}-prec-sqrt} at IEEE-conforming
   nvcc defaults \\
+Stochastic arithmetic & Verificarlo 2.5.1, whole-program
+  \texttt{verificarlo-c++} rebuild, so library calls are unperturbed;
+  \texttt{VFC\_BACKENDS = libinterflop\_mca.so -{}-mode=mca
+  -{}-precision-binary64=$P$} with $P\in\{24,53\}$, so the virtual precision is
+  imposed on the binary64 pipeline and is not IEEE binary32 \\
 Source revision & \texttt{4427aa9} (submitted tree); \texttt{0fe1239} recorded for the
   CPU/GPU packet \\
 \bottomrule

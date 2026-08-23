@@ -9,5 +9,7 @@ temporal divergence, records OT/KH 512^2 gate status, and gives the required
 MPI-omission justification.
 
 The packet does not promote provisional Week 15 deterministic-plus-MCA rows,
-does not claim KH MCA evidence, and does not claim asymptotic convergence from
-two resolutions.
+does not claim full 256^2/t=1.0 KH MCA evidence, and does not claim asymptotic
+convergence from two resolutions. Reduced 64^2/t=0.05 KH Docker-Verificarlo
+MCA smoke is retained only as W16 toolchain/noise-floor support for figure
+boundary discussion.

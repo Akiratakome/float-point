@@ -39,10 +39,11 @@ Priority meanings:
 
 ## Cleanup Candidates
 
-The current read-only candidate inventory is
-[experiment_cleanup_candidates.md](experiment_cleanup_candidates.md). It is a
-discovery report only: every candidate still requires a reference audit before
-any action, and no deletion is performed by the audit.
+The current read-only recurrence audit is
+[experiment_cleanup_candidates.md](experiment_cleanup_candidates.md). The two
+tracked Week 14 nested build roots were reference-audited and removed on
+2026-08-23; the audit now fails visibly if comparable build output is tracked
+again, while never deleting files itself.
 
 Do not delete these blindly; inspect first and remove only after confirming they
 are not needed for a pending report figure or rerun.

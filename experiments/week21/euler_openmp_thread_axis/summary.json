@@ -1,0 +1,172 @@
+{
+  "experiment": "week21-euler-openmp-thread-axis",
+  "scope": "Euler HLLC MUSCL-Hancock, Liska-Wendroff configuration 3 at 200^2. The Euler sweeps carry omp parallel for and the CFL scan an explicit reduction(max:...).",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "repeats_after_warmup": 3,
+  "source_config": "tests\\cases\\liska_wendroff_2d\\config3_n200.cfg",
+  "source_config_sha256": "0cfd139bdd7cc9ac3be0f8cb79598435a9be2f5a76db9772904f43e70d68f5f7",
+  "implementation_sources": {
+    "src\\euler\\euler_solver.cpp": "a9e7daf8e3d31b074fd6f31ebd81c35e9088c5b3d3eef79c7474934b7d98e391",
+    "src\\main.cpp": "18b6ce6b88fec57a2b600f059638e2354e662c319f2c771bcca1cb0ad9aa527e",
+    "scripts\\regression\\euler_openmp_thread_axis.py": "9c1f20c45bb5a0f03b57e7d62e89c0371a288a95d09ac2e3751888eb56eb0129"
+  },
+  "groups": [
+    {
+      "precision": "double",
+      "case": "lw_config3",
+      "grid": "200x200",
+      "solver": "hllc",
+      "steps": 259,
+      "omp_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double-omp\\hrsc.exe",
+      "omp_binary_sha256": "d23b1590da36fed6a1a7be4bd30025688d4c1f60edd95a7db26d31416da0d615",
+      "serial_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc.exe",
+      "serial_binary_sha256": "dfeaeb434969ebcfb3f2b1891cf6c766816d813313378e5a19635406b6950449",
+      "serial_median_wall_s": 1.6674333000555634,
+      "serial_vs_one_thread": {
+        "ulp_max": 0,
+        "linf_abs": 0.0,
+        "bitwise_identical": true
+      },
+      "rows": [
+        {
+          "threads": 1,
+          "steps": 259,
+          "median_wall_s": 1.3072651999536902,
+          "wall_times_s": [
+            1.3072651999536902,
+            1.3103730001021177,
+            1.2755440000910312
+          ],
+          "ulp_max": 0,
+          "linf_abs": 0.0,
+          "bitwise_identical": true,
+          "speedup_over_one_thread": 1.0
+        },
+        {
+          "threads": 2,
+          "steps": 259,
+          "median_wall_s": 0.7265054997988045,
+          "wall_times_s": [
+            0.7177462000399828,
+            0.7265054997988045,
+            0.7276206999085844
+          ],
+          "ulp_max": 0,
+          "linf_abs": 0.0,
+          "bitwise_identical": true,
+          "speedup_over_one_thread": 1.7993878921986397
+        },
+        {
+          "threads": 4,
+          "steps": 259,
+          "median_wall_s": 0.4259897998999804,
+          "wall_times_s": [
+            0.38919529994018376,
+            0.4259897998999804,
+            0.4500399997923523
+          ],
+          "ulp_max": 0,
+          "linf_abs": 0.0,
+          "bitwise_identical": true,
+          "speedup_over_one_thread": 3.068771130812586
+        },
+        {
+          "threads": 8,
+          "steps": 259,
+          "median_wall_s": 0.27276049996726215,
+          "wall_times_s": [
+            0.28640499990433455,
+            0.26722509996034205,
+            0.27276049996726215
+          ],
+          "ulp_max": 0,
+          "linf_abs": 0.0,
+          "bitwise_identical": true,
+          "speedup_over_one_thread": 4.792721820463717
+        }
+      ]
+    },
+    {
+      "precision": "float",
+      "case": "lw_config3",
+      "grid": "200x200",
+      "solver": "hllc",
+      "steps": 259,
+      "omp_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-float-omp\\hrsc.exe",
+      "omp_binary_sha256": "c78890353f4a0735f86f316ede72840f9c2e574cef86bd113733d20d4f4d9a4e",
+      "serial_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-float\\hrsc.exe",
+      "serial_binary_sha256": "e02af7800029952e692d3eeee22841d9edeed2a9b0bcf7e377f19f39246680d0",
+      "serial_median_wall_s": 1.5327218000311404,
+      "serial_vs_one_thread": {
+        "ulp_max": 0,
+        "linf_abs": 0.0,
+        "bitwise_identical": true
+      },
+      "rows": [
+        {
+          "threads": 1,
+          "steps": 259,
+          "median_wall_s": 1.1332518998533487,
+          "wall_times_s": [
+            1.1297669999767095,
+            1.1961258000228554,
+            1.1332518998533487
+          ],
+          "ulp_max": 0,
+          "linf_abs": 0.0,
+          "bitwise_identical": true,
+          "speedup_over_one_thread": 1.0
+        },
+        {
+          "threads": 2,
+          "steps": 259,
+          "median_wall_s": 0.6223607000429183,
+          "wall_times_s": [
+            0.6223607000429183,
+            0.6102571999654174,
+            0.6363707999698818
+          ],
+          "ulp_max": 0,
+          "linf_abs": 0.0,
+          "bitwise_identical": true,
+          "speedup_over_one_thread": 1.8208924499493606
+        },
+        {
+          "threads": 4,
+          "steps": 259,
+          "median_wall_s": 0.3605393001344055,
+          "wall_times_s": [
+            0.3341885998379439,
+            0.3806021998170763,
+            0.3605393001344055
+          ],
+          "ulp_max": 0,
+          "linf_abs": 0.0,
+          "bitwise_identical": true,
+          "speedup_over_one_thread": 3.1432132348148554
+        },
+        {
+          "threads": 8,
+          "steps": 259,
+          "median_wall_s": 0.24950210005044937,
+          "wall_times_s": [
+            0.24811280006542802,
+            0.2912462998647243,
+            0.24950210005044937
+          ],
+          "ulp_max": 0,
+          "linf_abs": 0.0,
+          "bitwise_identical": true,
+          "speedup_over_one_thread": 4.542053552351684
+        }
+      ]
+    }
+  ],
+  "all_thread_counts_bitwise_identical": true,
+  "serial_matches_one_thread": true,
+  "claim_boundary": [
+    "One workstation, one compiler, one case and grid.",
+    "A null here bounds this scheme's reduction structure, not OpenMP in general.",
+    "Wall times are subprocess times on a shared desktop, not a scaling study."
+  ]
+}

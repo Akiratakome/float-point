@@ -1,0 +1,62 @@
+{
+  "experiment": "week18-euler-mhd-cross-system",
+  "name": "sod-float-fast",
+  "timestamp_utc": "2026-07-26T12:11:49.901937+00:00",
+  "git_commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+  "binary": "build-matrix\\cpu-float-Ofast-fastmath-leq\\hrsc.exe",
+  "source_config": "tests\\cases\\toro_1d\\sod.cfg",
+  "run_config": "experiments\\week18\\euler_mhd_cross_system\\runs\\sod-float-fast\\config.cfg",
+  "precision": "float",
+  "build": "cpu-float-Ofast-fastmath-leq",
+  "raw_output": "experiments\\week18\\euler_mhd_cross_system\\runs\\sod-float-fast\\grid.bin",
+  "extra_cfg": {
+    "solver": "hllc",
+    "device": "cpu"
+  },
+  "command": [
+    "build-matrix\\cpu-float-Ofast-fastmath-leq\\hrsc.exe",
+    "experiments\\week18\\euler_mhd_cross_system\\runs\\sod-float-fast\\config.cfg"
+  ],
+  "returncode": 0,
+  "provenance": {
+    "git": {
+      "commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+      "dirty": true
+    }
+  },
+  "timing": {
+    "total_s": 0.0020895,
+    "elapsed_wall_s": 0.04479830001946539
+  },
+  "stdout": "experiments\\week18\\euler_mhd_cross_system\\runs\\sod-float-fast\\stdout.txt",
+  "stderr": "experiments\\week18\\euler_mhd_cross_system\\runs\\sod-float-fast\\stderr.txt",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "experiments\\week18\\euler_mhd_cross_system\\runs\\sod-float-fast\\grid.bin"
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 0.25,
+    "target_time": 0.25,
+    "steps": 137
+  },
+  "build_semantics": {
+    "requested_opt_level": "Ofast",
+    "requested_fast_math": true,
+    "requested_strict_ieee": false,
+    "effective_math_mode": "fast",
+    "compiler_id": "MSVC",
+    "compiler_version": "19.51.36248.0",
+    "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+    "evidence": {
+      "optimization": "/Ox /fp:fast",
+      "fast_math": "/fp:fast",
+      "strict_ieee": ""
+    }
+  }
+}

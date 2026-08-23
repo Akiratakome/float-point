@@ -1,10 +1,10 @@
 {
   "experiment": "week14-mhd-precision-pilot",
   "name": "cpu-double-Ofast-fastmath-leq",
-  "timestamp_utc": "2026-07-09T11:28:25.278808+00:00",
-  "git_commit": "76a168749269046c7a0c00b42f5cb2527689a11d",
+  "timestamp_utc": "2026-07-23T08:11:17.873484+00:00",
+  "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
   "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-Ofast-fastmath-leq\\hrsc_mhd.exe",
-  "binary_sha256": "aeaa65eee232ef3f38157532b81cfaca781d7e2f4beb7198ae0f75ef089e4afb",
+  "binary_sha256": "ff9b19d53cb656df88a5a4f3d06fd5b51a9391d4c8594a969e9463a3fb3e3e06",
   "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
   "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
   "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\config.cfg",
@@ -15,7 +15,7 @@
     "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\config.cfg"
   ],
   "returncode": 0,
-  "elapsed_wall_s": 0.17214200017042458,
+  "elapsed_wall_s": 0.18948040006216615,
   "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\stdout.txt",
   "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\stderr.txt",
   "stderr_diagnostics": {
@@ -25,5 +25,28 @@
     "divB_max": 0.0,
     "line": "[mhd] t=0.100000 steps=761 divB_mean=0.000e+00 divB_max=0.000e+00"
   },
-  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\grid.bin"
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week15\\brio_wu_precision_pilot_hlld_p1\\runs\\cpu-double-Ofast-fastmath-leq\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 0.18948040006216615
+  },
+  "failure": {
+    "category": "infrastructure_error",
+    "message": "'RequiredArtifact' object is not iterable",
+    "exception_type": "TypeError"
+  },
+  "completion": {
+    "reported": true,
+    "final_time": 0.1,
+    "target_time": 0.1,
+    "steps": 761
+  },
+  "build_semantics": null
 }

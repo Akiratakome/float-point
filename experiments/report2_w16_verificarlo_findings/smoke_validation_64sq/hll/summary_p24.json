@@ -1,0 +1,23 @@
+{
+  "experiment": "week16-kelvin-helmholtz-mca-smoke-csc",
+  "case": "/lsc/zeushome/yt455/floatpoint/scripts/cluster/report2_w16_w17_slurm/cfg/kh_64_t005.cfg",
+  "samples": 4,
+  "solver": "hll",
+  "mca": {
+    "p24": {
+      "status": "completed",
+      "reason": "Produced 4 Verificarlo MCA sample grids with runner `native`.",
+      "n": 4,
+      "runner": "native",
+      "mca_evidence_generated": true,
+      "spread_rho": 1.4312820382628893e-07,
+      "snr_rho": 22811580.103612352,
+      "spread_vx": 4.0873514500199647e-07,
+      "spread_By": 1.0874808531563149e-08,
+      "snr_By": 10394.6368192883,
+      "spread_p": 1.8318602837717112e-07,
+      "snr_p": 14450721.281850614,
+      "rho_mean_spread": 8.456297884151809e-10
+    }
+  }
+}

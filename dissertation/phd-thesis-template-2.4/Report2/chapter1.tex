@@ -5,71 +5,76 @@
 
 \section{Reproducibility question}
 
-High-resolution shock-capturing (HRSC) finite-volume solvers are increasingly
-run on graphics processing units (GPUs), whose bandwidth suits data-intensive
-stencil updates \citep{bard_dorelli_2014}. Bandwidth rather than arithmetic
-limits such updates, and single precision (binary32, fp32) halves the bytes
-moved per state relative to double precision (binary64, fp64). Production
-astrophysics and CFD keep revisiting fp32 and mixed precision
-\citep{brogi_etal_2024,wang_xia_chen_2025,higham_mary_2022}, yet the precision
-is usually chosen once, for the whole code, and its effect seldom measured for
-the scheme and problem in hand. Ideal magnetohydrodynamics (MHD) sharpens the
-point beyond the Euler case, since its thin current sheets and near-degenerate
-wave structure are places where a perturbation the size of a rounding error
-need not stay that size.
+High-resolution shock-capturing (HRSC) finite-volume solvers increasingly run on
+graphics processing units (GPUs), whose bandwidth suits stencil updates that are
+bandwidth- rather than arithmetic-limited \citep{bard_dorelli_2014}; single
+precision (binary32, fp32) halves the bytes moved per state against double
+(binary64, fp64). Production codes keep revisiting fp32
+and mixed precision
+\citep{brogi_etal_2024,wang_xia_chen_2025,higham_mary_2022,vanaEtAl2017singlePrecision},
+yet the precision is usually chosen once for a whole code and its effect seldom
+measured for the scheme and problem in hand. Ideal magnetohydrodynamics (MHD)
+sharpens the point: its thin current sheets and near-degenerate wave structure
+are places where a rounding-sized perturbation need not stay that size.
 
 Naming a second-order MUSCL--Hancock scheme with an HLL or HLLD Riemann solver
-does not fix the precision, the compiler's floating-point transformations, the
-branch taken at zero wave speed, or the processor type, so two implementations
-of the published scheme may differ. What matters is whether the difference
-stays below the discretisation or reference scale, or moves a resolved feature.
-Reproducibility is used operationally here
+fixes neither the precision, the compiler's floating-point transformations, the
+branch taken at zero wave speed, nor the processor type, so two implementations
+of one published scheme may differ. What matters is whether that difference
+stays below the discretisation or reference scale, or moves a resolved feature
 \citep{plesser2018reproducibility,sandveEtAl2013reproducible}: IEEE formats
 standardise operations and rounding, yet finite precision and reordered
-reductions can still change a computed path
-\citep{ieee754_2019,goldberg_1991,collange_etal_2015}. This report measures how
-far they move a verified ideal-MHD HRSC implementation.
+reductions still change a computed path
+\citep{ieee754_2019,goldberg_1991}.
 
 \section{How Report 1 informed Report 2}
+\label{sec:ch1-transition}
 
-Report~1 provided the controlled Euler baseline. It found no CPU/GPU difference
-for matched strict-IEEE runs, but clear effects from fast-math compilation and
-from the solver choice. Report~2 therefore keeps the device paths
-matched, ports HLL to CUDA, and varies build semantics and the HLL/HLLD choice
-deliberately. Section~\ref{sec:ch2-priorities} gives the full map, including
-the planned move to ideal MHD.
+Report~1 provided the controlled Euler baseline. Across five cases its matched
+strict-IEEE HLLC CPU and GPU outputs agreed at $L_1=L_\infty=0$ and
+$\mathrm{ULP}_{\max}=0$, and direct fp32--fp64 differences stayed below the
+available reference scale, the largest density reference-scaled ratio reaching
+$1.30\times10^{-4}$; fast-math compilation and the HLLC--Rusanov choice each
+moved the saved state. Those results redirected the project. Once the
+arithmetic was matched the processor type produced no measurable saved-state
+difference, so what remained worth measuring was which declared settings decide
+whether it stays that way. Report~2 therefore keeps the device
+paths matched, ports HLL to CUDA, and varies build semantics and the HLL/HLLD
+choice deliberately, treating the device \emph{flag} rather than the device as
+the variable. Section~\ref{sec:ch2-priorities} gives the full map, including the
+planned move to ideal MHD.
 
 \section{Research questions and scope}
 
 The study asks four questions:
 
 \begin{enumerate}
-  \item\label{rq:mhd-validation} To what extent do numerical-reference
-        comparisons and physical-property checks validate the central
-        processing unit (CPU) ideal-MHD solvers and the tested graphics
-        processing unit (GPU) Harten--Lax--van Leer (HLL) path?
+  \item\label{rq:mhd-validation} How far do numerical-reference comparisons and
+        physical-property checks validate the CPU ideal-MHD solvers and the
+        tested GPU Harten--Lax--van Leer (HLL) path?
   \item\label{rq:controlled-variation} For matched configurations, how do
-        precision, compiler and floating-point options, Riemann solver and
-        branch rule, processor type, requested thread count and the
-        Courant--Friedrichs--Lewy (CFL) number alter the stored solution? What
-        performance changes occur in repeated solver and CPU/GPU comparisons?
+        precision, build semantics, Riemann solver and branch rule, processor
+        type, thread count and Courant--Friedrichs--Lewy (CFL) number alter the
+        stored solution, and what performance follows?
   \item\label{rq:scale-time-mca} How does the fp32--fp64 discrepancy vary with
         resolution and observation time, and how does it compare with the
-        spread produced by Monte Carlo arithmetic, in which operations are
-        randomly rounded at a chosen virtual precision?
-  \item\label{rq:reproducibility-record} Which experimental, implementation,
-        execution-environment and evidence records are needed to reproduce the
-        tested ideal-MHD HRSC claims?
+        spread from Monte Carlo arithmetic (MCA), which rounds operations
+        randomly at a chosen virtual precision?
+  \item\label{rq:reproducibility-record} Which records are needed to reproduce
+        the tested claims?
 \end{enumerate}
 
-The questions are answered for the Brio--Wu, Orszag--Tang and
-Kelvin--Helmholtz ideal-MHD cases; Sod and Liska--Wendroff Configuration~3
-provide a compact Euler continuity comparison.
+These are answered for the Brio--Wu, Orszag--Tang and Kelvin--Helmholtz
+ideal-MHD cases, with Sod and Liska--Wendroff Configuration~3 as a compact
+Euler continuity comparison.
 
 \section{Contributions and report structure}
 
 The report contributes an ideal-MHD extension of the Euler framework, with
 generalised Lagrange multiplier (GLM) divergence control, CPU HLL and HLLD
-paths, and a tested CUDA HLL implementation, together with a controlled
-experiment pipeline that records effective build semantics and run metadata
-from configuration through to plotting.
+paths, a tested CUDA HLL implementation, and a controlled experiment pipeline
+recording effective build semantics and run metadata throughout.
+Chapters~\ref{chap:development}--\ref{chap:variation-results} give those
+additions, the controlled design, the validation limits and the variation
+results; Chapters~\ref{chap:reproducibility-discussion}
+and~\ref{chap:conclusions} the discussion and conclusions.

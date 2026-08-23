@@ -26,55 +26,57 @@ def test_chapter5_has_planned_structure_assets_and_budget():
     table = MCA_TABLE.read_text(encoding="utf-8")
     assert chapter.count("\\section{") == 6
     assert chapter.count("\\subsection{") == 9
-    assert chapter.count("\\begin{figure}") == 5
+    assert chapter.count("\\begin{figure}") == 7
     assert "\\input{Chapter5/chapter5_mca_table}" in chapter
-    assert 1850 <= _approximate_words(chapter + "\n" + table) <= 1950
+    assert 2800 <= _approximate_words(chapter + "\n" + table) <= 2950
     for name in (
         "ch5_cross_system_sensitivity.pdf",
         "ch5_kh_timing.pdf",
         "ch5_hardware_reproducibility.pdf",
         "ch5_precision_refinement_context.pdf",
         "ch5_temporal_discrepancy.pdf",
+        "ch5_build_semantics.pdf",
+        "ch5_kh_cfl.png",
     ):
         assert (FIG_DIR / name).is_file()
 
 
 def test_chapter5_retains_required_fact_and_claim_boundaries():
     chapter = CHAPTER.read_text(encoding="utf-8")
+    normalised = " ".join(chapter.split())
     table = MCA_TABLE.read_text(encoding="utf-8")
     status_table = MCA_STATUS_TABLE.read_text(encoding="utf-8")
     assert "$4.21\\times10^{-16}$" in chapter
     assert "$1.311\\times10^{-6}$" in chapter
     assert "$2.608\\times10^{-6}$" in chapter
     assert "MSVC~19.51" in chapter
-    assert "All groups took 1148 steps" in chapter
-    assert "$2.76\\times10^{-2}$" in chapter
-    assert "$7.204\\times10^{-6}$" in chapter
-    assert "$R^2=0.0073$ and 0.0006" in chapter
+    assert "All groups took 1148 steps" in normalised
+    assert "2.76\\times10^{-2}" in chapter
+    assert "5.031\\times10^{-2}" in chapter
+    assert "$-0.04223$" in chapter
     assert "Virtual p24 and p53 are not IEEE fp32 and fp64" in table
-    assert "not maximal Lyapunov exponents" in chapter
-    assert "do not define a cross-axis leaderboard" in chapter
+    assert "rather than an instability" in normalised
+    assert "differing only in the declared axis" in normalised
     assert "\\subsection{Effective build-semantics sensitivity}" in chapter
-    assert "\\subsection{HLL and HLLD timing comparison}" in chapter
+    assert "\\subsection{CPU timing: HLL versus HLLD}" in chapter
     assert "round-off scale" not in chapter
-    assert "not compiler-wide, performance, or accuracy claims" in chapter
+    assert "Positive log bars show discrepancy, not accuracy" in normalised
     assert "\\citep{denisEtAl2016verificarlo}" in chapter
-    for status in ("report-grade", "provisional", "provenance", "validation", "unavailable"):
+    for status in ("matched", "reduced", "toolchain", "validation"):
         assert status in status_table
-    assert "0/30" in status_table
     assert "2.12" in table and "2.46" in table
 
 
 def test_chapter5_captions_and_causal_boundaries_match_plotted_statistics():
     chapter = CHAPTER.read_text(encoding="utf-8")
+    normalised = " ".join(chapter.split())
     table = MCA_TABLE.read_text(encoding="utf-8")
-    assert "Matched density mean-relative $L_1$ differences" in chapter
+    assert "O2-default fp32 versus fp64 (precision)" in chapter
     assert "mean-relative $L_1$ and absolute $L_\\infty$" not in chapter
-    assert "per-repeat CPU/GPU wall-time" in chapter
-    assert "Median wall time and interquartile range" not in chapter
+    assert "Median, IQR and all $n=5$ CPU/GPU wall-time ratios" in normalised
     assert "overhead dominated" not in chapter
     assert "preregistered expectation" not in chapter
-    assert "do not identify its\ncause" in chapter
+    assert "does not isolate the mechanism" in normalised
     assert "statistics are not\nequivalent" in table
     assert "p53+p24" not in table
 
@@ -119,4 +121,4 @@ def test_chapter5_planning_assets_match_completed_direct_experiment_and_layout()
     assert "report-grade direct output sensitivity" in matrix
     assert "`/Ox` 对 `/O2`" in matrix
     assert "Brio--Wu direct build semantics" in outline
-    assert "common noise\nthreshold" in chapter
+    assert "binary32 unit roundoff" in chapter

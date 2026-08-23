@@ -312,36 +312,51 @@ def plot(summary: dict[str, Any], out: pathlib.Path) -> tuple[pathlib.Path, path
     labels = [f"{solver.upper()}\n{'FP64' if precision == 'double' else 'FP32'}" for solver in SOLVERS for precision in PRECISIONS]
     x = np.arange(len(labels), dtype=np.float64)
     width = 0.24
-    positive = [float(row["rho_linf"]) for row in rows if float(row["rho_linf"]) > 0.0]
-    floor = min(positive) / 5.0 if positive else 1e-18
-    fig, ax = plt.subplots(figsize=(9.4, 4.9), constrained_layout=True)
+    fig, (ax, zero_ax) = plt.subplots(
+        2, 1, figsize=(9.4, 5.2), sharex=True,
+        gridspec_kw={"height_ratios": [8.0, 1.0], "hspace": 0.04},
+        constrained_layout=True,
+    )
     colors = {"optimisation": "#0072B2", "fast_math": "#D55E00", "branch_rule": "#009E73"}
     for offset_index, axis in enumerate(COMPARISONS):
-        values = []
-        exact = []
+        positions = x + (offset_index - 1) * width
+        positive_positions = []
+        positive_values = []
+        zero_positions = []
         for solver in SOLVERS:
             for precision in PRECISIONS:
                 value = next(float(row["rho_linf"]) for row in rows if row["solver"] == solver and row["precision"] == precision and row["axis"] == axis)
-                exact.append(value); values.append(value if value > 0.0 else floor)
-        bars = ax.bar(x + (offset_index - 1) * width, values, width, label=axis.replace("_", " "), color=colors[axis])
-        for bar, value in zip(bars, exact):
-            if value == 0.0:
-                bar.set_facecolor("white"); bar.set_edgecolor(colors[axis]); bar.set_hatch("///")
-                ax.annotate(
-                    "0",
-                    (bar.get_x() + bar.get_width() / 2.0, floor),
-                    xytext=(0, 3),
-                    textcoords="offset points",
-                    ha="center",
-                    va="bottom",
-                    fontsize=8,
-                    color=colors[axis],
-                )
-    ax.set_yscale("log"); ax.set_xticks(x, labels)
+                position = positions[len(positive_positions) + len(zero_positions)]
+                if value > 0.0:
+                    positive_positions.append(position)
+                    positive_values.append(value)
+                else:
+                    zero_positions.append(position)
+        ax.bar(
+            positive_positions, positive_values, width,
+            label=axis.replace("_", " "), color=colors[axis],
+        )
+        zero_ax.scatter(
+            zero_positions, np.zeros(len(zero_positions)), marker="s", s=46,
+            facecolors="white", edgecolors=colors[axis], linewidths=1.7,
+        )
+    ax.set_yscale("log")
     ax.set_ylabel(r"Direct density $L_\infty$ discrepancy")
-    ax.set_title("Brio--Wu: isolated build-semantics response")
+    # No in-figure title: the manuscript caption owns the case, grid and time,
+    # and the LaTeX en-dash markup does not survive into a Matplotlib string.
     ax.grid(axis="y", which="both", color="#d8dde3", linewidth=0.6)
     ax.legend(frameon=False, ncol=3)
+    zero_ax.set_ylim(-1.0, 1.0)
+    zero_ax.set_yticks([])
+    zero_ax.set_xticks(x, labels)
+    zero_ax.set_ylabel("Bit-identical\n" + r"($L_\infty=0$)", rotation=0, ha="right", va="center")
+    for spine in zero_ax.spines.values():
+        spine.set_visible(False)
+    zero_ax.axhline(0.0, color="#d8dde3", linewidth=0.6, zorder=0)
+    zero_ax.text(
+        1.0, 0.95, "Open squares denote exact zero; they are not plotted on the log axis.",
+        transform=zero_ax.transAxes, ha="right", va="top", fontsize=8, color="#444444",
+    )
     target_dir = out / "figures"; target_dir.mkdir(parents=True, exist_ok=True)
     png, pdf = target_dir / "brio_build_semantics.png", target_dir / "brio_build_semantics.pdf"
     fig.savefig(png, dpi=320, facecolor="white"); fig.savefig(pdf, facecolor="white"); plt.close(fig)

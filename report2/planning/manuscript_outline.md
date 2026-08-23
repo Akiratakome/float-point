@@ -1,7 +1,8 @@
 # Report 2 Manuscript Outline and Writing Plan
 
-This is the canonical section-by-section plan for Report 2. The manuscript
-files remain structure-only until the relevant evidence gate is satisfied.
+This is the canonical section-by-section plan for Report 2. Drafted sections
+advance through the status gates recorded in `planning/drafting_status.md`;
+AI-assisted prose does not become final until the student rewrite is complete.
 
 ## Drafting order and final order
 
@@ -23,7 +24,9 @@ Final report order is Chapters 1--7 as listed above.
 - Follow the chapter responsibility lock in `planning/reportagents.md`.
 - Use `docs/experiment_logs/report2_evidence_map.md` as the status authority.
 - Use `experiments/week18/report2_publication_figures/figure_manifest.json` as
-  the figure-source, importance, hash, and claim-boundary authority.
+  the authority for the seven primary publication figures, and
+  `phd-thesis-template-2.4/Figs/README.md` for the six supplementary
+  source-hashed manuscript figures and their claim boundaries.
 - Do not repeat Report 1 theory, background, Euler validation, or discussion.
 - Every numerical sentence names a metric, comparison baseline, and tested scope.
 - Every result paragraph follows: question -> figure/table -> observation ->
@@ -59,19 +62,25 @@ The allocation below retains integration margin below the formal maximum.
 | Part | Working range | Hard upper |
 |---|---:|---:|
 | Abstract | 170--190 | 200 |
-| Chapter 1 | 430--480 | 500 |
-| Chapter 2 | 850--920 | 950 |
-| Chapter 3 | 820--880 | 900 |
-| Chapter 4 | 1,150--1,220 | 1,250 |
-| Chapter 5 | 1,850--1,950 | 2,000 |
-| Chapter 6 | 680--730 | 750 |
-| Chapter 7 | 340--380 | 400 |
-| Appendix | 180--230 | 250 |
-| **Hard-upper sum** | | **7,200** |
+| Chapter 1 | 500--540 | 550 |
+| Chapter 2 | 900--950 | 970 |
+| Chapter 3 | 900--950 | 970 |
+| Chapter 4 | 1,250--1,320 | 1,350 |
+| Chapter 5 | 1,600--1,720 | 1,750 |
+| Chapter 6 | 730--780 | 800 |
+| Chapter 7 | 350--400 | 420 |
+| Appendix | 80--130 | 140 |
+| **Hard-upper sum** | | **7,150** |
 
 Tables and captions follow the current course counting clarification but remain
 concise. If the report exceeds budget, remove duplicated Report 1 material and
 repeated result narration before cutting evidence-bearing interpretation.
+
+Local `texcount` audit on 2026-08-03 gives 6,994 words for the current
+standalone tree after the eight-item figure/table expansion and 30-source
+bibliography audit. The chapter allocations were rebalanced without changing
+the 7,200-word internal ceiling. The independent Overleaf count remains the
+submission authority.
 
 ## Standalone and combined deliverables
 
@@ -211,10 +220,13 @@ Working target: 850--920 words. Owns the brief's Project Development [20%].
 - **Do not write:** Comparative result ranking; Chapter 5 owns it.
 - **Skill:** `scientific-writing-duke`.
 
-### 2.4 CPU, OpenMP, and CUDA implementation
+### 2.4 CPU, OpenMP build control, and CUDA implementation
 
-- **Write:** MHD CPU path, bounded HLL GPU path, mirrored semantics, device
-  dispatch, and deterministic choices relevant to comparison.
+- **Write:** MHD CPU path, the serial-sweep boundary of the submitted CPU
+  implementation, OpenMP build/thread metadata, bounded HLL GPU path, mirrored
+  semantics, device dispatch, and deterministic choices relevant to comparison.
+- **Boundary:** Thread-count runs on the current MHD path test invariance to the
+  requested setting, not parallel-schedule reproducibility or scaling.
 - **Boundary:** No HLLD/KH/GPU-MCA claim without matching evidence.
 - **Skill:** `scientific-writing-duke`.
 
@@ -561,6 +573,9 @@ Populate it only from the current evidence map. Provisional observations may be
 mentioned as provisional in Chapters 5--6 but do not become headline conclusion
 claims without promotion.
 
+The populated and reviewed table is maintained in
+[`chapter7_conclusion_evidence_lock.md`](chapter7_conclusion_evidence_lock.md).
+
 ## Abstract
 
 Working target: 170--190 words. Write last.
@@ -586,17 +601,69 @@ Use `report2/references/reference.md`. Citation functions by chapter:
 
 ## Appendix and code-submission plan
 
-Working target: 180--230 counted words, hard maximum 250.
+Working target: 80--130 counted words, hard maximum 150.
 
-- Map every final figure/table to its config or matrix, analysis script,
-  machine-readable summary, run metadata, and one reproduction command.
-- State retained and removed artefacts; do not include build directories,
-  executables, large grids, or an operational command catalogue.
-- Prepare a separate code-submission manifest containing source, configs,
-  canonical scripts, environment/build instructions, and summary checksums.
-- Keep the appendix structure-only until the final figure/table set is locked.
+- Keep only reader-facing supplementary evidence that would interrupt the main
+  results chapter, currently the MCA scope-status table and its comparison
+  boundary.
+- Do not print repository paths, script names, hashes, run metadata or command
+  catalogues in the thesis appendix.
+- Keep operational provenance in the separate code-submission manifest, which
+  contains source, configs, canonical scripts, environment/build instructions,
+  summary checksums and reproduction commands.
+- The final main-text visual set contains 14 figures and five tables. Its seven
+  primary publication figures remain locked to the manifest; six supplementary
+  experiment figures are locked to the source paths and SHA-256 hashes in
+  `Figs/README.md`, and Chapter 3 owns the two added native LaTeX tables.
 
-## Drafting milestones
+## Execution status and remaining milestones
+
+The evidence-design stage is complete, and all seven chapter files contain
+evidence-bound initial drafts. The 2026-08-03 integration pass reduced Chapter
+3 to 932 words after adding two audit tables, drafted the 190-word abstract,
+completed the 116-word reader-facing appendix, added six source-hashed result
+figures, expanded the bibliography to 30 cited records, and created the draft
+code-submission manifest. This does not make the manuscript
+submission-ready: Chapters 1--7, the abstract and appendix still require
+student-language review; the independent Overleaf count, supervisor review,
+signed declaration, release freeze and combined-PDF replacement are external
+or later gates. The overdue supervisor review is an external risk, not a
+reason to pause the remaining internal checks.
+
+Historical milestones through 2026-08-02 are retained below as schedule
+provenance. From 2026-08-03, execute the remaining work in this dependency
+order:
+
+1. **2026-08-03 -- manuscript integration:** keep Chapter 3 within its
+   rebalanced 900--950-word range;
+   counted words; draft the 170--190-word abstract from the conclusion lock;
+   verify all 14 figure and five table caption/content pairs; complete Chapter 5 appendix
+   provenance; and send the current review copy to the supervisor with any
+   incomplete external items identified.
+2. **2026-08-04 -- references and code bundle:** update and run
+   `scripts/build_report2.ps1` so that it executes
+   `pdflatex -> bibtex -> pdflatex -> pdflatex` and fails when citations or
+   cross-references remain unresolved. Freeze the separate code-submission
+   manifest, retained configs/scripts, environment instructions, summary
+   checksums, and reproduction checks.
+3. **2026-08-05 -- student author rewrite:** rewrite every AI-assisted section
+   in the student's own connected voice; resolve or log supervisor comments;
+   run integrity, claim-boundary, and AI-flavour checks; then record the
+   independent Overleaf word count.
+4. **2026-08-06 -- release candidate:** perform a clean standalone build and
+   visual PDF inspection, verify format and declarations, copy that exact
+   standalone PDF into the combined-report inputs, and check combined order,
+   bookmarks, page count, and hashes. The signed official form remains a
+   student-supplied external input.
+5. **2026-08-07 -- final submission:** submit the combined Part I + Part II
+   report and required supporting bundle. Retain the final standalone Part II
+   PDF and its Overleaf word-count record.
+6. **2026-08-08 to 2026-08-11 -- poster review:** derive the poster only from
+   final evidence and obtain supervisor comments without silently changing the
+   archived report claims.
+7. **2026-08-12 -- poster submission.**
+
+### Historical schedule provenance
 
 1. **2026-07-27 -- supervisor draft (past due):** the requested review copy was
    due to Philip. Send the current reviewable draft immediately and identify
@@ -612,21 +679,6 @@ Working target: 180--230 counted words, hard maximum 250.
 5. **2026-08-01 to 2026-08-02 -- synthesis:** revise Chapter 6, write the
    Chapter 1 transition/refined-methodology introduction where needed, lock
    Chapter 7 claims, then write the abstract.
-6. **2026-08-03 -- figure/reference pass:** captions, references, provenance,
-   cross-references, and appendix map.
-7. **2026-08-04 -- code-submission bundle:** freeze manifest, configs, scripts,
-   checksums, environment/build instructions, and reproduction checks.
-8. **2026-08-05 -- student author rewrite:** connected prose, integrity and
-   AI-flavour checks; confirm every supervisor comment is resolved or logged.
-9. **2026-08-06 -- release candidate:** clean compile, word count, format,
-   link, figure/table, declaration, combined-PDF, and archive verification.
-10. **2026-08-07 -- final submission:** submit the combined Part I + Part II
-    report and required supporting bundle. Retain the standalone Part II PDF
-    and its Overleaf word-count record.
-11. **2026-08-08 to 2026-08-11 -- poster review:** derive the poster only from
-    final evidence and obtain supervisor comments without changing archived
-    report claims silently.
-12. **2026-08-12 -- poster submission.**
 
 ## Final self-review checklist
 
@@ -647,9 +699,14 @@ Working target: 180--230 counted words, hard maximum 250.
 - [ ] Provisional, validation, negative, invalid, and deferred evidence retains
       its status in prose and conclusions.
 - [ ] Every figure/table is interpreted and linked to one claim.
+- [ ] The seven primary PDF figures match the audited manifest, and all six
+      supplementary experiment figures match the source paths and hashes in
+      `Figs/README.md`; every figure retains its claim boundary.
 - [ ] No internal week/task/gate labels appear in manuscript prose.
 - [ ] Chapter 6 adds no result and Chapter 7 adds no analysis.
 - [ ] References support exact sentences and match implemented setups.
+- [ ] A full bibliography build resolves every citation and cross-reference;
+      two `pdflatex` passes without `bibtex` are not accepted as a clean build.
 - [ ] Word count and format satisfy current official guidance.
 - [ ] Standalone Report 2 Overleaf count is at most 7,500 words and records the
       count/date; tables, captions, and appendices are included.

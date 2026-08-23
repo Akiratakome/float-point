@@ -36,6 +36,17 @@ bookmarks are stable. No Perl-based `latexmk` installation is required.
 4. Download the combined PDF, then restore `thesis.tex` as the main Report 2
    source if further editing or word counting is required.
 
+For a single Overleaf-ready archive, first run `prepare_and_build.ps1`, then:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File report2/submission/build_overleaf_bundle.ps1
+```
+
+Upload `combined_submission_overleaf.zip` as a new Overleaf project and select
+`combined_submission.tex` as the main document. The archive contains the merge
+wrapper and the two final standalone PDFs; it deliberately does not merge the
+Report 1 and Report 2 source namespaces.
+
 The official signed Report 2 declaration form is an external input. Submit it
 separately or include it as instructed by course administration; the merge
 wrapper does not invent or insert a signature.

@@ -1,0 +1,55 @@
+{
+  "experiment": "week18-mhd-resolution-ladder",
+  "name": "kelvin_helmholtz_2d-hll-double-n256",
+  "timestamp_utc": "2026-07-26T08:50:14.427683+00:00",
+  "git_commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+  "binary_sha256": "788de993d8eb46f911ee2e7b1416bc0782248368e963238bb00a3118baa79179",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+  "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\kelvin_helmholtz_2d-hll-double-n256\\config.cfg",
+  "run_config_sha256": "5bf2effaba27a2bc321e76924bf61427b34342f90e2d8b83291d49436bb4cdc1",
+  "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 256\nny = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.4\nt_end   = 1.0\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hll\ndevice = cpu\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\kelvin_helmholtz_2d-hll-double-n256\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\kelvin_helmholtz_2d-hll-double-n256\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 34.61786919995211,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\kelvin_helmholtz_2d-hll-double-n256\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\kelvin_helmholtz_2d-hll-double-n256\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 1.0,
+    "steps": 1148,
+    "divB_mean": 4.411e-05,
+    "divB_max": 0.0006714,
+    "line": "[mhd] t=1.000000 steps=1148 divB_mean=4.411e-05 divB_max=6.714e-04"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\kelvin_helmholtz_2d-hll-double-n256\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\kelvin_helmholtz_2d-hll-double-n256\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 34.61786919995211
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 1.0,
+    "target_time": 1.0,
+    "steps": 1148
+  },
+  "build_semantics": null,
+  "artifact_revalidation": {
+    "timestamp_utc": "2026-07-26T09:26:59.429227+00:00",
+    "reason": "Revalidated after fixing the single RequiredArtifact tuple construction.",
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\kelvin_helmholtz_2d-hll-double-n256\\grid.bin",
+    "primary_output_sha256": "57c48cc1540cc7441dfaad42ed2618cf81e2b7ef79db68244f6939179f7c5f3c",
+    "fresh_for_recorded_run": true
+  }
+}

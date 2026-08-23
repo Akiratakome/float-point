@@ -1,0 +1,62 @@
+{
+  "experiment": "week18-euler-mhd-cross-system",
+  "name": "lw3-double-o2",
+  "timestamp_utc": "2026-07-26T12:11:51.680432+00:00",
+  "git_commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+  "binary": "build-matrix\\cpu-double-O2-ieee-leq\\hrsc.exe",
+  "source_config": "tests\\cases\\liska_wendroff_2d\\config3_n200.cfg",
+  "run_config": "experiments\\week18\\euler_mhd_cross_system\\runs\\lw3-double-o2\\config.cfg",
+  "precision": "double",
+  "build": "cpu-double-O2-ieee-leq",
+  "raw_output": "experiments\\week18\\euler_mhd_cross_system\\runs\\lw3-double-o2\\grid.bin",
+  "extra_cfg": {
+    "solver": "hllc",
+    "device": "cpu"
+  },
+  "command": [
+    "build-matrix\\cpu-double-O2-ieee-leq\\hrsc.exe",
+    "experiments\\week18\\euler_mhd_cross_system\\runs\\lw3-double-o2\\config.cfg"
+  ],
+  "returncode": 0,
+  "provenance": {
+    "git": {
+      "commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+      "dirty": true
+    }
+  },
+  "timing": {
+    "total_s": 1.66065,
+    "elapsed_wall_s": 1.6843399000354111
+  },
+  "stdout": "experiments\\week18\\euler_mhd_cross_system\\runs\\lw3-double-o2\\stdout.txt",
+  "stderr": "experiments\\week18\\euler_mhd_cross_system\\runs\\lw3-double-o2\\stderr.txt",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "experiments\\week18\\euler_mhd_cross_system\\runs\\lw3-double-o2\\grid.bin"
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 0.3,
+    "target_time": 0.3,
+    "steps": 259
+  },
+  "build_semantics": {
+    "requested_opt_level": "O2",
+    "requested_fast_math": false,
+    "requested_strict_ieee": false,
+    "effective_math_mode": "compiler-default",
+    "compiler_id": "MSVC",
+    "compiler_version": "19.51.36248.0",
+    "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+    "evidence": {
+      "optimization": "/O2",
+      "fast_math": "",
+      "strict_ieee": ""
+    }
+  }
+}

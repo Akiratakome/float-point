@@ -1,0 +1,58 @@
+{
+  "experiment": "week21-lecoanet-kh-growth-ladder",
+  "scope": "Linear-stage growth rate of the k=2pi mode on the Lecoanet smooth unstratified initial condition with B=0, so the solver runs in its inviscid hydrodynamic limit.",
+  "published_rate": 3.227,
+  "published_rate_source": "Berlok & Pfrommer (2019), 10.1093/mnras/stz379",
+  "rows": [
+    {
+      "nx": 64,
+      "ny": 128,
+      "growth_rate": 1.0787613763794583,
+      "fit_r2": 0.9648219943149592,
+      "relative_deficit": 0.6657076614876175,
+      "packet_gate_pass": false,
+      "cells_across_layer": 12.8,
+      "summary": "experiments\\week21\\lecoanet_kh_resolution_ladder\\nx64\\summary.json"
+    },
+    {
+      "nx": 128,
+      "ny": 256,
+      "growth_rate": 2.193155028632332,
+      "fit_r2": 0.9898817200327414,
+      "relative_deficit": 0.32037340296488004,
+      "packet_gate_pass": true,
+      "cells_across_layer": 25.6,
+      "summary": "experiments\\week21\\lecoanet_kh_resolution_ladder\\nx128\\summary.json"
+    },
+    {
+      "nx": 256,
+      "ny": 512,
+      "growth_rate": 2.731295795438642,
+      "fit_r2": 0.9909377858460251,
+      "relative_deficit": 0.15361146717116766,
+      "packet_gate_pass": true,
+      "cells_across_layer": 51.2,
+      "summary": "experiments\\week21\\lecoanet_kh_resolution_ladder\\nx256\\summary.json"
+    },
+    {
+      "nx": 512,
+      "ny": 1024,
+      "growth_rate": 2.888236232728419,
+      "fit_r2": 0.990476911185736,
+      "relative_deficit": 0.10497792602156217,
+      "packet_gate_pass": true,
+      "cells_across_layer": 102.4,
+      "summary": "experiments\\week21\\lecoanet_kh_resolution_ladder\\nx512\\summary.json"
+    }
+  ],
+  "monotone_towards_published": true,
+  "figures": [
+    "experiments\\week21\\lecoanet_kh_resolution_ladder\\figures\\lecoanet_kh_growth_ladder.png",
+    "experiments\\week21\\lecoanet_kh_resolution_ladder\\figures\\lecoanet_kh_growth_ladder.pdf"
+  ],
+  "claim_boundary": [
+    "Inviscid hydrodynamic limit only; no magnetic field and no explicit viscosity.",
+    "Bounds the solver's linear-stage behaviour, not the magnetised KH case.",
+    "The published value is a comparison target, not an acceptance threshold."
+  ]
+}

@@ -1,0 +1,8 @@
+ scripts/cluster/report2_w16_w17_slurm/env.sh       |  55 ++++++++--
+ .../report2_w16_w17_slurm/run_kh_full_mca.slurm    |  18 +++-
+ .../run_kh_packets_from_mca.slurm                  |  15 ++-
+ .../report2_w16_w17_slurm/run_kh_smoke_mca.slurm   |  16 ++-
+ .../run_w17_synthesis_and_figures.slurm            |   1 +
+ scripts/verificarlo/mhd_precision_sampling.py      | 113 ++++++++++++++++++---
+ scripts/verificarlo/mhd_verificarlo_smoke.py       |  33 +++++-
+ 7 files changed, 217 insertions(+), 34 deletions(-)

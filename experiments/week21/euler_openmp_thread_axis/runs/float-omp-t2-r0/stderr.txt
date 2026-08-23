@@ -1,0 +1,3 @@
+[timing] total_s=0.597436
+Finished: 259 steps, t = 0.3
+[run-status] status=success final_time=0.3 target_time=0.3 steps=259

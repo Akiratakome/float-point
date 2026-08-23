@@ -1,0 +1,102 @@
+{
+  "schema": {
+    "name": "hrsc.experiment-summary",
+    "version": 1
+  },
+  "experiment": "week19-lecoanet-kh-linear-reproduction",
+  "scope": "Lecoanet unstratified IC and early linear growth only",
+  "mode": "reproduction",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+  "binary_sha256": "490e7b5149d84b4f11cfcecdb6ba5b2d224a84b8a1e607baeedc33d523092e5e",
+  "source_config": "tests/cases/kelvin_helmholtz_lecoanet_2d/lecoanet_unstratified.cfg",
+  "source_config_sha256": "83dc2090c764712375975b81f71ccf1212c70bd9f79cd4c8287af9f4d4e9423a",
+  "implementation_sources": {
+    "src/mhd/mhd_config.hpp": "6ff1749b67b261012f8da8fe6930d65861edf02e01bf864f19f1e8a6a57fd47f",
+    "src/mhd/mhd_solver.hpp": "35d1e9dfe12eb090983209eb321493b12255d4d09d1b0a06050935191b39fc12",
+    "src/mhd/mhd_solver.cpp": "221dbbe5b70ff8eb6293fe3bbcb1425a973eb23257ce87a222a1faff1ee789b0",
+    "src/mhd_main.cpp": "a6869470b2c865cf6be494e44476c649986355a54d34087b23e451387577ac11",
+    "scripts/regression/mhd_lecoanet_kh_reproduction.py": "02d1f31eacffa769fc844b091e2d2e94cdd7c51121c897b98e14408f9d62fc87"
+  },
+  "analysis_environment": {
+    "python": "3.12.10",
+    "numpy": "2.5.1",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "grid": {
+    "nx": 128,
+    "ny": 256
+  },
+  "growth_rate": 2.193155028632332,
+  "expected_growth_rate": 3.227,
+  "growth_rate_relative_difference": 0.32037340296488004,
+  "fit_r2": 0.9898817200327414,
+  "fit_window": {
+    "start": 0.25,
+    "end": 1.0,
+    "initial_seed_adjustment_transient_observed": true
+  },
+  "rows": [
+    {
+      "time": 0.0,
+      "steps": 0,
+      "mode_amplitude": 0.009340096716725638,
+      "rho_min": 1.0,
+      "rho_max": 1.0,
+      "finite_positive_state": true
+    },
+    {
+      "time": 0.25,
+      "steps": 407,
+      "mode_amplitude": 0.008054597961690552,
+      "rho_min": 0.9965091153603556,
+      "rho_max": 1.0006020717515636,
+      "finite_positive_state": true
+    },
+    {
+      "time": 0.5,
+      "steps": 814,
+      "mode_amplitude": 0.012324238605753261,
+      "rho_min": 0.994614185672719,
+      "rho_max": 1.000868445217459,
+      "finite_positive_state": true
+    },
+    {
+      "time": 0.75,
+      "steps": 1221,
+      "mode_amplitude": 0.02129305217167057,
+      "rho_min": 0.9933458505286091,
+      "rho_max": 1.0014888602745422,
+      "finite_positive_state": true
+    },
+    {
+      "time": 1.0,
+      "steps": 1629,
+      "mode_amplitude": 0.04174590369280751,
+      "rho_min": 0.9905527875446195,
+      "rho_max": 1.002975632820008,
+      "finite_positive_state": true
+    }
+  ],
+  "gate": {
+    "pass": true,
+    "mode_amplitude_strictly_increasing_in_fit_window": true,
+    "finite_positive_state": true,
+    "fit_r2_minimum": 0.98
+  },
+  "figures": [
+    "experiments/week21/lecoanet_kh_resolution_ladder/nx128/figures/lecoanet_kh_mode_growth.png",
+    "experiments/week21/lecoanet_kh_resolution_ladder/nx128/figures/lecoanet_kh_mode_growth.pdf"
+  ],
+  "run_metadata": [
+    "experiments/week21/lecoanet_kh_resolution_ladder/nx128/runs/t025/metadata.json",
+    "experiments/week21/lecoanet_kh_resolution_ladder/nx128/runs/t050/metadata.json",
+    "experiments/week21/lecoanet_kh_resolution_ladder/nx128/runs/t075/metadata.json",
+    "experiments/week21/lecoanet_kh_resolution_ladder/nx128/runs/t100/metadata.json"
+  ],
+  "claim_boundary": [
+    "No nonlinear Re=1e5 reference-solution claim.",
+    "No explicit-viscosity, thermal-diffusion, or passive-dye claim.",
+    "The literature growth rate is a diagnostic comparison, not the pass threshold."
+  ]
+}

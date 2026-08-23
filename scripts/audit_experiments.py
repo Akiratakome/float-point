@@ -93,14 +93,15 @@ def build_report(repo_root: Path) -> dict[str, Any]:
         {"root": root.as_posix(), "files": [path.as_posix() for path in files]}
         for root, files in groups.items()
     ]
+    has_candidates = bool(candidates)
     return {
         "audit_date": _audit_date(),
         "root": ".",
         "tracked_file_count": len(tracked),
         "candidate_root_count": len(candidates),
         "candidate_file_count": sum(len(entry["files"]) for entry in candidates),
-        "reference_audit": "reference audit required",
-        "deferred_action": "no deletion performed",
+        "reference_audit": "reference audit required" if has_candidates else "no candidates",
+        "deferred_action": "no deletion performed" if has_candidates else "no deletion required",
         "candidates": candidates,
     }
 
@@ -118,10 +119,14 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Tracked experiment files: {report['tracked_file_count']}",
         f"- Candidate build roots: {report['candidate_root_count']}",
         f"- Total tracked candidate files: {report['candidate_file_count']}",
-        "- Reference status: reference audit required",
-        "- Deferred action: no deletion performed",
+        f"- Reference status: {report['reference_audit']}",
+        f"- Deferred action: {report['deferred_action']}",
         "",
-        "Candidates are reported for manual reference checking only. The audit is read-only and does not delete or move files.",
+        (
+            "Candidates are reported for manual reference checking only. The audit is read-only and does not delete or move files."
+            if report["candidates"]
+            else "No tracked nested build directories are currently present under `experiments/`. The audit remains read-only."
+        ),
         "",
         "| Candidate root | Tracked files |",
         "|---|---:|",

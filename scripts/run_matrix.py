@@ -183,7 +183,7 @@ def run_one(run: MatrixRun, experiment: str, dry_run: bool = False) -> dict[str,
         source_config=run.source_config,
         run_config=config,
         required_artifacts=(
-            RequiredArtifact(run.raw_output, kind="hrsc_binary")
+            (RequiredArtifact(run.raw_output, kind="hrsc_binary"),)
             if run.raw_output
             else ()
         ),

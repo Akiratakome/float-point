@@ -1,0 +1,16 @@
+# CSC environment & submitted jobs (recorded 2026-07-24T08:42:53Z)
+commit: 8de35c3e67556df18f811835d7f6cdeec16f384e  branch: week12-mhd-implementation
+verificarlo: verificarlo 2.4.0
+clang: Ubuntu clang version 18.1.3 (1ubuntu1)
+
+## Submitted full-run chain (256^2/t=1.0, N=30, mcaquad)
+16440 full-mca array 0-3 (hll-p53,hll-p24,hlld-p53,hlld-p24)
+16441 packets (afterok 16440)
+16442 w17 synthesis+figures (afterok 16441)
+
+## Partition limits
+     PARTITION  TIMELIMIT  NODES  STATE
+     csc-mphil    6:00:00      1    mix
+     csc-mphil    6:00:00      2  alloc
+ csc-mphil-gpu    6:00:00      2   idle
+          lsc* 1-12:00:00      2  alloc

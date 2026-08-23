@@ -1,0 +1,64 @@
+{
+  "experiment": "week18-euler-mhd-cross-system",
+  "name": "orszag-tang-double-fast",
+  "timestamp_utc": "2026-07-26T12:12:07.068907+00:00",
+  "git_commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+  "binary": "build-matrix\\cpu-double-Ofast-fastmath-leq\\hrsc_mhd.exe",
+  "source_config": "tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+  "run_config": "experiments\\week18\\euler_mhd_cross_system\\runs\\orszag-tang-double-fast\\config.cfg",
+  "precision": "double",
+  "build": "cpu-double-Ofast-fastmath-leq",
+  "raw_output": "experiments\\week18\\euler_mhd_cross_system\\runs\\orszag-tang-double-fast\\grid.bin",
+  "extra_cfg": {
+    "nx": "128",
+    "ny": "128",
+    "riemann": "hll",
+    "device": "cpu"
+  },
+  "command": [
+    "build-matrix\\cpu-double-Ofast-fastmath-leq\\hrsc_mhd.exe",
+    "experiments\\week18\\euler_mhd_cross_system\\runs\\orszag-tang-double-fast\\config.cfg"
+  ],
+  "returncode": 0,
+  "provenance": {
+    "git": {
+      "commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+      "dirty": true
+    }
+  },
+  "timing": {
+    "total_s": null,
+    "elapsed_wall_s": 3.24629429995548
+  },
+  "stdout": "experiments\\week18\\euler_mhd_cross_system\\runs\\orszag-tang-double-fast\\stdout.txt",
+  "stderr": "experiments\\week18\\euler_mhd_cross_system\\runs\\orszag-tang-double-fast\\stderr.txt",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "experiments\\week18\\euler_mhd_cross_system\\runs\\orszag-tang-double-fast\\grid.bin"
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 0.5,
+    "target_time": 0.5,
+    "steps": 396
+  },
+  "build_semantics": {
+    "requested_opt_level": "Ofast",
+    "requested_fast_math": true,
+    "requested_strict_ieee": false,
+    "effective_math_mode": "fast",
+    "compiler_id": "MSVC",
+    "compiler_version": "19.51.36248.0",
+    "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+    "evidence": {
+      "optimization": "/Ox /fp:fast",
+      "fast_math": "/fp:fast",
+      "strict_ieee": ""
+    }
+  }
+}

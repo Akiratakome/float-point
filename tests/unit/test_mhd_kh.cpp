@@ -81,3 +81,40 @@ TEST_CASE("Kelvin-Helmholtz IC sets double shear layer and uniform magnetic fiel
     REQUIRE(d.mean == Approx(0.0).margin(1e-12));
     REQUIRE(d.max == Approx(0.0).margin(1e-12));
 }
+
+TEST_CASE("Lecoanet Kelvin-Helmholtz IC matches the published unstratified setup", "[mhd][kh][literature]") {
+    const int nx = 40, ny = 80;
+    const double xmin = 0.0, ymin = 0.0;
+    const double dx = 1.0 / nx, dy = 2.0 / ny, gamma = 5.0 / 3.0;
+    Grid2D<double, MhdNVars> grid(nx, ny);
+    grid.dx = dx;
+    grid.dy = dy;
+
+    setup_kelvin_helmholtz_lecoanet<double>(
+        grid.view(), nx, ny, dx, dy, xmin, ymin, gamma);
+
+    const auto gv = grid.view();
+    const int i = 7, j = 20;
+    const double x = xmin + (i + 0.5) * dx;
+    const double y = ymin + (j + 0.5) * dy;
+    const double dy1 = y - 0.5;
+    const double dy2 = y - 1.5;
+    const double pi = 3.14159265358979323846;
+    const MhdPrim<double> w = cons_to_prim(load_cell_test(gv, i, j), gamma);
+
+    REQUIRE(w.rho == Approx(1.0));
+    REQUIRE(w.p == Approx(10.0));
+    REQUIRE(w.vx == Approx(std::tanh(dy1 / 0.05)
+                         - std::tanh(dy2 / 0.05) - 1.0));
+    REQUIRE(w.vy == Approx(0.01 * std::sin(2.0 * pi * x)
+                         * (std::exp(-(dy1 * dy1) / (0.2 * 0.2))
+                          + std::exp(-(dy2 * dy2) / (0.2 * 0.2)))));
+    REQUIRE(w.Bx == Approx(0.0));
+    REQUIRE(w.By == Approx(0.0));
+    REQUIRE(w.Bz == Approx(0.0));
+    REQUIRE(w.psi == Approx(0.0));
+
+    const DivBNorms<double> d = compute_divB_norms<double>(gv, nx, ny, dx, dy);
+    REQUIRE(d.mean == Approx(0.0).margin(1e-12));
+    REQUIRE(d.max == Approx(0.0).margin(1e-12));
+}

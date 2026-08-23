@@ -1,0 +1,25 @@
+{
+  "experiment": "week18-euler-mhd-cross-system",
+  "output_root": "experiments/week18/euler_mhd_cross_system",
+  "runs": [
+    {"name":"sod-double-o2","binary":"build-matrix/cpu-double-O2-ieee-leq/hrsc.exe","config":"tests/cases/toro_1d/sod.cfg","precision":"double","build":"cpu-double-O2-ieee-leq","output_file":"grid.bin","extra_cfg":{"solver":"hllc","device":"cpu"}},
+    {"name":"sod-float-o2","binary":"build-matrix/cpu-float-O2-ieee-leq/hrsc.exe","config":"tests/cases/toro_1d/sod.cfg","precision":"float","build":"cpu-float-O2-ieee-leq","output_file":"grid.bin","extra_cfg":{"solver":"hllc","device":"cpu"}},
+    {"name":"sod-double-fast","binary":"build-matrix/cpu-double-Ofast-fastmath-leq/hrsc.exe","config":"tests/cases/toro_1d/sod.cfg","precision":"double","build":"cpu-double-Ofast-fastmath-leq","output_file":"grid.bin","extra_cfg":{"solver":"hllc","device":"cpu"}},
+    {"name":"sod-float-fast","binary":"build-matrix/cpu-float-Ofast-fastmath-leq/hrsc.exe","config":"tests/cases/toro_1d/sod.cfg","precision":"float","build":"cpu-float-Ofast-fastmath-leq","output_file":"grid.bin","extra_cfg":{"solver":"hllc","device":"cpu"}},
+
+    {"name":"lw3-double-o2","binary":"build-matrix/cpu-double-O2-ieee-leq/hrsc.exe","config":"tests/cases/liska_wendroff_2d/config3_n200.cfg","precision":"double","build":"cpu-double-O2-ieee-leq","output_file":"grid.bin","extra_cfg":{"solver":"hllc","device":"cpu"}},
+    {"name":"lw3-float-o2","binary":"build-matrix/cpu-float-O2-ieee-leq/hrsc.exe","config":"tests/cases/liska_wendroff_2d/config3_n200.cfg","precision":"float","build":"cpu-float-O2-ieee-leq","output_file":"grid.bin","extra_cfg":{"solver":"hllc","device":"cpu"}},
+    {"name":"lw3-double-fast","binary":"build-matrix/cpu-double-Ofast-fastmath-leq/hrsc.exe","config":"tests/cases/liska_wendroff_2d/config3_n200.cfg","precision":"double","build":"cpu-double-Ofast-fastmath-leq","output_file":"grid.bin","extra_cfg":{"solver":"hllc","device":"cpu"}},
+    {"name":"lw3-float-fast","binary":"build-matrix/cpu-float-Ofast-fastmath-leq/hrsc.exe","config":"tests/cases/liska_wendroff_2d/config3_n200.cfg","precision":"float","build":"cpu-float-Ofast-fastmath-leq","output_file":"grid.bin","extra_cfg":{"solver":"hllc","device":"cpu"}},
+
+    {"name":"brio-wu-double-o2","binary":"build-matrix/cpu-double-O2-ieee-leq/hrsc_mhd.exe","config":"tests/cases/brio_wu_1d/brio_wu.cfg","precision":"double","build":"cpu-double-O2-ieee-leq","output_file":"grid.bin","extra_cfg":{"riemann":"hll","device":"cpu"}},
+    {"name":"brio-wu-float-o2","binary":"build-matrix/cpu-float-O2-ieee-leq/hrsc_mhd.exe","config":"tests/cases/brio_wu_1d/brio_wu.cfg","precision":"float","build":"cpu-float-O2-ieee-leq","output_file":"grid.bin","extra_cfg":{"riemann":"hll","device":"cpu"}},
+    {"name":"brio-wu-double-fast","binary":"build-matrix/cpu-double-Ofast-fastmath-leq/hrsc_mhd.exe","config":"tests/cases/brio_wu_1d/brio_wu.cfg","precision":"double","build":"cpu-double-Ofast-fastmath-leq","output_file":"grid.bin","extra_cfg":{"riemann":"hll","device":"cpu"}},
+    {"name":"brio-wu-float-fast","binary":"build-matrix/cpu-float-Ofast-fastmath-leq/hrsc_mhd.exe","config":"tests/cases/brio_wu_1d/brio_wu.cfg","precision":"float","build":"cpu-float-Ofast-fastmath-leq","output_file":"grid.bin","extra_cfg":{"riemann":"hll","device":"cpu"}},
+
+    {"name":"orszag-tang-double-o2","binary":"build-matrix/cpu-double-O2-ieee-leq/hrsc_mhd.exe","config":"tests/cases/orszag_tang_2d/orszag_tang.cfg","precision":"double","build":"cpu-double-O2-ieee-leq","output_file":"grid.bin","extra_cfg":{"nx":"128","ny":"128","riemann":"hll","device":"cpu"}},
+    {"name":"orszag-tang-float-o2","binary":"build-matrix/cpu-float-O2-ieee-leq/hrsc_mhd.exe","config":"tests/cases/orszag_tang_2d/orszag_tang.cfg","precision":"float","build":"cpu-float-O2-ieee-leq","output_file":"grid.bin","extra_cfg":{"nx":"128","ny":"128","riemann":"hll","device":"cpu"}},
+    {"name":"orszag-tang-double-fast","binary":"build-matrix/cpu-double-Ofast-fastmath-leq/hrsc_mhd.exe","config":"tests/cases/orszag_tang_2d/orszag_tang.cfg","precision":"double","build":"cpu-double-Ofast-fastmath-leq","output_file":"grid.bin","extra_cfg":{"nx":"128","ny":"128","riemann":"hll","device":"cpu"}},
+    {"name":"orszag-tang-float-fast","binary":"build-matrix/cpu-float-Ofast-fastmath-leq/hrsc_mhd.exe","config":"tests/cases/orszag_tang_2d/orszag_tang.cfg","precision":"float","build":"cpu-float-Ofast-fastmath-leq","output_file":"grid.bin","extra_cfg":{"nx":"128","ny":"128","riemann":"hll","device":"cpu"}}
+  ]
+}

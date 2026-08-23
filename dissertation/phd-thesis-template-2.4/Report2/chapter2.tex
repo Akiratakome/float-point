@@ -6,15 +6,12 @@
 \section{Development priorities after Report 1}
 \label{sec:ch2-priorities}
 
-Report~1 supplied three design decisions beyond its Euler baseline. Its
-saved-output audit found no strict-IEEE CPU/GPU difference for matched HLLC
-cases, so Report~2 retained matched configurations and ported HLL to CUDA. Its
-variation matrix found fast-math perturbations and a separate HLLC--Rusanov
-method effect, motivating recorded build semantics and an HLL/HLLD method
-axis. Finally, checkpoint drift and reference comparisons showed respectively
-that final states can miss temporal behaviour and that fp32--fp64 discrepancy
-is not reference error. Report~2 therefore used independently executed,
-predeclared stopping times and kept discrepancy and error distinct.
+Beyond the matched device configuration and the recorded build-semantics and
+HLL/HLLD axes of Section~\ref{sec:ch1-transition}, Report~1 left one further
+lesson in its checkpoint drift and reference comparisons: final states can miss
+temporal behaviour, and fp32--fp64 discrepancy is not reference error. Report~2
+therefore uses independently executed, predeclared stopping times and keeps
+discrepancy and error distinct.
 
 Changes were selected by a cost-against-exposure rule: an axis entered the
 matrix if it could alter the arithmetic path without altering the algorithm,
@@ -23,13 +20,25 @@ already had a matched baseline in the harness. That admitted precision, the
 build-semantics axes on host and device, the HLL/HLLD choice, the device,
 resolution, observation time, CFL and requested thread count. It excluded, and
 this report records as its principal coverage gaps, quadruple precision, a
-second compiler, a second machine and MPI reduction order, each needing an
-arithmetic backend, toolchain or parallel layer the project did not have, and
+second host compiler, a second machine and MPI reduction order, and
 GPU HLLD, since only one kernel could be held in exact semantic correspondence
-with the host. The cases follow the same rule: the Alfv\'en wave carries an
-exact solution, Brio--Wu a one-dimensional Riemann problem, and Orszag--Tang
-and Kelvin--Helmholtz two-dimensional wave interaction and shear evolution.
-Chapter~\ref{chap:methodology} records the resulting comparison matrix.
+with the host. MPI is excluded by design rather than by cost: these experiments
+isolate arithmetic and build semantics on one node, whereas message order acts
+through reduction association across ranks, a distinct mechanism that
+partitioning would overlay on every axis reported below, and
+Section~\ref{sec:ch5-thread-cfl} settles it only where the reduction is an
+exactly associative maximum. The compiler gap is
+deferred rather than unavailable: the Monte
+Carlo arithmetic of Section~\ref{sec:ch5-mca} does rebuild the solver under a
+second toolchain, but only with the stochastic backend attached, so it supplies
+a noise scale and not the matched IEEE baseline a compiler axis needs. A last
+gap is structural: unclamping the HLL wave speed of
+Section~\ref{sec:ch2-riemann} would invalidate every completed device, timing
+and refinement comparison, so the clamp is reported as a declared property of
+the tested path rather than repaired inside a frozen matrix. The cases follow
+the same rule, the Alfv\'en wave carrying an exact solution, Brio--Wu a
+one-dimensional Riemann problem, and Orszag--Tang and Kelvin--Helmholtz
+two-dimensional wave interaction and shear evolution.
 
 \section{Ideal-MHD and GLM additions}
 \label{sec:ch2-mhd-glm}
@@ -44,14 +53,15 @@ the generalised Lagrange multiplier (GLM) scalar $\psi$ are
  [\rho\mathbf v\mathbf v+(p+\tfrac12|\mathbf B|^2)\mathbf I
    -\mathbf B\mathbf B]&=0, \notag\\
  \partial_t\mathbf B+\nabla\!\cdot(\mathbf v\mathbf B-\mathbf B\mathbf v)
-   +\nabla\psi&=0, \qquad \nabla\!\cdot\mathbf B=0, \notag\\
+   +\nabla\psi&=0, \notag\\
  \partial_tE+\nabla\!\cdot[(E+p+\tfrac12|\mathbf B|^2)\mathbf v
    -(\mathbf v\!\cdot\!\mathbf B)\mathbf B]&=0, \notag\\
  \partial_t\psi+c_h^2\nabla\!\cdot\mathbf B&=-\psi/\tau.
  \label{eq:ch2-ideal-mhd}
 \end{align}
-The ideal-gas closure is $p=(\gamma-1)[E-\rho|\mathbf v|^2/2-
-|\mathbf B|^2/2]$ and the conserved GLM state is
+Here $\nabla\!\cdot\mathbf B=0$ is an initial constraint that the discrete
+update does not preserve, which is what $\psi$ carries. The conserved GLM state
+is
 \begin{equation}
  \mathbf{U}=(\rho,\rho\mathbf{v},\mathbf{B},E,\psi)^{T},\qquad
  E=\frac{p}{\gamma-1}+\frac{1}{2}\rho|\mathbf{v}|^{2}
@@ -70,17 +80,17 @@ Lie-split $x$--$y$ step:
  \end{cases}
  \label{eq:ch2-glm-damping}
 \end{equation}
-Here $c_h$ is the stepwise maximum directional fast-wave signal speed and $c_r$
-sets $c_p^2=c_hc_r$, with $\tau=c_r/c_h$ for positive parameters. The
-two-dimensional default $c_r=0.18$ is the ratio identified by
-\citet{dedner_2002} as a compromise between damping and stability, and the
-guard makes $c_r=0$ an undamped control. GLM transports and damps discrete
-divergence error but does not enforce a solenoidal field. It was retained over
+Here $c_h$ is the stepwise maximum directional fast-wave signal speed
+(Equation~\ref{eq:ch3-cfl}) and $c_r$ sets $c_p^2=c_hc_r$, with $\tau=c_r/c_h$
+for positive parameters. The two-dimensional default $c_r=0.18$ is the value of
+$c_p^2/c_h$ recommended by \citet{dedner_2002}, and the guard makes $c_r=0$ an
+undamped control. GLM transports and damps discrete divergence error but does
+not enforce a solenoidal field. It was retained over
 eight-wave source formulations \citep{powell_1999}, constrained transport
 \citep{evans_hawley_1988,balsaraSpicer1999ct,londrilloDelZanna2004uct,
 gardinerStone2005ct} and constrained hyperbolic cleaning
-\citep{triccoPrice2012divb} because it fits the cell-centred, directionally
-split code.
+\citep{triccoPrice2012divb} as the standard choice for a cell-centred,
+directionally split code \citep{mignoneTzeferacos2010ctuGlm}.
 
 The fixed $x$-then-$y$ Lie composition is first-order as a multidimensional
 split, and minmod slopes reconstruct the nine conservative components. A
@@ -88,8 +98,6 @@ non-physical reconstructed face reverts both faces to the cell average; a line
 update that remains non-physical is recomputed with first-order HLL fluxes; a
 post-step positivity failure terminates the run with a non-zero exit code. No
 density or pressure floor is applied.
-
-Figure~\ref{fig:ch2-implementation-delta} summarises these additions.
 
 \begin{figure}[htbp]
   \centering
@@ -163,8 +171,7 @@ separates a globally clamped two-wave flux from HLLD rather than two local
 solvers; later chapters read its rates and discrepancies on that basis. The
 clamp also forces $S_L^{H}<0<S_R^{H}$, so the outer branches of
 Equation~\ref{eq:ch2-hll-flux} are unreachable and strict inequalities there
-change nothing. HLLD has no such clamp, so its $S_L^*$, $S_R^*$ and $S_M$
-ties remain reachable.
+change nothing, whereas HLLD's $S_L^*$, $S_R^*$ and $S_M$ ties stay reachable.
 
 HLLD, or HLL with Discontinuities, instead uses the plain Davis outer speeds
 \begin{equation}
@@ -191,52 +198,49 @@ $m_k=S_k-v_{n,k}$ and $D=m_R\rho_R-m_L\rho_L$, the key intermediate speeds are
  S_R^*&=S_M+\frac{|B_n^*|}{\sqrt{\rho_R^*}}.
  \label{eq:ch2-hlld-speeds}
 \end{align}
+The ideal-MHD eigensystem is not strictly hyperbolic: as $B_n\to0$ the Alfv\'en
+and slow waves coalesce with the entropy wave, and at $a_k=c_{An,k}$ the fast
+and slow speeds meet, so HLLD forms intermediate states from differences that
+can vanish together \citep{roeBalsara1996eigen} where the two-wave flux does not.
 Fourteen guards test non-finite data, intermediate states and fluxes,
 non-positive $\rho_k^*$, and $D$, $S_k-S_M$ and the Alfv\'en denominators
 against a relative $64\varepsilon_{\mathrm{mach}}$ floor, with
 $\varepsilon_{\mathrm{mach}}$ the machine epsilon of the active precision and a
 minimum scale of one. Failure sends only that interface to HLL on the same
-GLM-split states. Otherwise matched HLL/HLLD runs share reconstruction, updates
-and cleaning, so the selected Riemann flux is the method axis.
+GLM-split states. Matched HLL/HLLD runs otherwise share reconstruction, updates
+and cleaning, so the Riemann flux is the method axis.
 
 \section{CPU, OpenMP build control, and CUDA implementation}
 \label{sec:ch2-execution}
 
-OpenMP is a shared-memory threading interface, but the MHD CPU path has no
-work-sharing directives, so requests of 1, 2, 4 or 8 threads cannot alter the
-decomposition. Nor could reduction order change the result under work sharing:
-the only reduction here, the stepwise maximum for the CFL condition and $c_h$,
-is exactly associative on finite IEEE-754 values, and order dependence would
-need an accumulating reduction, absent outside diagnostics. These runs are a
-null control.
+The MHD CPU path carries no OpenMP work-sharing directives, so requests of 1, 2,
+4 or 8 threads cannot alter the decomposition; nor would work sharing change the
+result, since the only reduction here, the stepwise maximum setting $c_h$, is
+exactly associative on finite IEEE-754 values. These runs are a null control.
 
-CUDA, NVIDIA's GPU platform, provides an independent path mirroring CPU HLL
-semantics in fp32 and fp64: boundaries, conservative minmod/Hancock
-reconstruction, GLM cleaning, sweep and step order, the
-Courant--Friedrichs--Lewy (CFL) time-step calculation and per-cell reversion.
-CUDA obtains $c_h$ by a two-stage parallel maximum tree rather than a
-sequential scan, which associativity again leaves harmless.
+CUDA provides an independent path mirroring CPU HLL semantics in fp32 and fp64:
+boundaries, conservative minmod/Hancock reconstruction, GLM cleaning, sweep and
+step order, the time-step calculation and per-cell reversion. CUDA obtains $c_h$
+by a two-stage parallel maximum tree rather than a sequential scan, which
+associativity again leaves harmless on finite values.
 
 The CUDA MHD kernel translation unit is compiled with \texttt{--fmad=false},
 scoped to that file, because MSVC's default /fp:precise does not contract
-multiply--add on x64 \citep{microsoftMsvcFp2021}, while the other relevant nvcc
-defaults already conform to IEEE-754 \citep{whitehead_fitflorea_2011}. Contraction
-is thus the only device transformation to suppress, agreement is a property of
-the declared build rather than of the hardware, and both the nvcc default and
-\texttt{--use\_fast\_math} are exposed so they can be measured
-(Section~\ref{sec:ch5-hardware}) instead of assumed.
-
-CUDA omits HLLD, per-line fallback and post-step rejection.
-\citet{bard_dorelli_2014} supplies context for a related GPU scheme, not a
-performance baseline across different hardware and optimisation choices.
+multiply--add on x64 \citep{microsoftMsvcFp2021},
+while the other relevant nvcc defaults already conform to IEEE-754
+\citep{whitehead_fitflorea_2011}. Contraction is thus the only device
+transformation to suppress, so agreement is a property of the declared build
+rather than of the hardware, and both the nvcc default and
+\texttt{--use\_fast\_math} are measured rather than assumed
+(Section~\ref{sec:ch5-hardware}). CUDA omits HLLD, per-line
+fallback and post-step rejection; \citet{bard_dorelli_2014} supplies context for
+a related GPU scheme, not a performance baseline.
 
 \section{Testing and acceptance criteria}
 \label{sec:ch2-gates}
 
-Unit tests isolate state conversion, pressure, wave-speed estimates, fluxes and
-directional symmetry; integration tests exercise complete CPU and CUDA updates
-including GLM cleaning, boundaries and transverse invariance; regression tests
-preserve configuration and output contracts. A run enters measurement only if
-it reaches the requested final time with a positive step count, finite states,
-positive density and pressure, and fresh output and completion metadata, so
-incomplete or non-physical runs are rejected before aggregation.
+Unit tests isolate state conversion, pressure, wave speeds and fluxes;
+integration tests exercise complete CPU and CUDA updates including GLM
+cleaning, boundaries and transverse invariance; regression tests preserve
+configuration and output contracts. The criteria a run must meet to enter
+measurement are stated in Section~\ref{sec:ch3-reference-hierarchy}.

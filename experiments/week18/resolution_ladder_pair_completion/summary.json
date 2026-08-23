@@ -1,0 +1,79 @@
+{
+  "schema": {
+    "name": "hrsc.resolution-pair-completion",
+    "version": 1
+  },
+  "experiment": "report2-ot-hlld-512-precision-pair-completion",
+  "git_commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+  "scope": {
+    "case": "orszag_tang_2d",
+    "solver": "hlld",
+    "precision": "float",
+    "resolution": 512,
+    "cfl": 0.2,
+    "reference_precision": "double",
+    "target_time": 0.5
+  },
+  "gate": {
+    "pass": true,
+    "reference_semantics": true,
+    "float_run_completed": true,
+    "shape_match": true,
+    "time_match": true,
+    "precision_tags_match": true,
+    "steps_match": true,
+    "float_state_finite_positive": true,
+    "metrics_finite_nonnegative": true
+  },
+  "metrics": {
+    "rho_l1_fp32_vs_fp64": 5.554106475580879e-05,
+    "rho_l2_fp32_vs_fp64": 0.00048328651963555527,
+    "rho_linf_fp32_vs_fp64": 0.05031345962367162
+  },
+  "float_run": {
+    "case": "orszag_tang_2d",
+    "solver": "hlld",
+    "precision": "float",
+    "resolution": 512,
+    "cfl": 0.2,
+    "gamma": 1.6666666666666667,
+    "steps": 3277,
+    "divB_mean": 0.1969,
+    "divB_max": 33.08,
+    "wall_time_s": 420.87377729988657,
+    "binary": "build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+    "binary_sha256": "11f23ac25da879cdefe60ad2d05816f7be29971542ef5277c64c2bdcc5010a2e",
+    "run_dir": "experiments/week18/resolution_ladder_pair_completion/runs/orszag_tang_2d-hlld-float-n512-cfl0p2",
+    "status": "completed",
+    "failure_category": "",
+    "failure_message": "",
+    "output_precision_bytes": 4,
+    "finite": true,
+    "physical_state": true,
+    "rho_min": 1.0976102352142334,
+    "pressure_min": 0.3798494598863428
+  },
+  "provenance": {
+    "reference": {
+      "pass": true,
+      "checks": {
+        "reference_status_success": true,
+        "reference_completion_reported": true,
+        "reference_final_time_matches": true,
+        "reference_steps_match": true,
+        "reference_grid_hash_matches": true,
+        "current_double_binary_matches_reference": true
+      },
+      "binary_sha256": "6cb38f91936bfa749a61fd37cfe0986d14aeec1c45764442071ea9092f0d3ccd",
+      "grid_sha256": "85f104eff0b19cdbf37dc8705d538f412b71819b897d48c92244a9ea3b386862",
+      "metadata": "experiments/diagnostics/hlld_positivity_guard/runs/orszag-tang-hlld-double-n512-cfl0p2/metadata.json"
+    },
+    "float_grid": "experiments/week18/resolution_ladder_pair_completion/runs/orszag_tang_2d-hlld-float-n512-cfl0p2/grid.bin",
+    "float_grid_sha256": "fe7c2627fd5e5f5ac6a14a6b169b4ec0e956a45cf0bd2163d3b42855881e0329",
+    "float_binary_sha256": "11f23ac25da879cdefe60ad2d05816f7be29971542ef5277c64c2bdcc5010a2e",
+    "primary_resolution_summary": "experiments/week18/resolution_ladder/summary.json",
+    "artifact_revalidation": "experiments/week18/resolution_ladder_pair_completion/runs/orszag_tang_2d-hlld-float-n512-cfl0p2/artifact_revalidation.json",
+    "non_authoritative_replay_attempt": "experiments/week18/resolution_ladder_pair_completion/runs/orszag_tang_2d-hlld-float-n512-cfl0p2/replay_attempt_metadata.json"
+  },
+  "claim_boundary": "This packet completes one same-grid density-discrepancy cell for corrected OT/HLLD at 512^2. It does not establish accuracy, convergence, or solver ranking."
+}

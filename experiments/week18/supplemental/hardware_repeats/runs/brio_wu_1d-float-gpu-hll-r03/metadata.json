@@ -1,0 +1,52 @@
+{
+  "experiment": "week18-report2-supplemental",
+  "name": "brio_wu_1d-float-gpu-hll-r03",
+  "timestamp_utc": "2026-07-23T13:07:30.163702+00:00",
+  "git_commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-cuda-float\\hrsc_mhd.exe",
+  "binary_sha256": "6fff5259b8c970a6a89929112ad85548514b9275ffd4b4faa90f9a92a69d379c",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\brio_wu_1d\\brio_wu.cfg",
+  "source_config_sha256": "44f36d51144b53d0e3d1b2d915fa9c10de474350ecb3034cdd9ba0331c79e26a",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\supplemental\\hardware_repeats\\runs\\brio_wu_1d-float-gpu-hll-r03\\config.cfg",
+  "run_config_sha256": "6619655c5fc0bc633067bba7835d92ee3fc0cb569e899ebe29b8897680802171",
+  "run_config_text": "# Brio & Wu (1988) 1D MHD shock tube. gamma=2, Bx=0.75, t_end=0.1.\ntest    = brio_wu\nnx      = 800\nxmin    = 0.0\nxmax    = 1.0\nx0      = 0.5\ngamma   = 2.0\ncfl     = 0.4\nt_end   = 0.1\nbc      = outflow\nriemann = hll\ndevice = gpu\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\supplemental\\hardware_repeats\\runs\\brio_wu_1d-float-gpu-hll-r03\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-cuda-float\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\supplemental\\hardware_repeats\\runs\\brio_wu_1d-float-gpu-hll-r03\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 0.2718210000311956,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\supplemental\\hardware_repeats\\runs\\brio_wu_1d-float-gpu-hll-r03\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\supplemental\\hardware_repeats\\runs\\brio_wu_1d-float-gpu-hll-r03\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.1,
+    "steps": 759,
+    "divB_mean": 0.0,
+    "divB_max": 0.0,
+    "line": "[mhd] t=0.100000 steps=759 divB_mean=0.000e+00 divB_max=0.000e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\supplemental\\hardware_repeats\\runs\\brio_wu_1d-float-gpu-hll-r03\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\supplemental\\hardware_repeats\\runs\\brio_wu_1d-float-gpu-hll-r03\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 0.2718210000311956
+  },
+  "failure": {
+    "category": "infrastructure_error",
+    "message": "'RequiredArtifact' object is not iterable",
+    "exception_type": "TypeError"
+  },
+  "completion": {
+    "reported": true,
+    "final_time": 0.1,
+    "target_time": 0.1,
+    "steps": 759
+  },
+  "build_semantics": null
+}

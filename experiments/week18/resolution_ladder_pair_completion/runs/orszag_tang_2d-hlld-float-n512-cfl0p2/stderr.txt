@@ -1,0 +1,2 @@
+[run-status] status=failed reason=configuration_error
+[error] Cannot open config file: /mnt/c/Users/tangy/Desktop/floatpoint/experiments/week18/resolution_ladder_pair_completion/runs/orszag_tang_2d-hlld-float-n512-cfl0p2/config.cfg

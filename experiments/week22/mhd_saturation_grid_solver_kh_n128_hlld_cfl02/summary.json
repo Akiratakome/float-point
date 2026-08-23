@@ -1,0 +1,2870 @@
+{
+  "experiment": "week22-mhd-saturation-grid-solver",
+  "mode": "diagnostic",
+  "selected_cases": [
+    "kh_n128_hlld_cfl02"
+  ],
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "analysis_generator": {
+    "path": "scripts/regression/mhd_saturation_grid_solver.py",
+    "sha256": "bf423d04ed6f1f574d79639312380a464d0aec89b046b4c733b07a31ee42551a"
+  },
+  "case_spec": {
+    "kh_n128_hlld_cfl02": {
+      "cfg": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "t_start": 0.2,
+      "t_end_max": 3.0,
+      "n_slices": 20,
+      "fit_window": [
+        0.2,
+        3.0
+      ],
+      "nx": 128,
+      "ny": 128,
+      "solver": "hlld",
+      "cfl": 0.2
+    }
+  },
+  "records": [
+    {
+      "case": "kh_n128_hlld_cfl02",
+      "pair": "fp32-vs-fp64",
+      "variable": "rho",
+      "times": [
+        0.20000000149011612,
+        0.3473684201115056,
+        0.4947368461834757,
+        0.6421052722554458,
+        0.7894736983274159,
+        0.9368420945970636,
+        1.0842105206690336,
+        1.2315789467410037,
+        1.3789473728129737,
+        1.5263157988849438,
+        1.673684224956914,
+        1.821052651028884,
+        1.968421077100854,
+        2.1157894435681794,
+        2.2631578696401498,
+        2.4105262957121196,
+        2.5578947217840895,
+        2.70526314785606,
+        2.85263157392803,
+        3.0
+      ],
+      "l1": [
+        3.4188154090738533e-07,
+        4.124718145765731e-07,
+        4.850590856267175e-07,
+        5.063409642170027e-07,
+        5.29728140630562e-07,
+        5.560276295969062e-07,
+        5.589398927532166e-07,
+        5.628371878134712e-07,
+        5.874667929672012e-07,
+        5.798472384923646e-07,
+        6.186162412045358e-07,
+        6.835785769824734e-07,
+        8.035533856004854e-07,
+        9.452932715392473e-07,
+        1.1912632607234653e-06,
+        1.4466230626674042e-06,
+        1.5583234196186156e-06,
+        1.63138483609543e-06,
+        1.848014659130226e-06,
+        2.1832663945561904e-06
+      ],
+      "linf": [
+        3.0779106248157717e-06,
+        3.411889781812505e-06,
+        3.4412920337789643e-06,
+        3.634679615616143e-06,
+        3.749300300670555e-06,
+        3.988605441151982e-06,
+        3.839533443961152e-06,
+        3.868794286709942e-06,
+        4.855899951916598e-06,
+        4.6477512651854624e-06,
+        5.085569029894543e-06,
+        5.031688249834687e-06,
+        4.2358594050107e-06,
+        6.39604596675003e-06,
+        7.478156096585309e-06,
+        9.877720881679153e-06,
+        1.131795814846015e-05,
+        1.371022996909943e-05,
+        2.3769832490527776e-05,
+        3.4555826921467414e-05
+      ],
+      "lambda_l1": 0.5990658747033234,
+      "lambda_linf": 0.688691055930069,
+      "fit_l1": {
+        "lambda": 0.5990658747033234,
+        "slope": 0.5990658747033234,
+        "intercept": -15.028119781804156,
+        "n_fit": 20,
+        "skipped": 0,
+        "fit_window": [
+          0.2,
+          3.0
+        ],
+        "times_used": [
+          0.20000000149011612,
+          0.3473684201115056,
+          0.4947368461834757,
+          0.6421052722554458,
+          0.7894736983274159,
+          0.9368420945970636,
+          1.0842105206690336,
+          1.2315789467410037,
+          1.3789473728129737,
+          1.5263157988849438,
+          1.673684224956914,
+          1.821052651028884,
+          1.968421077100854,
+          2.1157894435681794,
+          2.2631578696401498,
+          2.4105262957121196,
+          2.5578947217840895,
+          2.70526314785606,
+          2.85263157392803,
+          3.0
+        ],
+        "r2_log": 0.9181817602886415,
+        "rmse_log": 0.15196219881676376,
+        "max_abs_residual_log": 0.2703080446607391
+      },
+      "fit_linf": {
+        "lambda": 0.688691055930069,
+        "slope": 0.688691055930069,
+        "intercept": -13.117566695112973,
+        "n_fit": 20,
+        "skipped": 0,
+        "fit_window": [
+          0.2,
+          3.0
+        ],
+        "times_used": [
+          0.20000000149011612,
+          0.3473684201115056,
+          0.4947368461834757,
+          0.6421052722554458,
+          0.7894736983274159,
+          0.9368420945970636,
+          1.0842105206690336,
+          1.2315789467410037,
+          1.3789473728129737,
+          1.5263157988849438,
+          1.673684224956914,
+          1.821052651028884,
+          1.968421077100854,
+          2.1157894435681794,
+          2.2631578696401498,
+          2.4105262957121196,
+          2.5578947217840895,
+          2.70526314785606,
+          2.85263157392803,
+          3.0
+        ],
+        "r2_log": 0.7837619043736102,
+        "rmse_log": 0.30739636270233195,
+        "max_abs_residual_log": 0.7785591572034907
+      },
+      "fit_window": [
+        0.2,
+        3.0
+      ],
+      "notes": [
+        "Descriptive discrepancy series; the fitted exponent is not a growth law."
+      ],
+      "samples": [
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_00\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_00\\grid.bin",
+          "time": 0.20000000149011612,
+          "time_a": 0.2,
+          "time_b": 0.20000000298023224,
+          "variable": "rho",
+          "l1": 3.4188154090738533e-07,
+          "linf": 3.0779106248157717e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_01\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_01\\grid.bin",
+          "time": 0.3473684201115056,
+          "time_a": 0.34736842105263155,
+          "time_b": 0.34736841917037964,
+          "variable": "rho",
+          "l1": 4.124718145765731e-07,
+          "linf": 3.411889781812505e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_02\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_02\\grid.bin",
+          "time": 0.4947368461834757,
+          "time_a": 0.49473684210526314,
+          "time_b": 0.49473685026168823,
+          "variable": "rho",
+          "l1": 4.850590856267175e-07,
+          "linf": 3.4412920337789643e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_03\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_03\\grid.bin",
+          "time": 0.6421052722554458,
+          "time_a": 0.6421052631578947,
+          "time_b": 0.6421052813529968,
+          "variable": "rho",
+          "l1": 5.063409642170027e-07,
+          "linf": 3.634679615616143e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_04\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_04\\grid.bin",
+          "time": 0.7894736983274159,
+          "time_a": 0.7894736842105263,
+          "time_b": 0.7894737124443054,
+          "variable": "rho",
+          "l1": 5.29728140630562e-07,
+          "linf": 3.749300300670555e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_05\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_05\\grid.bin",
+          "time": 0.9368420945970636,
+          "time_a": 0.9368421052631579,
+          "time_b": 0.9368420839309692,
+          "variable": "rho",
+          "l1": 5.560276295969062e-07,
+          "linf": 3.988605441151982e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_06\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_06\\grid.bin",
+          "time": 1.0842105206690336,
+          "time_a": 1.0842105263157893,
+          "time_b": 1.0842105150222778,
+          "variable": "rho",
+          "l1": 5.589398927532166e-07,
+          "linf": 3.839533443961152e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_07\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_07\\grid.bin",
+          "time": 1.2315789467410037,
+          "time_a": 1.2315789473684209,
+          "time_b": 1.2315789461135864,
+          "variable": "rho",
+          "l1": 5.628371878134712e-07,
+          "linf": 3.868794286709942e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_08\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_08\\grid.bin",
+          "time": 1.3789473728129737,
+          "time_a": 1.3789473684210525,
+          "time_b": 1.378947377204895,
+          "variable": "rho",
+          "l1": 5.874667929672012e-07,
+          "linf": 4.855899951916598e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_09\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_09\\grid.bin",
+          "time": 1.5263157988849438,
+          "time_a": 1.526315789473684,
+          "time_b": 1.5263158082962036,
+          "variable": "rho",
+          "l1": 5.798472384923646e-07,
+          "linf": 4.6477512651854624e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_10\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_10\\grid.bin",
+          "time": 1.673684224956914,
+          "time_a": 1.6736842105263157,
+          "time_b": 1.6736842393875122,
+          "variable": "rho",
+          "l1": 6.186162412045358e-07,
+          "linf": 5.085569029894543e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_11\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_11\\grid.bin",
+          "time": 1.821052651028884,
+          "time_a": 1.8210526315789473,
+          "time_b": 1.8210526704788208,
+          "variable": "rho",
+          "l1": 6.835785769824734e-07,
+          "linf": 5.031688249834687e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_12\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_12\\grid.bin",
+          "time": 1.968421077100854,
+          "time_a": 1.9684210526315786,
+          "time_b": 1.9684211015701294,
+          "variable": "rho",
+          "l1": 8.035533856004854e-07,
+          "linf": 4.2358594050107e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_13\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_13\\grid.bin",
+          "time": 2.1157894435681794,
+          "time_a": 2.1157894736842104,
+          "time_b": 2.1157894134521484,
+          "variable": "rho",
+          "l1": 9.452932715392473e-07,
+          "linf": 6.39604596675003e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_14\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_14\\grid.bin",
+          "time": 2.2631578696401498,
+          "time_a": 2.263157894736842,
+          "time_b": 2.263157844543457,
+          "variable": "rho",
+          "l1": 1.1912632607234653e-06,
+          "linf": 7.478156096585309e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_15\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_15\\grid.bin",
+          "time": 2.4105262957121196,
+          "time_a": 2.4105263157894736,
+          "time_b": 2.4105262756347656,
+          "variable": "rho",
+          "l1": 1.4466230626674042e-06,
+          "linf": 9.877720881679153e-06,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_16\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_16\\grid.bin",
+          "time": 2.5578947217840895,
+          "time_a": 2.557894736842105,
+          "time_b": 2.557894706726074,
+          "variable": "rho",
+          "l1": 1.5583234196186156e-06,
+          "linf": 1.131795814846015e-05,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_17\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_17\\grid.bin",
+          "time": 2.70526314785606,
+          "time_a": 2.705263157894737,
+          "time_b": 2.705263137817383,
+          "variable": "rho",
+          "l1": 1.63138483609543e-06,
+          "linf": 1.371022996909943e-05,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_18\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_18\\grid.bin",
+          "time": 2.85263157392803,
+          "time_a": 2.8526315789473684,
+          "time_b": 2.8526315689086914,
+          "variable": "rho",
+          "l1": 1.848014659130226e-06,
+          "linf": 2.3769832490527776e-05,
+          "n_cells": 16384,
+          "n_finite": 16384
+        },
+        {
+          "path_a": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_19\\grid.bin",
+          "path_b": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_19\\grid.bin",
+          "time": 3.0,
+          "time_a": 3.0,
+          "time_b": 3.0,
+          "variable": "rho",
+          "l1": 2.1832663945561904e-06,
+          "linf": 3.4555826921467414e-05,
+          "n_cells": 16384,
+          "n_finite": 16384
+        }
+      ],
+      "grid": "128x128",
+      "solver": "hlld",
+      "cfl": 0.2
+    }
+  ],
+  "runs": [
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-00",
+      "timestamp_utc": "2026-08-07T04:57:36.105838+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_00\\config.cfg",
+      "run_config_sha256": "60af2c7391ebe4c7dba693221a90ffab233c69de04cc47a8b7c44d395e0f33ca",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.20000000000000001\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_00/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_00\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 5.188329299999168,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_00\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_00\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.2,
+        "steps": 230,
+        "divB_mean": 1.842e-05,
+        "divB_max": 0.000312,
+        "line": "[mhd] t=0.200000 steps=230 divB_mean=1.842e-05 divB_max=3.120e-04"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_00\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_00\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 5.188329299999168
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.2,
+        "target_time": 0.2,
+        "steps": 230
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-01",
+      "timestamp_utc": "2026-08-07T04:57:42.517297+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_01\\config.cfg",
+      "run_config_sha256": "0da78e3a87c72b6ae2071cc27052175b3063678043bf3427197d904a9118204b",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.34736842105263155\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_01/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_01\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 6.400772100001632,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_01\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_01\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.347368,
+        "steps": 399,
+        "divB_mean": 2.474e-05,
+        "divB_max": 0.0004313,
+        "line": "[mhd] t=0.347368 steps=399 divB_mean=2.474e-05 divB_max=4.313e-04"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_01\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_01\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 6.400772100001632
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.347368,
+        "target_time": 0.347368,
+        "steps": 399
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-02",
+      "timestamp_utc": "2026-08-07T04:57:49.334025+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_02\\config.cfg",
+      "run_config_sha256": "893ea2efcd7656564d1da4f85b502b1df4a665ecb245f0f9040d5b4599712c41",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.49473684210526314\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_02/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_02\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 6.819222900001478,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_02\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_02\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.494737,
+        "steps": 568,
+        "divB_mean": 4.326e-05,
+        "divB_max": 0.001041,
+        "line": "[mhd] t=0.494737 steps=568 divB_mean=4.326e-05 divB_max=1.041e-03"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_02\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_02\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 6.819222900001478
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.494737,
+        "target_time": 0.494737,
+        "steps": 568
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-03",
+      "timestamp_utc": "2026-08-07T04:57:58.559885+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_03\\config.cfg",
+      "run_config_sha256": "cf6debc23400e0d5f361a6213096a45aa25e561a0a1e1e1033f92899faee384c",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.64210526315789473\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_03/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_03\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 9.226587199998903,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_03\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_03\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.642105,
+        "steps": 737,
+        "divB_mean": 7.534e-05,
+        "divB_max": 0.002064,
+        "line": "[mhd] t=0.642105 steps=737 divB_mean=7.534e-05 divB_max=2.064e-03"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_03\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_03\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 9.226587199998903
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.642105,
+        "target_time": 0.642105,
+        "steps": 737
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-04",
+      "timestamp_utc": "2026-08-07T04:58:12.315193+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_04\\config.cfg",
+      "run_config_sha256": "da67f3160935f8c622dd4cc650217184f214eb96c543ad4a3f93aa6b82fb84dd",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.78947368421052633\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_04/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_04\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 13.741229200000816,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_04\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_04\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.789474,
+        "steps": 906,
+        "divB_mean": 0.000135,
+        "divB_max": 0.004111,
+        "line": "[mhd] t=0.789474 steps=906 divB_mean=1.350e-04 divB_max=4.111e-03"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_04\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_04\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 13.741229200000816
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.789474,
+        "target_time": 0.789474,
+        "steps": 906
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-05",
+      "timestamp_utc": "2026-08-07T04:58:25.827620+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_05\\config.cfg",
+      "run_config_sha256": "6ed55e1b0ac872218daf49371361c8407306923afde47ab040464bd249f2b779",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.93684210526315792\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_05/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_05\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 13.510588600001938,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_05\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_05\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.936842,
+        "steps": 1076,
+        "divB_mean": 0.0002205,
+        "divB_max": 0.006816,
+        "line": "[mhd] t=0.936842 steps=1076 divB_mean=2.205e-04 divB_max=6.816e-03"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_05\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_05\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 13.510588600001938
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.936842,
+        "target_time": 0.936842,
+        "steps": 1076
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-06",
+      "timestamp_utc": "2026-08-07T04:58:40.793425+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_06\\config.cfg",
+      "run_config_sha256": "1e67960989329e20912f87d94d83552b969fb7bb31a123f61454fa9b085437c8",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.0842105263157893\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_06/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_06\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 14.953075999997964,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_06\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_06\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.084211,
+        "steps": 1245,
+        "divB_mean": 0.0003662,
+        "divB_max": 0.0128,
+        "line": "[mhd] t=1.084211 steps=1245 divB_mean=3.662e-04 divB_max=1.280e-02"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_06\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_06\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 14.953075999997964
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.08421,
+        "target_time": 1.08421,
+        "steps": 1245
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-07",
+      "timestamp_utc": "2026-08-07T04:58:58.398650+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_07\\config.cfg",
+      "run_config_sha256": "1bf8658027654dae021046a37d909c2f7334b87e7a1223f9d2263fe10b56076c",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.2315789473684209\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_07/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_07\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 17.603142100000696,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_07\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_07\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.231579,
+        "steps": 1415,
+        "divB_mean": 0.0005655,
+        "divB_max": 0.02024,
+        "line": "[mhd] t=1.231579 steps=1415 divB_mean=5.655e-04 divB_max=2.024e-02"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_07\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_07\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 17.603142100000696
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.23158,
+        "target_time": 1.23158,
+        "steps": 1415
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-08",
+      "timestamp_utc": "2026-08-07T04:59:19.187574+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_08\\config.cfg",
+      "run_config_sha256": "3621a566d8400bb1fa4bb16fbbfb12bd7955d90863d47f97eb5f0b3df8e71301",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.3789473684210525\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_08/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_08\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 20.786396600000444,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_08\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_08\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.378947,
+        "steps": 1585,
+        "divB_mean": 0.0008504,
+        "divB_max": 0.03434,
+        "line": "[mhd] t=1.378947 steps=1585 divB_mean=8.504e-04 divB_max=3.434e-02"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_08\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_08\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 20.786396600000444
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.37895,
+        "target_time": 1.37895,
+        "steps": 1585
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-09",
+      "timestamp_utc": "2026-08-07T04:59:40.941230+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_09\\config.cfg",
+      "run_config_sha256": "6c9daee6a26c958bb96ea34d21c2f60a6980219b08b298b69e5cb64fefdfe241",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.5263157894736841\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_09/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_09\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 21.74921059999906,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_09\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_09\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.526316,
+        "steps": 1756,
+        "divB_mean": 0.001244,
+        "divB_max": 0.04556,
+        "line": "[mhd] t=1.526316 steps=1756 divB_mean=1.244e-03 divB_max=4.556e-02"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_09\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_09\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 21.74921059999906
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.52632,
+        "target_time": 1.52632,
+        "steps": 1756
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-10",
+      "timestamp_utc": "2026-08-07T05:00:04.817247+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_10\\config.cfg",
+      "run_config_sha256": "44cc6688a1af139609bea7d43b46fbfd7922201e2d2c27ba15fda4a2ade58d9e",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.6736842105263157\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_10/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_10\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 23.877157999999326,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_10\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_10\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.673684,
+        "steps": 1927,
+        "divB_mean": 0.001958,
+        "divB_max": 0.0823,
+        "line": "[mhd] t=1.673684 steps=1927 divB_mean=1.958e-03 divB_max=8.230e-02"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_10\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_10\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 23.877157999999326
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.67368,
+        "target_time": 1.67368,
+        "steps": 1927
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-11",
+      "timestamp_utc": "2026-08-07T05:00:26.606704+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_11\\config.cfg",
+      "run_config_sha256": "5ff5290363071f615304d04bca9f06f40be254d9b014b61a9da64282e2b415fc",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.8210526315789473\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_11/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_11\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 21.78319580000243,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_11\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_11\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.821053,
+        "steps": 2099,
+        "divB_mean": 0.003126,
+        "divB_max": 0.1538,
+        "line": "[mhd] t=1.821053 steps=2099 divB_mean=3.126e-03 divB_max=1.538e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_11\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_11\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 21.78319580000243
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.82105,
+        "target_time": 1.82105,
+        "steps": 2099
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-12",
+      "timestamp_utc": "2026-08-07T05:00:48.673364+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_12\\config.cfg",
+      "run_config_sha256": "4075141e8c8d51737e0c1ae9c782f0c9f31771bf4c2c96ef15070466e38d7aa8",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.9684210526315786\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_12/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_12\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 22.06078559999878,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_12\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_12\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.968421,
+        "steps": 2274,
+        "divB_mean": 0.005168,
+        "divB_max": 0.2466,
+        "line": "[mhd] t=1.968421 steps=2274 divB_mean=5.168e-03 divB_max=2.466e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_12\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_12\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 22.06078559999878
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.96842,
+        "target_time": 1.96842,
+        "steps": 2274
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-13",
+      "timestamp_utc": "2026-08-07T05:01:11.798302+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_13\\config.cfg",
+      "run_config_sha256": "c689057191a096eec3cc0a1d8552e7ee29d0efa45d5cdfde1bb1b571684b8fdb",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.1157894736842104\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_13/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_13\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 23.130559600002016,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_13\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_13\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.115789,
+        "steps": 2450,
+        "divB_mean": 0.007685,
+        "divB_max": 0.3325,
+        "line": "[mhd] t=2.115789 steps=2450 divB_mean=7.685e-03 divB_max=3.325e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_13\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_13\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 23.130559600002016
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.11579,
+        "target_time": 2.11579,
+        "steps": 2450
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-14",
+      "timestamp_utc": "2026-08-07T05:01:36.702565+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_14\\config.cfg",
+      "run_config_sha256": "42263c17ed17f1151855ece679c9d71665ec3182a1e6fbc6625dd409af530b62",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.263157894736842\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_14/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_14\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 24.891304600001604,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_14\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_14\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.263158,
+        "steps": 2629,
+        "divB_mean": 0.009894,
+        "divB_max": 0.4116,
+        "line": "[mhd] t=2.263158 steps=2629 divB_mean=9.894e-03 divB_max=4.116e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_14\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_14\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 24.891304600001604
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.26316,
+        "target_time": 2.26316,
+        "steps": 2629
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-15",
+      "timestamp_utc": "2026-08-07T05:02:05.869360+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_15\\config.cfg",
+      "run_config_sha256": "df48b1286f7ff86492a146404afc294b725d34ecb8a5ef78e6c6cf3dd1c992d6",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.4105263157894736\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_15/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_15\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 29.173607400000037,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_15\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_15\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.410526,
+        "steps": 2810,
+        "divB_mean": 0.01228,
+        "divB_max": 0.5296,
+        "line": "[mhd] t=2.410526 steps=2810 divB_mean=1.228e-02 divB_max=5.296e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_15\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_15\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 29.173607400000037
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.41053,
+        "target_time": 2.41053,
+        "steps": 2810
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-16",
+      "timestamp_utc": "2026-08-07T05:02:34.778144+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_16\\config.cfg",
+      "run_config_sha256": "f77980421aade6a8413cc2f040530dcd1336f8f5150700c96dc0618f3b8b1ffb",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.5578947368421052\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_16/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_16\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 28.90827200000058,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_16\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_16\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.557895,
+        "steps": 2994,
+        "divB_mean": 0.01394,
+        "divB_max": 0.5627,
+        "line": "[mhd] t=2.557895 steps=2994 divB_mean=1.394e-02 divB_max=5.627e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_16\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_16\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 28.90827200000058
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.55789,
+        "target_time": 2.55789,
+        "steps": 2994
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-17",
+      "timestamp_utc": "2026-08-07T05:03:06.881792+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_17\\config.cfg",
+      "run_config_sha256": "14c8ce76d52a8dae1a514fe2b0a9d17c88eff6231dec706e7df18eab585a8e1a",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.7052631578947368\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_17/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_17\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 32.100764799997705,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_17\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_17\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.705263,
+        "steps": 3179,
+        "divB_mean": 0.0151,
+        "divB_max": 0.4833,
+        "line": "[mhd] t=2.705263 steps=3179 divB_mean=1.510e-02 divB_max=4.833e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_17\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_17\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 32.100764799997705
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.70526,
+        "target_time": 2.70526,
+        "steps": 3179
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-18",
+      "timestamp_utc": "2026-08-07T05:03:40.484843+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_18\\config.cfg",
+      "run_config_sha256": "59da142fb17cfaac4f65cb37f15918ecc5ca99f57effabf6bfe845cfcaeb272a",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.8526315789473684\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_18/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_18\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 33.58971019999808,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_18\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_18\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.852632,
+        "steps": 3366,
+        "divB_mean": 0.01629,
+        "divB_max": 0.5334,
+        "line": "[mhd] t=2.852632 steps=3366 divB_mean=1.629e-02 divB_max=5.334e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_18\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_18\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 33.58971019999808
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.85263,
+        "target_time": 2.85263,
+        "steps": 3366
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-double-19",
+      "timestamp_utc": "2026-08-07T05:04:15.814667+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "8002c4548b9935120d3e38894dff0dc71ecc129066ede68c4d9378ce220039be",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_19\\config.cfg",
+      "run_config_sha256": "35513656ccb0c5657ce02efca68bc8ad7ed01583dda9728c20df06aa0b0430cc",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 3\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/double/slice_19/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_19\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 35.33416969999962,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_19\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_19\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 3.0,
+        "steps": 3553,
+        "divB_mean": 0.01885,
+        "divB_max": 0.6348,
+        "line": "[mhd] t=3.000000 steps=3553 divB_mean=1.885e-02 divB_max=6.348e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_19\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\double\\slice_19\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 35.33416969999962
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 3.0,
+        "target_time": 3.0,
+        "steps": 3553
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-00",
+      "timestamp_utc": "2026-08-07T05:04:17.949434+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_00\\config.cfg",
+      "run_config_sha256": "e05186b9e7daa3502aa0e97278167a25b6f8cdde0457eaeeb079fe34f59fe414",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.20000000000000001\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_00/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_00\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 2.1337261000007857,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_00\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_00\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.2,
+        "steps": 230,
+        "divB_mean": 1.843e-05,
+        "divB_max": 0.0003142,
+        "line": "[mhd] t=0.200000 steps=230 divB_mean=1.843e-05 divB_max=3.142e-04"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_00\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_00\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 2.1337261000007857
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.2,
+        "target_time": 0.2,
+        "steps": 230
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-01",
+      "timestamp_utc": "2026-08-07T05:04:21.524027+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_01\\config.cfg",
+      "run_config_sha256": "25d47d8a025adf30ffdf98cb064252452dd1cd6fc42e7f6063a1dd7b81efb526",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.34736842105263155\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_01/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_01\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 3.565209100001084,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_01\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_01\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.347368,
+        "steps": 399,
+        "divB_mean": 2.48e-05,
+        "divB_max": 0.0004305,
+        "line": "[mhd] t=0.347368 steps=399 divB_mean=2.480e-05 divB_max=4.305e-04"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_01\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_01\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 3.565209100001084
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.347368,
+        "target_time": 0.347368,
+        "steps": 399
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-02",
+      "timestamp_utc": "2026-08-07T05:04:26.279824+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_02\\config.cfg",
+      "run_config_sha256": "f002889dba3e54a3a80650d30fb913f5705c6ec7c2adfbf38ec8905bbbd81765",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.49473684210526314\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_02/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_02\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 4.76256839999769,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_02\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_02\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.494737,
+        "steps": 568,
+        "divB_mean": 4.329e-05,
+        "divB_max": 0.001043,
+        "line": "[mhd] t=0.494737 steps=568 divB_mean=4.329e-05 divB_max=1.043e-03"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_02\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_02\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 4.76256839999769
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.494737,
+        "target_time": 0.494737,
+        "steps": 568
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-03",
+      "timestamp_utc": "2026-08-07T05:04:32.699575+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_03\\config.cfg",
+      "run_config_sha256": "fb1dbdc8d216daad2bfee0c755243e19a0ae83c4b8f244adb0175b4dfb1bb204",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.64210526315789473\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_03/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_03\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 6.406740799997351,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_03\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_03\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.642105,
+        "steps": 737,
+        "divB_mean": 7.535e-05,
+        "divB_max": 0.002066,
+        "line": "[mhd] t=0.642105 steps=737 divB_mean=7.535e-05 divB_max=2.066e-03"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_03\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_03\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 6.406740799997351
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.642105,
+        "target_time": 0.642105,
+        "steps": 737
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-04",
+      "timestamp_utc": "2026-08-07T05:04:40.291583+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_04\\config.cfg",
+      "run_config_sha256": "3639a2907fc74b5adef15e6f8a9664c5eb74936bba3840ac6c7a0ffb644f5bd4",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.78947368421052633\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_04/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_04\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 7.596005800001876,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_04\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_04\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.789474,
+        "steps": 906,
+        "divB_mean": 0.000135,
+        "divB_max": 0.004119,
+        "line": "[mhd] t=0.789474 steps=906 divB_mean=1.350e-04 divB_max=4.119e-03"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_04\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_04\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 7.596005800001876
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.789474,
+        "target_time": 0.789474,
+        "steps": 906
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-05",
+      "timestamp_utc": "2026-08-07T05:04:49.895216+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_05\\config.cfg",
+      "run_config_sha256": "23b234d4b0fd0739a23465b81ee295e7bebcc4eb0a7e5b73cb2802496d603caa",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 0.93684210526315792\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_05/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_05\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 9.598772199999075,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_05\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_05\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 0.936842,
+        "steps": 1076,
+        "divB_mean": 0.0002206,
+        "divB_max": 0.006819,
+        "line": "[mhd] t=0.936842 steps=1076 divB_mean=2.206e-04 divB_max=6.819e-03"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_05\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_05\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 9.598772199999075
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 0.936842,
+        "target_time": 0.936842,
+        "steps": 1076
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-06",
+      "timestamp_utc": "2026-08-07T05:05:01.005448+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_06\\config.cfg",
+      "run_config_sha256": "e28017c2b5895b5c65c929dc045887e1f883e25b5a7501be941b099feb286142",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.0842105263157893\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_06/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_06\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 11.096887700001389,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_06\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_06\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.084211,
+        "steps": 1245,
+        "divB_mean": 0.0003662,
+        "divB_max": 0.0128,
+        "line": "[mhd] t=1.084211 steps=1245 divB_mean=3.662e-04 divB_max=1.280e-02"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_06\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_06\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 11.096887700001389
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.08421,
+        "target_time": 1.08421,
+        "steps": 1245
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-07",
+      "timestamp_utc": "2026-08-07T05:05:13.323301+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_07\\config.cfg",
+      "run_config_sha256": "b45152eb519d30f30051dcd7ec5d31de786dfd458b853672a11b383731b0339e",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.2315789473684209\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_07/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_07\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 12.324890599997161,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_07\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_07\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.231579,
+        "steps": 1415,
+        "divB_mean": 0.0005655,
+        "divB_max": 0.02024,
+        "line": "[mhd] t=1.231579 steps=1415 divB_mean=5.655e-04 divB_max=2.024e-02"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_07\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_07\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 12.324890599997161
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.23158,
+        "target_time": 1.23158,
+        "steps": 1415
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-08",
+      "timestamp_utc": "2026-08-07T05:05:27.525305+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_08\\config.cfg",
+      "run_config_sha256": "d35dccd85d892bb1d3ed92ff1e8057eb0a3edc41d42dc5d23a6aa11e8c03a63e",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.3789473684210525\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_08/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_08\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 14.189356099999713,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_08\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_08\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.378947,
+        "steps": 1585,
+        "divB_mean": 0.0008504,
+        "divB_max": 0.03434,
+        "line": "[mhd] t=1.378947 steps=1585 divB_mean=8.504e-04 divB_max=3.434e-02"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_08\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_08\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 14.189356099999713
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.37895,
+        "target_time": 1.37895,
+        "steps": 1585
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-09",
+      "timestamp_utc": "2026-08-07T05:05:42.952058+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_09\\config.cfg",
+      "run_config_sha256": "e0bd7823d026cd71f287a54782b7a615bb9b025fb9285e735cb5499ec89bec69",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.5263157894736841\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_09/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_09\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 15.42372339999929,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_09\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_09\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.526316,
+        "steps": 1756,
+        "divB_mean": 0.001244,
+        "divB_max": 0.04556,
+        "line": "[mhd] t=1.526316 steps=1756 divB_mean=1.244e-03 divB_max=4.556e-02"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_09\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_09\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 15.42372339999929
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.52632,
+        "target_time": 1.52632,
+        "steps": 1756
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-10",
+      "timestamp_utc": "2026-08-07T05:05:59.968777+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_10\\config.cfg",
+      "run_config_sha256": "0ed9e477ef3c12d0349bbce2f6c788d5ede86f33a2df3354bdf81dde6662fa1b",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.6736842105263157\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_10/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_10\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 17.01921630000288,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_10\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_10\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.673684,
+        "steps": 1927,
+        "divB_mean": 0.001958,
+        "divB_max": 0.0823,
+        "line": "[mhd] t=1.673684 steps=1927 divB_mean=1.958e-03 divB_max=8.230e-02"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_10\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_10\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 17.01921630000288
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.67368,
+        "target_time": 1.67368,
+        "steps": 1927
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-11",
+      "timestamp_utc": "2026-08-07T05:06:18.470750+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_11\\config.cfg",
+      "run_config_sha256": "a1ec1845927a836dfec816646ac149d366caf1d2ae960bb80a3462d010adf8fe",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.8210526315789473\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_11/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_11\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 18.498675900002127,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_11\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_11\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.821053,
+        "steps": 2099,
+        "divB_mean": 0.003125,
+        "divB_max": 0.1538,
+        "line": "[mhd] t=1.821053 steps=2099 divB_mean=3.125e-03 divB_max=1.538e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_11\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_11\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 18.498675900002127
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.82105,
+        "target_time": 1.82105,
+        "steps": 2099
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-12",
+      "timestamp_utc": "2026-08-07T05:06:38.453477+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_12\\config.cfg",
+      "run_config_sha256": "f739868329ed2a307624b93dc800f8d8fac83f0e926d25ed43b8e5c66da1ea3a",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 1.9684210526315786\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_12/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_12\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 19.97610970000096,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_12\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_12\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 1.968421,
+        "steps": 2274,
+        "divB_mean": 0.005168,
+        "divB_max": 0.2467,
+        "line": "[mhd] t=1.968421 steps=2274 divB_mean=5.168e-03 divB_max=2.467e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_12\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_12\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 19.97610970000096
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 1.96842,
+        "target_time": 1.96842,
+        "steps": 2274
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-13",
+      "timestamp_utc": "2026-08-07T05:06:59.978711+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_13\\config.cfg",
+      "run_config_sha256": "1c58e5d4e617b5e77ee51996ed8bdb3da19bb66e1e0997c97243747a453d3e9d",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.1157894736842104\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_13/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_13\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 21.519503200001054,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_13\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_13\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.115789,
+        "steps": 2450,
+        "divB_mean": 0.007685,
+        "divB_max": 0.3325,
+        "line": "[mhd] t=2.115789 steps=2450 divB_mean=7.685e-03 divB_max=3.325e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_13\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_13\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 21.519503200001054
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.11579,
+        "target_time": 2.11579,
+        "steps": 2450
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-14",
+      "timestamp_utc": "2026-08-07T05:07:23.428789+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_14\\config.cfg",
+      "run_config_sha256": "294bc592e145d652103940ce8750bea6b10549f45992ca7529ce20aa88309ce9",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.263157894736842\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_14/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_14\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 23.4597904000002,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_14\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_14\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.263158,
+        "steps": 2629,
+        "divB_mean": 0.009896,
+        "divB_max": 0.4117,
+        "line": "[mhd] t=2.263158 steps=2629 divB_mean=9.896e-03 divB_max=4.117e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_14\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_14\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 23.4597904000002
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.26316,
+        "target_time": 2.26316,
+        "steps": 2629
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-15",
+      "timestamp_utc": "2026-08-07T05:07:48.038810+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_15\\config.cfg",
+      "run_config_sha256": "660b4572e7f0659c0d202b79626b78cf5726e0a2b81ce47080174d6f3828f795",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.4105263157894736\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_15/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_15\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 24.599205400001665,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_15\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_15\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.410526,
+        "steps": 2810,
+        "divB_mean": 0.01228,
+        "divB_max": 0.5296,
+        "line": "[mhd] t=2.410526 steps=2810 divB_mean=1.228e-02 divB_max=5.296e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_15\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_15\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 24.599205400001665
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.41053,
+        "target_time": 2.41053,
+        "steps": 2810
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-16",
+      "timestamp_utc": "2026-08-07T05:08:13.848892+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_16\\config.cfg",
+      "run_config_sha256": "ec5e52b1bb8e125fdbf88fdd7a112b8eda167222e15e90ce09f985b7f192dd3f",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.5578947368421052\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_16/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_16\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 25.812679799997568,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_16\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_16\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.557895,
+        "steps": 2994,
+        "divB_mean": 0.01395,
+        "divB_max": 0.5629,
+        "line": "[mhd] t=2.557895 steps=2994 divB_mean=1.395e-02 divB_max=5.629e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_16\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_16\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 25.812679799997568
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.55789,
+        "target_time": 2.55789,
+        "steps": 2994
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-17",
+      "timestamp_utc": "2026-08-07T05:08:39.496999+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_17\\config.cfg",
+      "run_config_sha256": "61278fd414c549a89efafb0a3d3e7a7dc6c815fb6a03f12a5dd5efc24cb74bda",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.7052631578947368\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_17/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_17\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 25.638707899997826,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_17\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_17\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.705263,
+        "steps": 3179,
+        "divB_mean": 0.0151,
+        "divB_max": 0.4832,
+        "line": "[mhd] t=2.705263 steps=3179 divB_mean=1.510e-02 divB_max=4.832e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_17\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_17\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 25.638707899997826
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.70526,
+        "target_time": 2.70526,
+        "steps": 3179
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-18",
+      "timestamp_utc": "2026-08-07T05:09:06.860531+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_18\\config.cfg",
+      "run_config_sha256": "933c9469f74c19308e9db096c6aaa63f2ab28b1c91a9ed739815ef643500d5c4",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 2.8526315789473684\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_18/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_18\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 27.360427300001902,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_18\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_18\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 2.852632,
+        "steps": 3366,
+        "divB_mean": 0.01629,
+        "divB_max": 0.5333,
+        "line": "[mhd] t=2.852632 steps=3366 divB_mean=1.629e-02 divB_max=5.333e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_18\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_18\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 27.360427300001902
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 2.85263,
+        "target_time": 2.85263,
+        "steps": 3366
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    },
+    {
+      "experiment": "week22-mhd-saturation-grid-solver",
+      "name": "kh_n128_hlld_cfl02-float-19",
+      "timestamp_utc": "2026-08-07T05:09:35.840791+00:00",
+      "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+      "binary_sha256": "194d6ddb0ae74b6097854bdc2fd57541900cf0af99a1576bc2dea024d6b1e081",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_19\\config.cfg",
+      "run_config_sha256": "071f6c5d23c6e2cdc4c0d67845029332ee6889781587818a45a82c748797f7ae",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx = 128\nny = 128\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.20000000000000001\nt_end = 3\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hlld\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week22/mhd_saturation_grid_solver_kh_n128_hlld_cfl02/runs/kh_n128_hlld_cfl02/float/slice_19/grid.bin\n",
+      "command": [
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-float-O2-ieee-leq\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_19\\config.cfg"
+      ],
+      "returncode": 0,
+      "elapsed_wall_s": 28.97638029999871,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_19\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_19\\stderr.txt",
+      "stderr_diagnostics": {
+        "t": 3.0,
+        "steps": 3553,
+        "divB_mean": 0.01886,
+        "divB_max": 0.6352,
+        "line": "[mhd] t=3.000000 steps=3553 divB_mean=1.886e-02 divB_max=6.352e-01"
+      },
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_19\\grid.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week22\\mhd_saturation_grid_solver_kh_n128_hlld_cfl02\\runs\\kh_n128_hlld_cfl02\\float\\slice_19\\grid.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 28.97638029999871
+      },
+      "failure": null,
+      "completion": {
+        "reported": true,
+        "final_time": 3.0,
+        "target_time": 3.0,
+        "steps": 3553
+      },
+      "build_semantics": {
+        "requested_opt_level": "O2",
+        "requested_fast_math": false,
+        "requested_strict_ieee": false,
+        "effective_math_mode": "compiler-default",
+        "compiler_id": "MSVC",
+        "compiler_version": "19.51.36248.0",
+        "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+        "evidence": {
+          "optimization": "/O2",
+          "strict_ieee": "",
+          "fast_math": ""
+        }
+      }
+    }
+  ],
+  "runs_successful": true
+}

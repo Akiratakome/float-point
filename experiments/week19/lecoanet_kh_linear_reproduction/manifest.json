@@ -1,0 +1,26 @@
+{
+  "schema": {"name": "hrsc.experiment-manifest", "version": 1},
+  "id": "report2-week19-lecoanet-kh-linear-reproduction",
+  "report": "report2",
+  "lifecycle": "canonical",
+  "purpose": "Reproduce the exact smooth unstratified Lecoanet Kelvin-Helmholtz initial condition and a bounded early linear-growth diagnostic without claiming the nonlinear diffusive reference solution.",
+  "pipeline": {
+    "config": ["tests/cases/kelvin_helmholtz_lecoanet_2d/lecoanet_unstratified.cfg"],
+    "build": ["scripts/build_all.sh"],
+    "run": ["scripts/regression/mhd_lecoanet_kh_reproduction.py"],
+    "measure": ["scripts/regression/mhd_lecoanet_kh_reproduction.py"],
+    "aggregate": ["experiments/week19/lecoanet_kh_linear_reproduction/summary.json"],
+    "plot": ["experiments/week19/lecoanet_kh_linear_reproduction/figures/lecoanet_kh_mode_growth.png"]
+  },
+  "evidence": [
+    "experiments/week19/lecoanet_kh_linear_reproduction/summary.md",
+    "experiments/week19/lecoanet_kh_linear_reproduction/summary.json"
+  ],
+  "retention": {
+    "keep": ["manifest.json", "summary.*", "figures/", "runs/*/config.cfg", "runs/*/metadata.json", "runs/*/stdout.txt", "runs/*/stderr.txt"],
+    "transient": ["runs/*/grid.bin"]
+  },
+  "provenance": {
+    "notes": "The packet records the source cfg and binary hashes, generated configs, completion metadata, logs, fit window, and claim boundary. The literature growth rate is diagnostic and is not the pass threshold."
+  }
+}

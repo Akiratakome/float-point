@@ -199,6 +199,56 @@ def test_sample_args_threads_jobs_default_one():
     assert ns5.jobs == 5
 
 
+def test_sample_args_threads_timeout_and_backend():
+    ns = sampler._sample_args(
+        Path("."), 24, 4, "img", "hll", sample_timeout_s=14400,
+        backend_lib="libinterflop_mca.so",
+    )
+    assert ns.sample_timeout_s == 14400
+    assert ns.backend_lib == "libinterflop_mca.so"
+
+
 def test_parse_args_accepts_jobs():
     assert sampler.parse_args(["--jobs", "7"]).jobs == 7
     assert sampler.parse_args([]).jobs == 1
+
+
+def test_parse_args_accepts_split_precision_and_merge_options():
+    args = sampler.parse_args([
+        "--precisions", "24", "--merge-only",
+        "--sample-timeout-s", "14400", "--backend-lib", "custom.so",
+    ])
+    assert args.precisions == "24"
+    assert args.merge_only is True
+    assert args.sample_timeout_s == 14400
+    assert args.backend_lib == "custom.so"
+
+
+def test_parse_precisions_normalises_labels_and_rejects_unknown():
+    assert sampler._parse_precisions("p53,24,p53") == [53, 24]
+    try:
+        sampler._parse_precisions("16")
+    except ValueError as exc:
+        assert "unsupported precision" in str(exc)
+    else:
+        raise AssertionError("unsupported precision was accepted")
+
+
+def test_merge_partials_requires_both_precision_blocks(tmp_path):
+    common = {
+        "experiment": "kh-mca", "case": "kh.cfg", "samples": 30,
+        "solver": "hll",
+    }
+    (tmp_path / "summary_p53.json").write_text(
+        json.dumps({**common, "mca": {"p53": {"status": "completed"}}}),
+        encoding="utf-8",
+    )
+    (tmp_path / "summary_p24.json").write_text(
+        json.dumps({**common, "mca": {"p24": {"status": "completed"}}}),
+        encoding="utf-8",
+    )
+
+    target = sampler.merge_partials(tmp_path)
+    merged = json.loads(target.read_text(encoding="utf-8"))
+    assert set(merged["mca"]) == {"p53", "p24"}
+    assert merged["solver"] == "hll"

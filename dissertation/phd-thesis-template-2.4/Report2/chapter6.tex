@@ -3,83 +3,78 @@
 \chapter{Discussion: Reproducibility Across Implementations}
 \label{chap:reproducibility-discussion}
 
-None of the validation checks in Chapter~\ref{chap:mhd-validation-results}
-found the implementation failures they target, and none measures physical
-accuracy. A matched difference that clears them is therefore a response to the
-declared axis with its mechanism left open, which is what makes the
-comparisons below interpretable without turning every discrepancy into error.
+No validation check in Chapter~\ref{chap:mhd-validation-results} found the
+implementation failure it targets, and none measures physical accuracy, so a
+matched difference clearing them is a response to the declared axis with its
+mechanism left open, not an error.
 
 \section{Relative importance of the tested axes}
 \label{sec:ch6-relative-importance}
 
 Importance is case- and criterion-specific, and a small domain average can hide
 a large local one: Orszag--Tang/HLLD at $512^2$ gave
-$L_\infty=5.031\times10^{-2}$ against a mean-$L_1$ of $5.554\times10^{-5}$. The
-obvious reading, that shocks and current sheets occupy few cells so displacing
-one dominates $L_\infty$, holds for HLLD but not generally: the mapped
-discrepancy of Section~\ref{sec:ch5-cross-system} puts $38\%$ of HLLD's total
-on $1\%$ of cells and only $6\%$ of HLL's, against $1\%$ for a uniform field.
-Localisation is a solver property, and the diffusive clamped HLL path spreads
-its discrepancy much as it spreads the features themselves.
+$L_\infty=5.031\times10^{-2}$ against a mean-$L_1$ of $5.554\times10^{-5}$. That
+shocks and current sheets occupy few cells, so displacing one dominates
+$L_\infty$, holds for HLLD but not generally: the mapped
+discrepancy of Section~\ref{sec:ch5-cross-system} puts $38\%$ of HLLD's total on
+$1\%$ of cells and only $6\%$ of HLL's, the diffusive clamped path spreading its
+discrepancy as it spreads the features.
 
-HLL replaces the internal Riemann fan by a two-wave approximation that the GLM
-clamp reduces further to a globally scaled Rusanov flux
-(Section~\ref{sec:ch2-riemann}), whereas HLLD restores the intermediate waves
-\citep{miyoshi_kusano_2005} and carries 14 guarded degeneracy decisions. Its
-non-zero branch response must originate at the intermediate ties, since HLL's
-own equality branches are unreachable by construction rather than by luck
-(Section~\ref{sec:ch5-build-sensitivity}).
-Instrumenting those decisions makes the argument a measurement rather than an
-inference, and narrows it. Of the three ties only $S_M$ is ever exactly zero on
-Brio--Wu, and it is zero at $62\%$ of interface evaluations, while
-Orszag--Tang reaches no exact tie at all; the fourteen degeneracy guards never
-fire on either. At a matched time step HLLD also attains the higher observed
+HLL's equality branches are unreachable by construction rather than by luck
+(Section~\ref{sec:ch5-build-sensitivity}), so the branch response HLLD shows must
+originate at its intermediate ties, and instrumenting them narrows it to one: of
+the three, only $S_M$ ever evaluates to
+exactly zero on Brio--Wu, at $62\%$ of interface evaluations, a share the
+initial state's uniform zero velocity makes available and one Orszag--Tang never
+reaches at all. At a matched time step HLLD also attains the higher
 refinement rate on both two-dimensional cases
 (Section~\ref{sec:ch4-orszag-tang}), so the sensitivity is not bought by
-inaccuracy. The lesson is one of counting rather than quality: exposure to
-an implementation detail follows from how many internal decisions are actually
-reached, not from accuracy or dissipation, so the more accurate Riemann solver
-is here the more implementation-sensitive one, and it is sensitive through one
-specific decision rather than through its elaborateness in general.
+inaccuracy: the more accurate solver is here the more implementation-sensitive
+one, through one specific decision rather than through its elaborateness.
 
 The null CPU/GPU saved-state differences establish deterministic equivalence for
-those matched configurations, but that equivalence was arranged rather than
-found: it needs device contraction disabled to match the host, and restoring
-nvcc's own default removed it in every pair (Section~\ref{sec:ch5-hardware}).
-Bitwise agreement across processor types is therefore a property of the build
-configuration, not of the hardware. Nor does the larger difference make the
-contracted result the worse one, since a fused multiply--add rounds once where
-the host rounds twice; the axis is ranked by displacement from the baseline,
-not by accuracy, which is also why the still more relaxed
-\texttt{--use\_fast\_math} build sits closer to the host. The instruction-set
-null result sharpens the point: widening the registers changed nothing, because
-the semantics rather than the instruction mix decide.
+those matched configurations, but it was arranged rather than found: it needs
+device contraction disabled to match the host, and restoring nvcc's default
+removed it in every pair (Section~\ref{sec:ch5-hardware}). Bitwise agreement
+across processor types is a property of the build configuration, not of the
+hardware. Nor does the larger difference make the contracted result worse, since
+a fused multiply--add rounds once where the host rounds twice; the axis is
+ranked by displacement from the baseline, not by accuracy, which is why the
+still more relaxed \texttt{--use\_fast\_math} build sits closer to the host.
+Widening the registers changed nothing, because the semantics rather than the
+instruction mix decide. These distinctions stop ``stable'' becoming shorthand
+for ``reproducible'': completion, a changed saved field and an identical stored
+representation are three different claims.
 
-These distinctions stop ``stable'' becoming shorthand for ``reproducible'':
-completion, a changed saved field and an identical stored representation are
-three different claims.
+On the clamped HLL path at $128^2$ all three cases climb to two or three
+roundings in the density domain mean and then stop, so the expectation that a
+chaotic two-dimensional problem must separate faster than a one-dimensional
+shock tube fails because there is a level to reach, Brio--Wu having been stopped
+on the way to it (Section~\ref{sec:ch5-temporal}). Repeating that series one
+factor at a time locates what the plateau belongs to
+(Section~\ref{sec:ch5-saturation-axes}): not the time step, which changes the
+level and not the shape, and not the arithmetic, since refining the grid doubles
+the fitted exponent, replacing the clamped flux with HLLD quadruples it and
+removes the plateau, and the two compound. Bounded separation is a property of
+the most dissipative configuration in the matrix, which the least dissipative
+path contradicts, so the reading survives only where a configuration is stated
+with it.
 
-The temporal study is partly a statement about sampling. Both cases approach a
-common level near 2.3 roundings in the density mean at the resolutions used
-(Section~\ref{sec:ch5-temporal}), so the expectation that a chaotic
-two-dimensional problem must separate faster than a one-dimensional shock tube
-is not tested here: the series differ in sampling window, not in mechanism. It
-is also a statement about mechanism. Every axis followed in time, precision and
-both build axes, is better described by a power law than by an exponential,
-with exponents near 1.4--1.6. Growth is therefore governed by how many
-operations have been performed rather than by which axis introduced the
-difference, and the e-folding reading of a fitted $\lambda$ does not apply.
+One limit stops that becoming a claim about ideal MHD: the amplifying window
+lies past the case's validation stopping time, so it is covered by completion
+and physical-state checks and by no reference. The obvious competing
+explanation, that those runs are simply losing divergence control, would require
+the divergence residual to track the exponent, and refinement moves them
+oppositely --- halving HLLD's residual while raising its exponent --- so the
+growth is not the constraint decaying.
 
 Performance is workload-dependent: in cell updates per second the CPU rate
 barely moved between the two problems while the GPU rate spanned seventyfold,
 which is what amortising fixed launch, transfer and output costs looks like.
-Every CPU rate here is single-core, so the device is compared against one core
-rather than the machine, and the crossover would move with a work-shared host.
-Modest precision speed-ups likewise need not track arithmetic throughput when
-memory traffic and control flow share the runtime. That reading suits a
-bandwidth-bound placement on the Roofline model
-\citep{williamsEtAl2009roofline}, but no operational intensity or hardware
-counter was measured, so the placement is inferred rather than established.
+Every CPU rate here is single-core, so the crossover would move with a
+work-shared host. The modest precision speed-ups suit a bandwidth-bound
+placement \citep{williamsEtAl2009roofline}, but with no operational intensity or
+hardware counter measured that placement is inferred rather than established.
 
 Table~\ref{tab:ch6-axis-ranking} collects the responses by axis.
 
@@ -93,69 +88,92 @@ Axis & Domain-mean response & Local ($L_\infty$) response & Case dependence \\
 Precision (fp32/fp64) & 2.3--6.3 $u_{32}$ on coarse grids; 335 $u_{32}$ at
 Orszag--Tang/HLLD $512^2$ & up to $5.031\times10^{-2}$ & strong in case and
 grid \\
-Build semantics (/fp:fast) & zero at fp64 scale & fp32 $1.311\times10^{-6}$
+Build semantics (/fp:fast) & zero at fp64 scale; $3.51\,u_{32}$ for fp32
+Brio--Wu & fp32 $1.311\times10^{-6}$
 (HLL), $1.729\times10^{-6}$ (HLLD) & both solvers; in fp32 exceeded the
 precision response for LW3 \\
-Device FMA contraction (nvcc) & not reported separately & fp32
+Device FMA contraction (nvcc) & $3.16\,u_{32}$ for fp32 Brio--Wu & fp32
 $2.265\times10^{-6}$ (Brio--Wu), $2.074\times10^{-5}$ (Orszag--Tang) & removes
 CPU/GPU bitwise agreement in all four pairs \\
-Branch rule ($\le$/$<$) & zero for HLL & zero for HLL by construction; fp32
-HLLD $2.608\times10^{-6}$ & solver-determined \\
-CFL number & not reported separately & fp32--fp64 gap falls by 5.25 from CFL
-0.2 to 0.8 (HLL) & tracks a fourfold step-count drop \\
+Branch rule ($\le$/$<$) & zero for HLL$^{\ast}$ & zero for HLL$^{\ast}$ by
+construction; fp32 HLLD $2.608\times10^{-6}$ & solver-determined \\
+CFL number & not measured & fp32--fp64 gap falls fourfold in step count and by
+5.25 (HLL) or 2.28 (HLLD) from CFL 0.2 to 0.8 & solver-determined; $n=1$ per
+setting \\
 Optimisation level (/O2, /Ox) & zero & zero & none measured \\
 Instruction set (/arch:SSE2, /arch:AVX2) & zero & zero, bitwise & none
 measured \\
-Processor type (CPU/GPU, HLL) & zero & zero, bitwise & at matched contraction
-only \\
-Requested thread count & zero & zero & axis inactive in this code \\
+Processor type (CPU/GPU, HLL$^{\ast}$) & zero & zero, bitwise & at matched
+contraction only \\
+Thread count & zero & zero, bitwise & 1--8 threads; inactive in the MHD path,
+a measured null on the work-shared Euler path at $4.79\times$ speed-up \\
 \bottomrule
 \end{tabularx}
 \caption[Response by controlled axis]{\textbf{Response by controlled axis.}
-Domain means are mean-relative $L_1$, local values absolute $L_\infty$;
-density only.}
+Domain means are mean-relative $L_1$, local values absolute $L_\infty$, so the
+two columns are not on a common scale; density only. HLL$^{\ast}$ is the
+globally clamped path of Section~\ref{sec:ch2-riemann}.}
 \label{tab:ch6-axis-ranking}
 \end{table}
 
 On the four axes sharing the Brio--Wu fp32 configuration exactly, all on the
-HLL path since only HLL has device coverage, the device contraction default
-leads, ahead of relaxed host semantics and then precision, with the branch rule
-last at zero; optimisation level, instruction set, processor type at matched
-contraction, and requested thread count produced no measured change. On HLLD
-the ranking inverts at that end, its branch rule giving the largest response
-measured here. The ordering holds for these cases and grids under one
-toolchain, and for density alone.
+HLL path since only HLL has device coverage, device contraction gives the
+largest response, then relaxed host semantics, then precision, with the branch
+rule at zero; optimisation level, instruction set, processor type at matched
+contraction and thread count produced no measured change. The three non-zero
+responses span a factor of two and all lie within the p24 Monte Carlo spread
+(Section~\ref{sec:ch5-mca}), so their sequence is not a ranking, and the two
+norms disagree on it: in the domain mean relaxed host semantics lead at
+$3.51\,u_{32}$ against contraction's $3.16$ and precision's $2.35$, exchanging
+the top two of the $L_\infty$ order. What the configuration establishes is the
+division between axes that move the stored field and axes that leave it
+untouched, and on HLLD the branch rule crosses into the first group with the
+largest response measured here. All of this holds for these cases and grids
+under one toolchain, and for density alone.
 
 Cross-code comparison needs shared benchmarks and diagnostics
-\citep{kritsukEtAl2011comparison}, which makes PLUTO, Athena and Athena++
-\citep{mignoneEtAl2007pluto,stoneEtAl2008athena,stoneEtAl2020athenapp} the
-natural independent-implementation targets.
+\citep{kritsukEtAl2011comparison}, making PLUTO, Athena and Athena++
+\citep{mignoneEtAl2007pluto,stoneEtAl2008athena,stoneEtAl2020athenapp,
+greteEtAl2021kathena} the natural independent-implementation targets, and since
+implementations of one specification can diverge far beyond anything measured
+here \citep{hatton1997tExperiments}, that comparison would set these effects
+against a much coarser scale.
 
 \section{Reproducibility of a published algorithm}
 \label{sec:ch6-published-algorithm}
 
 Operationally the MUSCL--Hancock/GLM update proved reliable: across two
 precisions, four CFL numbers, three grids and two devices, every reported run
-finished with finite, positive states, the one Orszag--Tang HLLD exception
-needing a fallback that then fired twice in three million line updates.
-Insensitivity is another matter, since relaxed floating-point semantics and the
-HLLD branch rule each moved the saved field, and the fp32--fp64 separation grew
-under refinement instead of shrinking. A scheme can be perfectly stable and
-still fail to reproduce bit for bit across builds.
+finished with finite, positive states. Insensitivity is another matter, since
+relaxed floating-point semantics and the HLLD branch rule each moved the saved
+field, and the fp32--fp64 separation grew under refinement, and in time on the
+least dissipative flux, instead of shrinking. A scheme can be perfectly stable
+and still fail to reproduce bit for bit across builds
+\citep{mesnardBarba2017cfd}.
 
-Reproducing a published algorithm therefore requires more than naming HLL,
-HLLD or MUSCL--Hancock. The record must fix an immutable source revision, a
-build recipe with the effective compiler and floating-point options, a complete
-case definition, the algorithmic choices that alter the arithmetic path, and
-the execution platform, acceptance criteria and timing protocol actually used,
-bound to the retained artefacts by hash
-\citep{plesser2018reproducibility,sandveEtAl2013reproducible};
-Appendix~\ref{sec:appendix-provenance} supplies them. Containers preserve much
-of the software environment, but not hardware-dependent arithmetic.
+That leaves the question the project began from: when is fp32 defensible? Only
+the case with an exact solution can answer it, and the answer is conditional on
+the grid: fp32 tracked fp64 while truncation dominated and left it at $N=2048$,
+beyond which refining in fp32 bought less than moving to fp64 on half the cells
+(Section~\ref{sec:ch4-cp-alfven}). Precision and resolution are chosen together,
+for a scheme and a problem, not once for a code.
+
+Reproducing a published algorithm therefore requires more than naming HLL, HLLD
+or MUSCL--Hancock. The record must fix an immutable source revision, a build
+recipe with the effective compiler and floating-point options, a complete case
+definition, the algorithmic choices that alter the arithmetic path, and the
+execution platform, acceptance criteria and timing protocol actually used, bound
+to the retained artefacts by hash
+\citep{plesser2018reproducibility,sandveEtAl2013reproducible} as
+Appendix~\ref{sec:appendix-provenance} does. Containers preserve much of the
+software environment, but not hardware-dependent arithmetic.
 
 The record supports two distinct claims. Bitwise reproducibility requires the
 same stored representation under tightly matched execution; scientific
 reproducibility requires the declared conclusion to survive comparison with a
 justified reference and stated tolerances, and can stand where bitwise
 agreement between independent implementations is infeasible, provided
-unexplained differences are exposed through retained outputs.
+unexplained differences are exposed through retained outputs. Where no
+reference is available at all, a distributional criterion can take its place:
+\citet{bakerEtAl2015ensemble} accept a changed configuration when its output
+falls inside an ensemble generated by perturbations already judged acceptable.

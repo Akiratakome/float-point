@@ -1,0 +1,631 @@
+{
+  "schema": {
+    "name": "hrsc.week20-brio-build-semantics",
+    "version": 1
+  },
+  "experiment": "week20-brio-wu-build-semantics",
+  "source_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
+  "configuration": {
+    "case": "brio_wu_1d",
+    "nx": 800,
+    "ny": 1,
+    "t_end": 0.1,
+    "cfl": 0.4,
+    "gamma": 2.0,
+    "device": "cpu",
+    "omp_num_threads": 1,
+    "solvers": [
+      "hll",
+      "hlld"
+    ],
+    "precisions": [
+      "double",
+      "float"
+    ]
+  },
+  "builds": [
+    {
+      "precision": "double",
+      "variant": "o2",
+      "build_name": "cpu-double-O2-ieee-leq",
+      "requested_branch_rule": "<=",
+      "binary_sha256": "fa8d523b7064b0511bb11ca43fdec64111c011a5d77e36242c856afec06db9e3",
+      "semantics_sha256": "e4c35d239bcddd4410f3f12abb84011587ec9e007bf7521c3b7e6d1d28471974",
+      "compiler": {
+        "id": "MSVC",
+        "version": "19.51.36248.0",
+        "path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+      },
+      "requested": {
+        "opt_level": "O2",
+        "fast_math": false,
+        "strict_ieee": false
+      },
+      "effective_math_mode": "compiler-default",
+      "flag_evidence": {
+        "optimization": "/O2",
+        "fast_math": "",
+        "strict_ieee": ""
+      }
+    },
+    {
+      "precision": "double",
+      "variant": "ox",
+      "build_name": "cpu-double-O3-ieee-leq",
+      "requested_branch_rule": "<=",
+      "binary_sha256": "9cab484a54e59f1d390db770045a74b6bd63d14bb3dfed6bf13b5806f6ead128",
+      "semantics_sha256": "0c1ce16ded2ab2acf43a495b8d4d3eb101be4e5eb30369056d9993d78b6e99e0",
+      "compiler": {
+        "id": "MSVC",
+        "version": "19.51.36248.0",
+        "path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+      },
+      "requested": {
+        "opt_level": "O3",
+        "fast_math": false,
+        "strict_ieee": false
+      },
+      "effective_math_mode": "compiler-default",
+      "flag_evidence": {
+        "optimization": "/Ox",
+        "fast_math": "",
+        "strict_ieee": ""
+      }
+    },
+    {
+      "precision": "double",
+      "variant": "fast",
+      "build_name": "cpu-double-O2-fastmath-leq",
+      "requested_branch_rule": "<=",
+      "binary_sha256": "68c3fcad336fa1bec6e6c5611908e98fb0f5186f3f9f1a5838b5e04057b0ce4a",
+      "semantics_sha256": "1917a5a8568d37bd7531b226e3590fcbd13f200063baaf82b7662465c360802b",
+      "compiler": {
+        "id": "MSVC",
+        "version": "19.51.36248.0",
+        "path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+      },
+      "requested": {
+        "opt_level": "O2",
+        "fast_math": true,
+        "strict_ieee": false
+      },
+      "effective_math_mode": "fast",
+      "flag_evidence": {
+        "optimization": "/O2",
+        "fast_math": "/fp:fast",
+        "strict_ieee": ""
+      }
+    },
+    {
+      "precision": "double",
+      "variant": "strict",
+      "build_name": "cpu-double-O2-ieee-strict",
+      "requested_branch_rule": "<",
+      "binary_sha256": "e0efa089b99dd974e13acbeb98d9059187715e52b7042942af39f5c5633b8fd7",
+      "semantics_sha256": "e4c35d239bcddd4410f3f12abb84011587ec9e007bf7521c3b7e6d1d28471974",
+      "compiler": {
+        "id": "MSVC",
+        "version": "19.51.36248.0",
+        "path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+      },
+      "requested": {
+        "opt_level": "O2",
+        "fast_math": false,
+        "strict_ieee": false
+      },
+      "effective_math_mode": "compiler-default",
+      "flag_evidence": {
+        "optimization": "/O2",
+        "fast_math": "",
+        "strict_ieee": ""
+      }
+    },
+    {
+      "precision": "float",
+      "variant": "o2",
+      "build_name": "cpu-float-O2-ieee-leq",
+      "requested_branch_rule": "<=",
+      "binary_sha256": "05864ddc8eb801ec43671c714265567cbe3d534197a37e98d4837f45d88dc775",
+      "semantics_sha256": "e4c35d239bcddd4410f3f12abb84011587ec9e007bf7521c3b7e6d1d28471974",
+      "compiler": {
+        "id": "MSVC",
+        "version": "19.51.36248.0",
+        "path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+      },
+      "requested": {
+        "opt_level": "O2",
+        "fast_math": false,
+        "strict_ieee": false
+      },
+      "effective_math_mode": "compiler-default",
+      "flag_evidence": {
+        "optimization": "/O2",
+        "fast_math": "",
+        "strict_ieee": ""
+      }
+    },
+    {
+      "precision": "float",
+      "variant": "ox",
+      "build_name": "cpu-float-O3-ieee-leq",
+      "requested_branch_rule": "<=",
+      "binary_sha256": "fd9a9814cfeffbfa4d32f7a12853dfdbc939517bc16663dc7bcf5336d8b7fa27",
+      "semantics_sha256": "0c1ce16ded2ab2acf43a495b8d4d3eb101be4e5eb30369056d9993d78b6e99e0",
+      "compiler": {
+        "id": "MSVC",
+        "version": "19.51.36248.0",
+        "path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+      },
+      "requested": {
+        "opt_level": "O3",
+        "fast_math": false,
+        "strict_ieee": false
+      },
+      "effective_math_mode": "compiler-default",
+      "flag_evidence": {
+        "optimization": "/Ox",
+        "fast_math": "",
+        "strict_ieee": ""
+      }
+    },
+    {
+      "precision": "float",
+      "variant": "fast",
+      "build_name": "cpu-float-O2-fastmath-leq",
+      "requested_branch_rule": "<=",
+      "binary_sha256": "af05912e889b4f42fb4ad8bb29c4f9a7d09554262517164736da0ed6fe571fb6",
+      "semantics_sha256": "1917a5a8568d37bd7531b226e3590fcbd13f200063baaf82b7662465c360802b",
+      "compiler": {
+        "id": "MSVC",
+        "version": "19.51.36248.0",
+        "path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+      },
+      "requested": {
+        "opt_level": "O2",
+        "fast_math": true,
+        "strict_ieee": false
+      },
+      "effective_math_mode": "fast",
+      "flag_evidence": {
+        "optimization": "/O2",
+        "fast_math": "/fp:fast",
+        "strict_ieee": ""
+      }
+    },
+    {
+      "precision": "float",
+      "variant": "strict",
+      "build_name": "cpu-float-O2-ieee-strict",
+      "requested_branch_rule": "<",
+      "binary_sha256": "2824b492b0fa0d1dd114bb54ebcc7f0536ec04f31e0e3f71994fd6774d683e6e",
+      "semantics_sha256": "e4c35d239bcddd4410f3f12abb84011587ec9e007bf7521c3b7e6d1d28471974",
+      "compiler": {
+        "id": "MSVC",
+        "version": "19.51.36248.0",
+        "path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+      },
+      "requested": {
+        "opt_level": "O2",
+        "fast_math": false,
+        "strict_ieee": false
+      },
+      "effective_math_mode": "compiler-default",
+      "flag_evidence": {
+        "optimization": "/O2",
+        "fast_math": "",
+        "strict_ieee": ""
+      }
+    }
+  ],
+  "gate": {
+    "pass": true,
+    "complete_runs": true,
+    "complete_metrics": true,
+    "same_steps_within_solver_precision": true
+  },
+  "runs": [
+    {
+      "solver": "hll",
+      "precision": "double",
+      "variant": "o2",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 759,
+      "final_time": 0.1,
+      "precision_bytes": 8,
+      "rho_min": 0.11716054488890934,
+      "pressure_min": 0.08785530910489714,
+      "divB_max": 4.441e-14,
+      "binary_sha256": "fa8d523b7064b0511bb11ca43fdec64111c011a5d77e36242c856afec06db9e3",
+      "build_name": "cpu-double-O2-ieee-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hll-double-o2"
+    },
+    {
+      "solver": "hll",
+      "precision": "double",
+      "variant": "ox",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 759,
+      "final_time": 0.1,
+      "precision_bytes": 8,
+      "rho_min": 0.11716054488890934,
+      "pressure_min": 0.08785530910489714,
+      "divB_max": 4.441e-14,
+      "binary_sha256": "9cab484a54e59f1d390db770045a74b6bd63d14bb3dfed6bf13b5806f6ead128",
+      "build_name": "cpu-double-O3-ieee-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hll-double-ox"
+    },
+    {
+      "solver": "hll",
+      "precision": "double",
+      "variant": "fast",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 759,
+      "final_time": 0.1,
+      "precision_bytes": 8,
+      "rho_min": 0.11716054488890883,
+      "pressure_min": 0.08785530910489714,
+      "divB_max": 0.0,
+      "binary_sha256": "68c3fcad336fa1bec6e6c5611908e98fb0f5186f3f9f1a5838b5e04057b0ce4a",
+      "build_name": "cpu-double-O2-fastmath-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hll-double-fast"
+    },
+    {
+      "solver": "hll",
+      "precision": "double",
+      "variant": "strict",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 759,
+      "final_time": 0.1,
+      "precision_bytes": 8,
+      "rho_min": 0.11716054488890934,
+      "pressure_min": 0.08785530910489714,
+      "divB_max": 4.441e-14,
+      "binary_sha256": "e0efa089b99dd974e13acbeb98d9059187715e52b7042942af39f5c5633b8fd7",
+      "build_name": "cpu-double-O2-ieee-strict",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hll-double-strict"
+    },
+    {
+      "solver": "hll",
+      "precision": "float",
+      "variant": "o2",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 759,
+      "final_time": 0.10000000149011612,
+      "precision_bytes": 4,
+      "rho_min": 0.11716057360172272,
+      "pressure_min": 0.08785520880198727,
+      "divB_max": 0.0,
+      "binary_sha256": "05864ddc8eb801ec43671c714265567cbe3d534197a37e98d4837f45d88dc775",
+      "build_name": "cpu-float-O2-ieee-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hll-float-o2"
+    },
+    {
+      "solver": "hll",
+      "precision": "float",
+      "variant": "ox",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 759,
+      "final_time": 0.10000000149011612,
+      "precision_bytes": 4,
+      "rho_min": 0.11716057360172272,
+      "pressure_min": 0.08785520880198727,
+      "divB_max": 0.0,
+      "binary_sha256": "fd9a9814cfeffbfa4d32f7a12853dfdbc939517bc16663dc7bcf5336d8b7fa27",
+      "build_name": "cpu-float-O3-ieee-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hll-float-ox"
+    },
+    {
+      "solver": "hll",
+      "precision": "float",
+      "variant": "fast",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 759,
+      "final_time": 0.10000000149011612,
+      "precision_bytes": 4,
+      "rho_min": 0.11716047674417496,
+      "pressure_min": 0.08785529159044059,
+      "divB_max": 0.0,
+      "binary_sha256": "af05912e889b4f42fb4ad8bb29c4f9a7d09554262517164736da0ed6fe571fb6",
+      "build_name": "cpu-float-O2-fastmath-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hll-float-fast"
+    },
+    {
+      "solver": "hll",
+      "precision": "float",
+      "variant": "strict",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 759,
+      "final_time": 0.10000000149011612,
+      "precision_bytes": 4,
+      "rho_min": 0.11716057360172272,
+      "pressure_min": 0.08785520880198727,
+      "divB_max": 0.0,
+      "binary_sha256": "2824b492b0fa0d1dd114bb54ebcc7f0536ec04f31e0e3f71994fd6774d683e6e",
+      "build_name": "cpu-float-O2-ieee-strict",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hll-float-strict"
+    },
+    {
+      "solver": "hlld",
+      "precision": "double",
+      "variant": "o2",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 761,
+      "final_time": 0.1,
+      "precision_bytes": 8,
+      "rho_min": 0.11687490892554836,
+      "pressure_min": 0.0874267623360735,
+      "divB_max": 0.0,
+      "binary_sha256": "fa8d523b7064b0511bb11ca43fdec64111c011a5d77e36242c856afec06db9e3",
+      "build_name": "cpu-double-O2-ieee-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hlld-double-o2"
+    },
+    {
+      "solver": "hlld",
+      "precision": "double",
+      "variant": "ox",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 761,
+      "final_time": 0.1,
+      "precision_bytes": 8,
+      "rho_min": 0.11687490892554836,
+      "pressure_min": 0.0874267623360735,
+      "divB_max": 0.0,
+      "binary_sha256": "9cab484a54e59f1d390db770045a74b6bd63d14bb3dfed6bf13b5806f6ead128",
+      "build_name": "cpu-double-O3-ieee-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hlld-double-ox"
+    },
+    {
+      "solver": "hlld",
+      "precision": "double",
+      "variant": "fast",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 761,
+      "final_time": 0.1,
+      "precision_bytes": 8,
+      "rho_min": 0.11687490892554861,
+      "pressure_min": 0.08742676233607305,
+      "divB_max": 0.0,
+      "binary_sha256": "68c3fcad336fa1bec6e6c5611908e98fb0f5186f3f9f1a5838b5e04057b0ce4a",
+      "build_name": "cpu-double-O2-fastmath-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hlld-double-fast"
+    },
+    {
+      "solver": "hlld",
+      "precision": "double",
+      "variant": "strict",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 761,
+      "final_time": 0.1,
+      "precision_bytes": 8,
+      "rho_min": 0.11687490892554807,
+      "pressure_min": 0.08742676233607294,
+      "divB_max": 0.0,
+      "binary_sha256": "e0efa089b99dd974e13acbeb98d9059187715e52b7042942af39f5c5633b8fd7",
+      "build_name": "cpu-double-O2-ieee-strict",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hlld-double-strict"
+    },
+    {
+      "solver": "hlld",
+      "precision": "float",
+      "variant": "o2",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 761,
+      "final_time": 0.10000000149011612,
+      "precision_bytes": 4,
+      "rho_min": 0.11687492579221725,
+      "pressure_min": 0.08742665296084318,
+      "divB_max": 0.0,
+      "binary_sha256": "05864ddc8eb801ec43671c714265567cbe3d534197a37e98d4837f45d88dc775",
+      "build_name": "cpu-float-O2-ieee-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hlld-float-o2"
+    },
+    {
+      "solver": "hlld",
+      "precision": "float",
+      "variant": "ox",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 761,
+      "final_time": 0.10000000149011612,
+      "precision_bytes": 4,
+      "rho_min": 0.11687492579221725,
+      "pressure_min": 0.08742665296084318,
+      "divB_max": 0.0,
+      "binary_sha256": "fd9a9814cfeffbfa4d32f7a12853dfdbc939517bc16663dc7bcf5336d8b7fa27",
+      "build_name": "cpu-float-O3-ieee-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hlld-float-ox"
+    },
+    {
+      "solver": "hlld",
+      "precision": "float",
+      "variant": "fast",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 761,
+      "final_time": 0.10000000149011612,
+      "precision_bytes": 4,
+      "rho_min": 0.11687519401311874,
+      "pressure_min": 0.0874267611605275,
+      "divB_max": 0.0,
+      "binary_sha256": "af05912e889b4f42fb4ad8bb29c4f9a7d09554262517164736da0ed6fe571fb6",
+      "build_name": "cpu-float-O2-fastmath-leq",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hlld-float-fast"
+    },
+    {
+      "solver": "hlld",
+      "precision": "float",
+      "variant": "strict",
+      "status": "completed",
+      "physical_state": true,
+      "steps": 761,
+      "final_time": 0.10000000149011612,
+      "precision_bytes": 4,
+      "rho_min": 0.11687518656253815,
+      "pressure_min": 0.08742686969346902,
+      "divB_max": 0.0,
+      "binary_sha256": "2824b492b0fa0d1dd114bb54ebcc7f0536ec04f31e0e3f71994fd6774d683e6e",
+      "build_name": "cpu-float-O2-ieee-strict",
+      "run_dir": "experiments/week20/brio_wu_build_semantics/runs/brio-hlld-float-strict"
+    }
+  ],
+  "comparisons": [
+    {
+      "solver": "hll",
+      "precision": "double",
+      "axis": "optimisation",
+      "candidate": "ox",
+      "reference": "o2",
+      "changed_axis": "/Ox versus /O2",
+      "rho_l1_mean": 0.0,
+      "rho_l2_mean": 0.0,
+      "rho_linf": 0.0,
+      "rho_l1_relative": 0.0
+    },
+    {
+      "solver": "hll",
+      "precision": "double",
+      "axis": "fast_math",
+      "candidate": "fast",
+      "reference": "o2",
+      "changed_axis": "/fp:fast versus compiler default",
+      "rho_l1_mean": 2.370846574617502e-16,
+      "rho_l2_mean": 3.908165291135101e-16,
+      "rho_linf": 1.887379141862766e-15,
+      "rho_l1_relative": 4.214838354875559e-16
+    },
+    {
+      "solver": "hll",
+      "precision": "double",
+      "axis": "branch_rule",
+      "candidate": "strict",
+      "reference": "o2",
+      "changed_axis": "< versus <= in the Riemann branch",
+      "rho_l1_mean": 0.0,
+      "rho_l2_mean": 0.0,
+      "rho_linf": 0.0,
+      "rho_l1_relative": 0.0
+    },
+    {
+      "solver": "hll",
+      "precision": "float",
+      "axis": "optimisation",
+      "candidate": "ox",
+      "reference": "o2",
+      "changed_axis": "/Ox versus /O2",
+      "rho_l1_mean": 0.0,
+      "rho_l2_mean": 0.0,
+      "rho_linf": 0.0,
+      "rho_l1_relative": 0.0
+    },
+    {
+      "solver": "hll",
+      "precision": "float",
+      "axis": "fast_math",
+      "candidate": "fast",
+      "reference": "o2",
+      "changed_axis": "/fp:fast versus compiler default",
+      "rho_l1_mean": 1.1762604117393493e-07,
+      "rho_l2_mean": 2.2638886760430933e-07,
+      "rho_linf": 1.3113021850585938e-06,
+      "rho_l1_relative": 2.0911296059822752e-07
+    },
+    {
+      "solver": "hll",
+      "precision": "float",
+      "axis": "branch_rule",
+      "candidate": "strict",
+      "reference": "o2",
+      "changed_axis": "< versus <= in the Riemann branch",
+      "rho_l1_mean": 0.0,
+      "rho_l2_mean": 0.0,
+      "rho_linf": 0.0,
+      "rho_l1_relative": 0.0
+    },
+    {
+      "solver": "hlld",
+      "precision": "double",
+      "axis": "optimisation",
+      "candidate": "ox",
+      "reference": "o2",
+      "changed_axis": "/Ox versus /O2",
+      "rho_l1_mean": 0.0,
+      "rho_l2_mean": 0.0,
+      "rho_linf": 0.0,
+      "rho_l1_relative": 0.0
+    },
+    {
+      "solver": "hlld",
+      "precision": "double",
+      "axis": "fast_math",
+      "candidate": "fast",
+      "reference": "o2",
+      "changed_axis": "/fp:fast versus compiler default",
+      "rho_l1_mean": 4.3506864777498324e-16,
+      "rho_l2_mean": 7.087352401676692e-16,
+      "rho_linf": 4.413136522884997e-15,
+      "rho_l1_relative": 7.734553738221924e-16
+    },
+    {
+      "solver": "hlld",
+      "precision": "double",
+      "axis": "branch_rule",
+      "candidate": "strict",
+      "reference": "o2",
+      "changed_axis": "< versus <= in the Riemann branch",
+      "rho_l1_mean": 4.683926857484977e-16,
+      "rho_l2_mean": 7.713402241544514e-16,
+      "rho_linf": 3.885780586188048e-15,
+      "rho_l1_relative": 8.326981079973292e-16
+    },
+    {
+      "solver": "hlld",
+      "precision": "float",
+      "axis": "optimisation",
+      "candidate": "ox",
+      "reference": "o2",
+      "changed_axis": "/Ox versus /O2",
+      "rho_l1_mean": 0.0,
+      "rho_l2_mean": 0.0,
+      "rho_linf": 0.0,
+      "rho_l1_relative": 0.0
+    },
+    {
+      "solver": "hlld",
+      "precision": "float",
+      "axis": "fast_math",
+      "candidate": "fast",
+      "reference": "o2",
+      "changed_axis": "/fp:fast versus compiler default",
+      "rho_l1_mean": 2.091098576784134e-07,
+      "rho_l2_mean": 3.596229977721403e-07,
+      "rho_linf": 1.7285346984863281e-06,
+      "rho_l1_relative": 3.7175084593878983e-07
+    },
+    {
+      "solver": "hlld",
+      "precision": "float",
+      "axis": "branch_rule",
+      "candidate": "strict",
+      "reference": "o2",
+      "changed_axis": "< versus <= in the Riemann branch",
+      "rho_l1_mean": 2.077687531709671e-07,
+      "rho_l2_mean": 3.681692358742175e-07,
+      "rho_linf": 2.60770320892334e-06,
+      "rho_l1_relative": 3.6936666022573654e-07
+    }
+  ],
+  "claim_boundary": "Each comparison changes one recorded build axis on MSVC for one Brio--Wu CPU configuration. The deterministic output result is not a compiler-wide, performance, accuracy, or portability claim."
+}

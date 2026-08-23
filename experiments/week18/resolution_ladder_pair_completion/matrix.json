@@ -1,0 +1,11 @@
+{
+  "experiment": "report2-ot-hlld-512-precision-pair-completion",
+  "run": {
+    "case": "orszag_tang_2d",
+    "solver": "hlld",
+    "precision": "float",
+    "resolution": 512,
+    "cfl": 0.2
+  },
+  "reference_grid": "experiments/diagnostics/hlld_positivity_guard/runs/orszag-tang-hlld-double-n512-cfl0p2/grid.bin"
+}

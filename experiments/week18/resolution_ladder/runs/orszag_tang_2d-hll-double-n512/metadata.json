@@ -1,0 +1,55 @@
+{
+  "experiment": "week18-mhd-resolution-ladder",
+  "name": "orszag_tang_2d-hll-double-n512",
+  "timestamp_utc": "2026-07-26T08:30:45.913830+00:00",
+  "git_commit": "8de35c3e67556df18f811835d7f6cdeec16f384e",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+  "binary_sha256": "788de993d8eb46f911ee2e7b1416bc0782248368e963238bb00a3118baa79179",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+  "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\orszag_tang_2d-hll-double-n512\\config.cfg",
+  "run_config_sha256": "37bfd56e65f36b9b3e54bf006ea3e7cbf612b67c3bdb7779b25f55ce81dabcb3",
+  "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx = 512\nny = 512\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl = 0.4\nt_end   = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hll\ndevice = cpu\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\orszag_tang_2d-hll-double-n512\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-matrix\\cpu-double-O2-ieee-leq\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\orszag_tang_2d-hll-double-n512\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 206.31521979998797,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\orszag_tang_2d-hll-double-n512\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\orszag_tang_2d-hll-double-n512\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.5,
+    "steps": 1630,
+    "divB_mean": 0.1036,
+    "divB_max": 7.729,
+    "line": "[mhd] t=0.500000 steps=1630 divB_mean=1.036e-01 divB_max=7.729e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\orszag_tang_2d-hll-double-n512\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\orszag_tang_2d-hll-double-n512\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 206.31521979998797
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 0.5,
+    "target_time": 0.5,
+    "steps": 1630
+  },
+  "build_semantics": null,
+  "artifact_revalidation": {
+    "timestamp_utc": "2026-07-26T09:26:59.219308+00:00",
+    "reason": "Revalidated after fixing the single RequiredArtifact tuple construction.",
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week18\\resolution_ladder\\runs\\orszag_tang_2d-hll-double-n512\\grid.bin",
+    "primary_output_sha256": "f1c2f4868cde4742c76cca63007d671f4c9024969e0f9e6a4f82f4db4025b504",
+    "fresh_for_recorded_run": true
+  }
+}

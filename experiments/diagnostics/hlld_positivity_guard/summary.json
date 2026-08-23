@@ -1,0 +1,43 @@
+{
+  "schema": {"name": "hrsc.hlld-positivity-guard", "version": 1},
+  "case": "orszag_tang_2d",
+  "solver": "hlld",
+  "precision": "double",
+  "cfl": 0.2,
+  "resolutions": [128, 256, 512],
+  "status": "completed",
+  "completion": {
+    "runs_completed": 3,
+    "runs_expected": 3,
+    "final_time": 0.5,
+    "steps": {"128": 801, "256": 1622, "512": 3277}
+  },
+  "physical_state": {
+    "finite": true,
+    "rho_min": {"128": 1.2858975894688927, "256": 1.1780001593859175, "512": 1.097603940319804},
+    "pressure_min": {"128": 0.4869751992506757, "256": 0.4549745730250214, "512": 0.37985529286241204}
+  },
+  "divergence": {
+    "mean": {"128": 0.2705, "256": 0.2377, "512": 0.1969},
+    "max": {"128": 12.52, "256": 23.94, "512": 33.08}
+  },
+  "density_self_refinement": {
+    "rho_l1_128_256": 0.07514601995936758,
+    "rho_l1_256_512": 0.04181536595496839,
+    "observed_order_l1": 0.8456635060954029,
+    "rho_l2_128_256": 0.11082902385605839,
+    "rho_l2_256_512": 0.06726204442954127,
+    "observed_order_l2": 0.7204712078567337,
+    "rho_linf_128_256": 0.7836257106161093,
+    "rho_linf_256_512": 0.7811190878691363,
+    "observed_order_linf": 0.004622217377967618
+  },
+  "provenance": {
+    "binary_sha256": "6cb38f91936bfa749a61fd37cfe0986d14aeec1c45764442071ea9092f0d3ccd",
+    "grid_512_sha256": "85f104eff0b19cdbf37dc8705d538f412b71819b897d48c92244a9ea3b386862",
+    "matrix": "experiments/diagnostics/hlld_positivity_guard/matrix.json",
+    "refinement_matrix": "experiments/diagnostics/hlld_positivity_guard/refinement_matrix.json",
+    "run_metadata_512": "experiments/diagnostics/hlld_positivity_guard/runs/orszag-tang-hlld-double-n512-cfl0p2/metadata.json"
+  },
+  "claim_boundary": "The three completed grids provide a bounded self-refinement diagnostic; they do not establish an exact-solution error or an asymptotic convergence regime."
+}

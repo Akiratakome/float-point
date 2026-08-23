@@ -13,4 +13,8 @@ the two reports use consistent typography. Their scientific structures and
 manuscript text are independent.
 
 Build products (`*.aux`, `*.log`, `*.pdf`, etc.) are ignored and must not be
-committed. Use `scripts/build_report2.ps1` when compilation is required.
+committed. Use `scripts/build_report2.ps1` when compilation is required. The
+script runs `pdflatex -> bibtex -> pdflatex -> pdflatex` and fails if the final
+log still contains unresolved citations or cross-references. Pass `-Clean` for
+removal of generated LaTeX intermediates from the root and known include
+directories before the build.

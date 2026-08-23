@@ -1,0 +1,19 @@
+{
+  "schema": {"name": "hrsc.build-semantics", "version": 1},
+  "compiler": {
+    "id": "MSVC",
+    "version": "19.51.36248.0",
+    "path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+  },
+  "requested": {
+    "opt_level": "O2",
+    "fast_math": true,
+    "strict_ieee": false
+  },
+  "effective_math_mode": "fast",
+  "flag_evidence": {
+    "optimization": "/O2",
+    "fast_math": "/fp:fast",
+    "strict_ieee": ""
+  }
+}

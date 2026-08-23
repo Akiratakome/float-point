@@ -1,8 +1,8 @@
 {
   "experiment": "week16-kelvin-helmholtz-validation",
   "mode": "report-grade",
-  "git_commit": "3fe51d033d0584ef5f0604189d47305ab872f191",
-  "binary_sha256": "d3aa4405571a206e83672091bae2a7b2ed30b782e6f701c1b69d3698f66abbbe",
+  "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
+  "binary_sha256": "db92496738da3eb444323cd0b631d897949c951a5f6eb0350adef17bc78fb669",
   "results": {
     "L1_rho": 0.0018363795865694958,
     "L2_rho": 0.0022487408048023536,
@@ -22,23 +22,23 @@
     "cand": {
       "experiment": "week13-mhd-2d",
       "name": "kh_256",
-      "timestamp_utc": "2026-07-23T05:02:01.871887+00:00",
-      "git_commit": "3fe51d033d0584ef5f0604189d47305ab872f191",
-      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-      "binary_sha256": "d3aa4405571a206e83672091bae2a7b2ed30b782e6f701c1b69d3698f66abbbe",
-      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
-      "source_config_sha256": "e4d6f40ee0bdec232cd6d0478d952ba722c9440c757d5a19d200b854dc604c0d",
-      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256\\config.cfg",
-      "run_config_sha256": "55fb350b9fee953f3a475824542d26325bb4343b9392b1a092ab106a578f9900",
-      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 1.0\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_256.bin\n",
+      "timestamp_utc": "2026-07-23T07:29:03.990166+00:00",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+      "binary_sha256": "db92496738da3eb444323cd0b631d897949c951a5f6eb0350adef17bc78fb669",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256\\config.cfg",
+      "run_config_sha256": "0c830e2c1272f13a7adb4bbe4e052fe60c2999ed9ea239f640bf0aec12e67129",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 1.0\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_256.bin\n",
       "command": [
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256\\config.cfg"
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256\\config.cfg"
       ],
       "returncode": 0,
-      "elapsed_wall_s": 35.783405099995434,
-      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256\\stdout.txt",
-      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256\\stderr.txt",
+      "elapsed_wall_s": 37.21377119992394,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256\\stderr.txt",
       "stderr_diagnostics": {
         "t": 1.0,
         "steps": 1148,
@@ -46,28 +46,51 @@
         "divB_max": 0.0006714,
         "line": "[mhd] t=1.000000 steps=1148 divB_mean=4.411e-05 divB_max=6.714e-04"
       },
-      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_256.bin"
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_256.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_256.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 37.21377119992394
+      },
+      "failure": {
+        "category": "infrastructure_error",
+        "message": "'RequiredArtifact' object is not iterable",
+        "exception_type": "TypeError"
+      },
+      "completion": {
+        "reported": true,
+        "final_time": 1.0,
+        "target_time": 1.0,
+        "steps": 1148
+      },
+      "build_semantics": null
     },
     "ref": {
       "experiment": "week13-mhd-2d",
       "name": "kh_512_ref",
-      "timestamp_utc": "2026-07-23T05:07:07.319538+00:00",
-      "git_commit": "3fe51d033d0584ef5f0604189d47305ab872f191",
-      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-      "binary_sha256": "d3aa4405571a206e83672091bae2a7b2ed30b782e6f701c1b69d3698f66abbbe",
-      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\tests\\cases\\kelvin_helmholtz_2d\\kh_ref.cfg",
-      "source_config_sha256": "caa3cd34d6cc11f68e2679c2a02285b46d320e6f49106be5b2665f4675b1e1b7",
-      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_512_ref\\config.cfg",
-      "run_config_sha256": "9ddc603aaea8c1cebc31c75de40942b598905005aede16feefb0f4fc83255e40",
-      "run_config_text": "# Self-converged double reference for KH (2x candidate resolution).\ntest    = kelvin_helmholtz\nnx      = 512\nny      = 512\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 1.0\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_512_ref.bin\n",
+      "timestamp_utc": "2026-07-23T07:34:07.822338+00:00",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+      "binary_sha256": "db92496738da3eb444323cd0b631d897949c951a5f6eb0350adef17bc78fb669",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh_ref.cfg",
+      "source_config_sha256": "7dd7f04e85cdce450418962c54cff13a8657cc45bdd36ecc99658097529e1260",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_512_ref\\config.cfg",
+      "run_config_sha256": "26e514b7dcfe6414963569773a06dcdbd28593dae813a3bfe3e55b0ba52c35b0",
+      "run_config_text": "# Self-converged double reference for KH (2x candidate resolution).\ntest    = kelvin_helmholtz\nnx      = 512\nny      = 512\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 1.0\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_512_ref.bin\n",
       "command": [
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_512_ref\\config.cfg"
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_512_ref\\config.cfg"
       ],
       "returncode": 0,
-      "elapsed_wall_s": 305.4393467999762,
-      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_512_ref\\stdout.txt",
-      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_512_ref\\stderr.txt",
+      "elapsed_wall_s": 303.82300360000227,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_512_ref\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_512_ref\\stderr.txt",
       "stderr_diagnostics": {
         "t": 1.0,
         "steps": 2296,
@@ -75,28 +98,51 @@
         "divB_max": 0.0009236,
         "line": "[mhd] t=1.000000 steps=2296 divB_mean=2.305e-05 divB_max=9.236e-04"
       },
-      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_512_ref.bin"
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_512_ref.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_512_ref.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 303.82300360000227
+      },
+      "failure": {
+        "category": "infrastructure_error",
+        "message": "'RequiredArtifact' object is not iterable",
+        "exception_type": "TypeError"
+      },
+      "completion": {
+        "reported": true,
+        "final_time": 1.0,
+        "target_time": 1.0,
+        "steps": 2296
+      },
+      "build_semantics": null
     },
     "ctrl": {
       "experiment": "week13-mhd-2d",
       "name": "kh_256_cr0",
-      "timestamp_utc": "2026-07-23T05:07:44.621487+00:00",
-      "git_commit": "3fe51d033d0584ef5f0604189d47305ab872f191",
-      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-      "binary_sha256": "d3aa4405571a206e83672091bae2a7b2ed30b782e6f701c1b69d3698f66abbbe",
-      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
-      "source_config_sha256": "e4d6f40ee0bdec232cd6d0478d952ba722c9440c757d5a19d200b854dc604c0d",
-      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256_cr0\\config.cfg",
-      "run_config_sha256": "5436aec07c4e44d2d08d6d2fa92a033986308a09af05bf2786d4044489cb6fe6",
-      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 1.0\nglm_cr = 0.0\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_256_cr0.bin\n",
+      "timestamp_utc": "2026-07-23T07:34:44.776882+00:00",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
+      "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+      "binary_sha256": "db92496738da3eb444323cd0b631d897949c951a5f6eb0350adef17bc78fb669",
+      "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\kelvin_helmholtz_2d\\kh.cfg",
+      "source_config_sha256": "eddfb5588fa19b107df0196a8bc26bb0d3eff97ea3b80769bead0e75fc761a01",
+      "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256_cr0\\config.cfg",
+      "run_config_sha256": "5cb5478189112b676ad2a8fce51ba17e7c0dccc5e34977edd7adf2bc2670bbd6",
+      "run_config_text": "# MHD Kelvin-Helmholtz, doubly-periodic double shear layer (Week 13 design).\n# Pinned params live in setup_kelvin_helmholtz (U0=0.5, a=0.025, delta=0.01,\n# s=0.05, B0=0.1, M_A=5). gamma=5/3.\ntest    = kelvin_helmholtz\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 1.0\nglm_cr = 0.0\nbc      = periodic\nbc_y    = periodic\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_256_cr0.bin\n",
       "command": [
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\build-double\\hrsc_mhd.exe",
-        "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256_cr0\\config.cfg"
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\build-double\\hrsc_mhd.exe",
+        "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256_cr0\\config.cfg"
       ],
       "returncode": 0,
-      "elapsed_wall_s": 37.293966299970634,
-      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256_cr0\\stdout.txt",
-      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256_cr0\\stderr.txt",
+      "elapsed_wall_s": 36.9517522000242,
+      "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256_cr0\\stdout.txt",
+      "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\runs\\kh_256_cr0\\stderr.txt",
       "stderr_diagnostics": {
         "t": 1.0,
         "steps": 1148,
@@ -104,7 +150,30 @@
         "divB_max": 0.0007736,
         "line": "[mhd] t=1.000000 steps=1148 divB_mean=4.066e-05 divB_max=7.736e-04"
       },
-      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\.worktrees\\week16-remaining-evidence\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_256_cr0.bin"
+      "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_256_cr0.bin",
+      "schema": {
+        "name": "hrsc.run-record",
+        "version": 1
+      },
+      "status": "success",
+      "artifacts": {
+        "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week16\\kelvin_helmholtz_precision\\validation\\kh_256_cr0.bin"
+      },
+      "timing": {
+        "elapsed_wall_s": 36.9517522000242
+      },
+      "failure": {
+        "category": "infrastructure_error",
+        "message": "'RequiredArtifact' object is not iterable",
+        "exception_type": "TypeError"
+      },
+      "completion": {
+        "reported": true,
+        "final_time": 1.0,
+        "target_time": 1.0,
+        "steps": 1148
+      },
+      "build_semantics": null
     }
   }
 }

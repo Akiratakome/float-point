@@ -68,11 +68,11 @@ high importance, and an `invalid` row remains unusable regardless of interest.
 
 | Evidence | Paper importance | Planned owner | Manuscript use | Figure decision |
 |---|---|---|---|---|
-| Week 12 Brio-Wu 1D | `P1` | C4.2 | Numerical-reference validation. | Use the P1 refinement panel in the publication figure set. |
+| Week 12 Brio-Wu 1D | `P1` | C4.2 | Numerical-reference validation. | Use the P1 refinement panel and the source-hashed final-profile comparison in Chapter 4. |
 | Week 12 2D invariance/GLM | `P1` | C4.3 | Local invariance and divergence-control validation. | Use the P1 GLM panel; keep invariance as a compact table. |
 | Week 13 HLLD divB follow-up | `P1` | C2.3/C4.5 | Resolves the stale-binary interpretation and bounds HLLD validation. | Table or text support; no separate main figure. |
-| Week 13 OT morphology | `P2` | C4.5 | Qualitative benchmark structure only. | Optional morphology panel; caption must say morphology-only. |
-| Week 13 KH morphology | `P2` | C4.6 | Qualitative benchmark structure only. | Optional morphology panel; caption must say morphology-only. |
+| Week 13 OT morphology | `P2` | C4.5 | Qualitative benchmark structure only. | Include the source-hashed morphology and HLL/HLLD/reference comparison panels; captions must preserve the morphology-only/numerical-reference boundary. |
+| Week 13 KH morphology | `P2` | C4.6 | Qualitative benchmark structure only. | Include the source-hashed density morphology panel; its caption must say morphology-only. |
 | Week 14 HLL MCA | `X` | none | Defect provenance only. | Exclude all numerical values and plots. |
 | Week 14 pilots/smokes | `X` | appendix provenance only | Development history superseded by later packets. | Exclude from manuscript figures. |
 | Week 15 Brio-Wu HLL | `P1` | C5.3/C5.9 | Same-scope deterministic/MCA evidence promoted by the unified audit. | Compact status table; bounded to N=800, t=0.1. |
@@ -87,9 +87,9 @@ high importance, and an `invalid` row remains unusable regardless of interest.
 | Week 17 Report 2 synthesis | `P2` | C6 | Claim-boundary/navigation aid only. | Exclude `figures/axis_ranking.png`; do not rank incomparable metrics. |
 | KH solver/precision timing | `P1` | C5.5/C5.6 | Repeated workstation timing for solver and precision effects. | Use `fig_kh_timing.pdf`; no accuracy-cost label. |
 | CSC KH native MCA smoke | `P1` | C5.9 | Reduced-scope validation of the native MCA pipeline and stochastic scale. | Compact evidence-status table; figure may move to appendix. |
-| Week 18 supplemental robustness | `P0` | C5.6/C5.10 | Authoritative repeated GPU timing plus thread/CFL support. | Use `fig_hardware_reproducibility.pdf`; thread/CFL remain compact support. |
+| Week 18 supplemental robustness | `P0` | C5.6/C5.10 | Authoritative repeated GPU timing plus thread/CFL support. | Use `fig_hardware_reproducibility.pdf` and the source-hashed KH CFL panel; thread evidence remains compact textual support. |
 | Week 18 Euler--MHD cross-system | `P0` | C5.2 | Required compact range across Euler/MHD and 1D/2D without repeating Report 1. | Use `fig_cross_system_sensitivity.pdf`. |
-| Week 20 Brio--Wu direct build semantics | `P1` | C5.4 | Isolates the three build axes that the cross-system pair varied together. | Report exact direct values in text; retain its plot as an audit figure rather than adding a sixth C5 main figure. |
+| Week 20 Brio--Wu direct build semantics | `P1` | C5.4 | Isolates the three build axes that the cross-system pair varied together. | Use the source-hashed direct-comparison plot in Chapter 5 and retain the bounded compiler/configuration caption. |
 | Week 18 MHD resolution ladder | `P0` | C4.5/C4.6 | Main completed resolution result across all eight groups. | Use the self-refinement-only `fig_resolution_precision.pdf`; retain the non-asymptotic boundary and do not infer precision adequacy. |
 | Week 18 precision/MCA scope gate | `P1` | C5.3/C5.9 | Authoritative row-specific promotion and scope boundary. | Use the compact MCA status table; no new figure. |
 | Lecoanet KH linear reproduction | `P1` | C4.6 | Independent exact-IC and early-growth support with explicit 32.0% rate discrepancy. | One compact sentence or appendix figure; do not add a third C4 main figure. |
@@ -98,7 +98,11 @@ The audited figure package is
 `experiments/week18/report2_publication_figures/figure_manifest.json`. It maps
 seven PNG/PDF pairs to source summaries, chapter owners, importance, claim
 boundaries, SHA-256 hashes, and raster dimensions. Its source audit passes for
-all seven figures. PDF is the manuscript asset; PNG is the review copy.
+all seven figures. PDF is the manuscript asset; PNG is the review copy. Six
+additional experiment figures selected during the 2026-08-03 full review are
+copied into the manuscript with source paths and SHA-256 hashes recorded in
+`report2/phd-thesis-template-2.4/Figs/README.md`; they supplement rather than
+alter the original seven-figure package.
 
 ## Current Report 2 claim boundaries
 

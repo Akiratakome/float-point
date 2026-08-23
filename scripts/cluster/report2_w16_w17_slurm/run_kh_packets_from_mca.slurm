@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=hrsc-kh-packets
+#SBATCH --partition=csc-mphil
 #SBATCH --array=0-1
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --time=12:00:00
+#SBATCH --time=06:00:00
 #SBATCH --output=experiments/week16/kelvin_helmholtz_precision/csc_packets/slurm_logs/%A_%a.out
 #SBATCH --error=experiments/week16/kelvin_helmholtz_precision/csc_packets/slurm_logs/%A_%a.err
 
@@ -19,10 +20,16 @@ mkdir -p experiments/week16/kelvin_helmholtz_precision/csc_packets/slurm_logs
 
 SOLVERS=(hll hlld)
 SOLVER="${SOLVERS[${SLURM_ARRAY_TASK_ID}]}"
-MCA_SUMMARY="experiments/week16/kelvin_helmholtz_precision/csc_mca/${SOLVER}/summary.json"
+MCA_DIR="experiments/week16/kelvin_helmholtz_precision/csc_mca/${SOLVER}"
+MCA_SUMMARY="${MCA_DIR}/summary.json"
 
 if [[ ! -f "${MCA_SUMMARY}" ]]; then
-    echo "ERROR: missing Apptainer-produced MCA summary: ${MCA_SUMMARY}" >&2
+    "${HRSC_PYTHON}" scripts/verificarlo/mhd_precision_sampling.py \
+        --out "${MCA_DIR}" --solver "${SOLVER}" --merge-only
+fi
+
+if [[ ! -f "${MCA_SUMMARY}" ]]; then
+    echo "ERROR: missing MCA summary and no partials to merge: ${MCA_SUMMARY}" >&2
     exit 1
 fi
 

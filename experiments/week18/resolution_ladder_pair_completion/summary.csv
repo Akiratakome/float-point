@@ -1,0 +1,2 @@
+case,solver,resolution,cfl,rho_l1_fp32_vs_fp64,rho_l2_fp32_vs_fp64,rho_linf_fp32_vs_fp64,gate_pass
+orszag_tang_2d,hlld,512,0.2,5.554106475580879e-05,0.00048328651963555527,0.05031345962367162,True

@@ -1,0 +1,2 @@
+[run-status] status=failed reason=numerical_failure
+[error] MhdSolver produced nonphysical state at i=424 j=40 rho=1.69806 p=-0.306378

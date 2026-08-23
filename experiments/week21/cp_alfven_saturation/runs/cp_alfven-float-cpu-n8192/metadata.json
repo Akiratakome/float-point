@@ -1,0 +1,61 @@
+{
+  "experiment": "week21-cp-alfven-saturation",
+  "name": "cp_alfven-float-cpu-n8192",
+  "timestamp_utc": "2026-08-06T16:45:36.061499+00:00",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-float\\hrsc_mhd.exe",
+  "binary_sha256": "601b14fb2f63d38e98142c023274c017f36de7833c5d4d3cecee06e960739792",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\cp_alfven_1d\\cp_alfven.cfg",
+  "source_config_sha256": "1f6ce3404fa4a34dd86e7b7ebd375dfd46d88fe6981c4c4a03ecaa1b5f611e33",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\cp_alfven_saturation\\runs\\cp_alfven-float-cpu-n8192\\config.cfg",
+  "run_config_sha256": "b38060a536facf77f70430d98ccf754109b9e644db969724871a5aaa9841359f",
+  "run_config_text": "# Circularly polarised Alfven wave (Toth 2000; Gardiner & Stone 2005).\n# Exact nonlinear solution: rho=1, p=0.1, Bx=1, B_perp = A(sin 2pi x, cos 2pi x)\n# with A=0.1 and v_perp = -B_perp/sqrt(rho). The Alfven speed is 1, so on the\n# unit periodic domain the exact state at t=1 is the initial condition itself.\n# The final-minus-analytic difference is therefore true discretisation error,\n# which makes this the order-verification case the discontinuous benchmarks\n# cannot provide. nx is overridden per rung by the convergence driver.\ntest    = cp_alfven\nnx = 8192\nxmin    = 0.0\nxmax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 1.0\nbc      = periodic\nglm_cr  = 0.18\ndevice = cpu\nriemann = hll\noutput_format = binary\noutput_file = C:/Users/tangy/Desktop/floatpoint/experiments/week21/cp_alfven_saturation/runs/cp_alfven-float-cpu-n8192/grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-float\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\cp_alfven_saturation\\runs\\cp_alfven-float-cpu-n8192\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 34.56416849978268,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\cp_alfven_saturation\\runs\\cp_alfven-float-cpu-n8192\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\cp_alfven_saturation\\runs\\cp_alfven-float-cpu-n8192\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 1.0,
+    "steps": 20603,
+    "divB_mean": 0.0002563,
+    "divB_max": 0.001465,
+    "line": "[mhd] t=1.000000 steps=20603 divB_mean=2.563e-04 divB_max=1.465e-03"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\cp_alfven_saturation\\runs\\cp_alfven-float-cpu-n8192\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week21\\cp_alfven_saturation\\runs\\cp_alfven-float-cpu-n8192\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 34.56416849978268
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 1.0,
+    "target_time": 1.0,
+    "steps": 20603
+  },
+  "build_semantics": {
+    "requested_opt_level": "",
+    "requested_fast_math": false,
+    "requested_strict_ieee": false,
+    "effective_math_mode": "compiler-default",
+    "compiler_id": "MSVC",
+    "compiler_version": "19.51.36248.0",
+    "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+    "evidence": {
+      "fast_math": "",
+      "optimization": "",
+      "strict_ieee": ""
+    }
+  }
+}

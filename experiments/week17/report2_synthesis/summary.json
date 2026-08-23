@@ -23,8 +23,8 @@
       "bounded_result": "bit_exact_for_covered_hll_cases",
       "covered_rows": 4,
       "max_ulp": 0,
-      "ot_speedup_max": 6.352997178972207,
-      "ot_speedup_min": 5.9646376663186755,
+      "ot_speedup_max": 5.655067521850663,
+      "ot_speedup_min": 5.6087443144102105,
       "rank": 3,
       "status": "report-grade"
     },
@@ -75,11 +75,12 @@
   "gates": {
     "hardware_gate_passed": true,
     "kh_mca_block_recorded": true,
+    "kh_mca_completed": false,
     "ot_kh_512_gate_passed": true,
     "source_summaries_present": true,
     "synthesis_complete": true
   },
-  "git_commit": "9d83a6dec5c7bd5bdc9f51cd35c6b813c291781d",
+  "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
   "mpi_omission": {
     "future_work": "MPI thread and reduction ordering could be explored separately after Report 2",
     "reason": "single-node OpenMP and CUDA isolate precision, compiler, and hardware effects without MPI reduction-order variability",
@@ -91,17 +92,17 @@
   },
   "source_summaries": [
     {
-      "git_commit": "3728e1babddb799292b891a63b5e7022300a1171",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
       "name": "brio_wu_hll",
       "path": "experiments/week15/brio_wu_precision_pilot_p1/summary.json"
     },
     {
-      "git_commit": "76a168749269046c7a0c00b42f5cb2527689a11d",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
       "name": "brio_wu_hlld",
       "path": "experiments/week15/brio_wu_precision_pilot_hlld_p1/summary.json"
     },
     {
-      "git_commit": "4d9697b933f5fa3e12164a3b05b814a7a191073c",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
       "name": "ot_hll",
       "path": "experiments/week15/orszag_tang_precision_smoke/headline256_p1/summary.json"
     },
@@ -111,7 +112,7 @@
       "path": "experiments/week15/orszag_tang_precision_smoke/mca_n30/summary.json"
     },
     {
-      "git_commit": "0221e05cc75394ac76f1d79afbc53cdd30550177",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
       "name": "ot_hlld",
       "path": "experiments/week15/orszag_tang_precision_smoke_hlld/headline256_p1/summary.json"
     },
@@ -121,27 +122,27 @@
       "path": "experiments/week15/orszag_tang_precision_smoke_hlld/mca_n30/summary.json"
     },
     {
-      "git_commit": "cf50f837dd2e74040c06f86af2f3c21a9b70ed58",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
       "name": "temporal_divergence",
       "path": "experiments/week15/mhd_temporal_divergence/summary.json"
     },
     {
-      "git_commit": "2514e74bfd850d7134e5346e3845ca01c285606e",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
       "name": "hardware_axis",
       "path": "experiments/week16/cpu_gpu_hardware_axis/summary.json"
     },
     {
-      "git_commit": "2082dd5e2825a42038c8e9ceb050092c6211adc8",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
       "name": "kh_hll_precision",
       "path": "experiments/week16/kelvin_helmholtz_precision/hll_p1/summary.json"
     },
     {
-      "git_commit": "2082dd5e2825a42038c8e9ceb050092c6211adc8",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
       "name": "kh_hlld_precision",
       "path": "experiments/week16/kelvin_helmholtz_precision/hlld_p1/summary.json"
     },
     {
-      "git_commit": "8a4b1d1f74c2924035e82d8e94133055feeb4c7d",
+      "git_commit": "0fe1239a942e852c092eec9a0ab9849bbbc71dfd",
       "name": "ot_kh_512",
       "path": "experiments/week16/ot_kh_512_consolidation/summary.json"
     }

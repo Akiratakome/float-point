@@ -1,0 +1,63 @@
+{
+  "schema": {
+    "name": "hrsc.week20-brio-wu-cpu-arch",
+    "version": 1
+  },
+  "experiment": "week20-brio-wu-cpu-arch",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "claim_boundary": "Only the MSVC baseline instruction set differs between the two columns; optimisation level, floating-point model, branch rule, solver, grid, CFL and final time are held fixed. Results describe this compiler on this processor.",
+  "rows": [
+    {
+      "case": "brio_wu_1d",
+      "solver": "hll",
+      "precision": "double",
+      "changed_axis": "/arch:AVX2 versus /arch:SSE2",
+      "held_fixed": "O2, compiler-default math, <= branch, N=800, t=0.1, CFL 0.4",
+      "rho_linf_abs": 0.0,
+      "rho_l1_mean_abs": 0.0,
+      "bitwise_identical": true,
+      "sse2_binary_sha256": "f76bd91cd86975f50643e58db48e45e5cbca29411865144886c62f12cfe09443",
+      "avx2_binary_sha256": "7a64ade8d93bfbf6fdc000b11cf7d2a20980ac1e37b4fdcfcdba90f3bb4acb53",
+      "binaries_differ": true
+    },
+    {
+      "case": "brio_wu_1d",
+      "solver": "hll",
+      "precision": "float",
+      "changed_axis": "/arch:AVX2 versus /arch:SSE2",
+      "held_fixed": "O2, compiler-default math, <= branch, N=800, t=0.1, CFL 0.4",
+      "rho_linf_abs": 0.0,
+      "rho_l1_mean_abs": 0.0,
+      "bitwise_identical": true,
+      "sse2_binary_sha256": "81e9cd7a278def4af9fcfd8a5cb9b63a0a343856dffe0a6c39cf0b6bd6721c22",
+      "avx2_binary_sha256": "dc71fb8d0fe7381c43a927d12eda83b3abe0f712aa51ba240841fad89b31ffc1",
+      "binaries_differ": true
+    },
+    {
+      "case": "brio_wu_1d",
+      "solver": "hlld",
+      "precision": "double",
+      "changed_axis": "/arch:AVX2 versus /arch:SSE2",
+      "held_fixed": "O2, compiler-default math, <= branch, N=800, t=0.1, CFL 0.4",
+      "rho_linf_abs": 0.0,
+      "rho_l1_mean_abs": 0.0,
+      "bitwise_identical": true,
+      "sse2_binary_sha256": "f76bd91cd86975f50643e58db48e45e5cbca29411865144886c62f12cfe09443",
+      "avx2_binary_sha256": "7a64ade8d93bfbf6fdc000b11cf7d2a20980ac1e37b4fdcfcdba90f3bb4acb53",
+      "binaries_differ": true
+    },
+    {
+      "case": "brio_wu_1d",
+      "solver": "hlld",
+      "precision": "float",
+      "changed_axis": "/arch:AVX2 versus /arch:SSE2",
+      "held_fixed": "O2, compiler-default math, <= branch, N=800, t=0.1, CFL 0.4",
+      "rho_linf_abs": 0.0,
+      "rho_l1_mean_abs": 0.0,
+      "bitwise_identical": true,
+      "sse2_binary_sha256": "81e9cd7a278def4af9fcfd8a5cb9b63a0a343856dffe0a6c39cf0b6bd6721c22",
+      "avx2_binary_sha256": "dc71fb8d0fe7381c43a927d12eda83b3abe0f712aa51ba240841fad89b31ffc1",
+      "binaries_differ": true
+    }
+  ]
+}

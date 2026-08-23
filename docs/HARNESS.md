@@ -83,8 +83,9 @@ from the repository root with:
 python -m pytest tests/py/test_experiment_manifests.py -q
 ```
 
-The current cleanup audit is read-only and reports candidates for a separate
-reference check at
+The cleanup audit remains read-only and verifies that no tracked nested build
+directories have returned under `experiments/`; the completed cleanup record is
+at
 [`experiment_cleanup_candidates.md`](experiment_logs/experiment_cleanup_candidates.md).
 
 ## Build Axes

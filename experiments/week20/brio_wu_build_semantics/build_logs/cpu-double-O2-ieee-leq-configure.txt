@@ -1,0 +1,11 @@
+-- HRSC optimisation axis: /O2
+-- HRSC precision: double
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: C:/Users/tangy/AppData/Local/Temp/floatpoint-c5-buildsemantics-cd8dfccf1e8549008bd6833adeeba8ad/builds/cpu-double-O2-ieee-leq
+CMake Warning at CMakeLists.txt:64 (message):
+  ENABLE_OPENMP=ON requested, but classic MSVC OpenMP cannot compile the
+  existing reduction(max:...) pragmas; building serial.  Configure with
+  -DHRSC_MSVC_OPENMP_LLVM=ON to opt into /openmp:llvm for CPU OpenMP builds.
+
+

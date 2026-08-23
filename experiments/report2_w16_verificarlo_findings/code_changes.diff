@@ -1,0 +1,485 @@
+diff --git a/scripts/cluster/report2_w16_w17_slurm/env.sh b/scripts/cluster/report2_w16_w17_slurm/env.sh
+index 1740053..8ca6f47 100644
+--- a/scripts/cluster/report2_w16_w17_slurm/env.sh
++++ b/scripts/cluster/report2_w16_w17_slurm/env.sh
+@@ -7,6 +7,29 @@ export HRSC_PYTHON="${HRSC_PYTHON:-python3}"
+ export HRSC_MCA_JOBS="${HRSC_MCA_JOBS:-${SLURM_CPUS_PER_TASK:-8}}"
+ export HRSC_KH_FULL_SAMPLES="${HRSC_KH_FULL_SAMPLES:-30}"
+ export HRSC_KH_SMOKE_SAMPLES="${HRSC_KH_SMOKE_SAMPLES:-30}"
++# Per-attempt kill timeout for the full 256^2/t=1.0 KH MCA case. A plain
++# (non-instrumented) run of this case takes ~66s. Verificarlo MCA
++# instrumentation is far heavier: the reference quad backend
++# (libinterflop_mca.so) measured ~417x/step (>2h/sample), and the faster
++# native-integer backend (libinterflop_mca_int.so, still true MCA) ~200x/step
++# (~1.5-2.5h/sample on a compute node). This per-attempt kill timeout must sit
++# above a healthy sample time but below the 6h Slurm wall; 14400s (4h) leaves
++# headroom for a slow sample while still catching a genuine hang.
++export HRSC_KH_SAMPLE_TIMEOUT_S="${HRSC_KH_SAMPLE_TIMEOUT_S:-14400}"
++# Interflop backend for the KH MCA runs. The reference quad backend
++# (libinterflop_mca.so) is used for BOTH precisions: the p24 float-level
++# surrogate needs a reduced virtual precision (--precision-binary64=24), which
++# the faster native-integer backend (libinterflop_mca_int.so) rejects ("MCA
++# integer does not support custom precisions") — mca_int only supports the
++# native binary64 precision (53). Keeping one backend for both p53 and p24 also
++# avoids confounding the noise-floor comparison. Feasibility within the 6h cap
++# comes from splitting each (solver, precision) into its own Slurm task, not
++# from the backend. mca_int stays available via this var for p53-only studies.
++export HRSC_VFC_BACKEND_LIB="${HRSC_VFC_BACKEND_LIB:-libinterflop_mca.so}"
++# "apptainer" (default) uses the containerized Verificarlo image; "native" uses
++# a verificarlo-c++ already on PATH (e.g. a cluster-installed Verificarlo) and
++# skips the Apptainer/image checks below.
++export HRSC_VFC_RUNNER="${HRSC_VFC_RUNNER:-apptainer}"
+ 
+ hrsc_cluster_setup() {
+     cd "${HRSC_REPO_ROOT}"
+@@ -16,16 +39,25 @@ hrsc_cluster_setup() {
+         module load cmake || true
+         module load ninja || true
+         module load python || true
+-        module load apptainer || module load singularity || true
++        if [[ "${HRSC_VFC_RUNNER}" == "apptainer" ]]; then
++            module load apptainer || module load singularity || true
++        fi
+     fi
+ 
+     if ! command -v "${HRSC_PYTHON}" >/dev/null 2>&1; then
+         echo "ERROR: HRSC_PYTHON=${HRSC_PYTHON} is not executable" >&2
+         exit 1
+     fi
+-    if ! command -v apptainer >/dev/null 2>&1; then
+-        echo "ERROR: apptainer is not in PATH; load the CSC container module first" >&2
+-        exit 1
++    if [[ "${HRSC_VFC_RUNNER}" == "apptainer" ]]; then
++        if ! command -v apptainer >/dev/null 2>&1; then
++            echo "ERROR: apptainer is not in PATH; load the CSC container module first" >&2
++            exit 1
++        fi
++    else
++        if ! command -v verificarlo-c++ >/dev/null 2>&1; then
++            echo "ERROR: HRSC_VFC_RUNNER=native but verificarlo-c++ is not in PATH" >&2
++            exit 1
++        fi
+     fi
+     if ! command -v cmake >/dev/null 2>&1; then
+         echo "ERROR: cmake is not in PATH" >&2
+@@ -38,6 +70,9 @@ hrsc_cluster_setup() {
+ }
+ 
+ hrsc_require_apptainer_image() {
++    if [[ "${HRSC_VFC_RUNNER}" != "apptainer" ]]; then
++        return 0
++    fi
+     if [[ ! -f "${HRSC_VFC_IMAGE}" ]]; then
+         echo "ERROR: HRSC_VFC_IMAGE does not exist: ${HRSC_VFC_IMAGE}" >&2
+         echo "Create or copy verificarlo-cmake.sif before submitting MCA jobs." >&2
+@@ -50,8 +85,14 @@ hrsc_print_context() {
+     echo "INFO: SLURM_JOB_ID=${SLURM_JOB_ID:-none}"
+     echo "INFO: SLURM_ARRAY_TASK_ID=${SLURM_ARRAY_TASK_ID:-none}"
+     echo "INFO: HRSC_REPO_ROOT=${HRSC_REPO_ROOT}"
+-    echo "INFO: HRSC_VFC_IMAGE=${HRSC_VFC_IMAGE}"
++    echo "INFO: HRSC_VFC_RUNNER=${HRSC_VFC_RUNNER}"
+     echo "INFO: HRSC_PYTHON=$(${HRSC_PYTHON} --version 2>&1)"
+-    echo "INFO: apptainer=$(command -v apptainer)"
+-    apptainer --version || true
++    if [[ "${HRSC_VFC_RUNNER}" == "apptainer" ]]; then
++        echo "INFO: HRSC_VFC_IMAGE=${HRSC_VFC_IMAGE}"
++        echo "INFO: apptainer=$(command -v apptainer)"
++        apptainer --version || true
++    else
++        echo "INFO: verificarlo-c++=$(command -v verificarlo-c++)"
++        verificarlo-c++ --version || true
++    fi
+ }
+diff --git a/scripts/cluster/report2_w16_w17_slurm/run_kh_full_mca.slurm b/scripts/cluster/report2_w16_w17_slurm/run_kh_full_mca.slurm
+index e4376f0..2b5e21e 100644
+--- a/scripts/cluster/report2_w16_w17_slurm/run_kh_full_mca.slurm
++++ b/scripts/cluster/report2_w16_w17_slurm/run_kh_full_mca.slurm
+@@ -1,10 +1,11 @@
+ #!/usr/bin/env bash
+ #SBATCH --job-name=hrsc-kh-full-mca
+-#SBATCH --array=0-1
++#SBATCH --partition=csc-mphil
++#SBATCH --array=0-3
+ #SBATCH --nodes=1
+ #SBATCH --ntasks=1
+ #SBATCH --cpus-per-task=32
+-#SBATCH --time=48:00:00
++#SBATCH --time=06:00:00
+ #SBATCH --output=experiments/week16/kelvin_helmholtz_precision/csc_mca/slurm_logs/%A_%a.out
+ #SBATCH --error=experiments/week16/kelvin_helmholtz_precision/csc_mca/slurm_logs/%A_%a.err
+ 
+@@ -18,15 +19,24 @@ hrsc_print_context
+ 
+ mkdir -p experiments/week16/kelvin_helmholtz_precision/csc_mca/slurm_logs
+ 
+-SOLVERS=(hll hlld)
++# Each array task runs ONE (solver, precision) MCA block so it fits the 6h
++# csc-mphil cap: at ~1.5-2.5h/sample the historical both-precision task would
++# overflow. Partials (summary_p{53,24}.json) are merged into summary.json by
++# the downstream packet job before it reads them.
++SOLVERS=(hll hll hlld hlld)
++PRECS=(53 24 53 24)
+ SOLVER="${SOLVERS[${SLURM_ARRAY_TASK_ID}]}"
++PREC="${PRECS[${SLURM_ARRAY_TASK_ID}]}"
+ OUT="experiments/week16/kelvin_helmholtz_precision/csc_mca/${SOLVER}"
+ 
+ "${HRSC_PYTHON}" scripts/verificarlo/mhd_precision_sampling.py \
+     --out "${OUT}" \
+     --samples "${HRSC_KH_FULL_SAMPLES}" \
+     --solver "${SOLVER}" \
++    --precisions "${PREC}" \
+     --case tests/cases/kelvin_helmholtz_2d/kh.cfg \
+     --experiment week16-kelvin-helmholtz-mca-csc \
+     --image "${HRSC_VFC_IMAGE}" \
+-    --jobs "${HRSC_MCA_JOBS}"
++    --jobs "${HRSC_MCA_JOBS}" \
++    --sample-timeout-s "${HRSC_KH_SAMPLE_TIMEOUT_S}" \
++    --backend-lib "${HRSC_VFC_BACKEND_LIB}"
+diff --git a/scripts/cluster/report2_w16_w17_slurm/run_kh_packets_from_mca.slurm b/scripts/cluster/report2_w16_w17_slurm/run_kh_packets_from_mca.slurm
+index 682b655..b793317 100644
+--- a/scripts/cluster/report2_w16_w17_slurm/run_kh_packets_from_mca.slurm
++++ b/scripts/cluster/report2_w16_w17_slurm/run_kh_packets_from_mca.slurm
+@@ -1,10 +1,11 @@
+ #!/usr/bin/env bash
+ #SBATCH --job-name=hrsc-kh-packets
++#SBATCH --partition=csc-mphil
+ #SBATCH --array=0-1
+ #SBATCH --nodes=1
+ #SBATCH --ntasks=1
+ #SBATCH --cpus-per-task=16
+-#SBATCH --time=12:00:00
++#SBATCH --time=06:00:00
+ #SBATCH --output=experiments/week16/kelvin_helmholtz_precision/csc_packets/slurm_logs/%A_%a.out
+ #SBATCH --error=experiments/week16/kelvin_helmholtz_precision/csc_packets/slurm_logs/%A_%a.err
+ 
+@@ -19,10 +20,18 @@ mkdir -p experiments/week16/kelvin_helmholtz_precision/csc_packets/slurm_logs
+ 
+ SOLVERS=(hll hlld)
+ SOLVER="${SOLVERS[${SLURM_ARRAY_TASK_ID}]}"
+-MCA_SUMMARY="experiments/week16/kelvin_helmholtz_precision/csc_mca/${SOLVER}/summary.json"
++MCA_DIR="experiments/week16/kelvin_helmholtz_precision/csc_mca/${SOLVER}"
++MCA_SUMMARY="${MCA_DIR}/summary.json"
+ 
++# The full-MCA array runs p53 and p24 as separate tasks writing per-precision
++# partials; merge them into the combined summary.json the packet step expects.
+ if [[ ! -f "${MCA_SUMMARY}" ]]; then
+-    echo "ERROR: missing Apptainer-produced MCA summary: ${MCA_SUMMARY}" >&2
++    "${HRSC_PYTHON}" scripts/verificarlo/mhd_precision_sampling.py \
++        --out "${MCA_DIR}" --solver "${SOLVER}" --merge-only
++fi
++
++if [[ ! -f "${MCA_SUMMARY}" ]]; then
++    echo "ERROR: missing MCA summary and no partials to merge: ${MCA_SUMMARY}" >&2
+     exit 1
+ fi
+ 
+diff --git a/scripts/cluster/report2_w16_w17_slurm/run_kh_smoke_mca.slurm b/scripts/cluster/report2_w16_w17_slurm/run_kh_smoke_mca.slurm
+index 0ff30f1..803a2a6 100644
+--- a/scripts/cluster/report2_w16_w17_slurm/run_kh_smoke_mca.slurm
++++ b/scripts/cluster/report2_w16_w17_slurm/run_kh_smoke_mca.slurm
+@@ -1,10 +1,11 @@
+ #!/usr/bin/env bash
+ #SBATCH --job-name=hrsc-kh-smoke-mca
+-#SBATCH --array=0-1
++#SBATCH --partition=csc-mphil
++#SBATCH --array=0-3
+ #SBATCH --nodes=1
+ #SBATCH --ntasks=1
+ #SBATCH --cpus-per-task=16
+-#SBATCH --time=04:00:00
++#SBATCH --time=01:00:00
+ #SBATCH --output=experiments/week16/kelvin_helmholtz_precision/csc_mca_smoke/slurm_logs/%A_%a.out
+ #SBATCH --error=experiments/week16/kelvin_helmholtz_precision/csc_mca_smoke/slurm_logs/%A_%a.err
+ 
+@@ -18,15 +19,22 @@ hrsc_print_context
+ 
+ mkdir -p experiments/week16/kelvin_helmholtz_precision/csc_mca_smoke/slurm_logs
+ 
+-SOLVERS=(hll hlld)
++# Mirror the full-MCA pipeline (per-precision task + mca_int backend + split)
++# on the reduced 64^2/t=0.05 case so a passing smoke validates the exact real
++# code path on a compute node in minutes.
++SOLVERS=(hll hll hlld hlld)
++PRECS=(53 24 53 24)
+ SOLVER="${SOLVERS[${SLURM_ARRAY_TASK_ID}]}"
++PREC="${PRECS[${SLURM_ARRAY_TASK_ID}]}"
+ OUT="experiments/week16/kelvin_helmholtz_precision/csc_mca_smoke/${SOLVER}"
+ 
+ "${HRSC_PYTHON}" scripts/verificarlo/mhd_precision_sampling.py \
+     --out "${OUT}" \
+     --samples "${HRSC_KH_SMOKE_SAMPLES}" \
+     --solver "${SOLVER}" \
++    --precisions "${PREC}" \
+     --case scripts/cluster/report2_w16_w17_slurm/cfg/kh_64_t005.cfg \
+     --experiment week16-kelvin-helmholtz-mca-smoke-csc \
+     --image "${HRSC_VFC_IMAGE}" \
+-    --jobs "${HRSC_MCA_JOBS}"
++    --jobs "${HRSC_MCA_JOBS}" \
++    --backend-lib "${HRSC_VFC_BACKEND_LIB}"
+diff --git a/scripts/cluster/report2_w16_w17_slurm/run_w17_synthesis_and_figures.slurm b/scripts/cluster/report2_w16_w17_slurm/run_w17_synthesis_and_figures.slurm
+index a9112fd..23324fc 100644
+--- a/scripts/cluster/report2_w16_w17_slurm/run_w17_synthesis_and_figures.slurm
++++ b/scripts/cluster/report2_w16_w17_slurm/run_w17_synthesis_and_figures.slurm
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env bash
+ #SBATCH --job-name=hrsc-w17-synthesis
++#SBATCH --partition=csc-mphil
+ #SBATCH --nodes=1
+ #SBATCH --ntasks=1
+ #SBATCH --cpus-per-task=4
+diff --git a/scripts/verificarlo/mhd_precision_sampling.py b/scripts/verificarlo/mhd_precision_sampling.py
+index 2a04f28..a0f7247 100644
+--- a/scripts/verificarlo/mhd_precision_sampling.py
++++ b/scripts/verificarlo/mhd_precision_sampling.py
+@@ -9,6 +9,7 @@ blocked MCA block rather than failing the experiment.
+ from __future__ import annotations
+ 
+ import argparse
++import json
+ import pathlib
+ import sys
+ from typing import Any
+@@ -75,6 +76,8 @@ def _sample_args(
+     solver: str,
+     case: pathlib.Path = DEFAULT_CASE,
+     jobs: int = 1,
++    sample_timeout_s: int = smoke.SAMPLE_TIMEOUT_S,
++    backend_lib: str = smoke.DEFAULT_VFC_BACKEND_LIB,
+ ) -> argparse.Namespace:
+     return argparse.Namespace(
+         case=pathlib.Path(case),
+@@ -85,6 +88,8 @@ def _sample_args(
+         probe_only=False,
+         solver=_normalise_solver(solver),
+         jobs=max(1, int(jobs)),
++        sample_timeout_s=int(sample_timeout_s),
++        backend_lib=str(backend_lib),
+     )
+ 
+ 
+@@ -136,16 +141,25 @@ def sample_precision(
+     case: pathlib.Path = DEFAULT_CASE,
+     experiment: str = WEEK14_MCA_EXPERIMENT,
+     jobs: int = 1,
++    sample_timeout_s: int = smoke.SAMPLE_TIMEOUT_S,
++    backend_lib: str = smoke.DEFAULT_VFC_BACKEND_LIB,
+ ) -> dict[str, Any]:
+     """Run one MCA precision block and return schema-complete field metrics.
+ 
+     ``jobs`` sets how many independent MCA sample containers run concurrently
+-    (default 1 = sequential, historical behaviour).
++    (default 1 = sequential, historical behaviour). ``sample_timeout_s`` sets
++    the per-attempt kill timeout (default 300s; raise for cases whose real
++    runtime under Verificarlo MCA instrumentation exceeds the default).
++    ``backend_lib`` selects the interflop backend (default the quad
++    libinterflop_mca.so; libinterflop_mca_int.so is the ~2x-faster
++    native-integer MCA backend).
+     """
+     solver = _normalise_solver(solver)
+     probes = probe_runners(image)
+     runner = choose_runner(probes)
+-    args = _sample_args(pathlib.Path(out_dir), precision, samples, image, solver, pathlib.Path(case), jobs=jobs)
++    args = _sample_args(
++        pathlib.Path(out_dir), precision, samples, image, solver, pathlib.Path(case),
++        jobs=jobs, sample_timeout_s=sample_timeout_s, backend_lib=backend_lib)
+     args.out.mkdir(parents=True, exist_ok=True)
+     if runner is None:
+         environment = _base_environment_with_experiment_label(args, probes, None, experiment)
+@@ -200,9 +214,48 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+     parser.add_argument(
+         "--jobs", type=int, default=1,
+         help="Number of MCA sample containers to run concurrently (default 1).")
++    parser.add_argument(
++        "--sample-timeout-s", type=int, default=smoke.SAMPLE_TIMEOUT_S,
++        help="Per-attempt wall-clock kill timeout in seconds (default 300; "
++             "raise for cases whose real runtime under Verificarlo MCA "
++             "instrumentation exceeds the default).")
++    parser.add_argument(
++        "--backend-lib", default=smoke.DEFAULT_VFC_BACKEND_LIB,
++        help="Interflop backend library (default libinterflop_mca.so, the quad "
++             "backend; libinterflop_mca_int.so is the ~2x-faster native-integer "
++             "MCA backend and is still true MCA).")
++    parser.add_argument(
++        "--precisions", default="53,24",
++        help="Comma-separated MCA precision blocks to run: subset of {53,24} "
++             "(default both). Running one precision per invocation lets each "
++             "block be its own Slurm task; combine partials later with --merge-only.")
++    parser.add_argument(
++        "--merge-only", action="store_true",
++        help="Do not run any sampling; merge existing summary_p*.json partials "
++             "in --out into a combined summary.json and exit.")
+     return parser.parse_args(argv)
+ 
+ 
++# Map a binary64 virtual precision to the schema key used in the MCA summary.
++PRECISION_LABELS = {53: "p53", 24: "p24"}
++
++
++def _parse_precisions(spec: str) -> list[int]:
++    out: list[int] = []
++    for tok in str(spec).split(","):
++        tok = tok.strip().lstrip("p")
++        if not tok:
++            continue
++        val = int(tok)
++        if val not in PRECISION_LABELS:
++            raise ValueError(f"unsupported precision: {val} (allowed: {sorted(PRECISION_LABELS)})")
++        if val not in out:
++            out.append(val)
++    if not out:
++        raise ValueError("no precisions requested")
++    return out
++
++
+ def resolve_output_dir(path: pathlib.Path | None, solver: str) -> pathlib.Path:
+     solver = _normalise_solver(solver)
+     if path is None:
+@@ -212,20 +265,49 @@ def resolve_output_dir(path: pathlib.Path | None, solver: str) -> pathlib.Path:
+     return path if path.is_absolute() else ROOT / path
+ 
+ 
++def merge_partials(out: pathlib.Path) -> pathlib.Path:
++    """Combine per-precision summary_p*.json partials into one summary.json.
++
++    Each partial (written when a single precision runs as its own Slurm task)
++    carries one mca block plus shared metadata; the merged file matches the
++    schema produced by a single both-precision run.
++    """
++    partials = sorted(out.glob("summary_p*.json"))
++    if not partials:
++        raise FileNotFoundError(f"no summary_p*.json partials found in {out}")
++    merged: dict[str, Any] = {}
++    mca: dict[str, Any] = {}
++    for path in partials:
++        data = json.loads(path.read_text(encoding="utf-8"))
++        for key in ("experiment", "case", "samples", "solver"):
++            if key in data:
++                merged.setdefault(key, data[key])
++        mca.update(data.get("mca", {}))
++    merged["mca"] = mca
++    write_json(out / "summary.json", merged)
++    return out / "summary.json"
++
++
+ def main(argv: list[str] | None = None) -> int:
+     args = parse_args(argv)
+     out = resolve_output_dir(args.out, args.solver)
+     out.mkdir(parents=True, exist_ok=True)
++
++    if args.merge_only:
++        summary_path = merge_partials(out)
++        print(summary_path)
++        return 0
++
+     case = args.case if args.case.is_absolute() else ROOT / args.case
++    precisions = _parse_precisions(args.precisions)
+     mca = {
+-        "p53": sample_precision(
+-            out / "p53", precision=53, samples=args.samples, image=args.image,
+-            solver=args.solver, case=case, experiment=args.experiment, jobs=args.jobs,
+-        ),
+-        "p24": sample_precision(
+-            out / "p24", precision=24, samples=args.samples, image=args.image,
+-            solver=args.solver, case=case, experiment=args.experiment, jobs=args.jobs,
+-        ),
++        PRECISION_LABELS[prec]: sample_precision(
++            out / PRECISION_LABELS[prec], precision=prec, samples=args.samples,
++            image=args.image, solver=args.solver, case=case,
++            experiment=args.experiment, jobs=args.jobs,
++            sample_timeout_s=args.sample_timeout_s, backend_lib=args.backend_lib,
++        )
++        for prec in precisions
+     }
+     summary = {
+         "experiment": args.experiment,
+@@ -234,8 +316,15 @@ def main(argv: list[str] | None = None) -> int:
+         "solver": args.solver,
+         "mca": mca,
+     }
+-    write_json(out / "summary.json", summary)
+-    print(out / "summary.json")
++    # A full (both-precision) run writes summary.json directly; a single-precision
++    # task writes a summary_p{N}.json partial to be merged later via --merge-only.
++    if set(precisions) == set(PRECISION_LABELS):
++        summary_path = out / "summary.json"
++    else:
++        label = PRECISION_LABELS[precisions[0]]
++        summary_path = out / f"summary_{label}.json"
++    write_json(summary_path, summary)
++    print(summary_path)
+     return 0
+ 
+ 
+diff --git a/scripts/verificarlo/mhd_verificarlo_smoke.py b/scripts/verificarlo/mhd_verificarlo_smoke.py
+index 8b86752..e28502d 100644
+--- a/scripts/verificarlo/mhd_verificarlo_smoke.py
++++ b/scripts/verificarlo/mhd_verificarlo_smoke.py
+@@ -37,6 +37,18 @@ EXPERIMENT = "week13-mhd-verificarlo-smoke"
+ # 30-sample block; 6 attempts drops that to ~1e-4 while never affecting samples
+ # that succeed on the first try.
+ SAMPLE_MAX_ATTEMPTS = 6
++# Per-attempt kill timeout. Sized for the small default cases (Brio-Wu 1D);
++# larger cases (e.g. full-resolution KH MCA) pass a larger --sample-timeout-s
++# since Verificarlo MCA instrumentation overhead (~10-100x native) can push
++# their real per-sample runtime well past this default.
++SAMPLE_TIMEOUT_S = 300
++# Interflop backend library selecting the MCA implementation. The default
++# `libinterflop_mca.so` is the reference quad (128-bit software) backend. On
++# FP-dense cases (e.g. full-resolution 2D KH) it is ~400x slower than native;
++# `libinterflop_mca_int.so` computes the SAME Monte Carlo Arithmetic model using
++# native integer ops on the binary64 word (no quad emulation), ~2x faster, and
++# is still true MCA (not RR). Both take --mode/--precision-binary64 identically.
++DEFAULT_VFC_BACKEND_LIB = "libinterflop_mca.so"
+ 
+ sys.path.insert(0, str(ROOT / "scripts" / "regression"))
+ from _mhd_harness import git_commit, replace_or_append_cfg, sha256_file  # noqa: E402
+@@ -377,7 +389,8 @@ def build_commands_for_runner(runner: str, image: str, build_dir: pathlib.Path)
+ 
+ 
+ def sample_command_for_runner(runner: str, image: str, build_dir: pathlib.Path,
+-                              cfg_path: pathlib.Path, precision: int) -> list[str]:
++                              cfg_path: pathlib.Path, precision: int,
++                              backend_lib: str = DEFAULT_VFC_BACKEND_LIB) -> list[str]:
+     binary = build_dir / ("hrsc_mhd.exe" if runner == "native" and platform.system().lower().startswith("win") else "hrsc_mhd")
+     # Verificarlo 2.x interflop backends take precision as a VFC_BACKENDS
+     # argument; the legacy VFC_MCA_PRECISION_BINARY64 env var is silently
+@@ -385,7 +398,7 @@ def sample_command_for_runner(runner: str, image: str, build_dir: pathlib.Path,
+     # --precision-binary64 so the p24 surrogate actually lowers binary64
+     # precision instead of silently running at the backend default (=53), which
+     # is what made p24 and p53 collapse to the same machine-eps noise floor.
+-    vfc_backends = f"libinterflop_mca.so --mode=mca --precision-binary64={precision}"
++    vfc_backends = f"{backend_lib} --mode=mca --precision-binary64={precision}"
+     env_bits = (
+         f"VFC_BACKENDS='{vfc_backends}' "
+         "VFC_BACKENDS_SILENT_LOAD=True "
+@@ -526,9 +539,11 @@ def _run_one_sample(
+             solver=getattr(args, "solver", None),
+         )
+         cfg_path.write_text(cfg_text, encoding="utf-8")
+-        command = sample_command_for_runner(runner, args.image, build_dir, cfg_path, args.precision)
++        backend_lib = getattr(args, "backend_lib", DEFAULT_VFC_BACKEND_LIB) or DEFAULT_VFC_BACKEND_LIB
++        command = sample_command_for_runner(runner, args.image, build_dir, cfg_path, args.precision, backend_lib)
+         t0 = time.perf_counter()
+-        result = run_command(command, timeout=300)
++        sample_timeout = getattr(args, "sample_timeout_s", SAMPLE_TIMEOUT_S) or SAMPLE_TIMEOUT_S
++        result = run_command(command, timeout=sample_timeout)
+         elapsed = time.perf_counter() - t0
+         stdout_path = run_dir / "stdout.txt"
+         stderr_path = run_dir / "stderr.txt"
+@@ -661,6 +676,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+     parser.add_argument("--image", default=DEFAULT_IMAGE)
+     parser.add_argument("--solver", choices=("hll", "hlld"), default="hll")
+     parser.add_argument("--probe-only", action="store_true")
++    parser.add_argument(
++        "--sample-timeout-s", type=int, default=SAMPLE_TIMEOUT_S,
++        help="Per-attempt wall-clock kill timeout in seconds (default 300; "
++             "raise for cases whose real runtime under Verificarlo MCA "
++             "instrumentation exceeds the default).")
++    parser.add_argument(
++        "--backend-lib", default=DEFAULT_VFC_BACKEND_LIB,
++        help="Interflop backend library for MCA (default libinterflop_mca.so, "
++             "the quad backend; libinterflop_mca_int.so is the ~2x-faster "
++             "native-integer backend and is still true MCA).")
+     return parser.parse_args(argv)
+ 
+ 

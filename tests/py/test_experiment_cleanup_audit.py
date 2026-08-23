@@ -15,7 +15,7 @@ from scripts.audit_experiments import (
 
 ROOT = Path(__file__).resolve().parents[2]
 AUDIT = ROOT / "scripts" / "audit_experiments.py"
-EXPECTED_ROOTS = {
+REMOVED_ROOTS = {
     Path("experiments/week14/mhd_precision_pilot_hlld/mca/p24/build-vfc-p53"),
     Path("experiments/week14/mhd_precision_pilot_hlld/mca/p53/build-vfc-p53"),
 }
@@ -46,21 +46,11 @@ def tracked_repo_snapshot() -> list[str]:
     )
 
 
-def test_known_week14_nested_builds_are_reported_without_deletion():
+def test_tracked_experiments_have_no_nested_build_directories():
     tracked = tracked_experiment_paths(ROOT)
     groups = find_nested_build_roots(tracked)
-    assert set(groups) == EXPECTED_ROOTS
-    assert sum(len(files) for files in groups.values()) == 36
-    assert all(
-        (ROOT / path).exists()
-        for files in groups.values()
-        for path in files
-    )
-    assert all(
-        path.as_posix() == str(path).replace("\\", "/")
-        for path in groups
-        for path in [path, *groups[path]]
-    )
+    assert groups == {}
+    assert all(not (ROOT / path).exists() for path in REMOVED_ROOTS)
 
 
 def test_nested_build_results_are_sorted_and_marker_driven(tmp_path: Path):
@@ -83,38 +73,30 @@ def test_nested_build_results_are_sorted_and_marker_driven(tmp_path: Path):
     ]
 
 
-def test_markdown_cli_reports_candidates_without_mutating_files(tmp_path: Path):
+def test_markdown_cli_reports_clean_state_without_mutating_files(tmp_path: Path):
     before = tracked_repo_snapshot()
     result = run_audit("--format", "markdown")
     after = tracked_repo_snapshot()
     assert before == after
-    assert "reference audit required" in result.stdout
-    assert "no deletion performed" in result.stdout
-    for root in EXPECTED_ROOTS:
-        assert root.as_posix() in result.stdout
-    assert "Total tracked candidate files: 36" in result.stdout
-    groups = find_nested_build_roots(tracked_experiment_paths(ROOT))
-    assert all(
-        (ROOT / path).is_file()
-        for files in groups.values()
-        for path in files
-    )
+    assert "Reference status: no candidates" in result.stdout
+    assert "Deferred action: no deletion required" in result.stdout
+    for root in REMOVED_ROOTS:
+        assert root.as_posix() not in result.stdout
+    assert "Total tracked candidate files: 0" in result.stdout
 
 
-def test_json_cli_is_reproducible_and_reports_all_candidates(tmp_path: Path):
+def test_json_cli_is_reproducible_and_reports_clean_state(tmp_path: Path):
     output = tmp_path / "audit.json"
     first = run_audit("--format", "json", "--output", str(output))
     first_data = json.loads(output.read_text(encoding="utf-8"))
     second = run_audit("--format", "json")
     second_data = json.loads(second.stdout)
     assert first_data == second_data
-    assert first_data["reference_audit"] == "reference audit required"
-    assert first_data["deferred_action"] == "no deletion performed"
-    assert [entry["root"] for entry in first_data["candidates"]] == sorted(
-        root.as_posix() for root in EXPECTED_ROOTS
-    )
-    assert first_data["candidate_file_count"] == 36
-    assert first_data["tracked_file_count"] >= 36
+    assert first_data["reference_audit"] == "no candidates"
+    assert first_data["deferred_action"] == "no deletion required"
+    assert first_data["candidates"] == []
+    assert first_data["candidate_file_count"] == 0
+    assert first_data["tracked_file_count"] > 0
     markdown_data = run_audit("--format", "markdown").stdout
     assert first_data["root"] == "."
     assert str(ROOT).replace("\\", "/") not in render_json(first_data)
@@ -155,12 +137,12 @@ def test_renderers_agree_on_every_candidate_path_and_count():
     json_data = json.loads(render_json(report))
     markdown = render_markdown(report)
     assert json_data["root"] == "."
-    assert json_data["candidate_root_count"] == len(json_data["candidates"]) == 2
+    assert json_data["candidate_root_count"] == len(json_data["candidates"]) == 0
     assert json_data["candidate_file_count"] == sum(
         len(candidate["files"]) for candidate in json_data["candidates"]
-    ) == 36
-    assert "Candidate build roots: 2" in markdown
-    assert "Total tracked candidate files: 36" in markdown
+    ) == 0
+    assert "Candidate build roots: 0" in markdown
+    assert "Total tracked candidate files: 0" in markdown
     for candidate in json_data["candidates"]:
         assert candidate["root"] in markdown
         assert f"| `{candidate['root']}` | {len(candidate['files'])} |" in markdown

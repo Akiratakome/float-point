@@ -1,0 +1,61 @@
+{
+  "experiment": "week20-gpu-fma-contraction",
+  "name": "orszag_tang_2d-double-gpu-fmad_off",
+  "timestamp_utc": "2026-08-06T12:20:46.168907+00:00",
+  "git_commit": "4427aa904bd79fdd763f4dd095b9d69204d218cc",
+  "binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\build-cuda\\hrsc_mhd.exe",
+  "binary_sha256": "5f63747ce23cfc9c7e2cb02728ad4911347a13d09e657b24cb69a5ec7b3270f5",
+  "source_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\tests\\cases\\orszag_tang_2d\\orszag_tang.cfg",
+  "source_config_sha256": "90a06681dfed6a0143ab8deecb519773622bab82fb05cc1d8b253e057acb3a48",
+  "run_config": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\orszag_tang_2d-double-gpu-fmad_off\\config.cfg",
+  "run_config_sha256": "69baa240f2f647c18b155a484022427a712a1b74d03e50c079e2eea7780b4ee4",
+  "run_config_text": "# Orszag-Tang vortex (Toth 2000). Doubly periodic, gamma=5/3.\n# Rationalized units: rho=gamma^2, p=gamma, B0=1 (set in setup_orszag_tang).\ntest    = orszag_tang\nnx      = 256\nny      = 256\nxmin    = 0.0\nxmax    = 1.0\nymin    = 0.0\nymax    = 1.0\ngamma   = 1.6666666666666667\ncfl     = 0.4\nt_end   = 0.5\nglm_cr  = 0.18\nbc      = periodic\nbc_y    = periodic\nriemann = hll\ndevice = gpu\noutput_format = binary\noutput_file = C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\orszag_tang_2d-double-gpu-fmad_off\\grid.bin\n",
+  "command": [
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\build-cuda\\hrsc_mhd.exe",
+    "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\orszag_tang_2d-double-gpu-fmad_off\\config.cfg"
+  ],
+  "returncode": 0,
+  "elapsed_wall_s": 4.388998300069943,
+  "stdout": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\orszag_tang_2d-double-gpu-fmad_off\\stdout.txt",
+  "stderr": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\orszag_tang_2d-double-gpu-fmad_off\\stderr.txt",
+  "stderr_diagnostics": {
+    "t": 0.5,
+    "steps": 806,
+    "divB_mean": 0.1225,
+    "divB_max": 3.72,
+    "line": "[mhd] t=0.500000 steps=806 divB_mean=1.225e-01 divB_max=3.720e+00"
+  },
+  "output_binary": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\orszag_tang_2d-double-gpu-fmad_off\\grid.bin",
+  "schema": {
+    "name": "hrsc.run-record",
+    "version": 1
+  },
+  "status": "success",
+  "artifacts": {
+    "primary_output": "C:\\Users\\tangy\\Desktop\\floatpoint\\experiments\\week20\\gpu_fma_contraction\\runs\\orszag_tang_2d-double-gpu-fmad_off\\grid.bin"
+  },
+  "timing": {
+    "elapsed_wall_s": 4.388998300069943
+  },
+  "failure": null,
+  "completion": {
+    "reported": true,
+    "final_time": 0.5,
+    "target_time": 0.5,
+    "steps": 806
+  },
+  "build_semantics": {
+    "requested_opt_level": "",
+    "requested_fast_math": false,
+    "requested_strict_ieee": false,
+    "effective_math_mode": "compiler-default",
+    "compiler_id": "MSVC",
+    "compiler_version": "19.51.36248.0",
+    "compiler_path": "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+    "evidence": {
+      "strict_ieee": "",
+      "optimization": "",
+      "fast_math": ""
+    }
+  }
+}

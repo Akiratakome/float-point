@@ -388,20 +388,26 @@ def test_chapter4_draft_preserves_evidence_and_claim_boundaries():
     normalised = " ".join(chapter.split())
 
     assert "TODO" not in chapter
-    assert chapter.count("\\section{") == 7
-    assert "all 24 planned runs and all eight three-grid groups completed" in normalised
+    assert chapter.count("\\section{") == 6
+    assert "All solver--precision groups completed at $128^2$, $256^2$, and $512^2$" in normalised
     assert "failed numerically" not in chapter
     assert "fitted rate of 2.193" not in chapter
     assert "32.0\\%" not in chapter
     assert "Precision separation with refinement" not in chapter
-    assert "do not establish an asymptotic regime" in chapter
-    assert "does not cover HLLD, Kelvin--Helmholtz, GPU MCA" in normalised
+    assert "three grids have not reached an asymptotic regime" in normalised
+    assert "the agreement holds for that build recipe" in normalised
+    assert "A shared defect would still agree bit for bit" in normalised
     assert "\\input{Chapter4/chapter4_cpu_gpu_table}" in chapter
     assert "speedup" not in table.lower()
+    assert chapter.count("\\begin{figure}") == 7
 
     for asset in (
         "ch4_validation_refinement_glm.pdf",
         "ch4_resolution_precision.pdf",
+        "ch4_brio_wu_profiles.png",
+        "ch4_orszag_tang_morphology.png",
+        "ch4_orszag_tang_solver_comparison.png",
+        "ch4_kelvin_helmholtz_morphology.png",
     ):
         assert (
             report2 / "phd-thesis-template-2.4" / "Figs" / "report2" / asset

@@ -25,8 +25,17 @@ KH has a completed 512^2 validation gate and deterministic precision packets:
 [validation](../../experiments/week16/kelvin_helmholtz_precision/validation/summary.md),
 [HLL P1](../../experiments/week16/kelvin_helmholtz_precision/hll_p1/summary.md),
 and [HLLD P1](../../experiments/week16/kelvin_helmholtz_precision/hlld_p1/summary.md).
-The deterministic gates pass, but MCA is blocked by the local Docker daemon, so
-no KH MCA noise-floor or report-grade deterministic-plus-MCA claim is made.
+The deterministic gates pass, but full 256^2/t=1.0 Docker-Verificarlo MCA did
+not produce usable samples within the local runtime budget. Reduced
+64^2/t=0.05 Docker-Verificarlo N=30 smoke
+packets are available under
+[mca_smoke](../../experiments/week16/kelvin_helmholtz_precision/mca_smoke/),
+with smoke summaries in
+[HLL](../../experiments/week16/kelvin_helmholtz_precision/hll_p1_smoke/summary.md)
+and
+[HLLD](../../experiments/week16/kelvin_helmholtz_precision/hlld_p1_smoke/summary.md).
+They support Verificarlo toolchain/noise-floor feasibility only; no full KH MCA
+noise-floor or report-grade deterministic-plus-MCA claim is made.
 
 OT/KH 512^2 consolidation is complete at
 [experiments/week16/ot_kh_512_consolidation/summary.md](../../experiments/week16/ot_kh_512_consolidation/summary.md).

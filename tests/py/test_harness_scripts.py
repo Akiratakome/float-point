@@ -9,7 +9,9 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MHD_CASE_DIRS = {
     "brio_wu_1d",
+    "cp_alfven_1d",
     "kelvin_helmholtz_2d",
+    "kelvin_helmholtz_lecoanet_2d",
     "mhd_divb_clean",
     "orszag_tang_2d",
 }
