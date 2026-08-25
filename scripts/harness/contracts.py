@@ -12,6 +12,7 @@ class FailureCategory(str, Enum):
     UNSUPPORTED = "unsupported_capability"
     NUMERICAL = "numerical_failure"
     INCOMPLETE = "incomplete_run"
+    RESOURCE_EXHAUSTED = "resource_exhausted"
     INFRASTRUCTURE = "infrastructure_error"
     ARTIFACT = "artifact_error"
     SCHEMA = "schema_error"

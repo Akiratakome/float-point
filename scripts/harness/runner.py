@@ -7,11 +7,61 @@ import time
 from pathlib import Path
 from typing import Any
 
-from .contracts import RunRecord, RunSpec
+from .contracts import FailureCategory, RunRecord, RunSpec
 from .artifacts import ArtifactValidationError, get_artifact_validator, validate_artifact
 
 
 _STATUS_RE = re.compile(r"^\[run-status\]\s+(?P<body>.+)$")
+
+
+def _parse_solver_completion(
+    parsed: dict[str, str],
+) -> tuple[str | None, dict[str, Any] | None, dict[str, Any] | None]:
+    try:
+        final_time = float(parsed["final_time"])
+        target_time = float(parsed["target_time"])
+        steps = int(parsed["steps"])
+    except (KeyError, TypeError, ValueError, OverflowError) as exc:
+        return "failed", None, _failure("schema_error", f"invalid completion fields: {exc}")
+    if not math.isfinite(final_time) or not math.isfinite(target_time):
+        return "failed", None, _failure(
+            "schema_error", "completion times must be finite"
+        )
+    if steps < 0:
+        return "failed", None, _failure("schema_error", "completion steps must be non-negative")
+    if final_time < target_time:
+        return "failed", None, _failure(
+            "schema_error", "completion final_time must reach target_time"
+        )
+    return "success", {
+        "final_time": final_time,
+        "target_time": target_time,
+        "steps": steps,
+    }, None
+
+
+def _parse_workload_completion(
+    parsed: dict[str, str],
+) -> tuple[str | None, dict[str, Any] | None, dict[str, Any] | None]:
+    try:
+        completed = int(parsed["completed"])
+        expected = int(parsed["expected"])
+    except (KeyError, TypeError, ValueError) as exc:
+        return "failed", None, _failure("schema_error", f"invalid workload fields: {exc}")
+    if completed < 0 or expected <= 0:
+        return "failed", None, _failure(
+            "schema_error", "workload counts must be non-negative with a positive expected"
+        )
+    if completed != expected:
+        return "failed", None, _failure(
+            FailureCategory.INCOMPLETE.value,
+            f"workload completed {completed} of {expected} units",
+        )
+    return "success", {
+        "kind": "workload",
+        "completed": completed,
+        "expected": expected,
+    }, None
 
 
 def parse_run_status(
@@ -41,28 +91,19 @@ def parse_run_status(
     if parsed is None:
         return None, None, None
     if parsed.get("status") == "success":
-        try:
-            final_time = float(parsed["final_time"])
-            target_time = float(parsed["target_time"])
-            steps = int(parsed["steps"])
-        except (KeyError, TypeError, ValueError, OverflowError) as exc:
-            return "failed", None, _failure("schema_error", f"invalid completion fields: {exc}")
-        if not math.isfinite(final_time) or not math.isfinite(target_time):
-            return "failed", None, _failure(
-                "schema_error", "completion times must be finite"
-            )
-        if steps < 0:
-            return "failed", None, _failure("schema_error", "completion steps must be non-negative")
-        if final_time < target_time:
-            return "failed", None, _failure(
-                "schema_error", "completion final_time must reach target_time"
-            )
-        return "success", {
-            "final_time": final_time,
-            "target_time": target_time,
-            "steps": steps,
-        }, None
-    category = parsed.get("reason", "infrastructure_error")
+        kind = parsed.get("kind")
+        if kind is None:
+            return _parse_solver_completion(parsed)
+        if kind == "workload":
+            return _parse_workload_completion(parsed)
+        return "failed", None, _failure(
+            "schema_error", f"unknown run-status kind: {kind!r}"
+        )
+    category = parsed.get("reason", FailureCategory.INFRASTRUCTURE.value)
+    if category not in {member.value for member in FailureCategory}:
+        return "failed", None, _failure(
+            "schema_error", f"unknown run-status reason: {category!r}"
+        )
     return "failed", None, {"category": category, "message": category}
 
 

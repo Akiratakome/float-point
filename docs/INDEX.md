@@ -1,11 +1,29 @@
 # Project Index — `floatpoint`
 
-> Agent-facing entry point. **Read this first** before exploring; it points to the canonical doc/data for every concern.
+> Agent-facing entry point. **Read this first**, then `AGENTS.md` and `docs/HARNESS.md`.
 
-**Project**: Effect of Floating-Point Precision and Hardware on HRSC Schemes (MSc, 20 weeks)
-**Reports**: Report 1 due 2026-05-29 (Week 10) · Report 2 due 2026-08-07 (Week 20)
-**Repo root**: `c:/Users/tangy/Desktop/floatpoint`
-**Integration**: see Git topology and the Report 2 evidence map; do not infer status from a worktree branch name
+**What this repository is.** A workload-agnostic *numerical qualification harness*: it
+measures how precision, compiler semantics, device math flags, parallelism and hardware
+change a computed result, and it records enough provenance for those measurements to be
+re-run and audited. The pipeline is the deliverable; a solver or a model is only a
+workload plugged into it.
+
+**Central claim under test.** *Under which conditions is a computation bit-for-bit
+reproducible, which mechanisms break that, and what does restoring it cost?*
+
+**Two workload families.**
+
+| # | Family | Status | Role |
+|---|---|---|---|
+| 1 | **HRSC solver** — CPU/CUDA compressible Euler + ideal MHD | **delivered** | Numerically sensitive non-ML stress workload; source of the existing evidence base |
+| 2 | **LLM inference** — PyTorch eager / vLLM | **planned** | Primary workload for the current phase; extends the same method to a Transformer |
+
+Family 2 keeps Family 1 in the tree deliberately: it proves the harness is not hard-coded
+to one workload, and it lets the same determinism question be answered on two unrelated
+computations.
+
+**Status legend used throughout:** **[delivered]** exists and has committed evidence ·
+**[planned]** designed, not yet implemented.
 
 ---
 
@@ -13,295 +31,242 @@
 
 | If you need… | Read |
 |---|---|
-| Project requirements, deliverables, deadlines | [requirement/overall.md](requirement/overall.md) |
-| Canonical experiment harness workflow | [HARNESS.md](HARNESS.md) |
-| Script architecture, canonical entry points, legacy/provenance boundaries | [../scripts/README.md](../scripts/README.md) |
-| Shared harness contracts and manifest validation | [../scripts/harness/](../scripts/harness/) |
-| Coding conventions, style, FP guidance | [requirement/coding guidance.md](requirement/coding%20guidance.md) |
-| Project briefs (PDFs from supervisor) | [requirement/](requirement/) (`*.pdf`) |
-| What's been done so far this project | per-week `weekN-summary.md` (see §2) |
-| What's planned this week | per-week `weekN-plan.md` (see §2) |
-| Supervisor correspondence + feedback artefacts | [emails/](emails/) — dated historical snapshots, meeting scripts, replies, decision/comparison artefacts, and supervisor-driven plans (named `weekN_<topic>_YYYY-MM-DD.md`); not current status authority |
-| Raw experiment data logs (deliverable artefacts) | [experiment_logs/](experiment_logs/) (named `weekN_<phase>_<topic>.md`) |
-| Report 1 final evidence map (which artefact lives where, what is superseded) | [experiment_logs/report1_evidence_map.md](experiment_logs/report1_evidence_map.md) |
-| Legacy Report 1 Week-7 task index | [experiment_logs/report1_evidence_index.md](experiment_logs/report1_evidence_index.md) |
-| Report 2 baseline requirements and schedule | [requirement/overall.md](requirement/overall.md) Phase 2 + Report 1 conclusions in [experiment_logs/report1_evidence_map.md](experiment_logs/report1_evidence_map.md) |
-| Report 2 current status, evidence priority, negative results, GPU/hardware status, and deferred work | [experiment_logs/report2_evidence_map.md](experiment_logs/report2_evidence_map.md) |
-| Report 2 lifecycle manifests and nested-build cleanup audit | [experiment_cleanup_candidates.md](experiment_logs/experiment_cleanup_candidates.md) |
-| Manual reproduction recipe (build → tests → regression) | [week4/week4-verification.md](week4/week4-verification.md) |
-| How Week N's state evolved from Week N-1 | `weekN/weekN-1_to_weekN_bridge.md` (kept at the target week) |
+| Hard rules for agents working here | [`../AGENTS.md`](../AGENTS.md) |
+| Canonical pipeline, run contract, build semantics, manifests | [`HARNESS.md`](HARNESS.md) |
+| Script ownership, canonical entry points, legacy boundaries | [`../scripts/README.md`](../scripts/README.md) |
+| Shared harness contracts and validation | [`../scripts/harness/`](../scripts/harness/) |
+| Experiment artefact layout and retention rules | [`../experiments/README.md`](../experiments/README.md) |
+| Delivered evidence and its claim boundaries | §6 below, then the packet's own `summary.md` |
+| Compute resources (local + CSC) | §4 below |
+| Family 2 execution plan and decision records | [`aiinfra/PLAN.md`](aiinfra/PLAN.md), [`aiinfra/ADR.md`](aiinfra/ADR.md) |
+| Manuscript and figures | [`../dissertation/phd-thesis-template-2.4/`](../dissertation/phd-thesis-template-2.4/) |
 
 ---
 
-## 2. Per-week navigation
+## 2. Architecture
 
-**Convention** (post-2026-04-28 reorg): each week keeps **only** `weekN-plan.md` + `weekN-summary.md` at the top. Everything else lives in `archive/` (legacy planning docs, design notes, briefings) or in shared folders (`emails/`, `experiment_logs/`).
-Links in this table are relative to `docs/INDEX.md`; from the repository root,
-use `docs/weekN/...`.
-
-| Week | Plan | Summary | Archive |
-|---|---|---|---|
-| 1 | [week1-plan.md](week1/week1-plan.md) | [week1-summary.md](week1/week1-summary.md) | [week1/archive/](week1/archive/) |
-| 2 | [week2-plan.md](week2/week2-plan.md) | [week2-summary.md](week2/week2-summary.md) | [week2/archive/](week2/archive/) |
-| 3 | [week3-plan.md](week3/week3-plan.md) | [week3-summary.md](week3/week3-summary.md) | [week3/archive/](week3/archive/) |
-| 4 | [week4-plan.md](week4/week4-plan.md) | [week4-summary.md](week4/week4-summary.md) | [week4/archive/](week4/archive/) |
-| 5 | [week5-plan.md](week5/week5-plan.md) | [week5-summary.md](week5/week5-summary.md) | [week5/archive/](week5/archive/) |
-| 6 | [week6-plan.md](week6/week6-plan.md) | [week6-summary.md](week6/week6-summary.md) | [week6/archive/](week6/archive/) |
-| 7 | [week7-plan.md](week7/week7-plan.md) | Report 1 evidence complete; see [report1_evidence_map.md](experiment_logs/report1_evidence_map.md) | (none) |
-| 12 | [week12-plan.md](week12/week12-plan.md) | [week12-summary.md](week12/week12-summary.md) | (none) |
-| 13 | [week13-plan.md](week13/week13-plan.md) | [week13-summary.md](week13/week13-summary.md) | (none) |
-| 14 | [week14-plan.md](week14/week14-plan.md) | [week14-summary.md](week14/week14-summary.md) | (none) |
-| 15 | [week15-plan.md](week15/week15-plan.md) | [week15-summary.md](week15/week15-summary.md) | (none) |
-| 16 | [week16-plan.md](week16/week16-plan.md) | [week16-summary.md](week16/week16-summary.md) | (none) |
-| 17 | [week17-plan.md](week17/week17-plan.md) | [week17-summary.md](week17/week17-summary.md) | (none) |
-| 18 | (none) | [English supervisor meeting](week18/week18-supervisor-meeting-EN.md) / [中文导师汇报](week18/week18-supervisor-meeting-ZH.md) | (none) |
-
-Week 4 also keeps:
-- [week4-verification.md](week4/week4-verification.md) — manual verification checklist (Phase B/C reproduction recipe)
-- [week3_to_week4_bridge.md](week4/week3_to_week4_bridge.md) — Week 3 → Week 4 state migration
-- [cfg_reference.md](week4/cfg_reference.md) — Week-4 snapshot of runtime cfg keys (referenced from `week4-plan.md`)
-
-Week 5 pre-start bridge:
-- [week4_to_week5_bridge.md](week5/week4_to_week5_bridge.md) — Week 4 → Week 5 handoff (delivered work, reusable interfaces, Week 5 gaps)
-- [week5-verification.md](week5/week5-verification.md) — manual reproduction recipe for Week 5 (Phase A/B/C/D/E coverage)
-
-Week 6 pre-start bridge:
-- [week5_to_week6_bridge.md](week6/archive/week5_to_week6_bridge.md) — Week 5 → Week 6 handoff (delivered work, reusable interfaces, Week 6 GPU plan)
-
-Week 6 deliverables:
-- [week6-design.md](week6/archive/week6-design.md) — GPU Euler + CSC migration design
-- [week6-verification.md](week6/archive/week6-verification.md) — Phase A-E reproduction recipe
-- [csc_gpu_environment.md](week6/archive/csc_gpu_environment.md) — CSC GPU environment probe
-- [week6-supervisor-plan.md](week6/archive/week6-supervisor-plan.md) — supervisor-response operational plan
-- [week6_supervisor_response.md](experiment_logs/week6_supervisor_response.md) — supervisor-response evidence log
-- [week6_pareto_precision_sweep_plan.md](experiment_logs/week6_pareto_precision_sweep_plan.md) — Pareto precision sweep extension plan
-
-Week 7 deliverables:
-- [week6_to_week7_bridge.md](week7/week6_to_week7_bridge.md) — Week 6 → Week 7 handoff (completed GPU baseline, reusable interfaces, Week 7 experiment guidance)
-- [week7-plan.md](week7/week7-plan.md) — operational plan for supervisor-response evidence collection
-- [week7_supervisor_response.md](experiment_logs/week7_supervisor_response.md) — supervisor-response evidence log
-- [report1_evidence_map.md](experiment_logs/report1_evidence_map.md) — canonical Report 1 evidence map after Week 8/9 fill and final cleanup
-
-Report 1 closeout / Report 2 transition:
-- Report 1 is complete. Use [report1_evidence_map.md](experiment_logs/report1_evidence_map.md) as the current source of truth for Report 1 evidence priority and exclusions.
-
-Report 2 current routing:
-- [report2_evidence_map.md](experiment_logs/report2_evidence_map.md) is the current status authority for delivered, superseded, negative, and deferred evidence.
-- [experiment_cleanup_candidates.md](experiment_logs/experiment_cleanup_candidates.md) records the completed nested-build cleanup and remains the read-only recurrence audit entry.
-- Report 2 lifecycle manifests are validated through `scripts/harness/experiment_manifest.py` and complement, but do not replace, evidence-map statuses.
-- The architecture specification is [2026-07-22-project-architecture-convergence-design.md](superpowers/specs/2026-07-22-project-architecture-convergence-design.md).
-- [Week 15/16 completion design](superpowers/specs/2026-07-21-week15-16-completion-design.md) defines the current completion scope and deferred phases.
-- [GPU HLL MHD plan](superpowers/plans/2026-07-09-gpu-mhd-hll.md) is executed for the HLL validation path; matched hardware-axis evidence is recorded under `experiments/week16/cpu_gpu_hardware_axis/`.
-- [Temporal divergence summary](../experiments/week15/mhd_temporal_divergence/summary.md) is the fixed-window negative result: the planned OT > Brio-Wu contrast was not observed.
-- Week 16 KH and 512-grid summaries live under `experiments/week16/kelvin_helmholtz_precision/` and `experiments/week16/ot_kh_512_consolidation/`; full KH MCA remains bounded by the current workstation runtime result, with CSC Slurm completion routing in `scripts/cluster/report2_w16_w17_slurm/`.
-- Week 17 report-facing synthesis is [experiments/week17/report2_synthesis/summary.md](../experiments/week17/report2_synthesis/summary.md); it aggregates existing evidence and does not widen claim boundaries.
-- Week 18 supplemental robustness evidence is [experiments/week18/supplemental/summary.md](../experiments/week18/supplemental/summary.md): 72 completed runs cover repeated hardware timing, 2D OpenMP reproducibility, and KH CFL sensitivity. The bilingual supervisor reports are under [week18/](week18/).
-- CSC native-Verificarlo smoke findings are retained under [experiments/report2_w16_verificarlo_findings/](../experiments/report2_w16_verificarlo_findings/); the matched local deterministic triangulation and publication figures are under [experiments/week18/csc_findings_synthesis/](../experiments/week18/csc_findings_synthesis/). This is 64^2, t=0.05, N=4 validation evidence, not the full KH MCA conclusion.
-- KH solver/precision timing is under [experiments/week18/kh_solver_timing/](../experiments/week18/kh_solver_timing/): one warm-up plus five measured runs for each HLL/HLLD x FP64/FP32 group at 256^2, with median/IQR reporting and 0-ULP repeat checks. Metric formulas and rationale are in [week18-metrics-methods-EN.md](week18/week18-metrics-methods-EN.md) and [week18-metrics-methods-ZH.md](week18/week18-metrics-methods-ZH.md).
-- The compact Euler--MHD range packet is [experiments/week18/euler_mhd_cross_system/summary.md](../experiments/week18/euler_mhd_cross_system/summary.md): 16/16 completion-attested CPU runs across Euler/MHD, 1D/2D, fp64/fp32, and O2-default/Ofast-fast, bounded to density-discrepancy sensitivity.
-- The direct Brio--Wu build-semantics packet is [experiments/week20/brio_wu_build_semantics/summary.md](../experiments/week20/brio_wu_build_semantics/summary.md): 8 clean MSVC builds and 16/16 runs isolate optimisation, fast-math, and Riemann-branch axes for HLL/HLLD and fp64/fp32, without compiler-wide or performance claims.
-- The OT/KH three-resolution packet is [experiments/week18/resolution_ladder/summary.md](../experiments/week18/resolution_ladder/summary.md): 24/24 runs completed and all eight three-grid groups are available; the repaired OT/HLLD/fp64/512 endpoint is completion-attested and finite-positive.
-- The bounded Lecoanet KH reproduction is [experiments/week19/lecoanet_kh_linear_reproduction/summary.md](../experiments/week19/lecoanet_kh_linear_reproduction/summary.md): it exactly matches the smooth unstratified initial condition and records early seeded-mode growth, while explicitly excluding the nonlinear diffusive/dye reference claim.
-- The audited Report 2 figure set is [experiments/week18/report2_publication_figures/README.md](../experiments/week18/report2_publication_figures/README.md): seven review PNG/vector-PDF pairs with source gates, claim boundaries, importance, dimensions, and SHA-256 hashes in `figure_manifest.json`.
-- Meeting reports, including the Week 15 English report, are dated historical snapshots; use the evidence map for current status and claim boundaries.
-
----
-
-## 3. Code structure quick-reference
-
-```
-src/
-├── app/            # cases registry; cfg parsing/validation; diagnostics;
-│                   # output/checkpoint helpers for the hrsc executable
-├── cases/          # production case IC definitions; tests/cases keeps
-│                   # compatibility wrappers plus cfg files
-├── core/           # types.hpp (TimeReal=double, NgHost), grid.hpp, vec.hpp,
-│                   # eos.hpp, boundary.hpp (Outflow/Periodic/Reflective per-axis)
-├── euler/          # euler_solver.{hpp,cpp} (split for explicit instantiation)
-│                   # hllc.hpp, rusanov.hpp, muscl.hpp, hancock.hpp,
-│                   # euler_flux.hpp, exact_riemann.hpp
-├── gpu/            # opt-in CUDA Euler and MHD paths:
-│                   # euler_gpu_solver.{hpp,cu}, mhd_gpu_solver.{hpp,cu},
-│                   # *_kernels.{cuh,cu}, gpu_grid/cuda utilities
-├── utils/          # io.hpp (binary reader/writer; auto-creates parent dir),
-│                   # config.hpp (key=value parser)
-└── main.cpp        # cfg-driven executable entry; run dispatch and formatted
-                    # output, with precision via HRSC_REAL from CMake
-
-tests/
-├── unit/           # Catch2 CPU default suite (136 cases / 12105 assertions)
-│                   # test_boundary.cpp (10 cases / 572 assertions covers
-│                   # outflow/periodic/reflective × 1D/2D/dispatcher/MHD-shape)
-│                   # Week 6 adds opt-in [gpu] coverage when ENABLE_CUDA=ON
-├── cases/
-│   ├── toro_1d/    # cfgs plus wrapper to src/cases/euler/toro_tests.hpp
-│   │               # convergence_*.cfg drive resolutions = 50,100,200,400,800
-│   └── liska_wendroff_2d/  # cfgs plus wrapper to src/cases/euler/lw_tests.hpp
-└── py/             # Python-level tests (pytest): test_ssim_scalar, test_snr_*,
-                    # test_losos_*, test_s_req_*, test_plot_divergence_marker
+```text
+                 config -> build -> run -> measure -> aggregate -> plot
+                   |        |       |        |           |          |
+  workload  -------+--------+-------+        |           |          |
+  (HRSC | LLM)                      |        |           |          |
+                                    v        v           v          v
+                            run-record   metrics    summary.*   figures
+                             schema v1                          + manifest
+                                    |                                |
+                                    +----- experiment-manifest ------+
+                                            (lifecycle + retention)
 ```
 
-Script harness:
-
-```
-scripts/
-├── run_matrix.py, build_all.sh, build_matrix.py, aggregate_metrics.py, io_helper.py
-│   # canonical build/run/read/aggregate entry points
-├── metrics/        # reusable metric computations
-├── regression/     # validation and summary reports; prefer matrix_summary_report.py
-├── verificarlo/    # Verificarlo/MCA/precexp workflows
-├── figures/        # reusable plotters plus Report 1 figure provenance
-├── diagnostics/    # one-off investigations and evidence checks
-└── cluster/        # CSC/Lovelace/SLURM helpers; read cluster/README.md first
-```
-
-For Report 2, start from `scripts/README.md` and prefer canonical harness
-entry points over Report 1 provenance scripts.
-
----
-
-## 4. Build matrix
-
-| Build dir | `FLOAT_PRECISION` | Use |
+| Layer | Location | Responsibility |
 |---|---|---|
-| `build-double/` | double | Phase B canonical, baseline reference for Phase C |
-| `build-float/` | float | Phase B canonical, float regression candidate |
-| `build-cuda-*-strict/` | double/float | Week 6 opt-in CUDA strict-IEEE verification |
-| `build-vfc-p53/` | double | Verificarlo MCA p=53 (auto-recreated by `scripts/verificarlo/verificarlo_run.sh`) |
+| Workload — solver | `src/` | Euler + ideal MHD, CPU and CUDA, build-time precision |
+| Workload — LLM **[planned]** | `scripts/aiinfra/backends/` | eager / vLLM adapters behind one interface |
+| Execution contracts | `scripts/harness/` | `RunSpec`/`RunRecord`, failure taxonomy, artifact freshness, build semantics, manifest validation |
+| Matrix driver | `scripts/run_matrix.py`, `scripts/build_matrix.py`, `scripts/build_all.sh` | Materialise configs, execute, write metadata — never edits a source cfg |
+| Measurement | `scripts/metrics/`, `scripts/regression/` | Reusable metrics and packet-specific analysers |
+| Aggregation | `scripts/aggregate_metrics.py`, `scripts/regression/matrix_summary_report.py` | Combine summaries |
+| Presentation | `scripts/figures/` | Plots with source gates and SHA-256 manifests |
+| Audit | `scripts/audit_experiments.py`, `scripts/harness/experiment_manifest.py` | Read-only lifecycle and retention checks |
 
-All build dirs are `.gitignore`'d and can be deleted/recreated. Keep only the
-build directories needed for the current verification task. Build via:
-```bash
-cmake -B build-double -G Ninja -DFLOAT_PRECISION=double -DCMAKE_BUILD_TYPE=Release -DENABLE_OPENMP=ON
-cmake --build build-double
-```
+**Failure taxonomy** (`scripts/harness/contracts.py`): `configuration_error`,
+`unsupported_capability`, `numerical_failure`, `incomplete_run`, `resource_exhausted`,
+`infrastructure_error`, `artifact_error`, `schema_error`. A capability a device does not have produces a
+*structured record*, not a blank cell.
 
-### Local Windows toolchain notes
+**Manifest lifecycle** (`scripts/harness/experiment_manifest.py`): `canonical`,
+`provenance`, `superseded`, `invalid`, `generated`.
 
-On this workstation, a bare PowerShell may not expose the real C++ compiler or
-Python. Check these local installations before concluding the environment is
-missing:
+---
 
-- Visual Studio Build Tools root:
-  `C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools`
-- MSVC compiler observed:
-  `C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe`
-  (`cl` version `19.51.36248`).
-- Miniconda Python:
-  `C:\Users\tangy\miniconda3\python.exe` (`Python 3.13.13`).
-- Project test Python:
-  `C:\Users\tangy\miniconda3\envs\floatpoint\python.exe` (`Python 3.11.15`;
-  includes `pytest`).
+## 3. Repository scale (measured 2026-08-24)
 
-To verify or build with MSVC from `cmd.exe`, first load the developer
-environment:
+| Item | Count |
+|---|---|
+| Commits (since 2026-04-02) | 547 |
+| `src/` C++/CUDA | 8,076 lines |
+| `scripts/` Python/Shell/Slurm/PowerShell | 166 files, 35,617 lines |
+| Catch2 test files | 48 |
+| pytest modules | 59 |
+| Run records (`experiments/**/metadata.json`) | 1,065 |
+| Aggregated evidence packets (`summary.json`) | 85 |
+| Committed figures (PNG) | 110 |
+
+---
+
+## 4. Compute resources
+
+### 4.1 Local workstation
+
+| Layer | Value |
+|---|---|
+| Processor | Intel Core Ultra 9 275HX, 24 cores |
+| Device | NVIDIA GeForce RTX 5070 Laptop GPU, `sm_120`, driver 32.0.15.9191 |
+| OS | Windows 11, build 10.0.26200 |
+| Host compiler | MSVC 19.51.36248.0 (toolset 14.51.36231) |
+| Device compiler | CUDA Toolkit 13.3, `CMAKE_CUDA_ARCHITECTURES=120` |
+| Stochastic arithmetic | Verificarlo 2.5.1 (Docker) |
+| Project Python | `C:/Users/tangy/miniconda3/envs/floatpoint/python.exe` (3.11, has pytest) |
+
+MSVC is not on a bare PowerShell `PATH`. Load the developer environment first:
 
 ```cmd
 call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64
 where cl
-cl /Bv
+```
+
+### 4.2 Cambridge LSC/CSC (public documentation, checked 2026-08-24)
+
+| Plane | Host | Spec | Limits |
+|---|---|---|---|
+| Control | `athena` | Xeon E5-2430 v2, 6 cores, 32 GB | Submit / inspect / aggregate only |
+| CPU compute | `csc-mphil` = phy-cerberus4/5/6 | Xeon Gold 5418Y, 48 cores, 248 GB | max 48 cores, **6 h** |
+| GPU compute | `csc-mphil-gpu` = phy-thetis / phy-damysus | 2 × RTX 5090 32 GB (`sm_120`), 32 cores, 128 GB | **max 2 GPUs**, **6 h** |
+| CPU (LSC) | `lsc` = phy-cerberus7/8 | as above | max 48 cores, 36 h |
+| Ampere | `lovelace` (direct SSH, **not** Slurm) | Xeon Silver 4314, 32 cores, 257 GB, 2 × A30 24 GB (`sm_80`) | shared machine; use `nice -19` |
+
+- Submit with `--clusters=CSC`; request GPUs with `--gpus=N`. Reference job scripts live at
+  `/lsc/opt/slurm/slurm_lsc.sh` and `/lsc/opt/slurm/slurm_gpu.sh`.
+- **Nodes are non-exclusive** — up to four separate jobs per node. Any timing claim must
+  carry a co-tenancy record.
+- Cluster toolchain: GCC 13.2/14.2/15.2, Clang 18.1, CUDA 12.5/12.6/12.9/13.1,
+  OpenMPI 4.1.6, CMake 3.28.3, Python 3.12.3, Verificarlo 2.4.0 (`/lsc/opt/verificarlo-2.4.0`).
+- Node-local scratch is `/local/data`; it is **not backed up** and no quota is published.
+- Multi-node GPU jobs are **not documented** — treat as unverified until probed. Multi-node
+  CPU MPI is documented and available.
+
+### 4.3 Accelerator differences that drive experiment design
+
+| | A30 (`sm_80`, datacenter) | RTX 5090 (`sm_120`, consumer) |
+|---|---|---|
+| Memory / bandwidth | 24 GB HBM2 / 933 GB/s | 32 GB GDDR7 / 1792 GB/s (**1.92×**) |
+| FP8 | not supported | supported |
+| FP64 | 5.2 TF (1:2) | ~1.64 TF (1:64, third-party figure) |
+
+The 1.92× bandwidth ratio is the upper-bound anchor for every memory-bound throughput
+claim; the FP8 gap is what exercises the `unsupported_capability` path.
+
+---
+
+## 5. Build matrix (Family 1)
+
+| Build dir | `FLOAT_PRECISION` | Use |
+|---|---|---|
+| `build-double/` | double | Canonical CPU baseline |
+| `build-float/` | float | Precision-axis counterpart |
+| `build-cuda*/` | double/float | Opt-in CUDA paths |
+| `build-vfc-p53/` | double | Verificarlo MCA (auto-recreated by the driver) |
+
+All build directories are `.gitignore`d and disposable.
+
+```bash
 cmake -B build-double -G Ninja -DFLOAT_PRECISION=double -DCMAKE_BUILD_TYPE=Release
 cmake --build build-double
+bash scripts/build_all.sh          # full CPU matrix under build-matrix/
 ```
 
-`c++` is not expected to be the compiler name in this MSVC setup; use the
-developer environment so CMake can discover `cl`. For Python tests, prefer the
-project test environment; for plain scripts, use the full Miniconda path or set
-`PYTHON` explicitly:
+Controlled axes: precision · `OPT_LEVEL` in {O2,O3,Ofast} · `FAST_MATH` · `STRICT_IEEE` ·
+`RIEMANN_STRICT_INEQUALITY` · `GPU_FMA_CONTRACT` · `GPU_FAST_MATH` · `ENABLE_OPENMP` ·
+`HLLD_COUNTERS`. CMake writes `build_semantics.json`; **directory names are labels, not
+proof of compiler behaviour** — the recorded `effective_math_mode` is the authority.
 
-```powershell
-& "C:\Users\tangy\miniconda3\envs\floatpoint\python.exe" -m pytest tests\py -q
-& "C:\Users\tangy\miniconda3\python.exe" --version
-$env:PYTHON = "C:\Users\tangy\miniconda3\python.exe"
+---
+
+## 6. Delivered evidence (Family 1)
+
+Headline results, each bound to its packet. Figures below come from the committed
+`summary.json`, which is the authority when a prose document disagrees.
+
+| Result | Packet | Boundary |
+|---|---|---|
+| Matched CPU/GPU HLL outputs are bit-identical (`ulp_max=0`, `L1=L∞=0`) **only with `--fmad=false`**; restoring nvcc's default breaks it in all 4 pairs (fp32 density `L∞`: Brio–Wu 2.265e-6, OT 2.074e-5) | `experiments/week20/gpu_fma_contraction/` | Brio–Wu 1D and Orszag–Tang 2D, HLL only |
+| Relaxed device math does not accumulate monotonically: `--use_fast_math` sits *closer* to the host baseline than contraction alone | `experiments/week21/gpu_fast_math/` | Same two cases |
+| OT 2D GPU speed-up 5.609× (double) / 5.655× (float); Brio–Wu 1D GPU is **slower** (0.066× / 0.518×) — launch and transfer dominate a small mesh | `experiments/week16/cpu_gpu_hardware_axis/` | Single-core CPU baseline, so these are serial-host ratios |
+| KH 256² wall-time medians (n=5 after one warm-up): HLL 34.484 s (fp64) / 29.196 s (fp32); HLLD 39.542 s / 34.254 s; within-group ULP drift 0 | `experiments/week18/kh_solver_timing/` | One workstation, single thread |
+| Euler OpenMP thread axis is bitwise identical (`ulp_max=0`) at 1/2/4/8 threads while really parallelising: 4.79× (fp64) and 4.54× (fp32) at 8 threads over one thread | `experiments/week21/euler_openmp_thread_axis/` | Euler HLLC, LW config 3 at 200²; speed-up measured against one thread, not the serial build |
+| Discrepancy is spatially concentrated: 38% of HLLD's total on 1% of cells, vs 6% for HLL | `experiments/week21/precision_localisation/` | OT 256² |
+| CP Alfvén converges towards second order (pairwise 1.706→1.886, fitted 1.818); fp32 leaves the fp64 curve at N=2048, and fp64 on 4096 cells beats fp32 on 8192 | `experiments/week21/cp_alfven_convergence/` | One smooth case; orders still rising |
+| Build-semantics isolation, one axis at a time, over 8 clean MSVC builds | `experiments/week20/brio_wu_build_semantics/` | Single compiler; no performance claim |
+| Verificarlo MCA on CSC: reference quad backend ≈417× slower than native (24.0 vs 0.0575 s/step); made feasible under the 6 h cap by splitting each block into its own Slurm array task | `experiments/report2_w16_verificarlo_findings/` | KH 256², t=1.0 |
+
+Other retained packets: `week15/mhd_temporal_divergence/` (fixed-window negative result),
+`week18/{supplemental,euler_mhd_cross_system,resolution_ladder,report2_publication_figures}/`,
+`week19/lecoanet_kh_linear_reproduction/`,
+`week21/{hlld_decision_counts,implementation_temporal,resolution_ladder_hll_cfl02}/`,
+`week22/mhd_saturation_grid_solver_*/`, and the Report 1 closeout under `experiments/report1/`.
+
+---
+
+## 7. Planned work (Family 2) — **[planned]**
+
+**Execution plan: [`aiinfra/PLAN.md`](aiinfra/PLAN.md). Decision records: [`aiinfra/ADR.md`](aiinfra/ADR.md).**
+Both passed design review on 2026-08-24; step 0 (a one-day spike proving the headline phenomenon
+exists) and step 1 (additive harness generalisation) are unblocked and depend on nothing unverified.
+
+Local execution plan: [`aiinfra/plans/2026-08-25-local-core-steps-0-3.md`](aiinfra/plans/2026-08-25-local-core-steps-0-3.md).
+
+The remaining planned components use this target layout, so new files land where the harness expects them:
+
+```text
+configs/aiinfra/              # model pins, workload matrices, thresholds
+scripts/aiinfra/              # config, result schema, backends/, determinism, fidelity,
+                              # noise floor, aggregate, profile, serve
+scripts/cluster/aiinfra/      # Slurm wrappers for csc-mphil-gpu
+src/ai_kernels/               # batch-invariant reduction (Triton + CUDA)
+tests/py/test_aiinfra_*.py
+experiments/aiinfra/          # generated; only summaries/manifests/figures committed
+docs/aiinfra/                 # architecture, environment matrix, reproduction, results
 ```
 
----
+Sequence and gates:
 
-## 5. Common-task cheatsheet
+1. **Additive generalisation of the harness.** **[delivered]** `run_matrix.py` gains an optional
+   `arguments` array and `artifact_kind`; `runner.py` gains `kind=workload completed=N
+   expected=N`; a `workload_result` validator is added. *Gate:* every existing HRSC matrix
+   builds a byte-identical command and all current tests stay green.
+2. **Determinism and fidelity.** Repeat-sampled unique-output counts, a same-configuration
+   noise floor, then a breakage matrix over batch size, concurrency, backend, TP degree
+   and hardware. *Gate:* at least one variable reproducibly turns one unique output into
+   several, on two devices, with the noise floor quantified first.
+3. **Coverage.** Batch-invariant operator (Triton + CUDA), Nsight/roofline attribution of
+   the decode bandwidth ratio, a precision/quantisation matrix gated by FP8 availability,
+   and intra-node TP=2 with NCCL microbenchmarks.
+4. **Optional, requires explicit approval:** compile-time-optional MPI in the HRSC solver,
+   to measure reduction-order effects on multi-node CPU. The default single-process path
+   must stay byte-identical.
 
-| Task | Command |
-|---|---|
-| Build both precisions | `cmake -B build-double -G Ninja -DFLOAT_PRECISION=double && cmake --build build-double && cmake -B build-float -G Ninja -DFLOAT_PRECISION=float && cmake --build build-float` |
-| Build full CPU FP matrix | `bash scripts/build_all.sh` |
-| Run all unit tests | `./build-double/unit_tests -r compact && ./build-float/unit_tests -r compact` |
-| Run Sod 1D | `./build-double/hrsc tests/cases/toro_1d/sod.cfg` |
-| 1D float regression (6 Toro cases × 2 precisions × 5 N) | `bash scripts/regression/float_regression_1d.sh` |
-| 2D LW Config 3 float regression (n200/n400 + 1600² ref when available) | `bash scripts/regression/float_regression_2d.sh` |
-| Verificarlo MCA noise floor | `bash scripts/verificarlo/verificarlo_run.sh -t sod -n 30` |
-| Verificarlo real-float vs VPREC | `bash scripts/verificarlo/verificarlo_run.sh --compare-float -t "sod stationary_contact"` |
-
-For the full step-by-step manual recipe see [week4/week4-verification.md](week4/week4-verification.md).
-
----
-
-## 6. Data products map
-
-| Where to find | What's there |
-|---|---|
-| `docs/experiment_logs/report1_evidence_map.md` | Canonical Report 1 evidence routing: P0/P1/P2/P3 artefacts, superseded results, exclusions, and current strongest claims |
-| `experiments/week14/mhd_precision_pilot/` | Week-14 HLL MHD precision pilot output directory: README now; Task 9/P0 run generates deterministic deltas vs `cpu-double-O2-ieee-leq`, MCA status, unified `summary.{csv,json,md}`, and figures |
-| `experiments/week15/orszag_tang_precision_smoke[_hlld]/` | Week-15 solver-aware OT 2D precision packets: per-solver `gate128/` + `headline256/` P0 deterministic fans (8 variants) vs same-solver fp64 reference with G0 anchor gates (gate: steps=76, divB_max 1.173/1.085; headline: steps=806/812, divB_max 3.72/24.45); `headline256_p1/` adds the full 24-variant O3+fastmath breadth fan with a soft `gates.G1.ordering_flags` check; Docker Verificarlo MCA at 64², t=0.05 in `mca/` (n=3 smoke) and `mca_n30/` (n=30 depth); unified `summary.{csv,json,md}` + figures |
-| `experiments/week15/brio_wu_precision_pilot[_hlld]_p1/` | Week-15 report-grade **1D** Brio-Wu MHD precision pilot (upgrades Week-14 `mhd_precision_pilot[_hlld]/` smoke from 8 variants/n=8): full 24-variant O2/O3/Ofast × ieee/fastmath × leq/strict deterministic fan vs `cpu-double-O2-ieee-leq` (G0 anchor reproduced), soft `gates.G1.ordering_flags` (HLL 4 / HLLD 6 flags), N=30 Docker Verificarlo MCA at p53+p24 both `completed` (p24 spread_rho ~2–4e-6 vs p53 ~5–8e-15); sampled with `--jobs 16`; unified `summary.{csv,json,md}` + figures |
-| `experiments/week15/mhd_temporal_divergence/` | Week-15 fp32-vs-fp64 HLL temporal density-drift evidence: Brio-Wu 1D (15 paired samples, fixed fit window `[0.01, 0.1]`, L1 lambda 30.6153) and Orszag-Tang 2D (25 paired samples, fixed fit window `[0.1, 0.5]`, L1 lambda 0.0293431, Linf lambda -0.0422334). The planned OT>Brio-Wu contrast is not observed. `gates.pass` is report-grade: in addition to the separate technical checks, it requires exact 15/25 samples, aligned series, finite L1/Linf lambdas, at least two points in every fit, and 80 successful provenance-complete runs. These remain bounded Lyapunov-like engineering fits without an independently gated fit-quality or formal physical-exponent claim. Unified `summary.{csv,json,md}` + `figures/temporal_divergence.png`; run configs, stdout/stderr logs, and metadata files are locally retained ignored outputs. Committed `summary.json` embeds per-run metadata and generated config text, while stdout/stderr files are not durable repository artefacts; transient grids are removed. |
-| `experiments/week16/cpu_gpu_hardware_axis/` | Week-16 matched HLL CPU/GPU hardware-axis evidence for Brio-Wu 1D and Orszag-Tang 2D in float and double: all four covered rows have `ulp_max=0`; OT GPU speedups are 5.965x double and 6.353x float. Unified `summary.{csv,json,md}` + speedup/ULP figures; generated grids are removed. |
-| `experiments/week16/kelvin_helmholtz_precision/` | Week-16 KH 2D evidence: `validation/` passes 256^2-vs-512^2 validation; `hll_p1/` and `hlld_p1/` contain 24-variant deterministic precision packets with finite/positive states and fixed 1148-step completion. Full 256^2/t=1.0 MCA did not complete within the workstation runtime budget; CSC Slurm completion routing is under `scripts/cluster/report2_w16_w17_slurm/`. |
-| `experiments/week16/ot_kh_512_consolidation/` | Week-16 OT/KH 512^2 consolidation: both self-reference gates pass and the summary explicitly records that two resolutions do not establish asymptotic convergence. |
-| `experiments/week17/report2_synthesis/` | Week-17 Report 2 synthesis packet: claim-boundary navigation, temporal negative-result summary, OT/KH 512 gate table, and MPI-omission justification. It aggregates committed evidence only; its arbitrary-scale axis-ranking figure is provenance and is excluded from the manuscript. |
-| `experiments/week18/supplemental/` | Week-18 robustness packet: 40 five-repeat CPU/GPU timing runs, 16 OT/KH OpenMP thread-reproducibility runs, and 16 KH HLL/HLLD CFL-sensitivity runs. All three suite gates and the combined gate pass; same-precision hardware/thread comparisons have `ulp_max=0`; transient grids are removed. |
-| `experiments/week18/euler_mhd_cross_system/` | Week-18 report-grade compact range packet: 16/16 completion-attested CPU runs covering Euler/MHD, 1D/2D, fp64/fp32, and O2-default/Ofast-fast; summaries use matched mean-relative/Linf density discrepancies and make no cross-system accuracy claim. |
-| `experiments/week18/resolution_ladder/` | Week-18 bounded resolution packet: OT/KH x HLL/HLLD x fp64/fp32 at 128/256/512, with 24/24 completions, eight complete groups, solver-specific CFL, and no asymptotic-convergence claim. |
-| `experiments/week18/report2_publication_figures/` | Audited Report 2 figure package: seven source-gated, claim-bounded PNG/PDF pairs plus a machine-readable manifest containing paper importance, chapters, dimensions, and hashes. |
-| `experiments/week20/brio_wu_build_semantics/` | Direct one-axis-at-a-time MSVC build-semantics packet: eight clean builds, 16 completion-attested Brio--Wu runs, summaries, provenance and an audit PNG/PDF; transient grids are removed. |
-| `experiments/week19/lecoanet_kh_linear_reproduction/` | Bounded literature-reproduction packet: exact smooth unstratified Lecoanet IC in the B=0 inviscid limit, four completion-attested HLL fp64 runs, Tricco mode measurement, retained growth-rate discrepancy, summaries/figure/manifest, and no nonlinear Re=1e5 claim. |
-| `experiments/week4/float_regression/1d/` | Phase C1 1D: 12 CSVs (sod, toro2-5, stationary_contact × {double, float}) + summary.{md,json} |
-| `experiments/week4/float_regression/2d/` | Phase C1 2D: 4 candidates + 16 difference heatmaps + summary.{md,json}; current rerun uses the Week 7 1600² reference when available |
-| `experiments/week8/report1_2d_config12_fill/` | Second 2D Euler Riemann evidence packet (LW12/config12): strict CPU/GPU, fp32/fp64, N=800 reference comparison, figures |
-| `experiments/week9/cpu_gpu_midtime*/` | Checkpointed strict-HLLC CPU/GPU saved-output evidence for Sod, LW3, and LW12 |
-| `experiments/report1/evidence/cpu_gpu_zero_drift_audit/` | Consolidated saved-output CPU/GPU zero-drift audit plus strict-vs-fast counterexamples |
-| `experiments/report1/evidence/fp32_fp64_time_drift/` | CPU HLLC fp64-vs-fp32 saved-checkpoint drift evidence |
-| `experiments/week4/figures/a4_pareto/` | A4 σ_FP × s_worst Pareto figure (`pareto_lw_config3_200.png`) |
-| `experiments/week4/figures/a4_float_p24/` | A4 p24-real-float Athena heatmaps (σ_FP, LoSoS reliability/accuracy/worst) |
-| `experiments/week4/metrics/` | A4 metrics: p53 LoSoS/s_req, p24-real-float SNR/LoSoS, merged CSVs for the four-row headline table |
-| `experiments/week4/figures/deterministic_2d/` | A1 deterministic 2D plots (HLLC vs Rusanov density/pressure diff maps) |
-| `experiments/verificarlo/runs_p53_mca[*]/` | A2 / A4 MCA samples (cross-week, 1D Toro × 30 samples × p53) |
-| `experiments/verificarlo/runs_compare_p24_mca_real_vs_double*/` | C2 real-float vs p24-surrogate compare runs (baseline / fma / rusanov) |
-| `experiments/week4/2d_vfc_cluster/` | A3 cluster outputs (200²×30 samples, LW Config 3) |
-
-C2 main result log: [experiment_logs/c2_real_float_vs_vprec.md](experiment_logs/c2_real_float_vs_vprec.md).
+**Scope honesty, to be repeated in any outward-facing material:** distributed coverage
+stops at intra-node 2-GPU tensor parallelism plus multi-node CPU MPI. No multi-node GPU,
+no RDMA/InfiniBand, no scaling curves, no distributed *training* framework experience.
 
 ---
 
-## 7. Common pitfalls (from the 2026-04-28 review)
+## 8. Common pitfalls
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `Cannot open file for writing: experiments/.../output.bin` | Old binary; cfg points at nested path with no `mkdir -p` | Rebuild — current `src/utils/io.hpp` auto-creates parent dirs |
-| `bash scripts/foo.sh: python: command not found` | Microsoft Store Python stub on PATH (no real interpreter) | Set `PYTHON=/c/Users/tangy/miniconda3/python.exe` or rely on the script's `resolve_python` (skips WindowsApps) |
-| CMake says `No CMAKE_CXX_COMPILER could be found` | Plain PowerShell has not loaded VS BuildTools paths | Run through `VsDevCmd.bat` from `C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\` so CMake can find `cl` |
-| Bash redirect `./build-double/hrsc.exe ... > out.csv` produces 0 bytes | MSYS pipe handle quirk under PowerShell-spawned bash | Drive long pipelines from PowerShell directly (works); native Linux/WSL also works |
-| `unit_tests` boundary cases fail | Build out-of-date after BC changes | `cmake --build build-{double,float}` |
-| Header-only edits (`.hpp`) never rebuild; `ninja: no work to do`; binaries silently stale | ninja's MSVC header-dep database is empty (`ninja -t deps` shows `#deps 0`): the localized `cl /showIncludes` prefix recorded at configure time does not byte-match the compiler's build-time output on this zh-CN workstation | Delete and re-configure the build dir from the same console environment (the 2026-07-06 HLLD audit found `hrsc_mhd.exe` had silently missed commit `6491104`; after any toolchain/locale change, verify `ninja -t deps <obj>` reports nonzero deps before trusting incremental builds) |
+| `No CMAKE_CXX_COMPILER could be found` | Bare PowerShell has not loaded VS BuildTools | Run through `VsDevCmd.bat` (§4.1) |
+| `python: command not found` in a shell script | Microsoft Store Python stub on `PATH` | Set `PYTHON` to the Miniconda path, or rely on the script's `resolve_python` |
+| Header-only edits never rebuild; `ninja: no work to do`; stale binaries | ninja's MSVC header-dependency database is empty (`ninja -t deps` shows `#deps 0`): the localised `cl /showIncludes` prefix recorded at configure time does not byte-match build-time output on this zh-CN workstation | Delete and re-configure the build dir from the same console; verify `ninja -t deps <obj>` reports nonzero deps before trusting incremental builds |
+| Bash redirect of `hrsc.exe` output produces 0 bytes | MSYS pipe handle quirk under PowerShell-spawned bash | Drive long pipelines from PowerShell directly |
+| `pytest` reports hundreds of setup errors with `PermissionError: [WinError 5]` | The default basetemp under `%TEMP%\pytest-of-<user>` has become unreadable | `pytest.ini` pins `--basetemp=.pytest_tmp` inside the repository, so a fresh clone works; pass your own `--basetemp` to override |
+| A CSC timing number looks anomalous | Node was shared (up to 4 jobs per node) | Check the co-tenancy record; re-run on a quiet node and mark the polluted run non-headline |
 
 ---
 
-## 8. Active Plan files (planning-with-files-zh)
+## 9. Historical documents
 
-When a structured reorganization or multi-step task is in progress, three files live at repo root:
+The weekly planning material from the MSc report cycle (`docs/weekN/`, `docs/emails/`,
+`docs/experiment_logs/`, `docs/requirement/`, `docs/superpowers/`) is **not part of this
+project's architecture** and is no longer in the working tree. It stays reachable through
+git history if a past decision needs tracing; do not link to it from current documents.
 
-- `task_plan.md` — phase tracking, decisions, statuses
-- `findings.md` — research/discovery notes
-- `progress.md` — session log + commits
-
-**These are workspace files, not project artefacts** — they may exist mid-task and disappear when complete. Do not link from permanent docs.
-
----
-
-## 9. Skills hint
-
-- For complex multi-step refactors: invoke `planning-with-files:planning-with-files-zh` (or `-zht` / English variant).
-- For TDD or feature-by-feature work: `superpowers:test-driven-development` + `superpowers:subagent-driven-development`.
-- Before running ultrareview: `/ultrareview <PR#>` — user-triggered, billed.
+The manuscript under `dissertation/` and the committed packets under `experiments/` remain
+authoritative for Family 1 results. Where a prose document and a committed `summary.json`
+disagree, **the `summary.json` wins** — §6 above was re-derived from the summaries on
+2026-08-24, which corrected a previously published OT GPU speed-up pair (`5.965×/6.353×`)
+that no committed summary supports.
 
 ---
 
-*Last updated: 2026-07-31.*
+*Last updated: 2026-08-24.*

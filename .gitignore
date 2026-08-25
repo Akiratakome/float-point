@@ -37,6 +37,7 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+.pytest_tmp/
 
 # Agent/tool transient state
 .codex-temp/
@@ -55,6 +56,7 @@ test_out.txt
 test_err.txt
 /tmp/
 /tmp*/
+/.worktrees/
 
 # Generated bundles and review artefacts
 /artifacts/

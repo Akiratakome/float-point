@@ -1,0 +1,11 @@
+{
+  "schema": {"name": "aiinfra.model-pins", "version": 1},
+  "models": {
+    "fake-tiny": {
+      "id": "fake/tiny",
+      "revision": "builtin",
+      "source": "builtin",
+      "approx_weight_bytes": 0
+    }
+  }
+}

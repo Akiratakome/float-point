@@ -1,0 +1,14 @@
+{
+  "schema": {"name": "aiinfra.workload-config", "version": 1},
+  "workload": "determinism",
+  "backend": "fake",
+  "model": "fake-tiny",
+  "dtype": "float32",
+  "prompt": "Explain why floating-point addition is not associative.",
+  "max_new_tokens": 32,
+  "repeats": 5,
+  "batch_sizes": [1, 8, 32],
+  "seed": 0,
+  "decode": "greedy",
+  "options": {"nondeterminism": "none"}
+}

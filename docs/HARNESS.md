@@ -56,6 +56,12 @@ completion-attested or report-grade claim must explicitly filter or validate
 fresh artifacts. This distinction documents consumer policy without changing
 the generic runner or compatibility behavior.
 
+Workloads that are not time-stepped solvers report completion with
+`[run-status] status=success kind=workload completed=<n> expected=<n>`. A line without a
+`kind` token keeps the solver contract (`final_time`, `target_time`, `steps`) unchanged.
+`status=failed reason=<category>` must name a member of `FailureCategory`; anything else
+is recorded as `schema_error` rather than passed through.
+
 ## Build Semantics
 
 Historical build directory names remain stable, including names such as
@@ -73,7 +79,7 @@ evidence.
 
 ## Experiment Manifests And Retention
 
-Report 2 experiment lifecycle manifests use
+Experiment lifecycle manifests (`report` is `report2` or `aiinfra`) use
 `hrsc.experiment-manifest` schema version 1 and one of five lifecycle values:
 `canonical`, `provenance`, `superseded`, `invalid`, or `generated`.
 Validate the 13 promoted Report 2 lifecycle manifests enumerated by Task 9
@@ -84,9 +90,9 @@ python -m pytest tests/py/test_experiment_manifests.py -q
 ```
 
 The cleanup audit remains read-only and verifies that no tracked nested build
-directories have returned under `experiments/`; the completed cleanup record is
-at
-[`experiment_cleanup_candidates.md`](experiment_logs/experiment_cleanup_candidates.md).
+directories have returned under `experiments/`. Generate it on demand with
+`python scripts/audit_experiments.py --format markdown`; the report goes to
+stdout unless `--output` is given. No cleanup record is committed.
 
 ## Build Axes
 
@@ -101,7 +107,7 @@ The canonical CPU matrix remains the default harness path. Euler CUDA and
 opt-in HLL MHD CUDA correctness paths exist. Week 16 adds a bounded matched
 CPU/GPU HLL hardware-axis packet for Brio-Wu 1D and Orszag-Tang 2D, but a
 generic GPU matrix, HLLD-on-GPU, KH-on-GPU, and GPU MCA remain out of scope; see
-`docs/experiment_logs/report2_evidence_map.md`.
+the delivered-evidence table in `docs/INDEX.md`.
 
 ## Run Matrix Schema
 
@@ -126,13 +132,24 @@ Minimal JSON:
 
 For each run, `run_matrix.py` writes:
 
-- `config.cfg`: copied source cfg, with `output_format=binary` and
-  `output_file=<run_dir>/<output_file>` only when `output_file` is requested.
+- `<config_filename>` (default `config.cfg`): materialised source config. Only `.cfg`
+  materialisation applies `output_format=binary` and
+  `output_file=<run_dir>/<output_file>` overrides when `output_file` is requested;
+  non-`.cfg` configs are copied verbatim and reject `extra_cfg` overrides.
 - `stdout.txt` and `stderr.txt`
 - `metadata.json`: experiment name, git commit, binary, source cfg, generated
   cfg, precision, build label, command, return code, and raw output path.
 
 The source cfg is never edited in place.
+
+Optional fields for non-HRSC workloads (all default to the historical behaviour, so an
+existing matrix builds a byte-identical command):
+
+| Field | Default | Meaning |
+|---|---|---|
+| `arguments` | `[]` | Tokens inserted between the binary and the materialised config |
+| `config_filename` | `"config.cfg"` | Name of the materialised config inside the run directory. A non-`.cfg` name is copied verbatim and rejects `extra_cfg` overrides. |
+| `artifact_kind` | `"hrsc_binary"` | Validator applied to `output_file`; an unknown kind is rejected when the matrix is normalised. |
 
 ## Output Discipline
 
@@ -150,9 +167,8 @@ reproduce a metric. If a grid is not analysed, do not keep it.
 Many docs, tests, shell scripts, and experiment logs invoke scripts by path.
 Do not physically move established script entry points during an experiment
 unless the matching tests, cluster scripts, and canonical docs are updated in the
-same change. Historical logs under `docs/experiment_logs/` and
-`experiments/**/summary.md` are provenance; prefer adding a current pointer over
-rewriting old commands.
+same change. Commands recorded in `experiments/**/summary.md` are provenance;
+prefer adding a current pointer over rewriting old records.
 
 ## Compatibility Rule
 
