@@ -70,6 +70,21 @@ def test_unknown_field_is_rejected(tmp_path: Path) -> None:
         config.load_workload_config(_write(tmp_path, surprise=1))
 
 
+@pytest.mark.parametrize("constant", ("NaN", "Infinity", "-Infinity"))
+def test_non_standard_json_constants_are_rejected(tmp_path: Path, constant: str) -> None:
+    """Do not allow non-finite values to enter an otherwise extensible options map."""
+    from scripts.aiinfra import config
+
+    path = _write(tmp_path)
+    document = path.read_text(encoding="utf-8").replace(
+        '"options": {}', f'"options": {{"poison": {constant}}}'
+    )
+    path.write_text(document, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="non-standard JSON constant"):
+        config.load_workload_config(path)
+
+
 def test_committed_model_pins_load_and_resolve(tmp_path: Path) -> None:
     from scripts.aiinfra import config
 

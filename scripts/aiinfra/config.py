@@ -47,10 +47,17 @@ class WorkloadConfig:
     options: dict[str, Any] = field(default_factory=dict)
 
 
+def _reject_non_standard_json_constant(value: str) -> None:
+    raise ValueError(f"non-standard JSON constant: {value}")
+
+
 def _read_json(path: Path) -> Any:
     try:
-        return json.loads(Path(path).read_text(encoding="utf-8-sig"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        return json.loads(
+            Path(path).read_text(encoding="utf-8-sig"),
+            parse_constant=_reject_non_standard_json_constant,
+        )
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValueError(f"cannot read {path}: {exc}") from exc
 
 
