@@ -125,3 +125,35 @@ def test_config_filename_must_be_a_bare_file_name(tmp_path: Path, bad: str) -> N
             },
             output_root=tmp_path / "out",
         )
+
+
+def test_artifact_kind_defaults_to_the_hrsc_binary(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    run = run_matrix.normalise_run(
+        {
+            "name": "sod",
+            "binary": "b",
+            "config": str(_cfg(tmp_path)),
+            "output_file": "grid.bin",
+        },
+        output_root=tmp_path / "out",
+    )
+
+    assert run.artifact_kind == "hrsc_binary"
+
+
+def test_unknown_artifact_kind_is_rejected_at_normalise_time(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    with pytest.raises(ValueError, match="unknown artifact kind"):
+        run_matrix.normalise_run(
+            {
+                "name": "bad",
+                "binary": "b",
+                "config": str(_cfg(tmp_path)),
+                "output_file": "out.json",
+                "artifact_kind": "does_not_exist",
+            },
+            output_root=tmp_path / "out",
+        )

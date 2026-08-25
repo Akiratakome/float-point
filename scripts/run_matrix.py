@@ -14,6 +14,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.harness.config import materialise_config, replace_or_append_cfg
+from scripts.harness.artifacts import ArtifactValidationError, get_artifact_validator
 from scripts.harness.contracts import (
     BuildSemantics,
     RequiredArtifact,
@@ -40,6 +41,7 @@ class MatrixRun:
     extra_cfg: dict[str, str] | None = None
     arguments: tuple[str, ...] = ()
     config_filename: str = "config.cfg"
+    artifact_kind: str = "hrsc_binary"
     build_semantics: BuildSemantics | None = None
 
 
@@ -74,6 +76,11 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
         raise ValueError(
             f"run '{name}' field 'config_filename' must be a bare file name"
         )
+    artifact_kind = str(raw.get("artifact_kind", "hrsc_binary"))
+    try:
+        get_artifact_validator(artifact_kind)
+    except ArtifactValidationError as exc:
+        raise ValueError(f"run '{name}' has an {exc}") from exc
     build = raw.get("build")
     return MatrixRun(
         name=name,
@@ -86,6 +93,7 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
         extra_cfg={str(key): str(value) for key, value in raw_extra_cfg.items()},
         arguments=tuple(raw_arguments),
         config_filename=config_filename,
+        artifact_kind=artifact_kind,
         build_semantics=load_build_semantics(
             binary.parent / "build_semantics.json",
             fallback_label=str(build) if build is not None else None,
@@ -212,7 +220,7 @@ def run_one(run: MatrixRun, experiment: str, dry_run: bool = False) -> dict[str,
         source_config=run.source_config,
         run_config=config,
         required_artifacts=(
-            (RequiredArtifact(run.raw_output, kind="hrsc_binary"),)
+            (RequiredArtifact(run.raw_output, kind=run.artifact_kind),)
             if run.raw_output
             else ()
         ),
