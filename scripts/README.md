@@ -18,6 +18,8 @@ Use these first for new Report 2 work.
 |---|---|---|
 | Build | `build_all.sh`, `build_matrix.py` | CPU build matrix and build labels. |
 | Run | `run_matrix.py` | Copies cfgs into run directories, writes metadata, and never edits source cfgs. |
+| Run (LLM workload) | `aiinfra/run_workload.py` | Matrix entry point for workload family 2; writes a validated `workload_result.json` beside its config. |
+| Probe (environment) | `aiinfra/environment.py` | Read-only device/toolchain probe. Installs nothing, downloads nothing. |
 | Shared harness contracts | `harness/` | Versioned run metadata, config materialization, process execution, build semantics, and manifest validation. |
 | Read grids | `io_helper.py` | Shared binary-grid reader and primitive conversion helpers. |
 | Measure | `metrics/` | Reusable scalar metrics and reference comparisons. |

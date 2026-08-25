@@ -203,7 +203,9 @@ Other retained packets: `week15/mhd_temporal_divergence/` (fixed-window negative
 Both passed design review on 2026-08-24; step 0 (a one-day spike proving the headline phenomenon
 exists) and step 1 (additive harness generalisation) are unblocked and depend on nothing unverified.
 
-Not yet implemented. Target layout, so new files land where the harness expects them:
+Local execution plan: [`aiinfra/plans/2026-08-25-local-core-steps-0-3.md`](aiinfra/plans/2026-08-25-local-core-steps-0-3.md).
+
+The remaining planned components use this target layout, so new files land where the harness expects them:
 
 ```text
 configs/aiinfra/              # model pins, workload matrices, thresholds
@@ -218,7 +220,7 @@ docs/aiinfra/                 # architecture, environment matrix, reproduction, 
 
 Sequence and gates:
 
-1. **Additive generalisation of the harness.** `run_matrix.py` gains an optional
+1. **Additive generalisation of the harness.** **[delivered]** `run_matrix.py` gains an optional
    `arguments` array and `artifact_kind`; `runner.py` gains `kind=workload completed=N
    expected=N`; a `workload_result` validator is added. *Gate:* every existing HRSC matrix
    builds a byte-identical command and all current tests stay green.

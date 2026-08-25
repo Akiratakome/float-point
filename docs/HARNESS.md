@@ -56,6 +56,12 @@ completion-attested or report-grade claim must explicitly filter or validate
 fresh artifacts. This distinction documents consumer policy without changing
 the generic runner or compatibility behavior.
 
+Workloads that are not time-stepped solvers report completion with
+`[run-status] status=success kind=workload completed=<n> expected=<n>`. A line without a
+`kind` token keeps the solver contract (`final_time`, `target_time`, `steps`) unchanged.
+`status=failed reason=<category>` must name a member of `FailureCategory`; anything else
+is recorded as `schema_error` rather than passed through.
+
 ## Build Semantics
 
 Historical build directory names remain stable, including names such as
@@ -73,7 +79,7 @@ evidence.
 
 ## Experiment Manifests And Retention
 
-Report 2 experiment lifecycle manifests use
+Experiment lifecycle manifests (`report` is `report2` or `aiinfra`) use
 `hrsc.experiment-manifest` schema version 1 and one of five lifecycle values:
 `canonical`, `provenance`, `superseded`, `invalid`, or `generated`.
 Validate the 13 promoted Report 2 lifecycle manifests enumerated by Task 9
@@ -133,6 +139,15 @@ For each run, `run_matrix.py` writes:
   cfg, precision, build label, command, return code, and raw output path.
 
 The source cfg is never edited in place.
+
+Optional fields for non-HRSC workloads (all default to the historical behaviour, so an
+existing matrix builds a byte-identical command):
+
+| Field | Default | Meaning |
+|---|---|---|
+| `arguments` | `[]` | Tokens inserted between the binary and the materialised config |
+| `config_filename` | `"config.cfg"` | Name of the materialised config inside the run directory. A non-`.cfg` name is copied verbatim and rejects `extra_cfg` overrides. |
+| `artifact_kind` | `"hrsc_binary"` | Validator applied to `output_file`; an unknown kind is rejected when the matrix is normalised. |
 
 ## Output Discipline
 
