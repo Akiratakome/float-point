@@ -37,6 +37,7 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+.pytest_tmp/
 
 # Agent/tool transient state
 .codex-temp/

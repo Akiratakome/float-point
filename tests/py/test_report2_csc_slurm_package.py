@@ -73,17 +73,6 @@ def test_packet_job_consumes_full_mca_summary_without_overwriting_local_packets(
     assert "--phase p1" in text
     assert "hll_p1/summary" not in text
 
-
-def test_execution_doc_records_remote_workflow_and_claim_boundary():
-    text = (ROOT / "docs" / "week17" / "csc_slurm_w16_w17_execution.md").read_text(encoding="utf-8")
-
-    assert "Apptainer" in text
-    assert "Docker" not in text
-    assert "full 256^2/t=1.0 KH MCA" in text
-    assert "no-claim" in text
-    assert "rsync" in text
-
-
 def test_bundle_script_is_scoped_and_excludes_transient_outputs():
     text = read("make_bundle.sh")
 

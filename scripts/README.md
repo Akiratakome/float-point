@@ -32,15 +32,13 @@ Use these first for new Report 2 work.
 | Table (Report 2 Chapter 4 CPU/GPU) | `figures/report2_chapter4_cpu_gpu_table.py` | Generates the bounded four-row HLL correctness table directly from the CPU/GPU hardware-axis summary and rejects step or saved-state mismatches. |
 | Plot | `figures/plot_2d.py` plus selected `figures/` helpers | Keep generated figures under the owning experiment/report directory. |
 
-The architecture specification is
-[`docs/superpowers/specs/2026-07-22-project-architecture-convergence-design.md`](../docs/superpowers/specs/2026-07-22-project-architecture-convergence-design.md).
-Lifecycle manifests live with Report 2 experiment packets and are validated by
+The architecture overview is [`docs/INDEX.md`](../docs/INDEX.md) section 2.
+Lifecycle manifests live with the experiment packets and are validated by
 the shared `scripts/harness/experiment_manifest.py` module. The read-only
 candidate report is generated with:
 
 ```bash
-python scripts/audit_experiments.py --format markdown \
-  --output docs/experiment_logs/experiment_cleanup_candidates.md
+python scripts/audit_experiments.py --format markdown
 ```
 
 The audit requires a human reference check and performs no deletion or move.
@@ -95,9 +93,8 @@ update:
 - canonical docs such as `docs/INDEX.md` and `docs/HARNESS.md`
 - new experiment plans
 
-Historical logs under `docs/experiment_logs/` and `experiments/**/summary.md`
-are provenance. Prefer adding a note that a path was historical instead of
-rewriting old records.
+Commands recorded in `experiments/**/summary.md` are provenance. Prefer adding
+a note that a path was historical instead of rewriting old records.
 
 ## Provenance Archive
 

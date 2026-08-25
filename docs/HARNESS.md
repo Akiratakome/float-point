@@ -84,9 +84,9 @@ python -m pytest tests/py/test_experiment_manifests.py -q
 ```
 
 The cleanup audit remains read-only and verifies that no tracked nested build
-directories have returned under `experiments/`; the completed cleanup record is
-at
-[`experiment_cleanup_candidates.md`](experiment_logs/experiment_cleanup_candidates.md).
+directories have returned under `experiments/`. Generate it on demand with
+`python scripts/audit_experiments.py --format markdown`; the report goes to
+stdout unless `--output` is given. No cleanup record is committed.
 
 ## Build Axes
 
@@ -101,7 +101,7 @@ The canonical CPU matrix remains the default harness path. Euler CUDA and
 opt-in HLL MHD CUDA correctness paths exist. Week 16 adds a bounded matched
 CPU/GPU HLL hardware-axis packet for Brio-Wu 1D and Orszag-Tang 2D, but a
 generic GPU matrix, HLLD-on-GPU, KH-on-GPU, and GPU MCA remain out of scope; see
-`docs/experiment_logs/report2_evidence_map.md`.
+the delivered-evidence table in `docs/INDEX.md`.
 
 ## Run Matrix Schema
 
@@ -150,9 +150,8 @@ reproduce a metric. If a grid is not analysed, do not keep it.
 Many docs, tests, shell scripts, and experiment logs invoke scripts by path.
 Do not physically move established script entry points during an experiment
 unless the matching tests, cluster scripts, and canonical docs are updated in the
-same change. Historical logs under `docs/experiment_logs/` and
-`experiments/**/summary.md` are provenance; prefer adding a current pointer over
-rewriting old commands.
+same change. Commands recorded in `experiments/**/summary.md` are provenance;
+prefer adding a current pointer over rewriting old records.
 
 ## Compatibility Rule
 

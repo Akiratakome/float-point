@@ -4,13 +4,8 @@ This directory contains generated experiment artefacts. Most of it is ignored by
 git; only selected summaries, metadata, figures, and small source tables are
 tracked.
 
-For Report 1 evidence priority and exclusions, use:
-
-- `docs/experiment_logs/report1_evidence_map.md`
-
-For cleanup and retention rules, use:
-
-- `docs/experiment_logs/experiments_retention.md`
+For delivered evidence and its claim boundaries, use
+[`../docs/INDEX.md`](../docs/INDEX.md) section 6.
 
 Rules:
 
@@ -44,6 +39,5 @@ merged to reduce top-level noise:
 | `c2_bundle_for_download` | `_archive/duplicates/c2_bundle_for_download/` |
 | `tmp_convergence_check` | `_scratch/tmp_convergence_check/` |
 
-Historical docs may still mention the old paths. Use
-`docs/experiment_logs/report1_evidence_map.md` and this README as the current
-path reference.
+Historical docs may still mention the old paths. Use this README and
+[`../docs/INDEX.md`](../docs/INDEX.md) as the current path reference.

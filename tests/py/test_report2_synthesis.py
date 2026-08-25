@@ -138,19 +138,3 @@ def test_cli_writes_json_csv_markdown_and_figures(tmp_path: Path):
     assert (output / "figures" / "temporal_divergence.png").is_file()
     summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
     assert summary["gates"]["synthesis_complete"] is True
-
-
-def test_week17_docs_point_to_synthesis_packet():
-    assert (ROOT / "docs/week17/week17-plan.md").is_file()
-    assert (ROOT / "docs/week17/week17-summary.md").is_file()
-    index = (ROOT / "docs/INDEX.md").read_text(encoding="utf-8")
-    assert "week17/week17-plan.md" in index
-    assert "week17/week17-summary.md" in index
-    assert "experiments/week17/report2_synthesis/summary.md" in index
-    harness = (ROOT / "docs/HARNESS.md").read_text(encoding="utf-8")
-    assert "MHD / GPU | supported as bounded HLL correctness path" in harness
-    evidence = (ROOT / "docs/experiment_logs/report2_evidence_map.md").read_text(
-        encoding="utf-8"
-    )
-    assert "Week 17 Report 2 synthesis" in evidence
-    assert "experiments/week17/report2_synthesis/summary.md" in evidence
