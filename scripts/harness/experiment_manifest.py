@@ -8,6 +8,7 @@ from typing import Any
 
 
 SCHEMA = {"name": "hrsc.experiment-manifest", "version": 1}
+REPORTS = {"report2", "aiinfra"}
 PIPELINE_STAGES = ("config", "build", "run", "measure", "aggregate", "plot")
 LIFECYCLES = {"canonical", "provenance", "superseded", "invalid", "generated"}
 TOP_LEVEL_FIELDS = {
@@ -104,8 +105,8 @@ def _validate_manifest(
             errors.append(f"schema has unknown fields: {', '.join(unknown_schema_fields)}")
     if not _nonempty_string(data.get("id")):
         errors.append("id must be a nonempty string")
-    if data.get("report") != "report2":
-        errors.append("report must equal 'report2'")
+    if data.get("report") not in REPORTS:
+        errors.append(f"report must be one of {sorted(REPORTS)}")
     if not _nonempty_string(data.get("purpose")):
         errors.append("purpose must be a nonempty string")
 

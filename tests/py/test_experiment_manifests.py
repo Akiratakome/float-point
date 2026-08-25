@@ -71,6 +71,25 @@ def _write_manifest(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data), encoding="utf-8")
 
 
+def test_aiinfra_report_id_is_accepted(tmp_path: Path) -> None:
+    path = _write_valid_manifest(tmp_path)
+    data = _read_manifest(path)
+    data["report"] = "aiinfra"
+    data["id"] = "aiinfra-test"
+    _write_manifest(path, data)
+
+    assert validate_manifest(path, tmp_path) == []
+
+
+def test_unknown_report_id_is_still_rejected(tmp_path: Path) -> None:
+    path = _write_valid_manifest(tmp_path)
+    data = _read_manifest(path)
+    data["report"] = "report9"
+    _write_manifest(path, data)
+
+    assert any("report" in error for error in validate_manifest(path, tmp_path))
+
+
 def test_report2_promoted_manifests_are_valid_and_evidence_exists() -> None:
     manifests = [load_valid_manifest(ROOT / path, ROOT) for path in MANIFESTS]
     assert {item["lifecycle"] for item in manifests} >= {
