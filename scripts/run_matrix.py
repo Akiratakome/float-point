@@ -107,7 +107,7 @@ _replace_or_append_cfg_line = replace_or_append_cfg
 def materialise_run_config(run: MatrixRun) -> Path:
     target = run.run_dir / run.config_filename
     overrides = dict(run.extra_cfg or {})
-    is_cfg = run.config_filename.endswith(".cfg")
+    is_cfg = Path(run.config_filename).suffix.lower() == ".cfg"
     if run.raw_output is not None and is_cfg:
         overrides["output_format"] = "binary"
         overrides["output_file"] = str(run.raw_output)

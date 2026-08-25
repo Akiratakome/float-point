@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections import Counter
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -118,6 +119,18 @@ def validate_workload_result(document: Any) -> None:
         rate = _finite(cell["reproduction_rate"], f"{where}.reproduction_rate")
         if not 0.0 <= rate <= 1.0:
             raise ValueError(f"workload result {where}.reproduction_rate must lie in [0, 1]")
+        expected_rate = max(Counter(digests).values()) / repeats
+        # Permit only a few ULPs for a decimal serialization of the exact ratio.
+        if not math.isclose(
+            rate,
+            expected_rate,
+            rel_tol=0.0,
+            abs_tol=8 * math.ulp(expected_rate),
+        ):
+            raise ValueError(
+                f"workload result {where}.reproduction_rate disagrees with "
+                "output_digests"
+            )
         _finite(cell["latency_median_s"], f"{where}.latency_median_s")
         _finite(cell["latency_iqr_s"], f"{where}.latency_iqr_s")
 
@@ -126,6 +139,8 @@ def validate_workload_result(document: Any) -> None:
     )
     completed = _nonneg_int(completion["completed"], "completion.completed")
     expected = _nonneg_int(completion["expected"], "completion.expected")
+    if expected == 0:
+        raise ValueError("workload result completion.expected must be positive")
     if completed != expected:
         raise ValueError(
             f"workload result completion is partial: {completed} of {expected}"

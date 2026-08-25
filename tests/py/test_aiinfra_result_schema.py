@@ -48,6 +48,17 @@ def test_completed_below_expected_is_rejected() -> None:
         result_schema.validate_workload_result(document)
 
 
+def test_zero_completion_is_rejected_for_a_nonempty_result() -> None:
+    """A result with measured cells cannot claim a zero-unit successful completion."""
+    from scripts.aiinfra import result_schema
+
+    document = _document()
+    document["completion"] = {"completed": 0, "expected": 0}
+
+    with pytest.raises(ValueError, match="completion"):
+        result_schema.validate_workload_result(document)
+
+
 def test_unexpected_top_level_field_is_rejected() -> None:
     from scripts.aiinfra import result_schema
 
@@ -63,6 +74,23 @@ def test_unique_output_count_must_agree_with_the_digests() -> None:
     document = _document()
     document["cells"][0]["output_digests"] = ["ab12", "cd34", "ef56", "gh78"]
     with pytest.raises(ValueError, match="unique_output_count"):
+        result_schema.validate_workload_result(document)
+
+
+def test_reproduction_rate_must_agree_with_the_modal_digest_frequency() -> None:
+    """Two each of ``a`` and ``b`` reproduce at a hand-derived rate of 2 / 4."""
+    from scripts.aiinfra import result_schema
+
+    document = _document()
+    document["cells"][0].update(
+        {
+            "output_digests": ["a", "a", "b", "b"],
+            "unique_output_count": 2,
+            "reproduction_rate": 1.0,
+        }
+    )
+
+    with pytest.raises(ValueError, match="reproduction_rate"):
         result_schema.validate_workload_result(document)
 
 

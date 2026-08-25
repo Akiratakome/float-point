@@ -92,6 +92,31 @@ def test_json_config_is_copied_verbatim_under_its_own_name(tmp_path: Path) -> No
     assert json.loads(target.read_text(encoding="utf-8")) == {"backend": "fake"}
 
 
+def test_uppercase_cfg_filename_uses_cfg_materialisation(tmp_path: Path) -> None:
+    """A .CFG name must receive the same overrides as the legacy .cfg path."""
+    from scripts import run_matrix
+
+    run = run_matrix.normalise_run(
+        {
+            "name": "sod",
+            "binary": "b",
+            "config": str(_cfg(tmp_path)),
+            "config_filename": "config.CFG",
+            "extra_cfg": {"nx": "8"},
+            "output_file": "grid.bin",
+        },
+        output_root=tmp_path / "out",
+    )
+
+    target = run_matrix.materialise_run_config(run)
+
+    assert target.name == "config.CFG"
+    text = target.read_text(encoding="utf-8")
+    assert "nx = 8\n" in text
+    assert "output_format = binary\n" in text
+    assert f"output_file = {run.raw_output}\n" in text
+
+
 def test_cfg_overrides_on_a_json_config_fail_closed(tmp_path: Path) -> None:
     from scripts import run_matrix
 
