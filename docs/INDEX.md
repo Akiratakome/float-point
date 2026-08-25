@@ -70,8 +70,8 @@ computations.
 | Audit | `scripts/audit_experiments.py`, `scripts/harness/experiment_manifest.py` | Read-only lifecycle and retention checks |
 
 **Failure taxonomy** (`scripts/harness/contracts.py`): `configuration_error`,
-`unsupported_capability`, `numerical_failure`, `incomplete_run`, `infrastructure_error`,
-`artifact_error`, `schema_error`. A capability a device does not have produces a
+`unsupported_capability`, `numerical_failure`, `incomplete_run`, `resource_exhausted`,
+`infrastructure_error`, `artifact_error`, `schema_error`. A capability a device does not have produces a
 *structured record*, not a blank cell.
 
 **Manifest lifecycle** (`scripts/harness/experiment_manifest.py`): `canonical`,

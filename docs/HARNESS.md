@@ -132,8 +132,10 @@ Minimal JSON:
 
 For each run, `run_matrix.py` writes:
 
-- `config.cfg`: copied source cfg, with `output_format=binary` and
-  `output_file=<run_dir>/<output_file>` only when `output_file` is requested.
+- `<config_filename>` (default `config.cfg`): materialised source config. Only `.cfg`
+  materialisation applies `output_format=binary` and
+  `output_file=<run_dir>/<output_file>` overrides when `output_file` is requested;
+  non-`.cfg` configs are copied verbatim and reject `extra_cfg` overrides.
 - `stdout.txt` and `stderr.txt`
 - `metadata.json`: experiment name, git commit, binary, source cfg, generated
   cfg, precision, build label, command, return code, and raw output path.
