@@ -38,6 +38,7 @@ class MatrixRun:
     build: str | None = None
     raw_output: Path | None = None
     extra_cfg: dict[str, str] | None = None
+    arguments: tuple[str, ...] = ()
     build_semantics: BuildSemantics | None = None
 
 
@@ -58,6 +59,11 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
     if not isinstance(raw_extra_cfg, dict):
         raise ValueError(f"run '{name}' field 'extra_cfg' must be an object")
     binary = Path(str(raw["binary"]))
+    raw_arguments = raw.get("arguments", [])
+    if not isinstance(raw_arguments, list) or not all(
+        isinstance(argument, str) for argument in raw_arguments
+    ):
+        raise ValueError(f"run '{name}' field 'arguments' must be an array of strings")
     build = raw.get("build")
     return MatrixRun(
         name=name,
@@ -68,6 +74,7 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
         build=build,
         raw_output=(run_dir / str(raw_output)) if raw_output else None,
         extra_cfg={str(key): str(value) for key, value in raw_extra_cfg.items()},
+        arguments=tuple(raw_arguments),
         build_semantics=load_build_semantics(
             binary.parent / "build_semantics.json",
             fallback_label=str(build) if build is not None else None,
@@ -85,6 +92,11 @@ def materialise_run_config(run: MatrixRun) -> Path:
         overrides["output_format"] = "binary"
         overrides["output_file"] = str(run.raw_output)
     return materialise_config(run.source_config, target, overrides)
+
+
+def build_command(run: MatrixRun, config: Path) -> tuple[str, ...]:
+    """Binary, then optional workload arguments, then the materialised config."""
+    return (run.binary.as_posix(), *run.arguments, str(config))
 
 
 def git_commit() -> str:
@@ -178,7 +190,7 @@ def run_one(run: MatrixRun, experiment: str, dry_run: bool = False) -> dict[str,
     spec = RunSpec(
         name=run.name,
         experiment=experiment,
-        command=(str(run.binary), str(config)),
+        command=build_command(run, config),
         run_dir=run.run_dir,
         source_config=run.source_config,
         run_config=config,
