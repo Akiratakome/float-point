@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 
 import pytest
 
@@ -221,3 +222,159 @@ def test_unknown_failure_reason_is_a_schema_error() -> None:
     )
     assert status == "failed"
     assert failure["category"] == "schema_error"
+
+
+def _workload_config(tmp_path: Path, **overrides) -> Path:
+    """Create a complete workload config; each test varies one real input."""
+    document = {
+        "schema": {"name": "aiinfra.workload-config", "version": 1},
+        "workload": "determinism",
+        "backend": "fake",
+        "model": "fake-tiny",
+        "dtype": "float32",
+        "prompt": "hello",
+        "max_new_tokens": 8,
+        "repeats": 3,
+        "batch_sizes": [1, 4],
+        "seed": 0,
+        "decode": "greedy",
+        "options": {},
+    }
+    document.update(overrides)
+    path = tmp_path / "workload.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+    return path
+
+
+def _workload_matrix(source_config: Path) -> dict:
+    return {
+        "experiment": "pytest-aiinfra",
+        "runs": [
+            {
+                "name": "fake-workload",
+                "binary": sys.executable,
+                "arguments": ["scripts/aiinfra/run_workload.py"],
+                "config": str(source_config),
+                "config_filename": "config.json",
+                "output_file": "workload_result.json",
+                "artifact_kind": "workload_result",
+            }
+        ],
+    }
+
+
+def test_fake_workload_runs_end_to_end_through_run_matrix(tmp_path: Path) -> None:
+    """A missing workload entry point would leave no valid result or completion."""
+    from scripts import run_matrix
+
+    source = _workload_config(tmp_path)
+    run = run_matrix.normalise_run(
+        _workload_matrix(source)["runs"][0], output_root=tmp_path / "out"
+    )
+    metadata = run_matrix.run_one(run, experiment="pytest-aiinfra")
+
+    assert metadata["status"] == "success"
+    assert metadata["completion"] == {
+        "kind": "workload",
+        "completed": 2,
+        "expected": 2,
+        "reported": True,
+    }
+    assert metadata["failure"] is None
+    assert (
+        Path(metadata["stderr"]).read_text(encoding="utf-8").splitlines()[0]
+        == "[run-status] status=success kind=workload completed=2 expected=2"
+    )
+
+    result_path = run.run_dir / "workload_result.json"
+    result = json.loads(result_path.read_text(encoding="utf-8"))
+    assert result["schema"] == {"name": "aiinfra.workload-result", "version": 1}
+    assert [cell["cell_id"] for cell in result["cells"]] == [
+        "batch_size=1",
+        "batch_size=4",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("fault", "category"),
+    (
+        ("resource_exhausted", "resource_exhausted"),
+        ("unsupported_capability", "unsupported_capability"),
+    ),
+)
+def test_injected_backend_faults_reach_the_run_record(
+    tmp_path: Path, fault: str, category: str
+) -> None:
+    """A backend's declared failure must survive process and harness boundaries."""
+    from scripts import run_matrix
+
+    source = _workload_config(tmp_path, options={"fault": fault})
+    run = run_matrix.normalise_run(
+        _workload_matrix(source)["runs"][0], output_root=tmp_path / "out"
+    )
+
+    with pytest.raises(RuntimeError, match=category):
+        run_matrix.run_one(run, experiment="pytest-aiinfra")
+
+    metadata = json.loads((run.run_dir / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["status"] == "failed"
+    assert metadata["failure"]["category"] == category
+    assert metadata["completion"] is None
+    assert (
+        Path(metadata["stderr"]).read_text(encoding="utf-8").splitlines()[0]
+        == f"[run-status] status=failed reason={category}"
+    )
+
+
+def test_unknown_workload_is_a_configuration_error_in_the_run_record(tmp_path: Path) -> None:
+    """Accepting an unimplemented workload would misrepresent a completed run."""
+    from scripts import run_matrix
+
+    source = _workload_config(tmp_path, workload="unimplemented")
+    run = run_matrix.normalise_run(
+        _workload_matrix(source)["runs"][0], output_root=tmp_path / "out"
+    )
+
+    with pytest.raises(RuntimeError, match="configuration_error"):
+        run_matrix.run_one(run, experiment="pytest-aiinfra")
+
+    metadata = json.loads((run.run_dir / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["status"] == "failed"
+    assert metadata["failure"]["category"] == "configuration_error"
+    assert metadata["completion"] is None
+
+
+def test_invalid_workload_config_is_a_configuration_error_in_the_run_record(
+    tmp_path: Path,
+) -> None:
+    """A malformed config must fail before any result can be accepted."""
+    from scripts import run_matrix
+
+    source = _workload_config(tmp_path, repeats=0)
+    run = run_matrix.normalise_run(
+        _workload_matrix(source)["runs"][0], output_root=tmp_path / "out"
+    )
+
+    with pytest.raises(RuntimeError, match="configuration_error"):
+        run_matrix.run_one(run, experiment="pytest-aiinfra")
+
+    metadata = json.loads((run.run_dir / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["status"] == "failed"
+    assert metadata["failure"]["category"] == "configuration_error"
+    assert metadata["completion"] is None
+
+
+def test_committed_smoke_matrix_agrees_with_the_result_filename() -> None:
+    """The committed smoke matrix must contain only runnable success cells."""
+    from scripts import run_matrix
+    from scripts.aiinfra import run_workload
+
+    repo_root = Path(__file__).resolve().parents[2]
+    matrix = run_matrix.load_matrix(
+        repo_root / "configs" / "aiinfra" / "smoke" / "fake_workload.json"
+    )
+    assert len(matrix["runs"]) == 1
+    for raw in matrix["runs"]:
+        assert raw["output_file"] == run_workload.RESULT_FILENAME
+        assert raw["artifact_kind"] == "workload_result"
+        assert (repo_root / raw["config"]).is_file()

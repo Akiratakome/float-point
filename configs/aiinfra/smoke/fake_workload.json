@@ -1,0 +1,15 @@
+{
+  "experiment": "aiinfra-smoke-fake-workload",
+  "output_root": "experiments/aiinfra/smoke/fake_workload",
+  "runs": [
+    {
+      "name": "fake-deterministic",
+      "binary": "python",
+      "arguments": ["scripts/aiinfra/run_workload.py"],
+      "config": "configs/aiinfra/smoke/fake_workload_run.json",
+      "config_filename": "config.json",
+      "output_file": "workload_result.json",
+      "artifact_kind": "workload_result"
+    }
+  ]
+}
