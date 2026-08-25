@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -54,5 +55,73 @@ def test_non_string_arguments_are_rejected(tmp_path: Path, bad) -> None:
     with pytest.raises(ValueError, match="arguments"):
         run_matrix.normalise_run(
             {"name": "bad", "binary": "b", "config": str(_cfg(tmp_path)), "arguments": bad},
+            output_root=tmp_path / "out",
+        )
+
+
+def test_default_config_filename_is_config_cfg(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    run = run_matrix.normalise_run(
+        {"name": "sod", "binary": "b", "config": str(_cfg(tmp_path))},
+        output_root=tmp_path / "out",
+    )
+    assert run_matrix.materialise_run_config(run).name == "config.cfg"
+
+
+def test_json_config_is_copied_verbatim_under_its_own_name(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    source = tmp_path / "workload.json"
+    source.write_text('{"backend": "fake"}\n', encoding="utf-8")
+
+    run = run_matrix.normalise_run(
+        {
+            "name": "workload",
+            "binary": "python",
+            "config": str(source),
+            "config_filename": "config.json",
+        },
+        output_root=tmp_path / "out",
+    )
+    target = run_matrix.materialise_run_config(run)
+
+    assert target.name == "config.json"
+    assert target.read_text(encoding="utf-8") == '{"backend": "fake"}\n'
+    assert json.loads(target.read_text(encoding="utf-8")) == {"backend": "fake"}
+
+
+def test_cfg_overrides_on_a_json_config_fail_closed(tmp_path: Path) -> None:
+    from scripts import run_matrix
+
+    source = tmp_path / "workload.json"
+    source.write_text('{"backend": "fake"}\n', encoding="utf-8")
+
+    run = run_matrix.normalise_run(
+        {
+            "name": "workload",
+            "binary": "python",
+            "config": str(source),
+            "config_filename": "config.json",
+            "extra_cfg": {"nx": "8"},
+        },
+        output_root=tmp_path / "out",
+    )
+    with pytest.raises(ValueError, match="config_filename"):
+        run_matrix.materialise_run_config(run)
+
+
+@pytest.mark.parametrize("bad", ("", ".", "..", "sub/config.cfg", "..\\escape.cfg"))
+def test_config_filename_must_be_a_bare_file_name(tmp_path: Path, bad: str) -> None:
+    from scripts import run_matrix
+
+    with pytest.raises(ValueError, match="config_filename"):
+        run_matrix.normalise_run(
+            {
+                "name": "bad",
+                "binary": "b",
+                "config": str(_cfg(tmp_path)),
+                "config_filename": bad,
+            },
             output_root=tmp_path / "out",
         )

@@ -39,6 +39,7 @@ class MatrixRun:
     raw_output: Path | None = None
     extra_cfg: dict[str, str] | None = None
     arguments: tuple[str, ...] = ()
+    config_filename: str = "config.cfg"
     build_semantics: BuildSemantics | None = None
 
 
@@ -64,6 +65,15 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
         isinstance(argument, str) for argument in raw_arguments
     ):
         raise ValueError(f"run '{name}' field 'arguments' must be an array of strings")
+    config_filename = str(raw.get("config_filename", "config.cfg"))
+    if (
+        config_filename in ("", ".", "..")
+        or "/" in config_filename
+        or "\\" in config_filename
+    ):
+        raise ValueError(
+            f"run '{name}' field 'config_filename' must be a bare file name"
+        )
     build = raw.get("build")
     return MatrixRun(
         name=name,
@@ -75,6 +85,7 @@ def normalise_run(raw: dict[str, Any], output_root: Path) -> MatrixRun:
         raw_output=(run_dir / str(raw_output)) if raw_output else None,
         extra_cfg={str(key): str(value) for key, value in raw_extra_cfg.items()},
         arguments=tuple(raw_arguments),
+        config_filename=config_filename,
         build_semantics=load_build_semantics(
             binary.parent / "build_semantics.json",
             fallback_label=str(build) if build is not None else None,
@@ -86,11 +97,17 @@ _replace_or_append_cfg_line = replace_or_append_cfg
 
 
 def materialise_run_config(run: MatrixRun) -> Path:
-    target = run.run_dir / "config.cfg"
+    target = run.run_dir / run.config_filename
     overrides = dict(run.extra_cfg or {})
-    if run.raw_output is not None:
+    is_cfg = run.config_filename.endswith(".cfg")
+    if run.raw_output is not None and is_cfg:
         overrides["output_format"] = "binary"
         overrides["output_file"] = str(run.raw_output)
+    if overrides and not is_cfg:
+        raise ValueError(
+            f"run '{run.name}' sets cfg overrides but config_filename "
+            f"'{run.config_filename}' is not a '.cfg' file"
+        )
     return materialise_config(run.source_config, target, overrides)
 
 
@@ -144,7 +161,7 @@ def build_metadata(
         command=tuple(command),
         run_dir=run.run_dir,
         source_config=run.source_config,
-        run_config=run.run_dir / "config.cfg",
+        run_config=run.run_dir / run.config_filename,
         build_semantics=run.build_semantics,
     )
     record = RunRecord(
@@ -172,7 +189,7 @@ def _legacy_metadata(
         "git_commit": commit,
         "binary": str(run.binary),
         "source_config": str(run.source_config),
-        "run_config": str(run.run_dir / "config.cfg"),
+        "run_config": str(run.run_dir / run.config_filename),
         "precision": run.precision,
         "build": run.build,
         "raw_output": str(run.raw_output) if run.raw_output else None,
