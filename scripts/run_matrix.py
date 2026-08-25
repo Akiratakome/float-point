@@ -96,7 +96,7 @@ def materialise_run_config(run: MatrixRun) -> Path:
 
 def build_command(run: MatrixRun, config: Path) -> tuple[str, ...]:
     """Binary, then optional workload arguments, then the materialised config."""
-    return (run.binary.as_posix(), *run.arguments, str(config))
+    return (str(run.binary), *run.arguments, str(config))
 
 
 def git_commit() -> str:

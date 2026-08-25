@@ -22,7 +22,7 @@ def test_run_without_arguments_builds_the_legacy_two_token_command(tmp_path: Pat
     config = run_matrix.materialise_run_config(run)
 
     assert run.arguments == ()
-    assert run_matrix.build_command(run, config) == ("build-double/hrsc", str(config))
+    assert run_matrix.build_command(run, config) == (str(run.binary), str(config))
 
 
 def test_arguments_are_inserted_between_binary_and_config(tmp_path: Path) -> None:

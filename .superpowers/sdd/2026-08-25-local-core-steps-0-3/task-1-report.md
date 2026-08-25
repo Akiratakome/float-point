@@ -38,3 +38,22 @@ Result: `63 passed in 1.70s`.
 ## Concerns
 
 No known functional concerns. The focused regression suite passed in full.
+
+## Fix Round 1
+
+Changes:
+
+- Restored `build_command` to use `str(run.binary)`, preserving the existing Windows command and metadata token semantics.
+- Updated the legacy contract test to derive the expected binary token from `str(run.binary)`, so slash normalization would be detected.
+
+Verification command:
+
+```text
+python -m pytest tests/py/test_aiinfra_harness_contract.py tests/py/test_harness_scripts.py tests/py/test_harness_runner.py -q
+```
+
+Output:
+
+```text
+63 passed in 1.70s
+```
