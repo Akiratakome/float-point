@@ -5,8 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
+import tempfile
 from pathlib import Path
+from typing import Any
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -29,12 +32,57 @@ def _fail(category: str, message: str) -> int:
     return 1
 
 
+def _unexpected_failure(exc: Exception) -> int:
+    return _fail(FailureCategory.INFRASTRUCTURE.value, f"{type(exc).__name__}: {exc}")
+
+
+def _clear_canonical_result(result_path: Path) -> None:
+    """Remove a prior attempt's canonical result before starting this attempt."""
+    try:
+        result_path.unlink()
+    except FileNotFoundError:
+        pass
+
+
+def _write_result_atomically(result_path: Path, document: dict[str, Any]) -> None:
+    """Publish a validated document without exposing a partial canonical result."""
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=result_path.parent,
+            prefix=f".{result_path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary:
+            temporary_path = Path(temporary.name)
+            json.dump(document, temporary, indent=2)
+            temporary.write("\n")
+            temporary.flush()
+            os.fsync(temporary.fileno())
+        temporary_path.replace(result_path)
+    except Exception:
+        if temporary_path is not None:
+            try:
+                temporary_path.unlink()
+            except (FileNotFoundError, OSError):
+                pass
+        raise
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("config", type=Path, help="Materialised workload configuration")
     args = parser.parse_args(argv)
 
     run_dir = args.config.resolve().parent
+    result_path = run_dir / RESULT_FILENAME
+    try:
+        _clear_canonical_result(result_path)
+    except OSError as exc:
+        return _fail(FailureCategory.ARTIFACT.value, f"cannot clear {result_path}: {exc}")
+
     try:
         config = load_workload_config(args.config)
         if config.workload not in WORKLOADS:
@@ -55,24 +103,33 @@ def main(argv: list[str] | None = None) -> int:
         return _fail(exc.category, str(exc))
     except MemoryError as exc:
         return _fail(FailureCategory.RESOURCE_EXHAUSTED.value, f"MemoryError: {exc}")
+    except Exception as exc:
+        return _unexpected_failure(exc)
 
-    document = result_schema.build_workload_result(
-        workload=config.workload,
-        backend=backend.describe(),
-        model=model,
-        environment=environment.probe(),
-        cells=cells,
-        completed=len(cells),
-        expected=len(config.batch_sizes),
-    )
     try:
+        document = result_schema.build_workload_result(
+            workload=config.workload,
+            backend=backend.describe(),
+            model=model,
+            environment=environment.probe(),
+            cells=cells,
+            completed=len(cells),
+            expected=len(config.batch_sizes),
+        )
         result_schema.validate_workload_result(document)
-    except ValueError as exc:
-        return _fail(FailureCategory.SCHEMA.value, str(exc))
+    except WorkloadFailure as exc:
+        return _fail(exc.category, str(exc))
+    except MemoryError as exc:
+        return _fail(FailureCategory.RESOURCE_EXHAUSTED.value, f"MemoryError: {exc}")
+    except Exception as exc:
+        return _unexpected_failure(exc)
 
-    (run_dir / RESULT_FILENAME).write_text(
-        json.dumps(document, indent=2) + "\n", encoding="utf-8"
-    )
+    try:
+        _write_result_atomically(result_path, document)
+    except OSError as exc:
+        return _fail(FailureCategory.ARTIFACT.value, f"cannot write {result_path}: {exc}")
+    except Exception as exc:
+        return _unexpected_failure(exc)
     print(
         f"[run-status] status=success kind=workload "
         f"completed={len(cells)} expected={len(config.batch_sizes)}",

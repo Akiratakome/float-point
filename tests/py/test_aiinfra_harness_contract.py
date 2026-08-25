@@ -378,3 +378,103 @@ def test_committed_smoke_matrix_agrees_with_the_result_filename() -> None:
         assert raw["output_file"] == run_workload.RESULT_FILENAME
         assert raw["artifact_kind"] == "workload_result"
         assert (repo_root / raw["config"]).is_file()
+
+
+def test_backend_setup_oserror_is_reported_as_infrastructure_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An undeclared backend setup error must still be parseable by the harness."""
+    from scripts.aiinfra import run_workload
+
+    config = _workload_config(tmp_path)
+    result = config.parent / run_workload.RESULT_FILENAME
+    result.write_text("stale", encoding="utf-8")
+
+    def raise_oserror(*_args, **_kwargs):
+        raise OSError("backend setup failed")
+
+    monkeypatch.setattr(run_workload, "get_backend", raise_oserror)
+
+    assert run_workload.main([str(config)]) == 1
+    assert capsys.readouterr().err.splitlines()[0] == (
+        "[run-status] status=failed reason=infrastructure_error"
+    )
+    assert not result.exists()
+
+
+def test_result_replace_permission_error_is_an_artifact_failure_without_leftovers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A failed atomic publish must not leave a canonical or temporary result behind."""
+    from scripts.aiinfra import run_workload
+
+    config = _workload_config(tmp_path)
+    result = config.parent / run_workload.RESULT_FILENAME
+    original_replace = Path.replace
+
+    def refuse_result_replace(path: Path, target: Path) -> Path:
+        if path.parent == config.parent and path.name.startswith(
+            f".{run_workload.RESULT_FILENAME}."
+        ):
+            raise PermissionError("simulated result replace denial")
+        return original_replace(path, target)
+
+    monkeypatch.setattr(Path, "replace", refuse_result_replace)
+
+    assert run_workload.main([str(config)]) == 1
+    assert capsys.readouterr().err.splitlines()[0] == (
+        "[run-status] status=failed reason=artifact_error"
+    )
+    assert not result.exists()
+    assert list(config.parent.glob(f".{run_workload.RESULT_FILENAME}.*.tmp")) == []
+
+
+def test_result_cleanup_failure_is_an_artifact_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A stale canonical result must never be silently accepted when removal fails."""
+    from scripts.aiinfra import run_workload
+
+    config = _workload_config(tmp_path)
+    result = config.parent / run_workload.RESULT_FILENAME
+    result.write_text("stale", encoding="utf-8")
+    original_unlink = Path.unlink
+
+    def refuse_result_cleanup(path: Path, *args, **kwargs) -> None:
+        if path == result:
+            raise PermissionError("simulated result cleanup denial")
+        original_unlink(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "unlink", refuse_result_cleanup)
+
+    assert run_workload.main([str(config)]) == 1
+    assert capsys.readouterr().err.splitlines()[0] == (
+        "[run-status] status=failed reason=artifact_error"
+    )
+    assert result.read_text(encoding="utf-8") == "stale"
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    (
+        {"repeats": 0},
+        {"workload": "unimplemented"},
+        {"options": {"fault": "resource_exhausted"}},
+    ),
+)
+def test_failed_rerun_removes_the_previous_canonical_result(
+    tmp_path: Path, overrides: dict, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A fresh attempt must remove a prior success before config or backend failure."""
+    from scripts.aiinfra import run_workload
+
+    config = _workload_config(tmp_path)
+    result = config.parent / run_workload.RESULT_FILENAME
+    assert run_workload.main([str(config)]) == 0
+    assert result.is_file()
+    capsys.readouterr()
+
+    _workload_config(tmp_path, **overrides)
+
+    assert run_workload.main([str(config)]) == 1
+    assert not result.exists()
