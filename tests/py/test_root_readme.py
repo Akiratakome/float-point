@@ -18,6 +18,14 @@ def _summary(path: str) -> dict:
     return json.loads((REPO_ROOT / path).read_text(encoding="utf-8"))
 
 
+def _measured_result_bullets(text: str) -> list[str]:
+    section = text.split("## Three measured results\n\n", maxsplit=1)[1].split(
+        "\n## ", maxsplit=1
+    )[0]
+    bullets = re.findall(r"(?ms)^- (.*?)(?=^- |\Z)", section)
+    return [re.sub(r"\s+", " ", bullet).strip() for bullet in bullets]
+
+
 def test_readme_exists_and_links_the_three_entry_points() -> None:
     text = _readme()
 
@@ -28,6 +36,7 @@ def test_readme_exists_and_links_the_three_entry_points() -> None:
 def test_readme_locks_all_presented_fma_results_to_the_summary() -> None:
     """Catch a README claim that diverges from the FMA evidence packet."""
     text = _readme()
+    first_result, second_result, _ = _measured_result_bullets(text)
     fma = _summary("experiments/week20/gpu_fma_contraction/summary.json")
     off_rows = [row for row in fma["rows"] if row["fma_contraction"] == "off"]
     on_rows = {
@@ -39,23 +48,32 @@ def test_readme_locks_all_presented_fma_results_to_the_summary() -> None:
     assert len(off_rows) == 4
     assert all(row["ulp_max"] == 0 for row in off_rows)
     assert all(row["bitwise_identical"] for row in off_rows)
-    assert f"all {len(off_rows)} measured CPU/GPU pairs" in text
-    assert f"ulp_max = {max(row['ulp_max'] for row in off_rows)}" in text
-    assert "bit-identical" in text
     assert {row["nvcc_flag"] for row in off_rows} == {"--fmad=false"}
-    assert "--fmad=false" in text
+    for expected in (
+        "--fmad=false",
+        f"all {len(off_rows)} measured CPU/GPU pairs",
+        "bit-identical",
+        f"ulp_max = {max(row['ulp_max'] for row in off_rows)}",
+    ):
+        assert expected in first_result
 
-    for case, precision in (("orszag_tang_2d", "float"), ("brio_wu_1d", "float")):
-        row = on_rows[(case, precision)]
-        assert row["nvcc_flag"] == "--fmad=true"
-        assert f"{row['rho_linf_abs']:.3e}" in text
-        assert f"fp{32 if precision == 'float' else 64}" in text
-    assert "--fmad=true" in text
+    ot = on_rows[("orszag_tang_2d", "float")]
+    brio = on_rows[("brio_wu_1d", "float")]
+    assert ot["nvcc_flag"] == brio["nvcc_flag"] == "--fmad=true"
+    for expected in ("--fmad=true", "fp32", "L-infinity"):
+        assert expected in second_result
+    assert re.search(
+        rf"`?{ot['rho_linf_abs']:.3e}`? for Orszag--Tang", second_result
+    )
+    assert re.search(
+        rf"`?{brio['rho_linf_abs']:.3e}`? for Brio--Wu", second_result
+    )
 
 
 def test_readme_locks_all_presented_openmp_results_to_the_summary() -> None:
     """Catch a README thread or speed-up value that differs from the summary."""
     text = _readme()
+    _, _, third_result = _measured_result_bullets(text)
     omp = _summary("experiments/week21/euler_openmp_thread_axis/summary.json")
     fp64 = next(group for group in omp["groups"] if group["precision"] == "double")
     rows = fp64["rows"]
@@ -65,10 +83,17 @@ def test_readme_locks_all_presented_openmp_results_to_the_summary() -> None:
     assert omp["all_thread_counts_bitwise_identical"]
     assert all(row["ulp_max"] == 0 and row["bitwise_identical"] for row in rows)
     assert thread_counts == [1, 2, 4, 8]
-    assert "1, 2, 4, and 8 threads" in text
-    assert "bit-identical" in text
-    assert f"{eight_thread['speedup_over_one_thread']:.2f}x" in text
-    assert "fp64" in text
+    for expected in (
+        "1, 2, 4, and 8 threads",
+        "bit-identical",
+        "fp64",
+        f"{max(thread_counts)}-thread row reaches",
+    ):
+        assert expected in third_result
+    assert re.search(
+        rf"`?{eight_thread['speedup_over_one_thread']:.2f}x`? over one thread",
+        third_result,
+    )
 
 
 def test_readme_uses_one_tracked_figure_with_matching_alt_text() -> None:
