@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 import struct
 from collections.abc import Callable
@@ -61,9 +62,23 @@ def _validate_hrsc_binary(path: Path) -> None:
         )
 
 
+def _validate_workload_result(path: Path) -> None:
+    from scripts.aiinfra.result_schema import validate_workload_result
+
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ArtifactValidationError(f"cannot read workload result: {path}: {exc}") from exc
+    try:
+        validate_workload_result(document)
+    except ValueError as exc:
+        raise ArtifactValidationError(f"{path}: {exc}") from exc
+
+
 _ARTIFACT_VALIDATORS: dict[str, ArtifactValidator] = {
     "file": _validate_file,
     "hrsc_binary": _validate_hrsc_binary,
+    "workload_result": _validate_workload_result,
 }
 
 
