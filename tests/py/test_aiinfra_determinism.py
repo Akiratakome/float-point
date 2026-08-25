@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -164,3 +165,80 @@ def test_backend_description_has_exact_schema_keys(tmp_path: Path) -> None:
         "requested_path",
         "effective_path",
     }
+
+
+def test_measurement_uses_only_position_zero_after_one_warmup_per_batch_size(
+    tmp_path: Path,
+) -> None:
+    from scripts.aiinfra import determinism
+    from scripts.aiinfra.backends import base
+
+    class RecordingBackend:
+        def __init__(self) -> None:
+            self.calls: list[base.GenerationRequest] = []
+            self.latencies = (101.0, 1.0, 2.0, 3.0, 4.0, 202.0, 10.0, 11.0, 12.0, 13.0)
+
+        def generate(self, request: base.GenerationRequest) -> base.GenerationResult:
+            call_index = len(self.calls)
+            self.calls.append(request)
+            texts = tuple(
+                f"position-{position}:batch-{request.batch_size}:call-{call_index}"
+                for position in range(request.batch_size)
+            )
+            return base.GenerationResult(
+                texts=texts,
+                logits=None,
+                latency_s=self.latencies[call_index],
+            )
+
+    loaded = _config(tmp_path, batch_sizes=[2, 3], repeats=4)
+    backend = RecordingBackend()
+
+    cells = determinism.measure_cells(backend, loaded)
+
+    assert [request.batch_size for request in backend.calls] == [2, 2, 2, 2, 2, 3, 3, 3, 3, 3]
+    assert all(
+        (
+            request.prompt,
+            request.max_new_tokens,
+            request.seed,
+            request.dtype,
+        )
+        == ("hello", 8, 0, "float32")
+        for request in backend.calls
+    )
+    assert [cell["output_digests"] for cell in cells] == [
+        [
+            hashlib.sha256(b"position-0:batch-2:call-1").hexdigest(),
+            hashlib.sha256(b"position-0:batch-2:call-2").hexdigest(),
+            hashlib.sha256(b"position-0:batch-2:call-3").hexdigest(),
+            hashlib.sha256(b"position-0:batch-2:call-4").hexdigest(),
+        ],
+        [
+            hashlib.sha256(b"position-0:batch-3:call-6").hexdigest(),
+            hashlib.sha256(b"position-0:batch-3:call-7").hexdigest(),
+            hashlib.sha256(b"position-0:batch-3:call-8").hexdigest(),
+            hashlib.sha256(b"position-0:batch-3:call-9").hexdigest(),
+        ],
+    ]
+    assert [cell["latency_median_s"] for cell in cells] == [2.5, 11.5]
+    assert [cell["latency_iqr_s"] for cell in cells] == [1.5, 1.5]
+
+
+def test_fake_backend_fills_requested_batch_and_honours_token_count(tmp_path: Path) -> None:
+    from scripts.aiinfra.backends.base import GenerationRequest
+
+    backend = _backend(_config(tmp_path))
+    one_token = backend.generate(
+        GenerationRequest("hello", batch_size=3, max_new_tokens=1, seed=0, dtype="float32")
+    )
+    many_tokens = backend.generate(
+        GenerationRequest("hello", batch_size=3, max_new_tokens=3, seed=0, dtype="float32")
+    )
+
+    assert len(one_token.texts) == 3
+    assert len(many_tokens.texts) == 3
+    assert len(set(one_token.texts)) == 1
+    assert len(set(many_tokens.texts)) == 1
+    assert all(len(text.split()) == 1 for text in one_token.texts)
+    assert all(len(text.split()) == 3 for text in many_tokens.texts)
