@@ -56,6 +56,7 @@ test_out.txt
 test_err.txt
 /tmp/
 /tmp*/
+/.worktrees/
 
 # Generated bundles and review artefacts
 /artifacts/
