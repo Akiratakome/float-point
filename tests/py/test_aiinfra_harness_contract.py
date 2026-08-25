@@ -157,3 +157,67 @@ def test_unknown_artifact_kind_is_rejected_at_normalise_time(tmp_path: Path) -> 
             },
             output_root=tmp_path / "out",
         )
+
+
+def test_legacy_success_line_still_requires_the_solver_fields() -> None:
+    from scripts.harness.runner import parse_run_status
+
+    status, completion, failure = parse_run_status(
+        "[run-status] status=success final_time=0.1 target_time=0.1 steps=4\n"
+    )
+    assert (status, failure) == ("success", None)
+    assert completion == {"final_time": 0.1, "target_time": 0.1, "steps": 4}
+
+
+def test_workload_success_line_reports_completed_and_expected() -> None:
+    from scripts.harness.runner import parse_run_status
+
+    status, completion, failure = parse_run_status(
+        "[run-status] status=success kind=workload completed=50 expected=50\n"
+    )
+    assert (status, failure) == ("success", None)
+    assert completion == {"kind": "workload", "completed": 50, "expected": 50}
+
+
+def test_workload_line_with_fewer_completed_than_expected_is_incomplete() -> None:
+    from scripts.harness.runner import parse_run_status
+
+    status, completion, failure = parse_run_status(
+        "[run-status] status=success kind=workload completed=49 expected=50\n"
+    )
+    assert status == "failed"
+    assert completion is None
+    assert failure["category"] == "incomplete_run"
+
+
+def test_unknown_status_kind_is_a_schema_error() -> None:
+    from scripts.harness.runner import parse_run_status
+
+    status, _completion, failure = parse_run_status(
+        "[run-status] status=success kind=telepathy completed=1 expected=1\n"
+    )
+    assert status == "failed"
+    assert failure["category"] == "schema_error"
+
+
+def test_resource_exhausted_is_a_recognised_failure_category() -> None:
+    from scripts.harness.contracts import FailureCategory
+    from scripts.harness.runner import parse_run_status
+
+    assert FailureCategory.RESOURCE_EXHAUSTED.value == "resource_exhausted"
+
+    status, _completion, failure = parse_run_status(
+        "[run-status] status=failed reason=resource_exhausted\n"
+    )
+    assert status == "failed"
+    assert failure["category"] == "resource_exhausted"
+
+
+def test_unknown_failure_reason_is_a_schema_error() -> None:
+    from scripts.harness.runner import parse_run_status
+
+    status, _completion, failure = parse_run_status(
+        "[run-status] status=failed reason=made_up_category\n"
+    )
+    assert status == "failed"
+    assert failure["category"] == "schema_error"
