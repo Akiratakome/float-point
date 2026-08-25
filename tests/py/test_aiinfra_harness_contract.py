@@ -478,3 +478,69 @@ def test_failed_rerun_removes_the_previous_canonical_result(
 
     assert run_workload.main([str(config)]) == 1
     assert not result.exists()
+
+
+def test_config_loader_memory_error_is_a_resource_exhausted_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Input-stage allocation failure must be structured after stale-result cleanup."""
+    from scripts.aiinfra import run_workload
+
+    config = _workload_config(tmp_path)
+    result = config.parent / run_workload.RESULT_FILENAME
+    result.write_text("stale", encoding="utf-8")
+
+    def raise_memory_error(_path: Path):
+        raise MemoryError("simulated config allocation failure")
+
+    monkeypatch.setattr(run_workload, "load_workload_config", raise_memory_error)
+
+    assert run_workload.main([str(config)]) == 1
+    assert capsys.readouterr().err.splitlines()[0] == (
+        "[run-status] status=failed reason=resource_exhausted"
+    )
+    assert not result.exists()
+
+
+def test_config_resolve_oserror_is_an_infrastructure_failure_after_safe_cleanup(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A path-resolution error must be structured and clear the lexical run result."""
+    from scripts.aiinfra import run_workload
+
+    config = _workload_config(tmp_path)
+    result = config.parent / run_workload.RESULT_FILENAME
+    result.write_text("stale", encoding="utf-8")
+    original_resolve = Path.resolve
+
+    def refuse_config_resolve(path: Path, *args, **kwargs) -> Path:
+        if path == config:
+            raise OSError("simulated config resolution failure")
+        return original_resolve(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "resolve", refuse_config_resolve)
+
+    assert run_workload.main([str(config)]) == 1
+    assert capsys.readouterr().err.splitlines()[0] == (
+        "[run-status] status=failed reason=infrastructure_error"
+    )
+    assert not result.exists()
+
+
+def test_model_pin_runtime_error_is_an_infrastructure_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An undeclared model-pin exception must not escape the configuration boundary."""
+    from scripts.aiinfra import run_workload
+
+    config = _workload_config(tmp_path)
+
+    def raise_runtime_error(_path: Path):
+        raise RuntimeError("simulated model pin failure")
+
+    monkeypatch.setattr(run_workload, "load_model_pins", raise_runtime_error)
+
+    assert run_workload.main([str(config)]) == 1
+    assert capsys.readouterr().err.splitlines()[0] == (
+        "[run-status] status=failed reason=infrastructure_error"
+    )

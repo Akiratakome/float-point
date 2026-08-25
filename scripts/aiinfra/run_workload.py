@@ -76,12 +76,35 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("config", type=Path, help="Materialised workload configuration")
     args = parser.parse_args(argv)
 
-    run_dir = args.config.resolve().parent
-    result_path = run_dir / RESULT_FILENAME
+    requested_result_path = args.config.parent / RESULT_FILENAME
     try:
-        _clear_canonical_result(result_path)
-    except OSError as exc:
-        return _fail(FailureCategory.ARTIFACT.value, f"cannot clear {result_path}: {exc}")
+        _clear_canonical_result(requested_result_path)
+    except Exception as exc:
+        return _fail(
+            FailureCategory.ARTIFACT.value,
+            f"cannot clear {requested_result_path}: {exc}",
+        )
+
+    try:
+        resolved_config = args.config.resolve()
+    except WorkloadFailure as exc:
+        return _fail(exc.category, str(exc))
+    except ValueError as exc:
+        return _fail(FailureCategory.CONFIGURATION.value, str(exc))
+    except MemoryError as exc:
+        return _fail(FailureCategory.RESOURCE_EXHAUSTED.value, f"MemoryError: {exc}")
+    except Exception as exc:
+        return _unexpected_failure(exc)
+
+    result_path = resolved_config.parent / RESULT_FILENAME
+    if result_path != requested_result_path:
+        try:
+            _clear_canonical_result(result_path)
+        except Exception as exc:
+            return _fail(
+                FailureCategory.ARTIFACT.value,
+                f"cannot clear {result_path}: {exc}",
+            )
 
     try:
         config = load_workload_config(args.config)
@@ -95,6 +118,10 @@ def main(argv: list[str] | None = None) -> int:
         return _fail(exc.category, str(exc))
     except ValueError as exc:
         return _fail(FailureCategory.CONFIGURATION.value, str(exc))
+    except MemoryError as exc:
+        return _fail(FailureCategory.RESOURCE_EXHAUSTED.value, f"MemoryError: {exc}")
+    except Exception as exc:
+        return _unexpected_failure(exc)
 
     try:
         backend = get_backend(config.backend, model=model, options=config.options)
