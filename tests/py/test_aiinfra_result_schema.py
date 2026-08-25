@@ -75,6 +75,15 @@ def test_non_finite_latency_is_rejected() -> None:
         result_schema.validate_workload_result(document)
 
 
+def test_non_string_digest_is_rejected_as_an_invalid_digest() -> None:
+    from scripts.aiinfra import result_schema
+
+    document = _document()
+    document["cells"][0]["output_digests"] = [{}, {}, {}, {}]
+    with pytest.raises(ValueError, match="output_digests"):
+        result_schema.validate_workload_result(document)
+
+
 def test_artifact_validator_accepts_a_valid_result_file(tmp_path: Path) -> None:
     path = tmp_path / "workload_result.json"
     path.write_text(json.dumps(_document()), encoding="utf-8")

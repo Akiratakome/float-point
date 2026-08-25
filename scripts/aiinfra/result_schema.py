@@ -107,6 +107,10 @@ def validate_workload_result(document: Any) -> None:
             raise ValueError(
                 f"workload result {where}.output_digests must hold one digest per repeat"
             )
+        if any(not isinstance(digest, str) for digest in digests):
+            raise ValueError(
+                f"workload result {where}.output_digests must contain only strings"
+            )
         if len(set(digests)) != unique:
             raise ValueError(
                 f"workload result {where}.unique_output_count disagrees with output_digests"
